@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WHOIS Lookup - Free Domain Ownership Checker | DevTools Hub</title>
+<meta name="description" content="Free online WHOIS lookup. Check domain registration info, ownership, expiration dates, and name servers instantly.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/whois-lookup/">
+<meta property="og:title" content="WHOIS Lookup - Free Domain Ownership Checker">
+<meta property="og:description" content="Check domain ownership and registration info instantly. Free WHOIS lookup tool.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/whois-lookup/">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"WHOIS Lookup","url":"https://tools.scoreroute.com/tools/whois-lookup/","description":"Free online WHOIS lookup tool for domain registration information.","applicationCategory":"Utility","operatingSystem":"All"}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.lookup-area { max-width: 700px; margin: 2rem auto; }
+.lookup-area * { color: #ccc; }
+.search-box { display: flex; gap: 1rem; margin: 1.5rem 0; flex-wrap: wrap; }
+.search-box input { flex: 1; padding: 1rem; border: 1px solid #555; border-radius: 8px; background: #1a1a3e; color: #fff; font-size: 1rem; min-width: 200px; }
+.search-box input:focus { outline: 2px solid transparent; border-color: #667eea; }
+.search-box input::placeholder { color: #666; }
+.btn { padding: 1rem 2rem; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.result-area { display: none; margin: 1.5rem 0; padding: 1.5rem; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+.result-area.visible { display: block; }
+.result-area.error { border-color: #dc3545; background: #2a1a1e; }
+.result-domain { color: #667eea; font-size: 1.3rem; margin-bottom: 1rem; word-break: break-all; }
+.result-title { color: #fff; font-size: 1.2rem; margin-bottom: 1rem; }
+.result-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #333; flex-wrap: wrap; }
+.result-row:last-child { border-bottom: none; }
+.result-label { color: #888; }
+.result-value { color: #667eea; font-weight: 500; word-break: break-all; text-align: right; }
+.loading { display: none; text-align: center; padding: 2rem; }
+.loading.visible { display: block; }
+.spinner { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+section h2 { color: #fff; margin-top: 2rem; }
+section p, section li { color: #ccc; }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+.feature-card { background: #1a1a3e; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #667eea; }
+.feature-card h3 { color: #fff; margin-bottom: 0.5rem; }
+.feature-card p { color: #aaa; }
+.hero-text { color: #ccc; font-size: 1.1rem; }
+ol li, ul li { margin: 0.5rem 0; }
+.hint { color: #888; font-size: 0.9rem; margin-top: 0.5rem; }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="logo">DevTools Hub</a>
+    <nav class="main-nav">
+      <a href="/">Home</a>
+      <a href="/tools/feedback/">Feedback</a>
+    </nav>
+  </div>
+</header>
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span>/</span>
+    <span aria-current="page">WHOIS Lookup</span>
+  </nav>
+  <h1>WHOIS Lookup</h1>
+  <p class="hero-text">Check domain registration details instantly. Find domain owner, expiration date, name servers, and more.</p>
+
+  <div class="lookup-area">
+    <div class="search-box">
+      <input type="text" id="domainInput" placeholder="Enter domain or full URL (e.g., google.com or https://example.com)" autocomplete="off" aria-label="Enter domain or full URL">
+      <button id="lookupBtn" class="btn btn-primary">Lookup</button>
+    </div>
+    <p class="hint">Supports both domain names (google.com) and full URLs (https://google.com)</p>
+
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Looking up WHOIS information...</p>
+    </div>
+
+    <div id="resultArea" class="result-area">
+      <div id="resultDomain" class="result-domain"></div>
+      <div class="result-title">WHOIS Information</div>
+      <div id="resultContent"></div>
+    </div>
+  </div>
+
+  <section>
+    <h2>What is WHOIS?</h2>
+    <p>WHOIS is a protocol that allows you to query databases to find information about domain names and IP addresses. This includes registration details, expiration dates, name servers, and contact information for the domain owner.</p>
+  </section>
+
+  <section>
+    <h2>How to Use</h2>
+    <ol>
+      <li><strong>Enter a domain or URL</strong> in the search box above (e.g., google.com or https://google.com)</li>
+      <li><strong>Click "Lookup"</strong> or press Enter to search</li>
+      <li><strong>View results</strong> including registration status, dates, and name servers</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Features</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>URL or Domain</h3>
+        <p>Enter a full URL like https://google.com or just the domain like google.com</p>
+      </div>
+      <div class="feature-card">
+        <h3>Complete Data</h3>
+        <p>Shows domain status, creation date, expiration date, name servers, and more.</p>
+      </div>
+      <div class="feature-card">
+        <h3>100% Free</h3>
+        <p>Our WHOIS lookup is completely free with no registration or limits.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Privacy First</h3>
+        <p>All queries are anonymous. Your searches are not logged or tracked.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(function() {
+  var domainInput = document.getElementById('domainInput');
+  var lookupBtn = document.getElementById('lookupBtn');
+  var loading = document.getElementById('loading');
+  var resultArea = document.getElementById('resultArea');
+  var resultDomain = document.getElementById('resultDomain');
+  var resultContent = document.getElementById('resultContent');
+
+  function extractDomain(input) {
+    input = input.trim();
+    if (!input) return null;
+    
+    try {
+      var url;
+      if (input.startsWith('http://') || input.startsWith('https://')) {
+        url = new URL(input);
+        return url.hostname;
+      } else if (input.includes('.')) {
+        var domainPattern = /^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+        if (domainPattern.test(input)) {
+          return input;
+        }
+      }
+      return null;
+    } catch(e) {
+      return null;
+    }
+  }
+
+  function renderResult(data, queriedDomain) {
+    var html = '';
+    var fields = [
+      ['Domain', 'domain'],
+      ['Status', 'status'],
+      ['Created Date', 'creation_date'],
+      ['Expires Date', 'expiration_date'],
+      ['Updated Date', 'updated_date'],
+      ['Name Servers', 'name_servers'],
+      ['Registrar', 'registrar'],
+      ['DNSSEC', 'dnssec'],
+      ['Country', 'country'],
+      ['State', 'state'],
+      ['City', 'city'],
+      ['Organization', 'org']
+    ];
+    
+    for (var i = 0; i < fields.length; i++) {
+      var key = fields[i][1];
+      var label = fields[i][0];
+      var value = data[key];
+      
+      if (key === 'name_servers' && Array.isArray(value)) {
+        value = value.join(', ');
+      }
+      
+      if (value) {
+        html += '<div class="result-row"><span class="result-label">' + label + ':</span><span class="result-value">' + value + '</span></div>';
+      }
+    }
+    
+    if (!html) {
+      html = '<p style="color:#888;">No detailed information available for this domain.</p>';
+    }
+    
+    resultDomain.textContent = 'Queried: ' + (data.domain || queriedDomain);
+    resultContent.innerHTML = html;
+    resultArea.classList.add('visible');
+    resultArea.classList.remove('error');
+  }
+
+  function renderError(message) {
+    resultDomain.textContent = '';
+    resultContent.innerHTML = '<p style="color:#dc3545;">Error: ' + message + '</p>';
+    resultArea.classList.add('visible');
+    resultArea.classList.add('error');
+  }
+
+  async function doLookup() {
+    var input = domainInput.value.trim();
+    
+    if (!input) {
+      renderError('Please enter a domain or URL');
+      return;
+    }
+    
+    var domain = extractDomain(input);
+    
+    if (!domain) {
+      renderError('Invalid format. Please enter a domain (google.com) or URL (https://google.com)');
+      return;
+    }
+    
+    lookupBtn.disabled = true;
+    loading.classList.add('visible');
+    resultArea.classList.remove('visible');
+    resultDomain.textContent = '';
+    resultContent.innerHTML = '';
+    
+    try {
+      var response = await fetch('/api/whois-lookup?domain=' + encodeURIComponent(domain));
+      var data = await response.json();
+      
+      if (data.error) {
+        renderError(data.error);
+      } else {
+        renderResult(data, domain);
+      }
+    } catch(e) {
+      renderError('Network error. Please try again.');
+    }
+    
+    lookupBtn.disabled = false;
+    loading.classList.remove('visible');
+  }
+
+  lookupBtn.addEventListener('click', doLookup);
+  domainInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') doLookup();
+  });
+})();
+</script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

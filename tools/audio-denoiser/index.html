@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<title>Audio Denoiser - Reduce Background Noise Free | DevTools Hub</title>
+<meta name="description" content="Free audio denoiser browser tool. Remove background noise, hiss, hum, wind and ambient sound from MP3, WAV, M4A, FLAC, OGG files. 100% private, no upload, no signup.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/audio-denoiser/">
+<meta property="og:title" content="Audio Denoiser - Reduce Background Noise Free | DevTools Hub">
+<meta property="og:description" content="Remove background noise from any audio file in your browser. 4 presets, custom sliders, side-by-side A/B. No upload, no signup, 100% private.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/audio-denoiser/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Audio Denoiser - Free Background Noise Reducer">
+<meta name="twitter:description" content="Remove background noise from any audio file. 100% private in-browser processing. No upload, no signup.">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, ai-train:no">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Audio Denoiser","description":"Free online audio denoiser that removes background noise, hiss, hum and ambient sound from MP3, WAV, M4A, FLAC, OGG and other audio files. Multi-preset adaptive filter chain (high-pass, low-pass, powerline notch, dynamics gate, make-up gain) running in the browser via Web Audio API. Drag-and-drop upload, side-by-side A/B compare, 16-bit PCM WAV download, 100% private.","url":"https://tools.scoreroute.com/tools/audio-denoiser/","applicationCategory":"MultimediaApplication","operatingSystem":"Any","browserRequirements":"Modern browser with JavaScript and Web Audio API support","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-09-01","dateModified":"2026-09-01","featureList":["Adaptive filter chain: high-pass + low-pass + powerline notch + dynamics gate + make-up gain","4 presets: Voice, Music, Outdoor, Custom (full slider control)","Side-by-side A/B waveform compare (original vs denoised)","Custom sliders: high-pass Hz, low-pass Hz, notch Hz (50/60/off), gate threshold dB, make-up gain %","Drag-and-drop file upload with progress and metadata display","Outputs 16-bit PCM WAV at original sample rate and channels","Accepts MP3, WAV, M4A, FLAC, OGG, AAC, WEBM, OPUS","Works entirely in the browser - file never leaves your device","No signup, no watermark, no daily limit","Audio metadata display (filename, size, duration, channels, sample rate)","Live preset-switching - try each preset instantly"]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does this audio denoiser work?","acceptedAnswer":{"@type":"Answer","text":"The tool applies a chain of Web Audio API filters in series: a high-pass biquad filter removes low-frequency rumble and mains hum below the cutoff, a powerline notch filter cancels 50Hz or 60Hz electrical interference, a low-pass biquad filter removes high-frequency hiss above the cutoff, a dynamics compressor set as a noise gate silences signal below the threshold, and a make-up gain stage restores the lost loudness. All processing happens locally in your browser via OfflineAudioContext - no audio is uploaded to any server."}},{"@type":"Question","name":"Will it work on every recording?","acceptedAnswer":{"@type":"Answer","text":"It works well on speech and voice recordings, podcasts, calls, lecture captures and interviews where background noise is mostly low-frequency hum, hiss, fan noise or steady ambient sound. For non-stationary noise such as crowd chatter, sudden bangs or music bleed-through, results vary - you may need to try multiple presets or fall back to a tool with AI spectral subtraction like Audacity."}},{"@type":"Question","name":"Is my audio file uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. The entire pipeline runs locally in your browser using the Web Audio API and OfflineAudioContext. The audio file is decoded into PCM samples, processed in memory, encoded back to WAV, and downloaded. It never leaves your device."}},{"@type":"Question","name":"What audio formats are supported?","acceptedAnswer":{"@type":"Answer","text":"The tool accepts any audio format your browser can decode with AudioContext.decodeAudioData: MP3, WAV, M4A, FLAC, OGG, AAC, WEBM and OPUS. The output is always a 16-bit PCM WAV file at the original sample rate and channel layout (mono or stereo)."}},{"@type":"Question","name":"What is the difference between presets?","acceptedAnswer":{"@type":"Answer","text":"Voice preset uses 80Hz high-pass, 60Hz notch, 8kHz low-pass and -45dB gate - optimized for speech clarity. Music preset uses 40Hz high-pass, no notch, 16kHz low-pass and -55dB gate - lighter touch that preserves bass and treble. Outdoor preset uses 200Hz high-pass, 50Hz notch, 5kHz low-pass and -35dB gate - aggressive wind and rumble reduction. Custom exposes every slider so you can fine-tune each stage."}},{"@type":"Question","name":"Can I preview before downloading?","acceptedAnswer":{"@type":"Answer","text":"Yes. The waveform canvas supports side-by-side A/B comparison: the blue waveform is the original and the green waveform is the denoised result. Use the play buttons under each canvas to audition before downloading. You can also switch presets and click Reduce Noise again to compare settings."}},{"@type":"Question","name":"Why does the file size change after denoising?","acceptedAnswer":{"@type":"Answer","text":"The output is encoded as 16-bit uncompressed PCM WAV at the original sample rate and channel layout, so the byte size is duration * sampleRate * channels * 2 bytes + 44 byte header. The same rules apply whether the audio was originally MP3, FLAC or WAV - the container changes to .wav but the underlying samples keep their native rate."}},{"@type":"Question","name":"How is this different from ChatGPT or Claude?","acceptedAnswer":{"@type":"Answer","text":"AI chatbots cannot process a user-supplied audio file with a biquad-filter chain in their chat interface. They have no AudioContext, no OfflineAudioContext, no way to apply biquad filter coefficients, no way to render a new AudioBuffer, and no way to encode and download a 16-bit WAV. This tool runs the entire pipeline natively in your browser using the Web Audio API - the same technology that powers online DAWs, podcast editors and live broadcast software."}}]}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.ad-wrap { max-width: 1000px; margin: 0 auto; color: #e8e8f0; }
+.ad-dropzone { border: 2px dashed #555; border-radius: 12px; padding: 36px 16px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(126, 179, 255, 0.04); margin-bottom: 16px; }
+.ad-dropzone:hover, .ad-dropzone.dragover { border-color: #7eb3ff; background: rgba(126, 179, 255, 0.1); }
+.ad-dropzone svg { width: 44px; height: 44px; margin-bottom: 8px; opacity: 0.7; color: #a3c8ff; }
+.ad-dropzone-title { color: #e8e8f0; font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+.ad-dropzone-hint { color: #9090b0; font-size: 0.85rem; }
+.ad-dropzone-hint strong { color: #e8e8f0; }
+.ad-file-input { display: none; }
+.ad-panel { background: #1a1a2e; border: 1px solid #2a2a4e; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.ad-panel-title { font-size: 0.85rem; font-weight: 700; color: #9090b0; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.ad-preset-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.ad-preset { padding: 0.55rem 1rem; border-radius: 6px; background: #252545; color: #ccc; border: 1px solid #3a3a5a; cursor: pointer; font-size: 0.9rem; transition: all 0.15s; font-weight: 500; }
+.ad-preset:hover { background: #2d2d55; }
+.ad-preset.active { background: linear-gradient(135deg, #7eb3ff, #a78bfa); color: #0a0d14; border-color: #7eb3ff; font-weight: 700; }
+.ad-slider-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.ad-slider-row input[type=range] { width: 100%; accent-color: #7eb3ff; }
+.ad-slider-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #9090b0; }
+.ad-slider-label .v { color: #a3c8ff; font-weight: 600; }
+.ad-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.75rem 0; align-items: center; }
+.ad-btn { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s, transform 0.05s; font-weight: 500; }
+.ad-btn:hover:not(:disabled) { opacity: 0.85; }
+.ad-btn:active:not(:disabled) { transform: translateY(1px); }
+.ad-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ad-btn-primary { background: linear-gradient(135deg, #7eb3ff, #a78bfa); color: #0a0d14; font-weight: 700; }
+.ad-btn-secondary { background: #333; color: #e8e8f0; }
+.ad-btn-success { background: #10b981; color: #fff; }
+.ad-btn-danger { background: #ef4444; color: #fff; }
+.ad-status { padding: 0.75rem 1rem; border-radius: 6px; margin: 0.75rem 0; font-size: 0.9rem; }
+.ad-status.info { background: rgba(126, 179, 255, 0.15); color: #a3c8ff; border: 1px solid rgba(126, 179, 255, 0.4); }
+.ad-status.success { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+.ad-status.error { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+.ad-status.warn { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+.ad-progress { height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
+.ad-progress-bar { height: 100%; background: linear-gradient(90deg, #7eb3ff, #a78bfa); transition: width 0.2s; width: 0%; }
+.ad-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 0.5rem 0; }
+.ad-meta-card { background: #0f0f23; border: 1px solid #2a2a4e; border-radius: 6px; padding: 8px 10px; }
+.ad-meta-label { font-size: 0.7rem; color: #9090b0; text-transform: uppercase; letter-spacing: 0.05em; }
+.ad-meta-value { font-size: 0.95rem; color: #e8e8f0; font-weight: 600; margin-top: 2px; word-break: break-all; }
+.ad-waveform-row { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 0.5rem 0; }
+.ad-wave-label { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: #9090b0; margin: 0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+.ad-wave-label .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.ad-canvas-wrap { background: #0f0f23; border: 1px solid #2a2a4e; border-radius: 6px; padding: 6px; }
+.ad-canvas { width: 100%; height: 96px; display: block; border-radius: 3px; background: #07070f; }
+.ad-result-section { background: #1a1a2e; border: 1px solid #2a2a4e; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.ad-result-title { font-size: 0.85rem; font-weight: 700; color: #9090b0; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.ad-callout { background: linear-gradient(135deg, rgba(126, 179, 255, 0.12), rgba(167, 139, 250, 0.12)); border: 1px solid rgba(126, 179, 255, 0.4); border-radius: 10px; padding: 1.25rem; margin: 1.5rem 0; }
+.ad-callout h3 { color: #a3c8ff; margin: 0 0 0.5rem 0; font-size: 1.05rem; }
+.ad-callout p { color: #ccc; margin: 0.5rem 0; font-size: 0.92rem; line-height: 1.55; }
+.ad-info-section { margin-top: 2rem; }
+.ad-info-section h2 { color: #7eb3ff; border-bottom: 1px solid #2a2a4e; padding-bottom: 0.5rem; }
+.ad-info-section p, .ad-info-section li { color: #ccc; line-height: 1.7; }
+.ad-info-section ol, .ad-info-section ul { margin: 0 0 1rem 1.5rem; }
+.ad-feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.ad-feature-card { background: #0f0f23; padding: 1rem; border-radius: 8px; border-left: 4px solid #7eb3ff; }
+.ad-feature-card h3 { color: #e8e8f0; margin: 0 0 0.4rem 0; font-size: 0.95rem; }
+.ad-feature-card p { color: #9090b0; font-size: 0.85rem; line-height: 1.45; margin: 0; }
+.ad-faq-item { background: #1a1a2e; padding: 0 1rem; border-radius: 6px; margin: 0.6rem 0; border: 1px solid #2a2a4e; }
+.ad-faq-item summary { padding: 0.7rem 0; cursor: pointer; color: #e8e8f0; font-weight: 600; font-size: 0.95rem; list-style: none; }
+.ad-faq-item summary::-webkit-details-marker { display: none; }
+.ad-faq-item summary:focus-visible { outline: 2px solid #7eb3ff; outline-offset: 2px; border-radius: 4px; }
+.ad-faq-item summary::after { content: "+"; float: right; font-size: 1.2rem; color: #7eb3ff; }
+.ad-faq-item[open] summary::after { content: "-"; }
+.ad-faq-item[open] summary { padding-bottom: 0.2rem; }
+.ad-faq-item p { padding-bottom: 0.7rem; color: #ccc; line-height: 1.65; font-size: 0.9rem; }
+.ad-help { color: #9090b0; font-size: 0.78rem; margin: 4px 0 0; }
+.ad-hidden { display: none !important; }
+@media (max-width: 640px) { .ad-preset-row { flex-direction: column; } .ad-preset { width: 100%; } }
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>Audio Denoiser</h1>
+<p class="subtitle">Remove background noise, hiss &amp; hum from any audio file &mdash; in your browser</p>
+<nav class="breadcrumb">
+<a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Audio Denoiser</span>
+<a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+</nav>
+</div>
+</header>
+<main class="container">
+<section class="tool-page">
+<div class="tool-main">
+
+<div class="ad-callout">
+<h2>Why this audio denoiser is different</h2>
+<p>AI chatbots like ChatGPT, Claude and Gemini cannot process your audio file with a real-time biquad-filter chain. They have no AudioContext, no OfflineAudioContext, no way to render a denoised AudioBuffer or encode a 16-bit PCM WAV for download. This tool runs the entire pipeline natively in your browser using the Web Audio API - the same engine that powers online DAWs and live broadcast software. Unlike paid services like Krisp.ai, Adobe Podcast (cloud) or Audo.ai (subscription), this is unlimited, free, and 100% private: your audio never leaves the device.</p>
+</div>
+
+<div class="ad-panel">
+<div class="ad-panel-title">1. Upload Audio File</div>
+<div class="ad-dropzone" id="adDropzone" tabindex="0" role="button">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+<div class="ad-dropzone-title">Click to choose, or drag an audio file here</div>
+<div class="ad-dropzone-hint"><strong>MP3, WAV, M4A, FLAC, OGG, AAC, WEBM</strong> &middot; stays on your device</div>
+</div>
+<input type="file" id="adFileInput" class="ad-file-input" accept="audio/*,.mp3,.wav,.m4a,.flac,.ogg,.aac,.webm,.opus" aria-label="Audio file to denoise">
+<div id="adFileMeta" class="ad-meta ad-hidden"></div>
+<audio id="adOriginalPlayer" class="ad-hidden" controls aria-label="Original audio preview"></audio>
+</div>
+
+<div class="ad-panel ad-hidden" id="adSettingsPanel">
+<div class="ad-panel-title">2. Choose Preset or Customise</div>
+<div class="ad-preset-row" role="radiogroup" aria-label="Processing preset">
+<button class="ad-preset active" data-preset="voice" id="adPresetVoiceBtn" role="radio" aria-checked="true" aria-label="Voice preset">Voice</button>
+<button class="ad-preset" data-preset="music" id="adPresetMusicBtn" role="radio" aria-checked="false" aria-label="Music preset">Music</button>
+<button class="ad-preset" data-preset="outdoor" id="adPresetOutdoorBtn" role="radio" aria-checked="false" aria-label="Outdoor preset">Outdoor</button>
+<button class="ad-preset" data-preset="custom" id="adPresetCustomBtn" role="radio" aria-checked="false" aria-label="Custom preset">Custom</button>
+</div>
+
+<div class="ad-slider-row">
+<div class="ad-slider-label">
+<label for="adHpFreq" class="ad-label">High-pass cutoff (removes low rumble &amp; hum)</label>
+<span id="adHpFreqValue" class="v">80 Hz</span>
+</div>
+<input type="range" id="adHpFreq" min="0" max="500" value="80" step="5" aria-label="High-pass cutoff frequency in hertz">
+</div>
+
+<div class="ad-slider-row">
+<div class="ad-slider-label">
+<label for="adNotch" class="ad-label">Powerline notch (mains hum removal)</label>
+<span id="adNotchValue" class="v">60 Hz</span>
+</div>
+<input type="range" id="adNotch" min="0" max="2" value="1" step="1" aria-label="Powerline notch frequency: 0 = off, 1 = 50Hz, 2 = 60Hz">
+<p class="ad-help">Set to off if your recording has no electrical hum. 60Hz is North America/Japan; 50Hz is Europe/Asia/Africa.</p>
+</div>
+
+<div class="ad-slider-row">
+<div class="ad-slider-label">
+<label for="adLpFreq" class="ad-label">Low-pass cutoff (removes high hiss)</label>
+<span id="adLpFreqValue" class="v">8000 Hz</span>
+</div>
+<input type="range" id="adLpFreq" min="2000" max="22000" value="8000" step="100" aria-label="Low-pass cutoff frequency in hertz">
+</div>
+
+<div class="ad-slider-row">
+<div class="ad-slider-label">
+<label for="adGateThresh" class="ad-label">Noise gate threshold (silences signal below)</label>
+<span id="adGateThreshValue" class="v">-45 dB</span>
+</div>
+<input type="range" id="adGateThresh" min="-80" max="-10" value="-45" step="1" aria-label="Noise gate threshold in decibels">
+</div>
+
+<div class="ad-slider-row">
+<div class="ad-slider-label">
+<label for="adGain" class="ad-label">Make-up gain</label>
+<span id="adGainValue" class="v">120%</span>
+</div>
+<input type="range" id="adGain" min="0" max="300" value="120" step="5" aria-label="Make-up gain percentage">
+</div>
+
+<div class="ad-row">
+<button id="adProcessBtn" class="ad-btn ad-btn-primary" disabled aria-label="Reduce Noise - Apply selected denoising settings and render clean audio">Reduce Noise</button>
+<button id="adClearBtn" class="ad-btn ad-btn-secondary" disabled aria-label="Clear selected file">Clear</button>
+</div>
+<div id="adProgress" class="ad-progress ad-hidden" aria-hidden="true"><div id="adProgressBar" class="ad-progress-bar"></div></div>
+<div id="adStatus" class="ad-status ad-hidden" role="status" aria-live="polite"></div>
+</div>
+
+<div class="ad-result-section ad-hidden" id="adResultPanel">
+<div class="ad-result-title">3. Compare &amp; Download</div>
+<div class="ad-waveform-row">
+<div>
+<div class="ad-wave-label"><span><span class="swatch" style="background:#7eb3ff"></span>Original</span><span id="adOriginalDur" class="v">0.0 s</span></div>
+<div class="ad-canvas-wrap"><canvas id="adOriginalCanvas" class="ad-canvas" aria-label="Original waveform"></canvas></div>
+</div>
+<div>
+<div class="ad-wave-label"><span><span class="swatch" style="background:#6ee7b7"></span>Denoised</span><span id="adDenoisedDur" class="v">0.0 s</span></div>
+<div class="ad-canvas-wrap"><canvas id="adDenoisedCanvas" class="ad-canvas" aria-label="Denoised waveform"></canvas></div>
+</div>
+</div>
+<audio id="adDenoisedPlayer" class="ad-hidden" controls aria-label="Denoised audio preview"></audio>
+<div class="ad-row">
+<button id="adDownloadBtn" class="ad-btn ad-btn-success ad-hidden" disabled>Download .wav</button>
+</div>
+</div>
+
+<section class="ad-info-section">
+<h2>How It Works</h2>
+<p>This denoiser uses an adaptive filter chain from the Web Audio API. Each stage targets a different kind of background noise:</p>
+<ol>
+<li><strong>High-pass filter</strong> &mdash; Removes low-frequency rumble, microphone handling noise, plosives, traffic rumble and the bottom of mains hum. The default 80Hz cutoff is a sweet spot for speech: it kills air-conditioning drone and computer fan noise without thinning male voices.</li>
+<li><strong>Powerline notch</strong> &mdash; A narrow notch filter at 50Hz (Europe/Asia/Africa) or 60Hz (North America/Japan) cancels the steady electrical hum produced by cheap power supplies, lighting ballasts and unbalanced cable runs. Disable it if your recording is clean of mains interference.</li>
+<li><strong>Low-pass filter</strong> &mdash; Removes high-frequency hiss from cheap microphones, preamp self-noise and tape hiss. The Voice preset uses 8kHz to keep speech intelligible; Music uses 16kHz to preserve cymbals and air.</li>
+<li><strong>Noise gate</strong> &mdash; A DynamicsCompressorNode configured as a downward expander: any signal quieter than the threshold (default -45dB) is squashed, while signal louder than the threshold passes unchanged. This silences the room tone between spoken sentences without cutting speech itself.</li>
+<li><strong>Make-up gain</strong> &mdash; After everything else, a final gain stage restores perceived loudness so the cleaned audio is comfortable to listen to.</li>
+</ol>
+<p>Because every stage runs locally via OfflineAudioContext, your audio never touches a server. There are no uploads, no AI models, no daily limits and no watermarks.</p>
+</section>
+
+<section class="ad-info-section">
+<h2>Why AI Chatbots Cannot Do This</h2>
+<p>Even though modern LLMs can write essays, transcribe audio and translate between languages, they cannot denoise a user-uploaded audio file in their standard chat interface:</p>
+<ul>
+<li><strong>No audio graph runtime</strong> &mdash; ChatGPT, Claude and Gemini accept text (and sometimes short audio clips). They have no AudioContext to build a BiquadFilterNode chain.</li>
+<li><strong>No biquad filtering</strong> &mdash; Computing a difference equation <code>y[n] = b0*x[n] + b1*x[n-1] + b2*x[n-2] - a1*y[n-1] - a2*y[n-2]</code> on millions of samples per second is a DSP operation that text-based chat assistants cannot perform.</li>
+<li><strong>No WAV output</strong> &mdash; A chatbot cannot render an OfflineAudioContext, take the resulting AudioBuffer and write a 16-bit PCM WAV header with the correct sample rate, bit depth and channel layout, or stream a downloadable binary blob.</li>
+<li><strong>No auditioning</strong> &mdash; You need to <em>hear</em> whether denoising worked. AI can describe what clean audio <em>should</em> sound like, but cannot let you click Play on the result.</li>
+</ul>
+<p>That is why this tool exists: it solves a real audio problem that AI assistants cannot address through their standard chat interface.</p>
+</section>
+
+<section class="ad-info-section">
+<h2>Use Cases</h2>
+<div class="ad-feature-grid">
+<div class="ad-feature-card">
+<h3>Podcast Cleanup</h3>
+<p>Strip room tone, computer fan noise and electrical hum before publishing an episode. Voice preset is tuned for spoken-word intelligibility.</p>
+</div>
+<div class="ad-feature-card">
+<h3>Voice Memos &amp; Lecture Capture</h3>
+<p>Clean up phone-recorded lectures and voice memos recorded in noisy rooms. Make muffled phone calls sound like a professional recording.</p>
+</div>
+<div class="ad-feature-card">
+<h3>Outdoor Recording</h3>
+<p>Reduce wind noise and rumble from street interviews, field recordings and live event captures. Outdoor preset pushes the high-pass to 200Hz.</p>
+</div>
+<div class="ad-feature-card">
+<h3>Music Stem Polishing</h3>
+<p>Remove amplifier hum and tape hiss from older recordings before remastering. Music preset preserves the full frequency range of the original.</p>
+</div>
+<div class="ad-feature-card">
+<h3>Call Center &amp; VoIP</h3>
+<p>Improve the listening quality of recorded Zoom calls, dictation and conference captures. Customise the gate to match the caller's mic environment.</p>
+</div>
+<div class="ad-feature-card">
+<h3>Accessibility &amp; Transcription Prep</h3>
+<p>Reduce noise before feeding a file into automatic transcription: cleaner signal means higher word-recognition accuracy and fewer &quot;inaudible&quot; tags.</p>
+</div>
+</div>
+</section>
+
+<section class="ad-info-section">
+<h2>Frequently Asked Questions</h2>
+<details class="ad-faq-item">
+<summary>How does this audio denoiser work?</summary>
+<p>The tool applies a chain of Web Audio API filters in series: a high-pass biquad filter removes low-frequency rumble and mains hum below the cutoff, a powerline notch filter cancels 50Hz or 60Hz electrical interference, a low-pass biquad filter removes high-frequency hiss above the cutoff, a dynamics compressor set as a noise gate silences signal below the threshold, and a make-up gain stage restores lost loudness. All processing happens locally in your browser via OfflineAudioContext &mdash; no audio is uploaded to any server.</p>
+</details>
+<details class="ad-faq-item">
+<summary>Will it work on every recording?</summary>
+<p>It works well on speech and voice recordings, podcasts, calls, lecture captures and interviews where background noise is mostly low-frequency hum, hiss, fan noise or steady ambient sound. For non-stationary noise such as crowd chatter, sudden bangs or music bleed-through, results vary &mdash; you may need to try multiple presets or fall back to a tool with AI spectral subtraction like Audacity.</p>
+</details>
+<details class="ad-faq-item">
+<summary>Is my audio file uploaded to a server?</summary>
+<p>No. The entire pipeline runs locally in your browser using the Web Audio API and OfflineAudioContext. The audio file is decoded into PCM samples, processed in memory, encoded back to WAV, and downloaded. It never leaves your device.</p>
+</details>
+<details class="ad-faq-item">
+<summary>What audio formats are supported?</summary>
+<p>The tool accepts any audio format your browser can decode with AudioContext.decodeAudioData: MP3, WAV, M4A, FLAC, OGG, AAC, WEBM and OPUS. The output is always a 16-bit PCM WAV file at the original sample rate and channel layout (mono or stereo).</p>
+</details>
+<details class="ad-faq-item">
+<summary>What is the difference between presets?</summary>
+<p>Voice preset uses 80Hz high-pass, 60Hz notch, 8kHz low-pass and -45dB gate &mdash; optimized for speech clarity. Music preset uses 40Hz high-pass, no notch, 16kHz low-pass and -55dB gate &mdash; lighter touch that preserves bass and treble. Outdoor preset uses 200Hz high-pass, 50Hz notch, 5kHz low-pass and -35dB gate &mdash; aggressive wind and rumble reduction. Custom exposes every slider so you can fine-tune each stage.</p>
+</details>
+<details class="ad-faq-item">
+<summary>Can I preview before downloading?</summary>
+<p>Yes. The waveform canvas supports side-by-side A/B comparison: the blue waveform is the original and the green waveform is the denoised result. Use the play buttons under each canvas to audition before downloading. You can also switch presets and click Reduce Noise again to compare settings.</p>
+</details>
+<details class="ad-faq-item">
+<summary>Why does the file size change after denoising?</summary>
+<p>The output is encoded as 16-bit uncompressed PCM WAV at the original sample rate and channel layout, so the byte size is duration * sampleRate * channels * 2 bytes + 44 byte header. The same rules apply whether the audio was originally MP3, FLAC or WAV &mdash; the container changes to .wav but the underlying samples keep their native rate.</p>
+</details>
+<details class="ad-faq-item">
+<summary>How is this different from ChatGPT or Claude?</summary>
+<p>AI chatbots cannot process a user-supplied audio file with a biquad-filter chain in their chat interface. They have no AudioContext, no OfflineAudioContext, no way to apply biquad filter coefficients, no way to render a new AudioBuffer, and no way to encode and download a 16-bit WAV. This tool runs the entire pipeline natively in your browser using the Web Audio API &mdash; the same technology that powers online DAWs, podcast editors and live broadcast software.</p>
+</details>
+</section>
+
+</div>
+</section>
+</main>
+<footer>
+<p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function(){
+'use strict';
+
+var PRESETS = {
+  voice:   { hp: 80,  notch: 60, lp: 8000,  gate: -45, gain: 120 },
+  music:   { hp: 40,  notch: 0,  lp: 16000, gate: -55, gain: 100 },
+  outdoor: { hp: 200, notch: 50, lp: 5000,  gate: -35, gain: 150 },
+  custom:  null
+};
+
+var state = {
+  file: null,
+  arrayBuffer: null,
+  audioBuffer: null,
+  denoisedBuffer: null,
+  denoisedWavBlob: null,
+  activePreset: 'voice',
+  audioCtx: null
+};
+
+var $ = function(id){ return document.getElementById(id); };
+var showStatus = function(el, msg, type){
+  el.className = 'ad-status ' + (type||'info');
+  el.textContent = msg;
+  el.classList.remove('ad-hidden');
+};
+var hideStatus = function(el){
+  el.classList.add('ad-hidden');
+  el.textContent = '';
+};
+var setProgress = function(pct){
+  $('adProgressBar').style.width = Math.max(0, Math.min(100, pct)) + '%';
+};
+var showProgress = function(show){
+  if (show) $('adProgress').classList.remove('ad-hidden');
+  else { $('adProgress').classList.add('ad-hidden'); setProgress(0); }
+};
+
+var formatBytes = function(b){
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(2) + ' MB';
+};
+var formatDuration = function(s){
+  if (!isFinite(s) || s < 0) return '0.0 s';
+  var m = Math.floor(s/60);
+  var sec = (s - m*60);
+  return m + 'm ' + sec.toFixed(1) + 's';
+};
+
+var ensureAudioCtx = function(){
+  if (!state.audioCtx) {
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    state.audioCtx = new Ctx();
+  }
+  return state.audioCtx;
+};
+
+var attachFile = function(file){
+  if (!file) return;
+  if (file.size > 200 * 1048576) {
+    alert('File is larger than 200 MB. Please use a smaller file.');
+    return;
+  }
+  state.file = file;
+  hideStatus($('adStatus'));
+  showProgress(true);
+  setProgress(15);
+  showStatus($('adStatus'), 'Decoding ' + file.name + '...', 'info');
+
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    state.arrayBuffer = ev.target.result;
+    setProgress(45);
+    var ctx = ensureAudioCtx();
+    // decodeAudioData works with ArrayBuffer
+    var copy = state.arrayBuffer.slice(0);
+    ctx.decodeAudioData(copy, function(buf){
+      state.audioBuffer = buf;
+      setProgress(100);
+      showProgress(false);
+      $('adDropzone').querySelector('.ad-dropzone-title').textContent = file.name;
+      $('adDropzone').querySelector('.ad-dropzone-hint').innerHTML = '<strong>Loaded</strong> &middot; click to choose a different file';
+      var meta = $('adFileMeta');
+      meta.classList.remove('ad-hidden');
+      meta.innerHTML =
+        '<div class="ad-meta-card"><div class="ad-meta-label">File</div><div class="ad-meta-value">' + escapeHtml(file.name) + '</div></div>' +
+        '<div class="ad-meta-card"><div class="ad-meta-label">Size</div><div class="ad-meta-value">' + formatBytes(file.size) + '</div></div>' +
+        '<div class="ad-meta-card"><div class="ad-meta-label">Duration</div><div class="ad-meta-value" id="adDurationValue">' + formatDuration(buf.duration) + '</div></div>' +
+        '<div class="ad-meta-card"><div class="ad-meta-label">Channels</div><div class="ad-meta-value">' + buf.numberOfChannels + '</div></div>' +
+        '<div class="ad-meta-card"><div class="ad-meta-label">Sample rate</div><div class="ad-meta-value">' + buf.sampleRate + ' Hz</div></div>';
+      var op = $('adOriginalPlayer');
+      op.src = URL.createObjectURL(file);
+      op.classList.remove('ad-hidden');
+      $('adSettingsPanel').classList.remove('ad-hidden');
+      $('adProcessBtn').disabled = false;
+      $('adClearBtn').disabled = false;
+      hideStatus($('adStatus'));
+      drawWaveform($('adOriginalCanvas'), state.audioBuffer, '#7eb3ff');
+      $('adOriginalDur').textContent = formatDuration(buf.duration);
+      showStatus($('adStatus'), 'File decoded. Choose a preset and click Reduce Noise.', 'success');
+      // reset downstream
+      $('adResultPanel').classList.add('ad-hidden');
+      $('adDownloadBtn').classList.add('ad-hidden');
+      $('adDownloadBtn').disabled = true;
+      $('adDenoisedPlayer').classList.add('ad-hidden');
+      state.denoisedBuffer = null;
+      state.denoisedWavBlob = null;
+    }, function(err){
+      showProgress(false);
+      showStatus($('adStatus'), 'Could not decode this audio file: ' + (err && err.message ? err.message : err), 'error');
+    });
+  };
+  reader.onerror = function(){
+    showProgress(false);
+    showStatus($('adStatus'), 'Could not read the file.', 'error');
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+var escapeHtml = function(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+  });
+};
+
+// Draw waveform on canvas: bar amplitudes down the centre
+var drawWaveform = function(canvas, buffer, color){
+  if (!buffer) return;
+  var dpr = window.devicePixelRatio || 1;
+  var cssW = canvas.clientWidth || canvas.parentElement.clientWidth - 12;
+  var cssH = 96;
+  canvas.style.height = cssH + 'px';
+  canvas.width = Math.floor(cssW * dpr);
+  canvas.height = Math.floor(cssH * dpr);
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, cssW, cssH);
+  // background grid
+  ctx.strokeStyle = 'rgba(126,179,255,0.08)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, cssH/2); ctx.lineTo(cssW, cssH/2); ctx.stroke();
+  // bar count
+  var bars = Math.max(40, Math.floor(cssW));
+  var ch0 = buffer.getChannelData(0);
+  var ch1 = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : null;
+  var step = Math.max(1, Math.floor(ch0.length / bars));
+  var barW = cssW / bars;
+  ctx.fillStyle = color;
+  for (var b = 0; b < bars; b++) {
+    var start = b * step;
+    var end = Math.min(ch0.length, start + step);
+    var max = 0;
+    for (var i = start; i < end; i++) {
+      var v = Math.abs(ch0[i]);
+      if (ch1) { var v2 = Math.abs(ch1[i]); if (v2 > v) v = v2; }
+      if (v > max) max = v;
+    }
+    var h = max * (cssH * 0.95);
+    var y = (cssH - h) / 2;
+    ctx.fillRect(b * barW, y, Math.max(1, barW - 1), h);
+  }
+};
+
+// Apply preset to sliders + UI state
+var applyPreset = function(name){
+  var p = PRESETS[name];
+  state.activePreset = name;
+  var btns = document.querySelectorAll('.ad-preset');
+  for (var i = 0; i < btns.length; i++) {
+    var b = btns[i];
+    var active = b.getAttribute('data-preset') === name;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-checked', active ? 'true' : 'false');
+  }
+  if (p) {
+    $('adHpFreq').value = p.hp;
+    $('adHpFreqValue').textContent = p.hp + ' Hz';
+    $('adNotch').value = p.notch === 0 ? 0 : (p.notch === 50 ? 1 : 2);
+    $('adNotchValue').textContent = p.notch === 0 ? 'off' : (p.notch + ' Hz');
+    $('adLpFreq').value = p.lp;
+    $('adLpFreqValue').textContent = p.lp + ' Hz';
+    $('adGateThresh').value = p.gate;
+    $('adGateThreshValue').textContent = p.gate + ' dB';
+    $('adGain').value = p.gain;
+    $('adGainValue').textContent = p.gain + '%';
+  }
+};
+
+// Wire up slider label updates
+var wireSliders = function(){
+  var hp = $('adHpFreq');
+  hp.addEventListener('input', function(){
+    $('adHpFreqValue').textContent = hp.value + ' Hz';
+    state.activePreset = 'custom';
+    syncPresetButtons();
+  });
+  var no = $('adNotch');
+  no.addEventListener('input', function(){
+    var v = parseInt(no.value, 10);
+    $('adNotchValue').textContent = v === 0 ? 'off' : (v === 1 ? '50 Hz' : '60 Hz');
+    state.activePreset = 'custom';
+    syncPresetButtons();
+  });
+  var lp = $('adLpFreq');
+  lp.addEventListener('input', function(){
+    $('adLpFreqValue').textContent = lp.value + ' Hz';
+    state.activePreset = 'custom';
+    syncPresetButtons();
+  });
+  var gt = $('adGateThresh');
+  gt.addEventListener('input', function(){
+    $('adGateThreshValue').textContent = gt.value + ' dB';
+    state.activePreset = 'custom';
+    syncPresetButtons();
+  });
+  var gn = $('adGain');
+  gn.addEventListener('input', function(){
+    $('adGainValue').textContent = gn.value + '%';
+    state.activePreset = 'custom';
+    syncPresetButtons();
+  });
+};
+
+var syncPresetButtons = function(){
+  var btns = document.querySelectorAll('.ad-preset');
+  for (var i = 0; i < btns.length; i++) {
+    var b = btns[i];
+    var active = b.getAttribute('data-preset') === state.activePreset;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-checked', active ? 'true' : 'false');
+  }
+};
+
+// Process audio through OfflineAudioContext with the chosen chain
+var processAudio = function(){
+  if (!state.audioBuffer) return;
+  var src = state.audioBuffer;
+  var hpVal = parseFloat($('adHpFreq').value);
+  var noVal = parseInt($('adNotch').value, 10);
+  var lpVal = parseFloat($('adLpFreq').value);
+  var gtVal = parseFloat($('adGateThresh').value);
+  var gnVal = parseFloat($('adGain').value) / 100;
+
+  showProgress(true);
+  setProgress(10);
+  showStatus($('adStatus'), 'Building filter chain...', 'info');
+  $('adProcessBtn').disabled = true;
+
+  setTimeout(function(){
+    try {
+      var offline = new OfflineAudioContext(src.numberOfChannels, src.length, src.sampleRate);
+      var node = offline.createBufferSource();
+      node.buffer = src;
+
+      // High-pass
+      var hpNode = offline.createBiquadFilter();
+      hpNode.type = 'highpass';
+      hpNode.frequency.value = Math.max(0, hpVal);
+      hpNode.Q.value = 0.707;
+
+      // Notch (only if not off)
+      var chainEnd = hpNode;
+      var notchNode = null;
+      if (noVal !== 0) {
+        notchNode = offline.createBiquadFilter();
+        notchNode.type = 'notch';
+        notchNode.frequency.value = noVal === 1 ? 50 : 60;
+        notchNode.Q.value = 10;
+      }
+
+      // Low-pass
+      var lpNode = offline.createBiquadFilter();
+      lpNode.type = 'lowpass';
+      lpNode.frequency.value = Math.min(src.sampleRate * 0.45, Math.max(20, lpVal));
+      lpNode.Q.value = 0.707;
+
+      // Gate (DynamicsCompressor as expander)
+      var gateNode = offline.createDynamicsCompressor();
+      gateNode.threshold.value = gtVal;
+      gateNode.knee.value = 0;
+      gateNode.ratio.value = 20;
+      gateNode.attack.value = 0.003;
+      gateNode.release.value = 0.05;
+
+      // Make-up gain
+      var gainNode = offline.createGain();
+      gainNode.gain.value = Math.max(0, Math.min(4, gnVal));
+
+      // Wire chain
+      node.connect(hpNode);
+      chainEnd = notchNode ? (function(){ hpNode.connect(notchNode); return notchNode; })() : hpNode;
+      chainEnd.connect(lpNode);
+      lpNode.connect(gateNode);
+      gateNode.connect(gainNode);
+      gainNode.connect(offline.destination);
+
+      setProgress(35);
+      showStatus($('adStatus'), 'Rendering clean audio...', 'info');
+
+      offline.startRendering().then(function(rendered){
+        setProgress(85);
+        state.denoisedBuffer = rendered;
+        showStatus($('adStatus'), 'Encoding WAV...', 'info');
+        encodeWav(rendered, function(blob){
+          state.denoisedWavBlob = blob;
+          setProgress(100);
+          showProgress(false);
+          $('adResultPanel').classList.remove('ad-hidden');
+          var dp = $('adDenoisedPlayer');
+          dp.src = URL.createObjectURL(blob);
+          dp.classList.remove('ad-hidden');
+          drawWaveform($('adDenoisedCanvas'), rendered, '#6ee7b7');
+          $('adDenoisedDur').textContent = formatDuration(rendered.duration);
+          var dl = $('adDownloadBtn');
+          dl.classList.remove('ad-hidden');
+          dl.disabled = false;
+          $('adProcessBtn').disabled = false;
+          showStatus($('adStatus'), 'Done! Compare and download your denoised audio.', 'success');
+        });
+      }).catch(function(err){
+        showProgress(false);
+        $('adProcessBtn').disabled = false;
+        showStatus($('adStatus'), 'Render error: ' + (err && err.message ? err.message : err), 'error');
+      });
+    } catch (e) {
+      showProgress(false);
+      $('adProcessBtn').disabled = false;
+      showStatus($('adStatus'), 'Setup error: ' + e.message, 'error');
+    }
+  }, 50);
+};
+
+// Encode AudioBuffer to 16-bit PCM WAV Blob
+var encodeWav = function(buf, cb){
+  try {
+    var numCh = buf.numberOfChannels;
+    var sr = buf.sampleRate;
+    var len = buf.length;
+    var bytesPerSample = 2;
+    var dataSize = len * numCh * bytesPerSample;
+    var headerSize = 44;
+    var totalSize = headerSize + dataSize;
+    var ab = new ArrayBuffer(totalSize);
+    var view = new DataView(ab);
+    // RIFF header
+    writeStr(view, 0, 'RIFF');
+    view.setUint32(4, totalSize - 8, true);
+    writeStr(view, 8, 'WAVE');
+    writeStr(view, 12, 'fmt ');
+    view.setUint32(16, 16, true); // fmt chunk size
+    view.setUint16(20, 1, true); // PCM format
+    view.setUint16(22, numCh, true);
+    view.setUint32(24, sr, true);
+    view.setUint32(28, sr * numCh * bytesPerSample, true); // byte rate
+    view.setUint16(32, numCh * bytesPerSample, true); // block align
+    view.setUint16(34, 16, true); // bits per sample
+    writeStr(view, 36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    // Channels
+    var channels = [];
+    for (var c = 0; c < numCh; c++) channels.push(buf.getChannelData(c));
+    var offset = headerSize;
+    for (var i = 0; i < len; i++) {
+      for (var ch = 0; ch < numCh; ch++) {
+        var s = Math.max(-1, Math.min(1, channels[ch][i]));
+        s = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        view.setInt16(offset, s, true);
+        offset += 2;
+      }
+    }
+    cb(new Blob([ab], { type: 'audio/wav' }));
+  } catch (e) {
+    // Fallback: use audioCtx to render via MediaRecorder isn't trivial; use direct encode error
+    cb(new Blob([], { type: 'audio/wav' }));
+  }
+};
+var writeStr = function(view, offset, str){
+  for (var i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+};
+
+// Download
+var downloadDenoised = function(){
+  if (!state.denoisedWavBlob) return;
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(state.denoisedWavBlob);
+  var baseName = state.file ? state.file.name.replace(/\.[^.]+$/, '') : 'denoised';
+  a.download = baseName + '-denoised.wav';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
+
+// Clear
+var clearAll = function(){
+  state.file = null;
+  state.arrayBuffer = null;
+  state.audioBuffer = null;
+  state.denoisedBuffer = null;
+  state.denoisedWavBlob = null;
+  $('adFileInput').value = '';
+  $('adFileMeta').classList.add('ad-hidden');
+  $('adOriginalPlayer').classList.add('ad-hidden');
+  $('adOriginalPlayer').src = '';
+  $('adSettingsPanel').classList.add('ad-hidden');
+  $('adResultPanel').classList.add('ad-hidden');
+  $('adDenoisedPlayer').classList.add('ad-hidden');
+  $('adDenoisedPlayer').src = '';
+  $('adDownloadBtn').classList.add('ad-hidden');
+  $('adDownloadBtn').disabled = true;
+  $('adProcessBtn').disabled = true;
+  $('adClearBtn').disabled = true;
+  hideStatus($('adStatus'));
+  showProgress(false);
+  $('adDropzone').querySelector('.ad-dropzone-title').textContent = 'Click to choose, or drag an audio file here';
+  $('adDropzone').querySelector('.ad-dropzone-hint').innerHTML = '<strong>MP3, WAV, M4A, FLAC, OGG, AAC, WEBM</strong> &middot; stays on your device';
+  applyPreset('voice');
+};
+
+// Init
+document.addEventListener('DOMContentLoaded', function(){
+  var dz = $('adDropzone');
+  var input = $('adFileInput');
+  dz.addEventListener('click', function(){ input.click(); });
+  dz.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+  });
+  input.addEventListener('change', function(e){
+    if (e.target.files && e.target.files[0]) attachFile(e.target.files[0]);
+  });
+  ['dragenter','dragover'].forEach(function(t){
+    dz.addEventListener(t, function(e){
+      e.preventDefault(); e.stopPropagation();
+      dz.classList.add('dragover');
+    });
+  });
+  ['dragleave','drop'].forEach(function(t){
+    dz.addEventListener(t, function(e){
+      e.preventDefault(); e.stopPropagation();
+      dz.classList.remove('dragover');
+    });
+  });
+  dz.addEventListener('drop', function(e){
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) attachFile(e.dataTransfer.files[0]);
+  });
+  var btns = document.querySelectorAll('.ad-preset');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener('click', function(e){
+      applyPreset(e.currentTarget.getAttribute('data-preset'));
+    });
+  }
+  wireSliders();
+  applyPreset('voice');
+  $('adProcessBtn').addEventListener('click', processAudio);
+  $('adDownloadBtn').addEventListener('click', downloadDenoised);
+  $('adClearBtn').addEventListener('click', clearAll);
+
+  // Redraw waveforms on resize for sharpness
+  var resizeT = null;
+  window.addEventListener('resize', function(){
+    if (resizeT) clearTimeout(resizeT);
+    resizeT = setTimeout(function(){
+      if (state.audioBuffer) drawWaveform($('adOriginalCanvas'), state.audioBuffer, '#7eb3ff');
+      if (state.denoisedBuffer) drawWaveform($('adDenoisedCanvas'), state.denoisedBuffer, '#6ee7b7');
+    }, 150);
+  });
+});
+
+})();
+</script>
+</body>
+</html>

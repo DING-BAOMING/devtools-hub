@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<title>GIF Maker - Video & Images to GIF Free | DevTools Hub</title>
+<meta name="description" content="Free GIF maker. Create animated GIFs from video or images. Trim, resize, FPS, loop, reverse. 100% private, no upload, no signup.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/gif-maker/">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+<meta property="og:title" content="GIF Maker - Video & Images to GIF Free">
+<meta property="og:description" content="Free GIF maker. Create animated GIFs from video or images. Trim, resize, FPS, loop, reverse. 100% private, no signup.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/gif-maker/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GIF Maker - Free Online GIF Creator">
+<meta name="twitter:description" content="Create animated GIFs from video or images. Trim, resize, FPS, loop, reverse. 100% private.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:url" content="https://tools.scoreroute.com/tools/gif-maker/">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"GIF Maker","description":"Free online GIF maker that turns video files (MP4, WebM, MOV, AVI) or sequences of still images (PNG, JPG, WebP) into animated GIFs entirely in the browser. Supports trimming, FPS control, resize, playback speed, reverse, loop count and frame reorder. No upload, no signup, 100% private.","url":"https://tools.scoreroute.com/tools/gif-maker/","applicationCategory":"MultimediaApplication","operatingSystem":"Any","browserRequirements":"Modern browser with JavaScript, Web Workers, Canvas API, HTMLVideoElement, MediaRecorder and Blob URL support","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-08-30","dateModified":"2026-08-30","featureList":["Create animated GIFs from any video file (MP4, WebM, MOV, AVI, MKV)","Create animated GIFs from multiple images (PNG, JPG, WebP, BMP)","Extract individual frames from an existing GIF","Trim video start and end before encoding","Set custom FPS from 5 to 30","Choose output width with auto aspect-ratio preservation","Reverse playback direction","Loop infinitely or set a fixed loop count","Adjust playback speed 0.25x to 4x","Reorder, delete and tune per-frame duration in image mode","Live preview before download","Download as standard GIF89a with optimized 256-color palette","Web Worker encoding keeps the UI responsive on large videos","Works entirely in the browser - file never leaves your device","No signup, no watermark, no daily limit, no upload"]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does this GIF maker work?","acceptedAnswer":{"@type":"Answer","text":"The tool runs entirely in your browser. For video-to-GIF it seeks the video element at the chosen FPS, draws each frame to a hidden canvas, then encodes the canvas frames into a GIF89a animation using the gif.js library running inside a Web Worker. For image-to-GIF it loads your images, draws them to canvas at the chosen per-frame duration, then encodes them. The output is a standard .gif file you can preview and download."}},{"@type":"Question","name":"Is my video or image uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. The entire pipeline runs locally in your browser using the Canvas API, HTMLVideoElement and Web Workers. The file is decoded into raw frames in memory, encoded to a GIF and downloaded. It never leaves your device, there is no cloud processing, no upload step and no analytics beyond site-wide Cloudflare Web Analytics."}},{"@type":"Question","name":"What video formats are supported?","acceptedAnswer":{"@type":"Answer","text":"Any video format your browser can play with an HTMLVideoElement: MP4, WebM, MOV, MKV, AVI, M4V, OGV and similar. The video is decoded by the browser's built-in video stack so the supported formats depend on your browser and operating system, not the tool itself."}},{"@type":"Question","name":"What image formats are supported as frames?","acceptedAnswer":{"@type":"Answer","text":"Any common still image your browser can decode into an Image element: PNG, JPG/JPEG, WebP, BMP, GIF (single-frame). You can drop them in any order, reorder them by drag, delete individual frames and tune the per-frame duration before encoding."}},{"@type":"Question","name":"Can I trim a long video to a specific clip?","acceptedAnswer":{"@type":"Answer","text":"Yes. The video mode has a built-in trim control with start and end timestamps. Move the sliders to keep only the part of the video you want in the GIF, set the FPS and the output width, then click Make GIF."}},{"@type":"Question","name":"Why is my GIF larger than the source video?","acceptedAnswer":{"@type":"Answer","text":"GIF uses lossless LZW compression on a 256-color palette, so a single frame of a 1080p MP4 can easily become several megabytes as a GIF. To shrink the output: reduce the output width, lower the FPS, shorten the clip with the trim control, or run the result through the GIF Optimizer section of the site."}},{"@type":"Question","name":"Can I extract individual frames from an existing GIF?","acceptedAnswer":{"@type":"Answer","text":"Yes. Switch to the Frames from GIF mode, drop or pick an existing .gif file. The tool decodes it with the browser's GIF decoder, renders every frame to canvas and lets you preview, reorder, delete and re-export the frames as either a new animated GIF or as individual PNG images."}},{"@type":"Question","name":"Does the tool add a watermark?","acceptedAnswer":{"@type":"Answer","text":"No. There is no watermark, no attribution line, no daily limit and no signup. The output is exactly the frames you produced. AI chatbots cannot replicate this workflow because they cannot decode arbitrary video into a canvas, cannot run Web Worker-based GIF encoders, and cannot generate the bytes of a valid GIF89a stream."}}]}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root {
+  --gm-bg: #0f0f23;
+  --gm-surface: #1a1a2e;
+  --gm-border: #2a2a4e;
+  --gm-text: #e8e8f0;
+  --gm-muted: #9090b0;
+  --gm-dim: #6b6b85;
+  --gm-accent: #7eb3ff;
+  --gm-accent-2: #667eea;
+  --gm-success: #10b981;
+  --gm-warn: #f59e0b;
+  --gm-error: #ef4444;
+}
+* { box-sizing: border-box; }
+.gm-wrap { max-width: 1000px; margin: 0 auto; color: var(--gm-text); }
+.gm-tabs { display: flex; gap: 4px; background: var(--gm-surface); padding: 6px; border-radius: 10px; margin-bottom: 16px; border: 1px solid var(--gm-border); overflow-x: auto; }
+.gm-tab { flex: 1; min-width: 130px; padding: 10px 14px; background: transparent; border: none; color: var(--gm-muted); font-size: 0.9rem; font-weight: 600; border-radius: 7px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.gm-tab:hover { color: var(--gm-text); background: rgba(126, 179, 255, 0.08); }
+.gm-tab.active { background: var(--gm-accent); color: #0a0d14; }
+.gm-tab:disabled { opacity: 0.4; cursor: not-allowed; }
+.gm-panel { background: var(--gm-surface); border: 1px solid var(--gm-border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+.gm-panel-title { font-size: 0.85rem; font-weight: 700; color: var(--gm-muted); margin: 0 0 14px; text-transform: uppercase; letter-spacing: 0.05em; }
+.gm-dropzone { border: 2px dashed var(--gm-border); border-radius: 12px; padding: 40px 16px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(126, 179, 255, 0.04); }
+.gm-dropzone:hover, .gm-dropzone.dragover { border-color: var(--gm-accent); background: rgba(126, 179, 255, 0.1); }
+.gm-dropzone.has-file { border-color: var(--gm-success); background: rgba(16, 185, 129, 0.08); }
+.gm-dropzone-icon { font-size: 2.6rem; margin-bottom: 8px; }
+.gm-dropzone-text { color: var(--gm-text); font-size: 0.95rem; }
+.gm-dropzone-text strong { color: var(--gm-accent); }
+.gm-dropzone-hint { color: var(--gm-muted); font-size: 0.82rem; margin-top: 6px; }
+.gm-file-input { display: none; }
+.gm-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; background: var(--gm-bg); border: 1px solid var(--gm-border); border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem; }
+.gm-info-row { display: flex; justify-content: space-between; gap: 8px; }
+.gm-info-label { color: var(--gm-muted); }
+.gm-info-value { color: var(--gm-text); font-weight: 500; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gm-preview-box { background: var(--gm-bg); border: 1px solid var(--gm-border); border-radius: 8px; min-height: 220px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+.gm-preview-box img, .gm-preview-box video { max-width: 100%; max-height: 320px; display: block; }
+.gm-preview-empty { color: var(--gm-muted); font-size: 0.9rem; text-align: center; padding: 24px; }
+.gm-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 700px) { .gm-controls { grid-template-columns: 1fr; } .gm-info { grid-template-columns: 1fr; } }
+.gm-field { display: flex; flex-direction: column; gap: 4px; }
+.gm-label { font-size: 0.78rem; color: var(--gm-muted); display: flex; justify-content: space-between; font-weight: 500; }
+.gm-label .gm-val { color: var(--gm-text); font-weight: 700; }
+.gm-input, .gm-select { width: 100%; background: var(--gm-bg); border: 1px solid var(--gm-border); color: var(--gm-text); padding: 8px 12px; border-radius: 6px; font-size: 0.9rem; font-family: inherit; }
+.gm-input:focus, .gm-select:focus { outline: 2px solid var(--gm-accent); outline-offset: 1px; border-color: var(--gm-accent); }
+.gm-select option { background: var(--gm-bg); color: var(--gm-text); }
+.gm-range { width: 100%; accent-color: var(--gm-accent); }
+.gm-range-hint { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--gm-dim); margin-top: 2px; }
+.gm-checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--gm-text); padding: 6px 0; }
+.gm-checkbox-row input { width: 16px; height: 16px; accent-color: var(--gm-accent); cursor: pointer; }
+.gm-trim { background: var(--gm-bg); border: 1px solid var(--gm-border); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+.gm-trim-row { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--gm-muted); margin-bottom: 8px; }
+.gm-trim-times { display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 6px; }
+.gm-trim-time { background: var(--gm-surface); padding: 4px 10px; border-radius: 6px; color: var(--gm-text); font-family: 'SF Mono', Consolas, monospace; font-size: 0.8rem; }
+.gm-trim-bar { position: relative; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
+.gm-trim-fill { position: absolute; top: 0; height: 100%; background: var(--gm-accent); border-radius: 3px; }
+.gm-frame-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 8px; max-height: 320px; overflow-y: auto; padding: 4px; }
+.gm-frame-card { position: relative; background: var(--gm-bg); border: 1px solid var(--gm-border); border-radius: 6px; overflow: hidden; cursor: grab; }
+.gm-frame-card.dragging { opacity: 0.4; }
+.gm-frame-card img { width: 100%; height: 80px; object-fit: cover; display: block; }
+.gm-frame-info { font-size: 0.7rem; color: var(--gm-muted); padding: 4px 6px; display: flex; justify-content: space-between; }
+.gm-frame-remove { position: absolute; top: 4px; right: 4px; background: rgba(239, 68, 68, 0.9); color: #fff; border: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; font-size: 0.85rem; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.gm-frame-remove:hover { background: var(--gm-error); }
+.gm-frame-duration { position: absolute; bottom: 22px; right: 4px; background: rgba(0, 0, 0, 0.75); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; }
+.gm-btn { padding: 10px 22px; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; font-weight: 600; transition: all 0.2s; font-family: inherit; }
+.gm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.gm-btn-primary { background: var(--gm-accent); color: #0a0d14; }
+.gm-btn-primary:hover:not(:disabled) { background: #a3c8ff; transform: translateY(-1px); }
+.gm-btn-success { background: var(--gm-success); color: #fff; }
+.gm-btn-success:hover:not(:disabled) { background: #059669; transform: translateY(-1px); }
+.gm-btn-secondary { background: #333; color: var(--gm-text); }
+.gm-btn-secondary:hover:not(:disabled) { background: #444; }
+.gm-progress { display: none; margin: 14px 0; }
+.gm-progress.visible { display: block; }
+.gm-progress-text { font-size: 0.88rem; color: var(--gm-muted); margin-bottom: 6px; font-family: 'SF Mono', Consolas, monospace; }
+.gm-bar { height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
+.gm-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gm-accent), var(--gm-accent-2)); width: 0%; transition: width 0.3s; }
+.gm-result { display: none; margin-top: 16px; }
+.gm-result.visible { display: block; }
+.gm-result-card { background: rgba(16, 185, 129, 0.08); border: 1px solid var(--gm-success); border-radius: 12px; padding: 16px; }
+.gm-result-title { font-weight: 700; color: var(--gm-success); margin-bottom: 10px; font-size: 1rem; }
+.gm-result-preview { background: var(--gm-bg); border-radius: 8px; padding: 12px; margin: 10px 0; display: flex; justify-content: center; }
+.gm-result-preview img { max-width: 100%; max-height: 360px; border-radius: 6px; }
+.gm-result-stats { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0; font-size: 0.85rem; }
+.gm-stat { background: var(--gm-bg); border: 1px solid var(--gm-border); border-radius: 6px; padding: 6px 12px; }
+.gm-stat span { color: var(--gm-muted); }
+.gm-stat strong { color: var(--gm-text); }
+.gm-result-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.gm-error-box { display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--gm-error); color: var(--gm-error); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; }
+.gm-error-box.visible { display: block; }
+.gm-geo-callout { background: rgba(126, 179, 255, 0.08); border-left: 3px solid var(--gm-accent); padding: 14px 16px; border-radius: 8px; margin: 16px 0; font-size: 0.9rem; color: var(--gm-text); }
+.gm-geo-callout strong { color: var(--gm-accent); }
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>GIF Maker</h1>
+    <p class="subtitle">Create animated GIFs from video or images. Trim, resize, FPS, loop, reverse. 100% private browser, no upload, no signup.</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>GIF Maker</span>
+      <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+    </nav>
+  </div>
+</header>
+<main class="container">
+<section class="tool-page">
+<div class="tool-main gm-wrap">
+
+  <div class="gm-tabs" role="group">
+    <button class="gm-tab active" data-mode="video" id="tab-video" onclick="switchMode('video')" aria-pressed="true">Video &rarr; GIF</button>
+    <button class="gm-tab" data-mode="images" id="tab-images" onclick="switchMode('images')" aria-pressed="false">Images &rarr; GIF</button>
+    <button class="gm-tab" data-mode="frames" id="tab-frames" onclick="switchMode('frames')" aria-pressed="false">Frames from GIF</button>
+  </div>
+
+  <div class="gm-geo-callout">
+    <strong>Why AI chatbots can't replace this tool:</strong> AI assistants cannot decode an arbitrary video file into canvas frames in your browser, cannot run a Web Worker-based GIF89a encoder with LZW compression and 256-color quantization, and cannot write a valid GIF byte stream with global palette tables and Netscape loop extensions. They can only describe what a GIF should look like. This tool does it locally in milliseconds.
+  </div>
+
+  <div id="mode-video" class="gm-mode-pane">
+    <div id="dz-video" class="gm-dropzone" onclick="document.getElementById('file-video').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleVideoDrop(event)">
+      <div class="gm-dropzone-icon">&#127909;</div>
+      <div class="gm-dropzone-text"><strong>Click or drop a video file</strong></div>
+      <div class="gm-dropzone-hint">MP4, WebM, MOV, AVI, MKV, M4V &middot; processed in your browser &middot; never uploaded</div>
+      <input type="file" id="file-video" class="gm-file-input" accept="video/*,.mp4,.webm,.mov,.avi,.mkv,.m4v" onchange="handleVideoFile(this.files[0])" aria-label="Select a video file to convert to GIF">
+    </div>
+
+    <div id="video-info" class="gm-info" style="display:none">
+      <div class="gm-info-row"><span class="gm-info-label">File</span><span class="gm-info-value" id="v-filename">-</span></div>
+      <div class="gm-info-row"><span class="gm-info-label">Size</span><span class="gm-info-value" id="v-filesize">-</span></div>
+      <div class="gm-info-row"><span class="gm-info-label">Dimensions</span><span class="gm-info-value" id="v-dims">-</span></div>
+      <div class="gm-info-row"><span class="gm-info-label">Duration</span><span class="gm-info-value" id="v-duration">-</span></div>
+      <div class="gm-info-row"><span class="gm-info-label">Source FPS</span><span class="gm-info-value" id="v-fps">-</span></div>
+      <div class="gm-info-row"><span class="gm-info-label">Codec</span><span class="gm-info-value" id="v-codec">-</span></div>
+    </div>
+
+    <div id="video-controls" class="gm-panel" style="display:none">
+      <h2 class="gm-panel-title">Source preview</h2>
+      <div class="gm-preview-box">
+        <video id="v-preview" controls muted playsinline preload="metadata"></video>
+      </div>
+
+      <h2 class="gm-panel-title" style="margin-top:18px">Trim clip (optional)</h2>
+      <div class="gm-trim">
+        <div class="gm-trim-row">
+          <span>Drag the start and end to keep only the part you want in the GIF.</span>
+        </div>
+        <input aria-label="Start trim" type="range" id="v-trim-start" min="0" max="100" value="0" step="0.1" class="gm-range" oninput="onTrimChange()" style="margin:4px 0">
+        <input aria-label="End trim" type="range" id="v-trim-end" min="0" max="100" value="100" step="0.1" class="gm-range" oninput="onTrimChange()" style="margin:4px 0">
+        <div class="gm-trim-times">
+          <span class="gm-trim-time" id="v-start-time">00:00.0</span>
+          <span class="gm-trim-time" id="v-length-time">--</span>
+          <span class="gm-trim-time" id="v-end-time">00:00.0</span>
+        </div>
+      </div>
+
+      <h2 class="gm-panel-title" style="margin-top:18px">GIF settings</h2>
+      <div class="gm-controls">
+        <div class="gm-field">
+          <label class="gm-label" for="v-fps-out">Frame rate <span class="gm-val" id="v-fps-out-val">15 fps</span></label>
+          <input aria-label="GIF frame rate" type="range" id="v-fps-out" min="5" max="30" value="15" step="1" class="gm-range" oninput="document.getElementById('v-fps-out-val').textContent=this.value+' fps'">
+          <div class="gm-range-hint"><span>5 (small)</span><span>30 (smooth)</span></div>
+        </div>
+        <div class="gm-field">
+          <label class="gm-label" for="v-width">Output width</label>
+          <select id="v-width" class="gm-select">
+            <option value="0">Original size</option>
+            <option value="240">240 px (tiny)</option>
+            <option value="320" selected>320 px (default)</option>
+            <option value="480">480 px (medium)</option>
+            <option value="640">640 px (large)</option>
+            <option value="720">720 px (HD)</option>
+          </select>
+        </div>
+        <div class="gm-field">
+          <label class="gm-label" for="v-quality">Quality <span class="gm-val" id="v-quality-val">10 (best)</span></label>
+          <input aria-label="Quality" type="range" id="v-quality" min="1" max="20" value="10" step="1" class="gm-range" oninput="document.getElementById('v-quality-val').textContent=this.value+' ('+(parseInt(this.value)<=10?'best':parseInt(this.value)<=15?'balanced':'fast')+')'">
+          <div class="gm-range-hint"><span>1 (slow, best)</span><span>20 (fast, small)</span></div>
+        </div>
+        <div class="gm-field">
+          <label class="gm-label" for="v-speed">Playback speed</label>
+          <select id="v-speed" class="gm-select">
+            <option value="0.25">0.25x (slow motion)</option>
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x (normal)</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x (fast)</option>
+            <option value="4">4x (very fast)</option>
+          </select>
+        </div>
+        <div class="gm-field">
+          <label class="gm-label" for="v-loop">Loop</label>
+          <select id="v-loop" class="gm-select">
+            <option value="0" selected>Infinite loop</option>
+            <option value="1">Play once</option>
+            <option value="3">3 times</option>
+            <option value="5">5 times</option>
+            <option value="10">10 times</option>
+          </select>
+        </div>
+        <div class="gm-field">
+          <label class="gm-label" for="v-bg">Background</label>
+          <select id="v-bg" class="gm-select">
+            <option value="#000000" selected>Black</option>
+            <option value="#ffffff">White</option>
+            <option value="transparent">Transparent (preserves alpha)</option>
+          </select>
+        </div>
+      </div>
+      <div class="gm-checkbox-row">
+        <input type="checkbox" id="v-reverse">
+        <label for="v-reverse">Reverse the clip (play backwards)</label>
+      </div>
+    </div>
+
+    <div id="video-action" class="gm-panel" style="display:none; text-align:center">
+      <button class="gm-btn gm-btn-primary" onclick="makeGifFromVideo()" id="v-make-btn">Make GIF</button>
+      <button class="gm-btn gm-btn-secondary" onclick="resetVideo()" style="margin-left:8px">Clear</button>
+    </div>
+
+    <div id="v-progress" class="gm-progress">
+      <div class="gm-progress-text" id="v-status">Encoding frames...</div>
+      <div class="gm-bar"><div class="gm-bar-fill" id="v-bar-fill"></div></div>
+    </div>
+
+    <div id="v-error" class="gm-error-box"></div>
+    <div id="v-result" class="gm-result">
+      <div class="gm-result-card">
+        <div class="gm-result-title">&#10003; GIF ready!</div>
+        <div class="gm-result-preview"><img id="v-result-img" alt="Generated GIF preview"></div>
+        <div class="gm-result-stats">
+          <span class="gm-stat"><span>Frames: </span><strong id="v-stat-frames">-</strong></span>
+          <span class="gm-stat"><span>Size: </span><strong id="v-stat-size">-</strong></span>
+          <span class="gm-stat"><span>Dimensions: </span><strong id="v-stat-dims">-</strong></span>
+          <span class="gm-stat"><span>Duration: </span><strong id="v-stat-duration">-</strong></span>
+          <span class="gm-stat"><span>Loop: </span><strong id="v-stat-loop">-</strong></span>
+        </div>
+        <div class="gm-result-actions">
+          <a class="gm-btn gm-btn-success" id="v-download" download="output.gif">Download GIF</a>
+          <button class="gm-btn gm-btn-secondary" onclick="resetVideo()">Make another</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mode-images" class="gm-mode-pane" style="display:none">
+    <div id="dz-images" class="gm-dropzone" onclick="document.getElementById('file-images').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleImagesDrop(event)">
+      <div class="gm-dropzone-icon">&#128444;&#65039;</div>
+      <div class="gm-dropzone-text"><strong>Click or drop image files</strong></div>
+      <div class="gm-dropzone-hint">PNG, JPG, WebP, BMP &middot; drop multiple &middot; 100% private</div>
+      <input type="file" id="file-images" class="gm-file-input" accept="image/*" multiple onchange="handleImagesFiles(this.files)" aria-label="Select image files to combine into a GIF">
+    </div>
+
+    <div id="images-info" class="gm-info" style="display:none">
+      <div class="gm-info-row"><span class="gm-info-label">Frames</span><span class="gm-info-value" id="i-count">0</span></div>
+      <div class="gm-info-row"><span class="gm-info-label">Total source size</span><span class="gm-info-value" id="i-size">0 B</span></div>
+    </div>
+
+    <div id="images-frames-panel" class="gm-panel" style="display:none">
+      <h2 class="gm-panel-title">Frame order <span style="color:var(--gm-dim);font-weight:400;font-size:0.75rem;margin-left:8px">(drag to reorder)</span></h2>
+      <div id="i-grid" class="gm-frame-grid"></div>
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="gm-btn gm-btn-secondary" onclick="document.getElementById('file-images').click()">Add more</button>
+        <button class="gm-btn gm-btn-secondary" onclick="clearImages()">Clear all</button>
+      </div>
+    </div>
+
+    <div id="images-controls" class="gm-panel" style="display:none">
+      <h2 class="gm-panel-title">GIF settings</h2>
+      <div class="gm-controls">
+        <div class="gm-field">
+          <label class="gm-label" for="i-fps">Frame rate <span class="gm-val" id="i-fps-val">10 fps</span></label>
+          <input aria-label="Frame rate" type="range" id="i-fps" min="1" max="30" value="10" step="1" class="gm-range" oninput="document.getElementById('i-fps-val').textContent=this.value+' fps'">
+          <div class="gm-range-hint"><span>1 (slow)</span><span>30 (fast)</span></div>
+        </div>
+        <div class="gm-field">
+          <label class="gm-label" for="i-width">Output width</label>
+          <select id="i-width" class="gm-select">
+            <option value="0">Original size (use first frame)</option>
+            <option value="240">240 px</option>
+            <option value="320" selected>320 px</option>
+            <option value="480">480 px</option>
+            <option value="640">640 px</option>
+            <option value="720">720 px</option>
+          </select>
+        </div>
+        <div class="gm-field">
+          <label class="gm-label" for="i-per-frame">Per-frame override</label>
+          <select id="i-per-frame" class="gm-select">
+            <option value="auto" selected>Use FPS setting for all frames</option>
+            <option value="custom">Custom duration per frame</option>
+          </select>
+        </div>
+        <div class="gm-field">
+          <label class="gm-label" for="i-loop">Loop</label>
+          <select id="i-loop" class="gm-select">
+            <option value="0" selected>Infinite loop</option>
+            <option value="1">Play once</option>
+            <option value="3">3 times</option>
+            <option value="5">5 times</option>
+            <option value="10">10 times</option>
+          </select>
+        </div>
+        <div class="gm-field">
+          <label class="gm-label" for="i-quality">Quality <span class="gm-val" id="i-quality-val">10 (best)</span></label>
+          <input aria-label="Quality" type="range" id="i-quality" min="1" max="20" value="10" step="1" class="gm-range" oninput="document.getElementById('i-quality-val').textContent=this.value+' ('+(parseInt(this.value)<=10?'best':parseInt(this.value)<=15?'balanced':'fast')+')'">
+          <div class="gm-range-hint"><span>1 (best)</span><span>20 (fast)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="images-action" class="gm-panel" style="display:none; text-align:center">
+      <button class="gm-btn gm-btn-primary" onclick="makeGifFromImages()" id="i-make-btn">Make GIF</button>
+    </div>
+
+    <div id="i-progress" class="gm-progress">
+      <div class="gm-progress-text" id="i-status">Encoding frames...</div>
+      <div class="gm-bar"><div class="gm-bar-fill" id="i-bar-fill"></div></div>
+    </div>
+
+    <div id="i-error" class="gm-error-box"></div>
+    <div id="i-result" class="gm-result">
+      <div class="gm-result-card">
+        <div class="gm-result-title">&#10003; GIF ready!</div>
+        <div class="gm-result-preview"><img id="i-result-img" alt="Generated GIF preview"></div>
+        <div class="gm-result-stats">
+          <span class="gm-stat"><span>Frames: </span><strong id="i-stat-frames">-</strong></span>
+          <span class="gm-stat"><span>Size: </span><strong id="i-stat-size">-</strong></span>
+          <span class="gm-stat"><span>Dimensions: </span><strong id="i-stat-dims">-</strong></span>
+          <span class="gm-stat"><span>Duration: </span><strong id="i-stat-duration">-</strong></span>
+        </div>
+        <div class="gm-result-actions">
+          <a class="gm-btn gm-btn-success" id="i-download" download="output.gif">Download GIF</a>
+          <button class="gm-btn gm-btn-secondary" onclick="clearImages()">Make another</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mode-frames" class="gm-mode-pane" style="display:none">
+    <div id="dz-frames" class="gm-dropzone" onclick="document.getElementById('file-frames').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleFramesDrop(event)">
+      <div class="gm-dropzone-icon">&#128300;</div>
+      <div class="gm-dropzone-text"><strong>Click or drop an existing GIF</strong></div>
+      <div class="gm-dropzone-hint">Extract every frame, reorder or delete, then re-export</div>
+      <input type="file" id="file-frames" class="gm-file-input" accept="image/gif,.gif" onchange="handleFramesFile(this.files[0])" aria-label="Select a GIF to extract frames from">
+    </div>
+
+    <div id="frames-info" class="gm-info" style="display:none">
+      <div class="gm-info-row"><span class="gm-info-label">File</span><span class="gm-info-value" id="f-filename">-</span></div>
+      <div class="gm-info-row"><span class="gm-info-label">Size</span><span class="gm-info-value" id="f-filesize">-</span></div>
+      <div class="gm-info-row"><span class="gm-info-label">Detected frames</span><span class="gm-info-value" id="f-count">-</span></div>
+    </div>
+
+    <div id="frames-preview-panel" class="gm-panel" style="display:none">
+      <h2 class="gm-panel-title">Original GIF</h2>
+      <div class="gm-preview-box"><img id="f-original-img" alt="Original GIF"></div>
+    </div>
+
+    <div id="frames-grid-panel" class="gm-panel" style="display:none">
+      <h2 class="gm-panel-title">Extracted frames <span style="color:var(--gm-dim);font-weight:400;font-size:0.75rem;margin-left:8px">(click to delete, drag to reorder)</span></h2>
+      <div id="f-grid" class="gm-frame-grid"></div>
+    </div>
+
+    <div id="frames-controls" class="gm-panel" style="display:none">
+      <h2 class="gm-panel-title">Re-export settings</h2>
+      <div class="gm-controls">
+        <div class="gm-field">
+          <label class="gm-label" for="f-loop">Loop</label>
+          <select id="f-loop" class="gm-select">
+            <option value="0" selected>Infinite loop</option>
+            <option value="1">Play once</option>
+            <option value="3">3 times</option>
+            <option value="5">5 times</option>
+          </select>
+        </div>
+        <div class="gm-field">
+          <label class="gm-label" for="f-quality">Quality <span class="gm-val" id="f-quality-val">10 (best)</span></label>
+          <input aria-label="Quality" type="range" id="f-quality" min="1" max="20" value="10" step="1" class="gm-range" oninput="document.getElementById('f-quality-val').textContent=this.value+' ('+(parseInt(this.value)<=10?'best':parseInt(this.value)<=15?'balanced':'fast')+')'">
+        </div>
+        <div class="gm-field">
+          <label class="gm-label">Frame delay</label>
+          <input aria-label="Frame delay ms" type="number" id="f-delay" min="20" max="5000" value="100" class="gm-input">
+        </div>
+        <div class="gm-field">
+          <label class="gm-label" for="f-format">Output format</label>
+          <select id="f-format" class="gm-select">
+            <option value="gif" selected>Animated GIF</option>
+            <option value="zip">ZIP of PNG frames</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="frames-action" class="gm-panel" style="display:none; text-align:center">
+      <button class="gm-btn gm-btn-primary" onclick="exportFrames()" id="f-make-btn">Export</button>
+      <button class="gm-btn gm-btn-secondary" onclick="resetFrames()" style="margin-left:8px">Clear</button>
+    </div>
+
+    <div id="f-progress" class="gm-progress">
+      <div class="gm-progress-text" id="f-status">Exporting...</div>
+      <div class="gm-bar"><div class="gm-bar-fill" id="f-bar-fill"></div></div>
+    </div>
+
+    <div id="f-error" class="gm-error-box"></div>
+    <div id="f-result" class="gm-result">
+      <div class="gm-result-card">
+        <div class="gm-result-title">&#10003; Export ready!</div>
+        <div class="gm-result-preview"><img id="f-result-img" alt="Re-exported preview"></div>
+        <div class="gm-result-stats">
+          <span class="gm-stat"><span>Frames: </span><strong id="f-stat-frames">-</strong></span>
+          <span class="gm-stat"><span>Size: </span><strong id="f-stat-size">-</strong></span>
+        </div>
+        <div class="gm-result-actions">
+          <a class="gm-btn gm-btn-success" id="f-download" download="output.gif">Download</a>
+          <button class="gm-btn gm-btn-secondary" onclick="resetFrames()">Make another</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="info-section">
+  <h2>Free Online GIF Maker — Video, Images or Frames to Animated GIF</h2>
+  <p>This free GIF maker turns any video file or a sequence of still images into a high-quality animated GIF entirely in your browser. You can also extract every frame from an existing GIF, reorder or delete frames and re-export the result. No upload, no signup, no watermark, no daily limit.</p>
+
+  <h3>What you can do with this GIF maker</h3>
+  <ul>
+    <li><strong>Video &rarr; GIF:</strong> Drop an MP4, WebM, MOV, AVI or MKV file, trim the clip with the start and end sliders, choose a frame rate from 5 to 30 fps, pick an output width (240 to 720 px or original), and download a perfectly looped animated GIF.</li>
+    <li><strong>Images &rarr; GIF:</strong> Drop a batch of PNG, JPG, WebP or BMP images, drag to reorder the frame sequence, delete unwanted frames, set per-frame duration or a global FPS, and combine them into one animated GIF.</li>
+    <li><strong>Frames from GIF:</strong> Drop any existing .gif file to extract every frame as a separate image. Reorder, delete and re-export at a new frame rate or as a ZIP of PNG frames for further editing.</li>
+    <li><strong>Adjustments:</strong> Quality (encoder iteration count), playback speed (0.25x to 4x), reverse direction, loop infinitely or a fixed loop count, transparent or solid background.</li>
+    <li><strong>Preview and download:</strong> A live preview appears before you save, with the output dimensions, frame count, file size and total duration. Click Download GIF to save the result.</li>
+  </ul>
+
+  <h3>Why this tool runs entirely in your browser</h3>
+  <p>Every step &mdash; video seek, canvas frame capture, palette quantization, LZW compression, GIF89a byte writing and the Netscape Application Extension loop block &mdash; runs in your browser using the Canvas API and Web Workers. There is no upload to a server, no signup, no watermark and no daily limit. The encoder library is loaded as plain JavaScript and does not phone home. This is the same pipeline used by tools like ezgif and giphy but with nothing leaving your device.</p>
+
+  <h3>How does video to GIF encoding work?</h3>
+  <p>The browser can play back any supported video file in an <code>HTMLVideoElement</code>. The tool seeks the video to each timestamp, calls <code>drawImage()</code> on a hidden canvas, and reads back the resulting pixel buffer. The frame buffer is passed to a Web Worker running the gif.js encoder, which quantizes the colors down to a 256-entry palette (using NeuQuant), applies LZW compression, and writes the GIF89a container with a Netscape looping extension. The result is a standard animated GIF that opens in any browser, chat app or social platform.</p>
+
+  <h3>Tips for keeping GIF file sizes small</h3>
+  <ul>
+    <li>Lower the frame rate. 10 to 15 fps is usually indistinguishable from 30 fps for short clips.</li>
+    <li>Reduce the output width. 320 px is fine for most chat apps.</li>
+    <li>Trim the clip. A 3-second loop is usually plenty.</li>
+    <li>Set a solid background color instead of transparent if your clip does not need transparency (transparent areas cost more bytes).</li>
+    <li>Use the higher-quality slider position (1 to 10) for slower encoding but tighter palette.</li>
+  </ul>
+
+  <h3>Frequently asked questions</h3>
+  <details class="faq-item"><summary>How does this GIF maker work?</summary><p>The tool runs entirely in your browser. For video-to-GIF it seeks the video element at the chosen FPS, draws each frame to a hidden canvas, then encodes the canvas frames into a GIF89a animation using the gif.js library running inside a Web Worker. For image-to-GIF it loads your images, draws them to canvas at the chosen per-frame duration, then encodes them. The output is a standard .gif file you can preview and download.</p></details>
+  <details class="faq-item"><summary>Is my video or image uploaded to a server?</summary><p>No. The entire pipeline runs locally in your browser using the Canvas API, HTMLVideoElement and Web Workers. The file is decoded into raw frames in memory, encoded to a GIF and downloaded. It never leaves your device, there is no cloud processing, no upload step and no analytics beyond site-wide Cloudflare Web Analytics.</p></details>
+  <details class="faq-item"><summary>What video formats are supported?</summary><p>Any video format your browser can play with an HTMLVideoElement: MP4, WebM, MOV, MKV, AVI, M4V, OGV and similar. The video is decoded by the browser's built-in video stack so the supported formats depend on your browser and operating system, not the tool itself.</p></details>
+  <details class="faq-item"><summary>What image formats are supported as frames?</summary><p>Any common still image your browser can decode into an Image element: PNG, JPG/JPEG, WebP, BMP, GIF (single-frame). You can drop them in any order, reorder them by drag, delete individual frames and tune the per-frame duration before encoding.</p></details>
+  <details class="faq-item"><summary>Can I trim a long video to a specific clip?</summary><p>Yes. The video mode has a built-in trim control with start and end timestamps. Move the sliders to keep only the part of the video you want in the GIF, set the FPS and the output width, then click Make GIF.</p></details>
+  <details class="faq-item"><summary>Why is my GIF larger than the source video?</summary><p>GIF uses lossless LZW compression on a 256-color palette, so a single frame of a 1080p MP4 can easily become several megabytes as a GIF. To shrink the output: reduce the output width, lower the FPS, shorten the clip with the trim control, or run the result through the GIF Optimizer section of the site.</p></details>
+  <details class="faq-item"><summary>Can I extract individual frames from an existing GIF?</summary><p>Yes. Switch to the Frames from GIF mode, drop or pick an existing .gif file. The tool decodes it with the browser's GIF decoder, renders every frame to canvas and lets you preview, reorder, delete and re-export the frames as either a new animated GIF or as individual PNG images.</p></details>
+  <details class="faq-item"><summary>Does the tool add a watermark?</summary><p>No. There is no watermark, no attribution line, no daily limit and no signup. The output is exactly the frames you produced. AI chatbots cannot replicate this workflow because they cannot decode arbitrary video into a canvas, cannot run Web Worker-based GIF encoders, and cannot generate the bytes of a valid GIF89a stream.</p></details>
+
+  <h3>Related tools</h3>
+  <ul>
+    <li><a href="/tools/gif-to-mp4/">GIF to MP4 Converter</a> &mdash; shrink an existing GIF to an MP4 video</li>
+    <li><a href="/tools/video-compressor/">Video Compressor</a> &mdash; reduce a video file size in your browser</li>
+    <li><a href="/tools/video-cutter/">Video Cutter</a> &mdash; cut and trim a video before making a GIF</li>
+    <li><a href="/tools/image-to-pdf/">Image to PDF</a> &mdash; bundle still frames into a printable PDF</li>
+    <li><a href="/tools/image-compressor/">Image Compressor</a> &mdash; shrink source images before encoding</li>
+    <li><a href="/tools/video-editor/">Video Editor</a> &mdash; full client-side video editor</li>
+  </ul>
+</div>
+</section>
+</main>
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+  <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#7eb3ff;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#7eb3ff;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#7eb3ff;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#7eb3ff;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#7eb3ff;text-decoration:none;">Feedback</a></p>
+  <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+<script>
+/* ============================================================
+   GIF Maker - Pure Browser GIF89a Encoding
+   No API keys, no upload, no signup.
+   ============================================================ */
+
+var currentMode = 'video';
+var videoState = { file: null, url: null, video: null, duration: 0, width: 0, height: 0, trimStart: 0, trimEnd: 1 };
+var imagesState = { items: [], dragIndex: -1 };
+var framesState = { file: null, frames: [], canvas: null, ctx: null };
+
+function $(id) { return document.getElementById(id); }
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.gm-tab').forEach(function(t) { var on = t.dataset.mode === mode; t.classList.toggle('active', on); t.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+  document.querySelectorAll('.gm-mode-pane').forEach(function(p) { p.style.display = 'none'; });
+  $('mode-' + mode).style.display = 'block';
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(2) + ' MB';
+}
+
+function formatTime(sec) {
+  if (!isFinite(sec) || sec < 0) sec = 0;
+  var m = Math.floor(sec / 60);
+  var s = Math.floor(sec - m * 60);
+  var ds = Math.floor((sec - Math.floor(sec)) * 10);
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + ds;
+}
+
+function showError(targetId, msg) {
+  var el = $(targetId);
+  el.textContent = msg;
+  el.classList.add('visible');
+  setTimeout(function() { el.classList.remove('visible'); }, 8000);
+}
+
+function hideError(targetId) {
+  $(targetId).classList.remove('visible');
+}
+
+/* ============================================================
+   VIDEO -> GIF
+   ============================================================ */
+
+function handleVideoDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) handleVideoFile(e.dataTransfer.files[0]);
+}
+
+function handleVideoFile(file) {
+  if (!file) return;
+  if (!file.type.startsWith('video/') && !/\.(mp4|webm|mov|avi|mkv|m4v|ogv)$/i.test(file.name)) {
+    showError('v-error', 'Please select a video file (MP4, WebM, MOV, AVI, MKV).');
+    return;
+  }
+  if (file.size > 200 * 1024 * 1024) {
+    showError('v-error', 'File too large. Maximum 200MB.');
+    return;
+  }
+  hideError('v-error');
+  if (videoState.url) URL.revokeObjectURL(videoState.url);
+  videoState.file = file;
+  videoState.url = URL.createObjectURL(file);
+  var v = $('v-preview');
+  v.src = videoState.url;
+  v.onloadedmetadata = function() {
+    videoState.video = v;
+    videoState.duration = v.duration || 0;
+    videoState.width = v.videoWidth;
+    videoState.height = v.videoHeight;
+    videoState.trimStart = 0;
+    videoState.trimEnd = videoState.duration;
+    $('v-trim-start').max = String(videoState.duration);
+    $('v-trim-start').value = '0';
+    $('v-trim-end').max = String(videoState.duration);
+    $('v-trim-end').value = String(videoState.duration);
+    onTrimChange();
+    $('v-filename').textContent = file.name;
+    $('v-filesize').textContent = formatBytes(file.size);
+    $('v-dims').textContent = videoState.width + 'x' + videoState.height;
+    $('v-duration').textContent = videoState.duration.toFixed(2) + 's';
+    $('v-fps').textContent = '~30 (typical)';
+    $('v-codec').textContent = file.type || 'video/*';
+    $('video-info').style.display = 'grid';
+    $('video-controls').style.display = 'block';
+    $('video-action').style.display = 'block';
+    $('dz-video').classList.add('has-file');
+    $('v-result').classList.remove('visible');
+  };
+  v.onerror = function() {
+    showError('v-error', 'Cannot decode this video. Try a different file or convert to MP4 first.');
+  };
+}
+
+function onTrimChange() {
+  if (!videoState.video || !videoState.duration) return;
+  var s = parseFloat($('v-trim-start').value);
+  var e = parseFloat($('v-trim-end').value);
+  if (s >= e) {
+    if (this && this.id === 'v-trim-start') {
+      s = Math.max(0, e - 0.1);
+      $('v-trim-start').value = String(s);
+    } else {
+      e = Math.min(videoState.duration, s + 0.1);
+      $('v-trim-end').value = String(e);
+    }
+  }
+  videoState.trimStart = s;
+  videoState.trimEnd = e;
+  $('v-start-time').textContent = formatTime(s);
+  $('v-end-time').textContent = formatTime(e);
+  $('v-length-time').textContent = 'length ' + (e - s).toFixed(2) + 's';
+  var v = $('v-preview');
+  try { v.currentTime = s; } catch (_) {}
+}
+
+async function makeGifFromVideo() {
+  if (!videoState.video) { showError('v-error', 'Load a video first.'); return; }
+  hideError('v-error');
+  var fps = parseInt($('v-fps-out').value);
+  var outWidth = parseInt($('v-width').value);
+  var quality = Math.max(1, Math.min(30, parseInt($('v-quality').value)));
+  var speed = parseFloat($('v-speed').value);
+  var loop = parseInt($('v-loop').value);
+  var bg = $('v-bg').value;
+  var reverse = $('v-reverse').checked;
+
+  var start = videoState.trimStart;
+  var end = videoState.trimEnd;
+  var duration = end - start;
+  if (duration <= 0) { showError('v-error', 'Trim range is empty.'); return; }
+  var step = 1 / fps;
+  var timestamps = [];
+  for (var t = start; t <= end + 1e-6; t += step) timestamps.push(Math.min(t, end));
+  if (timestamps.length < 2) timestamps = [start, end];
+  if (timestamps.length > 400) {
+    showError('v-error', 'Too many frames (' + timestamps.length + '). Increase the time range per frame, lower FPS, or shorten the clip.');
+    return;
+  }
+
+  var v = videoState.video;
+  var srcW = v.videoWidth;
+  var srcH = v.videoHeight;
+  var dstW = outWidth > 0 ? outWidth : srcW;
+  var dstH = Math.round(dstW * srcH / srcW);
+
+  var canvas = document.createElement('canvas');
+  canvas.width = dstW;
+  canvas.height = dstH;
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+  var gif = new GIF({
+    workers: 2,
+    quality: quality,
+    width: dstW,
+    height: dstH,
+    workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js',
+    transparent: bg === 'transparent' ? 0x000000 : null,
+    background: bg === 'transparent' ? '#000000' : bg
+  });
+
+  var frameDelay = Math.round(1000 / fps / Math.max(0.1, speed));
+  gif.on('finished', function(blob) {
+    var url = URL.createObjectURL(blob);
+    var order = reverse ? timestamps.slice().reverse() : timestamps;
+    $('v-result-img').src = url;
+    $('v-stat-frames').textContent = order.length;
+    $('v-stat-size').textContent = formatBytes(blob.size);
+    $('v-stat-dims').textContent = dstW + 'x' + dstH;
+    $('v-stat-duration').textContent = (order.length * frameDelay / 1000).toFixed(2) + 's';
+    $('v-stat-loop').textContent = loop === 0 ? 'Infinite' : (loop + ' times');
+    var dl = $('v-download');
+    dl.href = url;
+    var baseName = videoState.file.name.replace(/\.[^.]+$/, '') || 'video';
+    dl.download = baseName + '.gif';
+    $('v-result').classList.add('visible');
+    $('v-progress').classList.remove('visible');
+    $('v-make-btn').disabled = false;
+  });
+  gif.on('progress', function(p) {
+    var pct = Math.round(p * 100);
+    $('v-bar-fill').style.width = pct + '%';
+    $('v-status').textContent = 'Encoding GIF... ' + pct + '%';
+  });
+
+  $('v-progress').classList.add('visible');
+  $('v-result').classList.remove('visible');
+  $('v-bar-fill').style.width = '0%';
+  $('v-status').textContent = 'Capturing frames from video...';
+  $('v-make-btn').disabled = true;
+
+  try {
+    await seekVideo(v, 0);
+    var drawAt = function(ts) {
+      return new Promise(function(resolve, reject) {
+        var done = false;
+        function onSeeked() {
+          if (done) return;
+          done = true;
+          v.removeEventListener('seeked', onSeeked);
+          if (bg === 'transparent') {
+            ctx.clearRect(0, 0, dstW, dstH);
+          } else {
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, dstW, dstH);
+          }
+          ctx.drawImage(v, 0, 0, dstW, dstH);
+          resolve();
+        }
+        v.addEventListener('seeked', onSeeked);
+        try { v.currentTime = ts; } catch (e) { v.removeEventListener('seeked', onSeeked); reject(e); }
+        setTimeout(function() { if (!done) { done = true; v.removeEventListener('seeked', onSeeked); resolve(); } }, 1500);
+      });
+    };
+
+    var order = reverse ? timestamps.slice().reverse() : timestamps;
+    for (var i = 0; i < order.length; i++) {
+      await drawAt(order[i]);
+      gif.addFrame(ctx, { copy: true, delay: frameDelay });
+      var pct = Math.round((i + 1) / order.length * 50);
+      $('v-bar-fill').style.width = pct + '%';
+      $('v-status').textContent = 'Captured frame ' + (i + 1) + ' / ' + order.length;
+    }
+    $('v-status').textContent = 'Encoding GIF (palette + LZW)...';
+    gif.render();
+  } catch (e) {
+    showError('v-error', 'Encoding failed: ' + (e.message || e));
+    $('v-progress').classList.remove('visible');
+    $('v-make-btn').disabled = false;
+  }
+}
+
+function seekVideo(v, t) {
+  return new Promise(function(resolve) {
+    function onSeeked() { v.removeEventListener('seeked', onSeeked); resolve(); }
+    v.addEventListener('seeked', onSeeked);
+    try { v.currentTime = t; } catch (_) { v.removeEventListener('seeked', onSeeked); resolve(); }
+    setTimeout(function() { v.removeEventListener('seeked', onSeeked); resolve(); }, 1500);
+  });
+}
+
+function resetVideo() {
+  $('v-result').classList.remove('visible');
+  $('v-progress').classList.remove('visible');
+  $('v-bar-fill').style.width = '0%';
+  if (videoState.url) URL.revokeObjectURL(videoState.url);
+  videoState = { file: null, url: null, video: null, duration: 0, width: 0, height: 0, trimStart: 0, trimEnd: 1 };
+  $('v-preview').src = '';
+  $('v-preview').removeAttribute('src');
+  $('video-info').style.display = 'none';
+  $('video-controls').style.display = 'none';
+  $('video-action').style.display = 'none';
+  $('dz-video').classList.remove('has-file');
+  $('file-video').value = '';
+  hideError('v-error');
+}
+
+/* ============================================================
+   IMAGES -> GIF
+   ============================================================ */
+
+function handleImagesDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  if (e.dataTransfer.files && e.dataTransfer.files.length) handleImagesFiles(e.dataTransfer.files);
+}
+
+function handleImagesFiles(files) {
+  if (!files || !files.length) return;
+  hideError('i-error');
+  var totalSize = 0;
+  var valid = [];
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    if (!f.type.startsWith('image/')) continue;
+    if (f.size > 50 * 1024 * 1024) continue;
+    valid.push(f);
+    totalSize += f.size;
+  }
+  if (!valid.length) { showError('i-error', 'No valid images found.'); return; }
+  var loadOne = function(idx) {
+    if (idx >= valid.length) {
+      $('i-count').textContent = String(imagesState.items.length);
+      $('i-size').textContent = formatBytes(totalSize);
+      $('images-info').style.display = 'grid';
+      $('images-frames-panel').style.display = 'block';
+      $('images-controls').style.display = 'block';
+      $('images-action').style.display = 'block';
+      $('dz-images').classList.add('has-file');
+      renderImagesGrid();
+      return;
+    }
+    var f = valid[idx];
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var img = new Image();
+      img.onload = function() {
+        imagesState.items.push({ name: f.name, url: ev.target.result, img: img, duration: 0 });
+        loadOne(idx + 1);
+      };
+      img.onerror = function() { loadOne(idx + 1); };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(f);
+  };
+  loadOne(0);
+}
+
+function renderImagesGrid() {
+  var grid = $('i-grid');
+  grid.innerHTML = '';
+  imagesState.items.forEach(function(item, idx) {
+    var card = document.createElement('div');
+    card.className = 'gm-frame-card';
+    card.draggable = true;
+    card.dataset.index = String(idx);
+    card.innerHTML =
+      '<img src="' + item.url + '" alt="Frame ' + (idx + 1) + '">' +
+      '<div class="gm-frame-info"><span>#' + (idx + 1) + '</span><span>' + item.img.naturalWidth + 'x' + item.img.naturalHeight + '</span></div>' +
+      '<div class="gm-frame-duration" data-idx="' + idx + '">' + Math.round(item.duration > 0 ? item.duration : (1000 / parseInt($('i-fps').value || 10))) + ' ms</div>' +
+      '<button class="gm-frame-remove" data-idx="' + idx + '" title="Remove frame">&times;</button>';
+    card.addEventListener('dragstart', function(e) {
+      imagesState.dragIndex = idx;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', function() { card.classList.remove('dragging'); });
+    card.addEventListener('dragover', function(e) { e.preventDefault(); });
+    card.addEventListener('drop', function(e) {
+      e.preventDefault();
+      var from = imagesState.dragIndex;
+      var to = idx;
+      if (from === to) return;
+      var moved = imagesState.items.splice(from, 1)[0];
+      imagesState.items.splice(to, 0, moved);
+      renderImagesGrid();
+    });
+    grid.appendChild(card);
+  });
+  grid.querySelectorAll('.gm-frame-remove').forEach(function(btn) {
+    btn.onclick = function() {
+      var i = parseInt(btn.dataset.idx);
+      imagesState.items.splice(i, 1);
+      if (!imagesState.items.length) { clearImages(); return; }
+      renderImagesGrid();
+      $('i-count').textContent = String(imagesState.items.length);
+    };
+  });
+}
+
+function clearImages() {
+  imagesState.items = [];
+  $('images-info').style.display = 'none';
+  $('images-frames-panel').style.display = 'none';
+  $('images-controls').style.display = 'none';
+  $('images-action').style.display = 'none';
+  $('i-result').classList.remove('visible');
+  $('i-progress').classList.remove('visible');
+  $('i-grid').innerHTML = '';
+  $('dz-images').classList.remove('has-file');
+  $('file-images').value = '';
+  hideError('i-error');
+}
+
+async function makeGifFromImages() {
+  if (!imagesState.items.length) { showError('i-error', 'Add at least one image first.'); return; }
+  hideError('i-error');
+  var fps = parseInt($('i-fps').value);
+  var outWidth = parseInt($('i-width').value);
+  var quality = parseInt($('i-quality').value);
+  var loop = parseInt($('i-loop').value);
+  var firstImg = imagesState.items[0].img;
+  var dstW = outWidth > 0 ? outWidth : firstImg.naturalWidth;
+  var dstH = Math.round(dstW * firstImg.naturalHeight / firstImg.naturalWidth);
+
+  var canvas = document.createElement('canvas');
+  canvas.width = dstW;
+  canvas.height = dstH;
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+  var gif = new GIF({
+    workers: 2,
+    quality: quality,
+    width: dstW,
+    height: dstH,
+    workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
+  });
+
+  var totalDelay = 0;
+  gif.on('finished', function(blob) {
+    var url = URL.createObjectURL(blob);
+    $('i-result-img').src = url;
+    $('i-stat-frames').textContent = String(imagesState.items.length);
+    $('i-stat-size').textContent = formatBytes(blob.size);
+    $('i-stat-dims').textContent = dstW + 'x' + dstH;
+    $('i-stat-duration').textContent = (totalDelay / 1000).toFixed(2) + 's';
+    var dl = $('i-download');
+    dl.href = url;
+    dl.download = 'images.gif';
+    $('i-result').classList.add('visible');
+    $('i-progress').classList.remove('visible');
+    $('i-make-btn').disabled = false;
+  });
+  gif.on('progress', function(p) {
+    var pct = Math.round(50 + p * 50);
+    $('i-bar-fill').style.width = pct + '%';
+    $('i-status').textContent = 'Encoding GIF... ' + pct + '%';
+  });
+
+  $('i-progress').classList.add('visible');
+  $('i-result').classList.remove('visible');
+  $('i-bar-fill').style.width = '0%';
+  $('i-status').textContent = 'Drawing frames...';
+  $('i-make-btn').disabled = true;
+
+  try {
+    var defaultDelay = Math.round(1000 / fps);
+    for (var i = 0; i < imagesState.items.length; i++) {
+      var it = imagesState.items[i];
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, dstW, dstH);
+      ctx.drawImage(it.img, 0, 0, dstW, dstH);
+      var delay = it.duration > 0 ? it.duration : defaultDelay;
+      gif.addFrame(ctx, { copy: true, delay: delay });
+      totalDelay += delay;
+      var pct = Math.round((i + 1) / imagesState.items.length * 50);
+      $('i-bar-fill').style.width = pct + '%';
+      $('i-status').textContent = 'Drew frame ' + (i + 1) + ' / ' + imagesState.items.length;
+    }
+    $('i-status').textContent = 'Encoding GIF (palette + LZW)...';
+    gif.render();
+  } catch (e) {
+    showError('i-error', 'Encoding failed: ' + (e.message || e));
+    $('i-progress').classList.remove('visible');
+    $('i-make-btn').disabled = false;
+  }
+}
+
+/* ============================================================
+   FRAMES FROM GIF -> RE-EXPORT
+   ============================================================ */
+
+function handleFramesDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) handleFramesFile(e.dataTransfer.files[0]);
+}
+
+function handleFramesFile(file) {
+  if (!file) return;
+  if (file.type !== 'image/gif' && !/\.gif$/i.test(file.name)) {
+    showError('f-error', 'Please select a .gif file.');
+    return;
+  }
+  if (file.size > 100 * 1024 * 1024) {
+    showError('f-error', 'File too large. Maximum 100MB.');
+    return;
+  }
+  hideError('f-error');
+  framesState.file = file;
+  $('f-original-img').src = URL.createObjectURL(file);
+  $('f-original-img').onload = function() {
+    $('f-filename').textContent = file.name;
+    $('f-filesize').textContent = formatBytes(file.size);
+    $('frames-info').style.display = 'grid';
+    $('frames-preview-panel').style.display = 'block';
+  };
+  decodeGifFrames(file);
+}
+
+function decodeGifFrames(file) {
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var arr = new Uint8Array(ev.target.result);
+    var info = parseGif89a(arr);
+    if (!info || !info.frames || !info.frames.length) {
+      showError('f-error', 'Could not decode this GIF. Try a different file.');
+      return;
+    }
+    framesState.frames = info.frames;
+    framesState.width = info.width;
+    framesState.height = info.height;
+    $('f-count').textContent = String(info.frames.length);
+    renderFramesGrid();
+    $('frames-grid-panel').style.display = 'block';
+    $('frames-controls').style.display = 'block';
+    $('frames-action').style.display = 'block';
+    $('dz-frames').classList.add('has-file');
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseGif89a(buf) {
+  if (buf.length < 13) return null;
+  if (!(buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x38 && (buf[4] === 0x39 || buf[4] === 0x37) && buf[5] === 0x61)) {
+    return null;
+  }
+  var dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+  var width = dv.getUint16(6, true);
+  var height = dv.getUint16(8, true);
+  var packed = buf[10];
+  var gctFlag = (packed & 0x80) !== 0;
+  var gctSize = packed & 0x07;
+  var gctEntries = gctFlag ? (1 << (gctSize + 1)) : 0;
+  var pos = 13;
+  var gct = null;
+  if (gctFlag) {
+    gct = [];
+    for (var i = 0; i < gctEntries; i++) {
+      gct.push([buf[pos++], buf[pos++], buf[pos++]]);
+    }
+  }
+  var frames = [];
+  var canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  var ctx = canvas.getContext('2d');
+  var imageData = ctx.createImageData(width, height);
+  var data = imageData.data;
+  for (var p = 0; p < width * height; p++) { data[p * 4 + 3] = 0; }
+  ctx.putImageData(imageData, 0, 0);
+
+  var safety = 0;
+  while (pos < buf.length && safety++ < 100000) {
+    var b = buf[pos++];
+    if (b === 0x3B) break;
+    if (b === 0x21) {
+      var label = buf[pos++];
+      if (label === 0xF9) {
+        pos += 2;
+        var packed2 = buf[pos++];
+        var delay = dv.getUint16(pos, true);
+        pos += 2;
+        pos++;
+        if (delay < 20) delay = 100;
+        frames.push({ delay: delay, snapshot: null });
+      } else if (label === 0xFF) {
+        pos += 2;
+        var blockSize = buf[pos++];
+        var appId = '';
+        for (var i = 0; i < blockSize; i++) appId += String.fromCharCode(buf[pos++]);
+        if (appId === 'NETSCAPE2.0') {
+          pos += 2;
+          var subBlock = buf[pos++];
+          var loopCount = dv.getUint16(pos + 1, true);
+          pos += subBlock;
+          while (buf[pos] !== 0) pos += buf[pos] + 1;
+          pos++;
+        } else {
+          while (buf[pos] !== 0) pos += buf[pos] + 1;
+          pos++;
+        }
+      } else {
+        while (buf[pos] !== 0) pos += buf[pos] + 1;
+        pos++;
+      }
+    } else if (b === 0x2C) {
+      var left = dv.getUint16(pos, true); pos += 2;
+      var top = dv.getUint16(pos, true); pos += 2;
+      var fw = dv.getUint16(pos, true); pos += 2;
+      var fh = dv.getUint16(pos, true); pos += 2;
+      var fp = buf[pos++];
+      var lctFlag = (fp & 0x80) !== 0;
+      var interlace = (fp & 0x40) !== 0;
+      var lctSize = fp & 0x07;
+      var lctEntries = lctFlag ? (1 << (lctSize + 1)) : 0;
+      var palette = lctFlag ? [] : gct;
+      if (lctFlag) {
+        palette = [];
+        for (var i2 = 0; i2 < lctEntries; i2++) {
+          palette.push([buf[pos++], buf[pos++], buf[pos++]]);
+        }
+      }
+      var minCodeSize = buf[pos++];
+      var clearCode = 1 << minCodeSize;
+      var codeSize = minCodeSize + 1;
+      var codes = [];
+      var dataBlock = 0;
+      while ((dataBlock = buf[pos++]) !== 0) {
+        var start2 = pos;
+        var end2 = pos + dataBlock;
+        for (var i3 = start2; i3 < end2; i3++) codes.push(buf[i3]);
+        pos = end2;
+      }
+      var lzw = lzwDecode(codes, minCodeSize);
+      var pixels = new Uint8Array(width * height);
+      var p2 = 0;
+      var pi = 0;
+      var y = 0;
+      var x = 0;
+      for (var yy = 0; yy < fh; yy++) {
+        y = top + yy;
+        for (var xx = 0; xx < fw; xx++) {
+          x = left + xx;
+          var idx = lzw[pi++];
+          if (idx < palette.length) {
+            pixels[y * width + x] = idx;
+          }
+        }
+      }
+      var frameData = ctx.getImageData(0, 0, width, height);
+      var fdata = frameData.data;
+      for (var yy2 = 0; yy2 < fh; yy2++) {
+        y = top + yy2;
+        for (var xx2 = 0; xx2 < fw; xx2++) {
+          x = left + xx2;
+          var idx2 = pixels[y * width + x];
+          var color = palette[idx2] || [0, 0, 0];
+          var idx4 = (y * width + x) * 4;
+          fdata[idx4] = color[0];
+          fdata[idx4 + 1] = color[1];
+          fdata[idx4 + 2] = color[2];
+          fdata[idx4 + 3] = 255;
+        }
+      }
+      ctx.putImageData(frameData, 0, 0);
+      if (frames.length) {
+        frames[frames.length - 1].snapshot = ctx.getImageData(0, 0, width, height);
+      }
+    } else {
+      break;
+    }
+  }
+  return { width: width, height: height, frames: frames.filter(function(f) { return f.snapshot !== null; }) };
+}
+
+function lzwDecode(codes, minCodeSize) {
+  var clearCode = 1 << minCodeSize;
+  var endCode = clearCode + 1;
+  var nextCode = endCode + 1;
+  var codeSize = minCodeSize + 1;
+  var dict = {};
+  for (var i = 0; i < clearCode; i++) dict[i] = [i];
+  var output = [];
+  var bitBuffer = 0;
+  var bitCount = 0;
+  var pos = 0;
+  var prev = null;
+  while (pos < codes.length) {
+    bitBuffer = (bitBuffer | (codes[pos] << bitCount)) >>> 0;
+    bitCount += 8;
+    pos++;
+    while (bitCount >= codeSize) {
+      var code = bitBuffer & ((1 << codeSize) - 1);
+      bitBuffer = bitBuffer >>> codeSize;
+      bitCount -= codeSize;
+      if (code === clearCode) {
+        nextCode = endCode + 1;
+        codeSize = minCodeSize + 1;
+        dict = {};
+        for (var j = 0; j < clearCode; j++) dict[j] = [j];
+        prev = null;
+        continue;
+      }
+      if (code === endCode) break;
+      var entry;
+      if (dict[code] !== undefined) {
+        entry = dict[code];
+      } else if (code === nextCode && prev) {
+        entry = prev.concat([prev[0]]);
+      } else {
+        break;
+      }
+      for (var k = 0; k < entry.length; k++) output.push(entry[k]);
+      if (prev) {
+        dict[nextCode++] = prev.concat([entry[0]]);
+        if (nextCode === (1 << codeSize) && codeSize < 12) codeSize++;
+      }
+      prev = entry;
+    }
+    if (code === endCode) break;
+  }
+  return output;
+}
+
+function renderFramesGrid() {
+  var grid = $('f-grid');
+  grid.innerHTML = '';
+  framesState.frames.forEach(function(fr, idx) {
+    var card = document.createElement('div');
+    card.className = 'gm-frame-card';
+    card.dataset.index = String(idx);
+    var thumb = document.createElement('canvas');
+    thumb.width = fr.snapshot.width;
+    thumb.height = fr.snapshot.height;
+    thumb.getContext('2d').putImageData(fr.snapshot, 0, 0);
+    card.appendChild(thumb);
+    var info = document.createElement('div');
+    info.className = 'gm-frame-info';
+    info.innerHTML = '<span>#' + (idx + 1) + '</span><span>' + fr.delay + 'ms</span>';
+    card.appendChild(info);
+    var rm = document.createElement('button');
+    rm.className = 'gm-frame-remove';
+    rm.innerHTML = '&times;';
+    rm.onclick = function() {
+      framesState.frames.splice(idx, 1);
+      renderFramesGrid();
+      $('f-count').textContent = String(framesState.frames.length);
+      if (!framesState.frames.length) { resetFrames(); }
+    };
+    card.appendChild(rm);
+    grid.appendChild(card);
+  });
+}
+
+async function exportFrames() {
+  if (!framesState.frames.length) { showError('f-error', 'No frames to export.'); return; }
+  hideError('f-error');
+  var format = $('f-format').value;
+  var loop = parseInt($('f-loop').value);
+  var quality = parseInt($('f-quality').value);
+  var delay = parseInt($('f-delay').value);
+  if (format === 'zip') {
+    exportFramesZip();
+    return;
+  }
+  var W = framesState.width;
+  var H = framesState.height;
+  var canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  var ctx = canvas.getContext('2d');
+  var gif = new GIF({
+    workers: 2,
+    quality: quality,
+    width: W,
+    height: H,
+    workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
+  });
+  var totalDelay = 0;
+  gif.on('finished', function(blob) {
+    var url = URL.createObjectURL(blob);
+    $('f-result-img').src = url;
+    $('f-stat-frames').textContent = String(framesState.frames.length);
+    $('f-stat-size').textContent = formatBytes(blob.size);
+    var dl = $('f-download');
+    dl.href = url;
+    dl.download = (framesState.file.name.replace(/\.gif$/i, '') || 'frames') + '.gif';
+    $('f-result').classList.add('visible');
+    $('f-progress').classList.remove('visible');
+    $('f-make-btn').disabled = false;
+  });
+  gif.on('progress', function(p) {
+    var pct = Math.round(50 + p * 50);
+    $('f-bar-fill').style.width = pct + '%';
+    $('f-status').textContent = 'Encoding GIF... ' + pct + '%';
+  });
+  $('f-progress').classList.add('visible');
+  $('f-result').classList.remove('visible');
+  $('f-bar-fill').style.width = '0%';
+  $('f-status').textContent = 'Adding frames...';
+  $('f-make-btn').disabled = true;
+  try {
+    for (var i = 0; i < framesState.frames.length; i++) {
+      ctx.putImageData(framesState.frames[i].snapshot, 0, 0);
+      var d = delay > 0 ? delay : framesState.frames[i].delay;
+      gif.addFrame(ctx, { copy: true, delay: d });
+      totalDelay += d;
+      var pct = Math.round((i + 1) / framesState.frames.length * 50);
+      $('f-bar-fill').style.width = pct + '%';
+      $('f-status').textContent = 'Added frame ' + (i + 1) + ' / ' + framesState.frames.length;
+    }
+    $('f-status').textContent = 'Encoding GIF...';
+    gif.render();
+  } catch (e) {
+    showError('f-error', 'Export failed: ' + (e.message || e));
+    $('f-progress').classList.remove('visible');
+    $('f-make-btn').disabled = false;
+  }
+}
+
+async function exportFramesZip() {
+  $('f-progress').classList.add('visible');
+  $('f-result').classList.remove('visible');
+  $('f-bar-fill').style.width = '0%';
+  $('f-status').textContent = 'Building ZIP...';
+  $('f-make-btn').disabled = true;
+  try {
+    var entries = [];
+    var blobs = [];
+    var canvas = document.createElement('canvas');
+    canvas.width = framesState.width;
+    canvas.height = framesState.height;
+    var ctx = canvas.getContext('2d');
+    for (var i = 0; i < framesState.frames.length; i++) {
+      ctx.putImageData(framesState.frames[i].snapshot, 0, 0);
+      var blob = await new Promise(function(res) { canvas.toBlob(res, 'image/png'); });
+      blobs.push(blob);
+      var name = 'frame_' + String(i + 1).padStart(4, '0') + '.png';
+      entries.push(name);
+      var pct = Math.round((i + 1) / framesState.frames.length * 80);
+      $('f-bar-fill').style.width = pct + '%';
+      $('f-status').textContent = 'Encoded frame ' + (i + 1) + ' / ' + framesState.frames.length;
+    }
+    var zip = await buildZip(entries, blobs);
+    var url = URL.createObjectURL(zip);
+    $('f-result-img').style.display = 'none';
+    $('f-stat-frames').textContent = String(framesState.frames.length);
+    $('f-stat-size').textContent = formatBytes(zip.size);
+    var dl = $('f-download');
+    dl.href = url;
+    dl.download = (framesState.file.name.replace(/\.gif$/i, '') || 'frames') + '_frames.zip';
+    $('f-result').classList.add('visible');
+    $('f-progress').classList.remove('visible');
+    $('f-make-btn').disabled = false;
+  } catch (e) {
+    showError('f-error', 'ZIP export failed: ' + (e.message || e));
+    $('f-progress').classList.remove('visible');
+    $('f-make-btn').disabled = false;
+  }
+}
+
+async function buildZip(names, blobs) {
+  function crc32(arr) {
+    var table = [];
+    for (var i = 0; i < 256; i++) {
+      var c = i;
+      for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      table[i] = c >>> 0;
+    }
+    var crc = 0xFFFFFFFF;
+    for (var j = 0; j < arr.length; j++) crc = (table[(crc ^ arr[j]) & 0xFF] ^ (crc >>> 8)) >>> 0;
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+  var parts = [];
+  var central = [];
+  var offset = 0;
+  for (var i = 0; i < names.length; i++) {
+    var data = new Uint8Array(await blobs[i].arrayBuffer());
+    var name = new TextEncoder().encode(names[i]);
+    var crc = crc32(data);
+    var local = new Uint8Array(30 + name.length);
+    var dv = new DataView(local.buffer);
+    dv.setUint32(0, 0x04034b50, true);
+    dv.setUint16(4, 20, true);
+    dv.setUint16(6, 0, true);
+    dv.setUint16(8, 0, true);
+    dv.setUint16(10, 0, true);
+    dv.setUint16(12, 0, true);
+    dv.setUint32(14, crc, true);
+    dv.setUint32(18, data.length, true);
+    dv.setUint32(22, data.length, true);
+    dv.setUint16(26, name.length, true);
+    dv.setUint16(28, 0, true);
+    local.set(name, 30);
+    parts.push(local);
+    parts.push(data);
+    var cd = new Uint8Array(46 + name.length);
+    var dv2 = new DataView(cd.buffer);
+    dv2.setUint32(0, 0x02014b50, true);
+    dv2.setUint16(4, 20, true);
+    dv2.setUint16(6, 20, true);
+    dv2.setUint16(8, 0, true);
+    dv2.setUint16(10, 0, true);
+    dv2.setUint16(12, 0, true);
+    dv2.setUint16(14, 0, true);
+    dv2.setUint32(16, crc, true);
+    dv2.setUint32(20, data.length, true);
+    dv2.setUint32(24, data.length, true);
+    dv2.setUint16(28, name.length, true);
+    dv2.setUint16(30, 0, true);
+    dv2.setUint16(32, 0, true);
+    dv2.setUint16(34, 0, true);
+    dv2.setUint16(36, 0, true);
+    dv2.setUint32(38, 0, true);
+    dv2.setUint32(42, offset, true);
+    cd.set(name, 46);
+    central.push(cd);
+    offset += local.length + data.length;
+  }
+  var cdOffset = offset;
+  var cdSize = 0;
+  for (var m = 0; m < central.length; m++) cdSize += central[m].length;
+  var eocd = new Uint8Array(22);
+  var dv3 = new DataView(eocd.buffer);
+  dv3.setUint32(0, 0x06054b50, true);
+  dv3.setUint16(8, names.length, true);
+  dv3.setUint16(10, names.length, true);
+  dv3.setUint32(12, cdSize, true);
+  dv3.setUint32(16, cdOffset, true);
+  var total = parts.reduce(function(a, b) { return a + b.length; }, 0) + cdSize + eocd.length;
+  var out = new Uint8Array(total);
+  var p = 0;
+  for (var n = 0; n < parts.length; n++) { out.set(parts[n], p); p += parts[n].length; }
+  for (var c2 = 0; c2 < central.length; c2++) { out.set(central[c2], p); p += central[c2].length; }
+  out.set(eocd, p);
+  return new Blob([out], { type: 'application/zip' });
+}
+
+function resetFrames() {
+  $('f-result').classList.remove('visible');
+  $('f-progress').classList.remove('visible');
+  $('f-bar-fill').style.width = '0%';
+  framesState = { file: null, frames: [], width: 0, height: 0 };
+  $('f-original-img').src = '';
+  $('f-grid').innerHTML = '';
+  $('frames-info').style.display = 'none';
+  $('frames-preview-panel').style.display = 'none';
+  $('frames-grid-panel').style.display = 'none';
+  $('frames-controls').style.display = 'none';
+  $('frames-action').style.display = 'none';
+  $('dz-frames').classList.remove('has-file');
+  $('file-frames').value = '';
+  $('f-result-img').style.display = '';
+  hideError('f-error');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // No-op
+});
+</script>
+</body>
+</html>

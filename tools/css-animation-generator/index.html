@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>CSS Animation Generator - Live Preview | DevTools Hub</title>
+    <meta name="description" content="Free CSS animation generator with live preview. Custom @keyframes animations, 15 presets, timing and easing. Copy CSS.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/css-animation-generator/">
+    <meta property="og:title" content="CSS Animation Generator | DevTools Hub">
+    <meta property="og:description" content="Create beautiful CSS keyframe animations with live preview and interactive controls. 15 presets, custom keyframes, copy CSS. Free, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/css-animation-generator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CSS Animation Generator | DevTools Hub">
+    <meta name="twitter:description" content="Create beautiful CSS keyframe animations with live preview and interactive controls. 15 presets, custom keyframes, copy CSS. Free, no signup.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/css-animation-generator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Free CSS Animation Generator","description":"Create beautiful CSS @keyframe animations with interactive controls, 15 presets, and live preview. Copy production-ready CSS code. No signup required.","url":"https://tools.scoreroute.com/tools/css-animation-generator/","applicationCategory":"DesignApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-21","dateModified":"2026-06-21"}
+    </script>
+    <style>
+        .cag-controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+        .cag-controls label { color:#aaa; font-size:0.85rem; margin-right:4px; }
+        .cag-controls select, .cag-controls input[type="number"] { background:#1a1a2e; border:1px solid #333; color:#fff; padding:8px 12px; border-radius:6px; font-size:0.9rem; }
+        .cag-controls select:focus, .cag-controls input:focus { outline: 2px solid transparent; border-color:#667eea; }
+        .cag-presets { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+        .cag-preset-btn { background:#1a1a2e; border:1px solid #3a3a5a; color:#ccc; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.8rem; transition:all 0.2s; }
+        .cag-preset-btn:hover, .cag-preset-btn.active { border-color:#667eea; color:#667eea; }
+        .cag-preset-btn.cag-custom { border-style:dashed; }
+        .cag-preview-wrap { background:#0f0f23; border:2px solid #2a2a4a; border-radius:16px; padding:40px; margin-bottom:16px; display:flex; align-items:center; justify-content:center; min-height:200px; position:relative; overflow:hidden; }
+        .cag-preview-element { width:120px; height:120px; background:linear-gradient(135deg, #667eea, #764ba2); border-radius:16px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:0.9rem; text-align:center; padding:10px; box-sizing:border-box; }
+        .cag-preview-element.cag-shape-circle { border-radius:50%; width:120px; }
+        .cag-preview-element.cag-shape-box { border-radius:4px; width:160px; height:100px; }
+        .cag-preview-bar { display:flex; gap:8px; justify-content:center; margin-bottom:16px; flex-wrap:wrap; }
+        .cag-preview-bar button { background:#1a1a2e; border:1px solid #3a3a5a; color:#ccc; padding:6px 16px; border-radius:8px; cursor:pointer; font-size:0.82rem; transition:all 0.2s; }
+        .cag-preview-bar button:hover { border-color:#667eea; color:#667eea; }
+        .cag-preview-bar button.cag-play-btn { background:#10b981; border-color:#10b981; color:#fff; }
+        .cag-preview-bar button.cag-play-btn:hover { background:#059669; border-color:#059669; }
+        .cag-props { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px; }
+        .cag-prop { background:#0f0f23; border:1px solid #2a2a4a; border-radius:10px; padding:12px; }
+        .cag-prop label { display:block; color:#aaa; font-size:0.78rem; margin-bottom:4px; }
+        .cag-prop select, .cag-prop input[type="number"] { width:100%; background:#1a1a2e; border:1px solid #333; color:#fff; padding:6px 8px; border-radius:6px; font-size:0.85rem; box-sizing:border-box; }
+        .cag-prop select:focus, .cag-prop input:focus { outline: 2px solid transparent; border-color:#667eea; }
+        .cag-prop input[type="range"] { width:100%; accent-color:#667eea; }
+        .cag-prop .cag-range-val { color:#667eea; font-size:0.8rem; font-weight:600; }
+        .cag-keyframes { margin-bottom:16px; }
+        .cag-keyframes h3 { font-size:0.9rem; color:#ddd; margin:0 0 8px 0; }
+        .cag-kf-row { display:flex; gap:8px; align-items:center; background:#0f0f23; border:1px solid #2a2a4a; border-radius:8px; padding:8px 12px; margin-bottom:6px; }
+        .cag-kf-pct { width:50px; background:#1a1a2e; border:1px solid #333; color:#fff; padding:4px 6px; border-radius:4px; font-size:0.8rem; text-align:center; }
+        .cag-kf-css { flex:1; font-family:monospace; font-size:0.78rem; color:#8cf; background:#0a0a1a; border:1px solid #2a2a4a; border-radius:4px; padding:4px 8px; white-space:pre; overflow-x:auto; }
+        .cag-kf-remove { background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:1rem; padding:2px 6px; border-radius:4px; }
+        .cag-kf-remove:hover { background:#2a1a1a; }
+        .cag-add-kf { background:#1a1a2e; border:1px dashed #3a3a5a; color:#888; padding:8px; border-radius:8px; cursor:pointer; text-align:center; font-size:0.82rem; transition:all 0.2s; width:100%; }
+        .cag-add-kf:hover { border-color:#667eea; color:#667eea; }
+        .cag-css-output { background:#0f0f23; border:1px solid #2a2a4a; border-radius:12px; padding:16px; font-family:monospace; font-size:0.82rem; color:#aef; white-space:pre-wrap; word-break:break-all; max-height:180px; overflow-y:auto; margin-bottom:16px; }
+        .cag-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+        .toast { position:fixed; bottom:20px; right:20px; background:#10b981; color:#fff; padding:12px 24px; border-radius:8px; font-weight:500; opacity:0; transition:opacity 0.3s; z-index:2000; }
+        .toast.show { opacity:1; }
+        @media (max-width:700px) {
+            .cag-props { grid-template-columns:1fr 1fr; }
+            .cag-preview-element { width:90px; height:90px; font-size:0.78rem; }
+            .cag-preview-element.cag-shape-circle { width:90px; }
+            .cag-preview-element.cag-shape-box { width:120px; height:80px; }
+            .cag-preview-wrap { padding:24px; min-height:160px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>CSS Animation Generator</h1>
+            <p class="subtitle">Create Beautiful @keyframe Animations • 15 Presets • Live Preview • Copy CSS</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>CSS Animation Generator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+
+                <div class="cag-presets" id="cag-presets"></div>
+
+                <div class="cag-preview-bar">
+                    <button class="cag-shape-btn active" data-anim-shape="box" onclick="setPreviewShape('box')">Box</button>
+                    <button class="cag-shape-btn" data-anim-shape="circle" onclick="setPreviewShape('circle')">Circle</button>
+                    <button class="cag-shape-btn" data-anim-shape="text" onclick="setPreviewShape('text')">Text</button>
+                    <span style="flex:1"></span>
+                    <button onclick="playAnimation()" class="cag-play-btn" id="cag-play-btn">Play</button>
+                    <button onclick="pauseAnimation()">Pause</button>
+                    <button onclick="stopAnimation()">Stop</button>
+                </div>
+
+                <div class="cag-preview-wrap" id="cag-preview-wrap">
+                    <div class="cag-preview-element" id="cag-preview-el">Preview</div>
+                </div>
+
+                <div class="cag-props">
+                    <div class="cag-prop">
+                        <label>Duration (s)</label>
+                        <input aria-label="Duration (seconds)" type="number" id="cag-duration" value="1" min="0.1" max="30" step="0.1" onchange="syncFromProps()">
+                    </div>
+                    <div class="cag-prop">
+                        <label>Delay (s)</label>
+                        <input aria-label="Delay (seconds)" type="number" id="cag-delay" value="0" min="0" max="30" step="0.1" onchange="syncFromProps()">
+                    </div>
+                    <div class="cag-prop">
+                        <label for="cag-timing">Timing Function</label>
+                        <select id="cag-timing" onchange="syncFromProps()">
+                            <option value="ease">ease</option>
+                            <option value="linear">linear</option>
+                            <option value="ease-in">ease-in</option>
+                            <option value="ease-out">ease-out</option>
+                            <option value="ease-in-out">ease-in-out</option>
+                            <option value="cubic-bezier(0.68, -0.55, 0.27, 1.55)">bounce (custom)</option>
+                            <option value="cubic-bezier(0.175, 0.885, 0.32, 1.275)">spring (custom)</option>
+                            <option value="steps(4)">steps(4)</option>
+                            <option value="steps(6, start)">steps(6, start)</option>
+                        </select>
+                    </div>
+                    <div class="cag-prop">
+                        <label for="cag-iteration">Iteration Count</label>
+                        <select id="cag-iteration" onchange="syncFromProps()">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="5">5</option>
+                            <option value="infinite" selected>Infinite</option>
+                        </select>
+                    </div>
+                    <div class="cag-prop">
+                        <label for="cag-direction">Direction</label>
+                        <select id="cag-direction" onchange="syncFromProps()">
+                            <option value="normal">normal</option>
+                            <option value="reverse">reverse</option>
+                            <option value="alternate">alternate</option>
+                            <option value="alternate-reverse">alternate-reverse</option>
+                        </select>
+                    </div>
+                    <div class="cag-prop">
+                        <label for="cag-fill">Fill Mode</label>
+                        <select id="cag-fill" onchange="syncFromProps()">
+                            <option value="none">none</option>
+                            <option value="forwards" selected>forwards</option>
+                            <option value="backwards">backwards</option>
+                            <option value="both">both</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="cag-keyframes">
+                    <h2>Keyframes</h2>
+                    <div id="cag-kf-container"></div>
+                    <button class="cag-add-kf" onclick="addKeyframe()">+ Add Keyframe</button>
+                </div>
+
+                <div class="cag-css-output" id="cag-css-output"></div>
+
+                <div class="cag-row">
+                    <button onclick="copyCSS()" class="btn btn-primary" id="copyBtn">Copy CSS</button>
+                    <button onclick="resetAnimation()" class="btn btn-secondary">Reset</button>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What is a CSS Animation Generator?</h2>
+                <p>A CSS animation generator is a visual tool that helps you create CSS <code>@keyframes</code> animations without writing the syntax by hand. Instead of memorizing keyframe percentages, animation shorthand properties, and cubic-bezier timing functions, you choose presets, adjust sliders, and see the animation play in real time. When it looks right, copy the production-ready CSS code and paste it into your stylesheet.</p>
+
+                <h3>How It Works</h3>
+                <p>Choose from 15 preset animations like fade-in, bounce, spin, or shake — or click "Custom" to build your own keyframes from scratch. Each preset loads pre-configured keyframe positions with transform and opacity properties. Adjust duration, delay, easing, iteration count, direction, and fill mode using the property controls. The preview element animates live as you tweak values. For custom animations, add keyframe waypoints at any percentage and type the CSS properties directly.</p>
+
+                <h3>Features</h3>
+                <ul>
+                    <li><strong>15 Preset Animations</strong> — Fade In/Out, Slide In (4 directions), Bounce, Spin, Pulse, Shake, Flip, Wobble, Zoom In/Out, Swing</li>
+                    <li><strong>Custom Keyframe Editor</strong> — Add/remove keyframe waypoints at any percentage, type arbitrary CSS properties</li>
+                    <li><strong>Full Property Control</strong> — Duration, delay, timing function (including cubic-bezier and steps), iteration, direction, fill mode</li>
+                    <li><strong>Live Preview</strong> — Play, pause, stop animation controls with real-time feedback</li>
+                    <li><strong>Preview Shapes</strong> — See animation on box, circle, or text element</li>
+                    <li><strong>Copy CSS</strong> — One-click copy of complete @keyframes + animation shorthand</li>
+                    <li><strong>100% Browser-Based</strong> — No upload, no signup, no server calls</li>
+                </ul>
+
+                <h3>Why Use This Tool?</h3>
+                <ul>
+                    <li><strong>AI Cannot Do This</strong> — AI chatbots can describe animations but cannot show them running. Only a real browser with CSS rendering can demonstrate how an animation looks in motion.</li>
+                    <li><strong>Learn By Seeing</strong> — Understanding how duration, easing, and keyframe positions affect motion is easier when you can watch the animation change in real time.</li>
+                    <li><strong>Production Ready</strong> — The copied CSS is valid, cross-browser compatible, and ready to paste into your stylesheet.</li>
+                    <li><strong>Privacy Safe</strong> — Everything runs in your browser. No data is sent anywhere.</li>
+                </ul>
+
+                <h3>Common Use Cases</h3>
+                <ul>
+                    <li>Create entrance animations for page elements and sections</li>
+                    <li>Design hover and interaction feedback animations</li>
+                    <li>Build loading indicators and attention-grabbing effects</li>
+                    <li>Prototype UI motion for design systems and component libraries</li>
+                    <li>Generate CSS code for email and landing page animations</li>
+                </ul>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>What are CSS @keyframes animations?</summary>
+                    <p><code>@keyframes</code> is a CSS rule that defines the intermediate steps — or keyframes — of an animation sequence. Each keyframe specifies style rules at a certain percentage of the animation timeline. For example, at <code>0%</code> the element might be transparent and off-screen, and at <code>100%</code> it moves into position and becomes fully visible.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is the difference between CSS transitions and animations?</summary>
+                    <p>CSS transitions animate between two states and require a trigger like <code>:hover</code>. CSS animations can have multiple intermediate keyframes, loop infinitely, play automatically on page load, and run in reverse. Use transitions for simple state changes and animations for complex motion sequences.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What animation properties can I control?</summary>
+                    <p>This tool controls 6 core properties: <code>animation-duration</code> (how long one cycle takes), <code>animation-delay</code> (pause before starting), <code>animation-timing-function</code> (speed curve: ease, linear, cubic-bezier, steps), <code>animation-iteration-count</code> (how many times it plays), <code>animation-direction</code> (normal, reverse, alternate), and <code>animation-fill-mode</code> (styles before/after the animation).</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How do I make an animation loop forever?</summary>
+                    <p>Set "Iteration Count" to <code>Infinite</code>. The animation will repeat continuously until the page is navigated away or the element is removed from the DOM.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I pause a CSS animation on hover?</summary>
+                    <p>Yes. Use the CSS <code>animation-play-state: paused</code> property on hover: <code>.element:hover { animation-play-state: paused; }</code>. This tool lets you test play/pause behavior with the Play and Pause buttons.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How is this different from other animation generators?</summary>
+                    <p>Our generator combines 15 presets with a fully editable custom keyframe mode, supports advanced timing functions including custom cubic-bezier and steps(), and includes play/pause/stop controls for precise motion inspection. No signup, no ads, no premium tiers.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does it work on mobile?</summary>
+                    <p>Yes, the tool is fully responsive. On smaller screens, the property grid collapses to 2 columns, and the preview element scales down while remaining interactive.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a> | <a href="/tools/css-animation-generator/">CSS Animation Generator</a> | <a href="/tools/css-box-shadow-generator/">CSS Box Shadow Generator</a> | <a href="/tools/css-gradient-generator/">CSS Gradient Generator</a> | <a href="/sitemap.xml">Sitemap</a></p>
+    </footer>
+
+    <div class="toast" id="toast">Copied!</div>
+
+    <script src="/tools.js"></script>
+    <script>
+        var CAG = {
+            animName: 'cag-anim',
+            keyframes: [
+                { pct: 0, css: 'opacity: 0; transform: translateY(20px);' },
+                { pct: 100, css: 'opacity: 1; transform: translateY(0);' }
+            ],
+            preset: 'fade-in-up',
+            shape: 'box',
+            playing: false,
+            styleId: null
+        };
+
+        var PRESET_ANIMS = [
+            { id:'fade-in-up', name:'Fade In Up', kf:[{pct:0,css:'opacity:0; transform:translateY(24px);'},{pct:100,css:'opacity:1; transform:translateY(0);'}] },
+            { id:'fade-in', name:'Fade In', kf:[{pct:0,css:'opacity:0;'},{pct:100,css:'opacity:1;'}] },
+            { id:'fade-out', name:'Fade Out', kf:[{pct:0,css:'opacity:1;'},{pct:100,css:'opacity:0;'}] },
+            { id:'slide-in-left', name:'Slide In Left', kf:[{pct:0,css:'opacity:0; transform:translateX(-100px);'},{pct:100,css:'opacity:1; transform:translateX(0);'}] },
+            { id:'slide-in-right', name:'Slide In Right', kf:[{pct:0,css:'opacity:0; transform:translateX(100px);'},{pct:100,css:'opacity:1; transform:translateX(0);'}] },
+            { id:'slide-in-up', name:'Slide In Up', kf:[{pct:0,css:'opacity:0; transform:translateY(-100px);'},{pct:100,css:'opacity:1; transform:translateY(0);'}] },
+            { id:'slide-in-down', name:'Slide In Down', kf:[{pct:0,css:'opacity:0; transform:translateY(100px);'},{pct:100,css:'opacity:1; transform:translateY(0);'}] },
+            { id:'bounce', name:'Bounce', kf:[{pct:0,css:'transform:translateY(0);'},{pct:20,css:'transform:translateY(0);'},{pct:40,css:'transform:translateY(-30px);'},{pct:50,css:'transform:translateY(0);'},{pct:60,css:'transform:translateY(-15px);'},{pct:80,css:'transform:translateY(0);'},{pct:100,css:'transform:translateY(0);'}] },
+            { id:'spin', name:'Spin', kf:[{pct:0,css:'transform:rotate(0deg);'},{pct:100,css:'transform:rotate(360deg);'}] },
+            { id:'pulse', name:'Pulse', kf:[{pct:0,css:'transform:scale(1);'},{pct:50,css:'transform:scale(1.1);'},{pct:100,css:'transform:scale(1);'}] },
+            { id:'shake', name:'Shake', kf:[{pct:0,css:'transform:translateX(0);'},{pct:10,css:'transform:translateX(-10px);'},{pct:20,css:'transform:translateX(10px);'},{pct:30,css:'transform:translateX(-10px);'},{pct:40,css:'transform:translateX(10px);'},{pct:50,css:'transform:translateX(-10px);'},{pct:60,css:'transform:translateX(10px);'},{pct:70,css:'transform:translateX(-10px);'},{pct:80,css:'transform:translateX(10px);'},{pct:90,css:'transform:translateX(-10px);'},{pct:100,css:'transform:translateX(0);'}] },
+            { id:'flip', name:'Flip', kf:[{pct:0,css:'transform:perspective(400px) rotateY(0);'},{pct:100,css:'transform:perspective(400px) rotateY(360deg);'}] },
+            { id:'wobble', name:'Wobble', kf:[{pct:0,css:'transform:translateX(0);'},{pct:15,css:'transform:translateX(-25px) rotate(-5deg);'},{pct:30,css:'transform:translateX(20px) rotate(3deg);'},{pct:45,css:'transform:translateX(-15px) rotate(-3deg);'},{pct:60,css:'transform:translateX(10px) rotate(2deg);'},{pct:75,css:'transform:translateX(-5px) rotate(-1deg);'},{pct:100,css:'transform:translateX(0);'}] },
+            { id:'zoom-in', name:'Zoom In', kf:[{pct:0,css:'opacity:0; transform:scale(0.3);'},{pct:50,css:'opacity:1; transform:scale(1.05);'},{pct:100,css:'opacity:1; transform:scale(1);'}] },
+            { id:'zoom-out', name:'Zoom Out', kf:[{pct:0,css:'opacity:1; transform:scale(1);'},{pct:50,css:'opacity:0.5; transform:scale(0.5);'},{pct:100,css:'opacity:0; transform:scale(0);'}] },
+            { id:'swing', name:'Swing', kf:[{pct:0,css:'transform:rotate(0deg);'},{pct:20,css:'transform:rotate(15deg);'},{pct:40,css:'transform:rotate(-10deg);'},{pct:60,css:'transform:rotate(5deg);'},{pct:80,css:'transform:rotate(-5deg);'},{pct:100,css:'transform:rotate(0deg);'}] }
+        ];
+
+        function initPresets() {
+            var container = document.getElementById('cag-presets');
+            container.innerHTML = '';
+            for (var i = 0; i < PRESET_ANIMS.length; i++) {
+                var b = document.createElement('button');
+                b.className = 'cag-preset-btn' + (PRESET_ANIMS[i].id === CAG.preset ? ' active' : '');
+                b.textContent = PRESET_ANIMS[i].name;
+                b.dataset.id = PRESET_ANIMS[i].id;
+                b.onclick = function() { loadPreset(this.dataset.id); };
+                container.appendChild(b);
+            }
+            var cust = document.createElement('button');
+            cust.className = 'cag-preset-btn cag-custom';
+            cust.textContent = 'Custom';
+            cust.onclick = function() { setCustomMode(); };
+            container.appendChild(cust);
+        }
+
+        function loadPreset(id) {
+            CAG.preset = id;
+            CAG.playing = false;
+            document.querySelectorAll('.cag-preset-btn').forEach(function(b) {
+                b.classList.remove('active');
+                if (b.dataset.id === id) b.classList.add('active');
+            });
+            var found = null;
+            for (var i = 0; i < PRESET_ANIMS.length; i++) {
+                if (PRESET_ANIMS[i].id === id) { found = PRESET_ANIMS[i]; break; }
+            }
+            if (!found) return;
+            CAG.keyframes = JSON.parse(JSON.stringify(found.kf));
+            stopAnimation();
+            renderKeyframes();
+            generateOutput();
+        }
+
+        function setCustomMode() {
+            CAG.preset = 'custom';
+            CAG.playing = false;
+            document.querySelectorAll('.cag-preset-btn').forEach(function(b) { b.classList.remove('active'); });
+            var custBtn = document.querySelector('.cag-custom');
+            if (custBtn) custBtn.classList.add('active');
+            stopAnimation();
+            renderKeyframes();
+            generateOutput();
+        }
+
+        function renderKeyframes() {
+            var container = document.getElementById('cag-kf-container');
+            container.innerHTML = '';
+            for (var i = 0; i < CAG.keyframes.length; i++) {
+                var kf = CAG.keyframes[i];
+                var div = document.createElement('div');
+                div.className = 'cag-kf-row';
+                var canRemove = CAG.keyframes.length > 2;
+                div.innerHTML =
+                    '<input class="cag-kf-pct" type="number" value="' + kf.pct + '" min="0" max="100" onchange="updateKfPct(' + i + ', this.value)" aria-label="Keyframe ' + i + ' percent">' +
+                    '<span style="color:#666;font-size:0.8rem;">%</span>' +
+                    '<input class="cag-kf-css" value="' + escAttr(kf.css) + '" onchange="updateKfCSS(' + i + ', this.value)" aria-label="Keyframe ' + i + ' CSS properties">' +
+                    (canRemove ? '<button class="cag-kf-remove" onclick="removeKeyframe(' + i + ')" aria-label="Remove keyframe">×</button>' : '');
+                container.appendChild(div);
+            }
+        }
+
+        function updateKfPct(index, val) {
+            CAG.keyframes[index].pct = Math.max(0, Math.min(100, parseInt(val) || 0));
+            sortKeyframes();
+            generateOutput();
+        }
+
+        function updateKfCSS(index, val) {
+            CAG.keyframes[index].css = val;
+            generateOutput();
+        }
+
+        function sortKeyframes() {
+            CAG.keyframes.sort(function(a, b) { return a.pct - b.pct; });
+            renderKeyframes();
+        }
+
+        function addKeyframe() {
+            if (CAG.keyframes.length >= 12) {
+                showToast('Maximum 12 keyframes');
+                return;
+            }
+            var pct = 50;
+            for (var i = 0; i < CAG.keyframes.length; i++) {
+                if (CAG.keyframes[i].pct === pct) { pct = (pct + 25) % 100; }
+            }
+            CAG.keyframes.push({ pct: pct, css: 'opacity: 1; transform: scale(1);' });
+            sortKeyframes();
+            setCustomMode();
+            generateOutput();
+        }
+
+        function removeKeyframe(index) {
+            if (CAG.keyframes.length <= 2) {
+                showToast('Minimum 2 keyframes');
+                return;
+            }
+            CAG.keyframes.splice(index, 1);
+            renderKeyframes();
+            setCustomMode();
+            generateOutput();
+        }
+
+        function getProps() {
+            return {
+                duration: parseFloat(document.getElementById('cag-duration').value) || 1,
+                delay: parseFloat(document.getElementById('cag-delay').value) || 0,
+                timing: document.getElementById('cag-timing').value,
+                iteration: document.getElementById('cag-iteration').value,
+                direction: document.getElementById('cag-direction').value,
+                fill: document.getElementById('cag-fill').value
+            };
+        }
+
+        function syncFromProps() {
+            generateOutput();
+        }
+
+        function buildKeyframesCSS() {
+            var lines = [];
+            lines.push('@keyframes ' + CAG.animName + ' {');
+            for (var i = 0; i < CAG.keyframes.length; i++) {
+                var kf = CAG.keyframes[i];
+                var props = kf.css.trim().replace(/\s*;\s*$/, '');
+                if (props) props += ';';
+                lines.push('  ' + kf.pct + '% { ' + props + ' }');
+            }
+            lines.push('}');
+            return lines.join('\n');
+        }
+
+        function buildAnimationCSS() {
+            var p = getProps();
+            var shorthand = CAG.animName + ' ' + p.duration + 's ' + p.timing + ' ' + p.delay + 's ' + p.iteration + ' ' + p.direction + ' ' + p.fill;
+            return 'animation: ' + shorthand + ';';
+        }
+
+        function generateOutput() {
+            var output = document.getElementById('cag-css-output');
+            var css = buildKeyframesCSS() + '\n\n.anim-element {\n  ' + buildAnimationCSS() + '\n}';
+            output.textContent = css;
+            applyToPreview();
+        }
+
+        function applyToPreview() {
+            var el = document.getElementById('cag-preview-el');
+            var p = getProps();
+            el.style.animation = 'none';
+            el.offsetHeight;
+            el.style.animation = CAG.animName + ' ' + p.duration + 's ' + p.timing + ' ' + p.delay + 's ' + p.iteration + ' ' + p.direction + ' ' + p.fill;
+            if (!CAG.playing) {
+                el.style.animationPlayState = 'paused';
+            }
+            if (CAG.styleId) {
+                var oldStyle = document.getElementById(CAG.styleId);
+                if (oldStyle) oldStyle.remove();
+            }
+            CAG.styleId = 'cag-dynamic-style';
+            var style = document.createElement('style');
+            style.id = CAG.styleId;
+            style.textContent = buildKeyframesCSS();
+            document.head.appendChild(style);
+        }
+
+        function playAnimation() {
+            CAG.playing = true;
+            var el = document.getElementById('cag-preview-el');
+            el.style.animationPlayState = 'running';
+            document.getElementById('cag-play-btn').textContent = 'Playing';
+        }
+
+        function pauseAnimation() {
+            CAG.playing = false;
+            var el = document.getElementById('cag-preview-el');
+            el.style.animationPlayState = 'paused';
+            document.getElementById('cag-play-btn').textContent = 'Play';
+        }
+
+        function stopAnimation() {
+            CAG.playing = false;
+            var el = document.getElementById('cag-preview-el');
+            el.style.animation = 'none';
+            el.offsetHeight;
+            document.getElementById('cag-play-btn').textContent = 'Play';
+        }
+
+        function setPreviewShape(shape) {
+            CAG.shape = shape;
+            var el = document.getElementById('cag-preview-el');
+            el.className = 'cag-preview-element';
+            if (shape === 'circle') {
+                el.classList.add('cag-shape-circle');
+                el.textContent = '●';
+            } else if (shape === 'text') {
+                el.textContent = 'Animate';
+                el.style.borderRadius = '8px';
+            } else {
+                el.textContent = 'Preview';
+                el.style.borderRadius = '16px';
+            }
+            document.querySelectorAll('[data-anim-shape]').forEach(function(b) {
+                b.classList.toggle('active', b.dataset.animShape === shape);
+            });
+            stopAnimation();
+            applyToPreview();
+        }
+
+        function copyCSS() {
+            var css = document.getElementById('cag-css-output').textContent;
+            navigator.clipboard.writeText(css).then(function() {
+                showToast('CSS copied!');
+            });
+        }
+
+        function resetAnimation() {
+            loadPreset('fade-in-up');
+            document.getElementById('cag-duration').value = 1;
+            document.getElementById('cag-delay').value = 0;
+            document.getElementById('cag-timing').value = 'ease';
+            document.getElementById('cag-iteration').value = 'infinite';
+            document.getElementById('cag-direction').value = 'normal';
+            document.getElementById('cag-fill').value = 'forwards';
+            setPreviewShape('box');
+            stopAnimation();
+            generateOutput();
+        }
+
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._timeout);
+            t._timeout = setTimeout(function() { t.classList.remove('show'); }, 2000);
+        }
+
+        function escAttr(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        initPresets();
+        loadPreset('fade-in-up');
+        renderKeyframes();
+        generateOutput();
+    </script>
+</body>
+</html>

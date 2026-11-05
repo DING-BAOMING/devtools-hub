@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEIC to JPG Converter - Free iPhone Photo Converter | DevTools Hub</title>
+<meta name="description" content="Free online HEIC to JPG converter. Convert iPhone HEIC photos to JPEG instantly in your browser. Batch convert unlimited photos. No upload, 100% private.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/heic-to-jpg/">
+<meta property="og:title" content="HEIC to JPG Converter - Free Online iPhone Photo Converter">
+<meta property="og:description" content="Convert iPhone HEIC photos to JPEG instantly. Batch convert, no upload, 100% private browser processing.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/heic-to-jpg/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HEIC to JPG Converter - Free Online iPhone Photo Converter">
+<meta name="twitter:description" content="Convert iPhone HEIC photos to JPEG instantly. Batch convert, no upload, 100% private.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:url" content="https://tools.scoreroute.com/tools/heic-to-jpg/">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"HEIC to JPG Converter","url":"https://tools.scoreroute.com/tools/heic-to-jpg/","description":"Free online HEIC to JPG converter using browser-based heic2any library.","applicationCategory":"Multimedia","operatingSystem":"All","browserRequirements":"Requires JavaScript"}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.converter-area { max-width: 900px; margin: 2rem auto; }
+.dropzone { border: 3px dashed #555; border-radius: 12px; padding: 3rem; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; }
+.dropzone:hover, .dropzone.dragover { border-color: #667eea; background: #222250; }
+.dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+.dropzone-icon { font-size: 3rem; margin-bottom: 1rem; }
+.dropzone-text { font-size: 1.1rem; }
+.dropzone-text strong { color: #667eea; }
+.dropzone-hint { font-size: 0.85rem; color: #888; margin-top: 0.5rem; }
+.file-list { list-style: none; padding: 0; margin: 1.5rem 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.file-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; transition: border-color 0.3s; }
+.file-item.done { border-color: #28a745; }
+.file-item.error { border-color: #dc3545; }
+.file-item.processing { border-color: #ffc107; }
+.file-thumb { width: 56px; height: 56px; border-radius: 6px; object-fit: cover; border: 1px solid #444; flex-shrink: 0; background: #0f0f23; }
+.file-thumb-placeholder { width: 56px; height: 56px; border-radius: 6px; background: #333; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #666; }
+.file-info-area { flex: 1; min-width: 0; }
+.file-name { font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-meta { font-size: 0.8rem; color: #888; margin-top: 0.2rem; }
+.file-status { font-size: 0.8rem; margin-top: 0.2rem; }
+.file-status.converting { color: #ffc107; }
+.file-status.done { color: #28a745; }
+.file-status.error { color: #dc3545; }
+.file-actions { display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0; }
+.file-actions .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; border: none; border-radius: 4px; cursor: pointer; transition: opacity 0.2s; }
+.file-actions .btn-sm:hover { opacity: 0.85; }
+.file-actions .download-btn { background: #28a745; color: #fff; }
+.file-actions .remove-btn { background: #555; color: #fff; }
+.controls-area { display: none; margin: 1.5rem 0; padding: 1.5rem; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+.controls-area.visible { display: block; }
+.controls-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: center; }
+.quality-area { display: flex; align-items: center; gap: 1rem; margin: 1rem 0; }
+.quality-area label { color: #888; }
+.quality-slider { flex: 1; accent-color: #667eea; }
+.quality-value { color: #667eea; font-weight: 600; min-width: 40px; }
+.stats-bar { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin: 1rem 0; padding: 0.75rem; background: #0f0f23; border-radius: 8px; }
+.stat-item { text-align: center; }
+.stat-value { font-size: 1.3rem; font-weight: 700; color: #667eea; }
+.stat-label { font-size: 0.75rem; color: #888; }
+.save-badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-left: 0.5rem; }
+.save-badge.good { background: #1a3e2a; color: #28a745; }
+.save-badge.bad { background: #3e2a1a; color: #ffc107; }
+.result-area { display: none; margin: 1rem 0; padding: 1.5rem; background: #1a3e2a; border-radius: 8px; text-align: center; border: 1px solid #28a745; }
+.result-area.visible { display: block; }
+.result-area p { color: #fff; margin: 0.5rem 0; }
+.loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,15,35,0.85); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; }
+.loading-overlay.visible { display: flex; }
+.loading-spinner { width: 48px; height: 48px; border: 4px solid #333; border-top-color: #667eea; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: #ccc; margin-top: 1rem; font-size: 1rem; }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+.feature-card { background: #1a1a3e; border-radius: 10px; padding: 1.5rem; border: 1px solid #2a2a4e; }
+.feature-card h3 { color: #667eea; margin: 0 0 0.5rem; font-size: 1.1rem; }
+.feature-card p { color: #999; margin: 0; font-size: 0.9rem; }
+.loading-bar { display: none; height: 4px; background: #333; border-radius: 2px; margin: 1rem 0; overflow: hidden; }
+.loading-bar.visible { display: block; }
+.loading-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 2px; transition: width 0.3s; }
+.btn { padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+.btn:hover { opacity: 0.9; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+.btn-success { background: #28a745; color: #fff; }
+.btn-secondary { background: #555; color: #fff; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-group { display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap; }
+.formats-list { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; margin: 1rem 0; }
+.format-badge { background: #1a1a3e; border: 1px solid #333; border-radius: 20px; padding: 0.25rem 0.75rem; font-size: 0.85rem; color: #ccc; transition: all 0.2s; }
+.format-badge.active { border-color: #667eea; color: #667eea; background: rgba(102,126,234,0.1); }
+.hero-text { text-align: center; color: #999; font-size: 1.1rem; margin-bottom: 2rem; }
+@media (max-width: 600px) {
+  .file-item { flex-wrap: wrap; }
+  .file-actions { width: 100%; justify-content: flex-end; }
+  .controls-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>HEIC to JPG Converter</h1>
+    <p class="subtitle">Convert iPhone HEIC Photos to JPEG — Free, Private, Browser-Based</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>HEIC to JPG Converter</span>
+      <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+    </nav>
+  </div>
+</header>
+<main class="container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <h2>Convert Your HEIC Photos</h2>
+      <p class="hero-text">Drop your Apple iPhone HEIC photos below and get standard JPEG files instantly. 100% private — your files never leave your device.</p>
+
+      <div class="formats-list">
+        <span class="format-badge active">HEIC</span>
+        <span class="format-badge active">HEIF</span>
+        <span class="format-badge">&#8594;</span>
+        <span class="format-badge active">JPG</span>
+        <span class="format-badge active">JPEG</span>
+      </div>
+
+      <div class="converter-area">
+        <div id="dropzone" class="dropzone">
+          <div class="dropzone-icon">&#128247;</div>
+          <div class="dropzone-text">
+            <strong>Click to select HEIC photos</strong> or drag &amp; drop them here
+          </div>
+          <div class="dropzone-hint">Supports .heic and .heif files from iPhone, iPad, and Apple devices</div>
+          <input aria-label="HEIC file input" type="file" id="fileInput" accept=".heic,.heif,image/heic,image/heif" multiple style="display:none">
+        </div>
+
+        <div id="loadingBar" class="loading-bar">
+          <div id="loadingBarFill" class="loading-bar-fill"></div>
+        </div>
+
+        <div id="statsBar" class="stats-bar" style="display:none">
+          <div class="stat-item"><div class="stat-value" id="totalCount">0</div><div class="stat-label">Files</div></div>
+          <div class="stat-item"><div class="stat-value" id="convertedCount">0</div><div class="stat-label">Converted</div></div>
+          <div class="stat-item"><div class="stat-value" id="originalSize">0 B</div><div class="stat-label">Original Size</div></div>
+          <div class="stat-item"><div class="stat-value" id="resultSize">0 B</div><div class="stat-label">Result Size</div></div>
+          <div class="stat-item"><div class="stat-value" id="savedPercent">0%</div><div class="stat-label">Saved</div></div>
+        </div>
+
+        <ul id="fileList" class="file-list"></ul>
+
+        <div id="controlsArea" class="controls-area">
+          <div class="quality-area">
+            <label for="qualitySlider">JPEG Quality:</label>
+            <input type="range" id="qualitySlider" class="quality-slider" min="50" max="100" value="92">
+            <span id="qualityValue" class="quality-value">92%</span>
+          </div>
+          <div class="btn-group">
+            <button id="convertAllBtn" class="btn btn-primary">Convert All to JPG</button>
+            <button id="downloadAllBtn" class="btn btn-success" style="display:none">Download All as ZIP</button>
+            <button id="clearBtn" class="btn btn-secondary">Clear All</button>
+          </div>
+        </div>
+
+        <div id="resultArea" class="result-area">
+          <p>&#10003; Conversion complete!</p>
+          <p id="resultInfo"></p>
+          <div class="btn-group">
+            <button id="downloadAllBtn2" class="btn btn-success">Download All as ZIP</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Loading HEIC decoder...</div>
+      </div>
+
+      <section>
+        <h2>How to Convert HEIC to JPG</h2>
+        <ol>
+          <li><strong>Select your photos</strong> &mdash; click the drop zone or drag &amp; drop HEIC files from your iPhone, iPad, or Mac</li>
+          <li><strong>Adjust quality</strong> &mdash; use the slider to control JPEG quality (92% default balances size and quality)</li>
+          <li><strong>Click "Convert All to JPG"</strong> &mdash; your browser decodes each HEIC image locally using WebAssembly</li>
+          <li><strong>Download</strong> &mdash; save individual JPG files, or download all as a ZIP archive</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Why Convert HEIC to JPG?</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>Windows &amp; Android Compatible</h3>
+            <p>HEIC files from iPhones don't open natively on Windows or Android. JPG works everywhere — no paid codecs needed.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Universal Sharing</h3>
+            <p>Social media, email, web upload forms — JPG is accepted everywhere. HEIC files are often rejected.</p>
+          </div>
+          <div class="feature-card">
+            <h3>100% Private</h3>
+            <p>Your photos never leave your browser. All processing happens locally using WebAssembly. No uploads, no servers.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Batch Convert Unlimited</h3>
+            <p>Convert one photo or a hundred. No file limits, no signup, no watermark. Completely free.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Frequently Asked Questions</h2>
+        <details class="faq-item">
+          <summary>Will my photos be uploaded to a server?</summary>
+          <p>No. The entire conversion happens in your browser using the heic2any library (libheif compiled to WebAssembly). Your files are read with the File API, decoded locally, and saved as JPEG. No bytes ever leave your device. You can verify this by checking the Network tab in your browser's DevTools.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Does this work with Live Photos?</summary>
+          <p>HEIC files from Live Photos contain both the image and a short video. heic2any extracts only the still image from the HEIC container, discarding the motion component. The result is a standard JPEG still photo.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Will I lose image quality?</summary>
+          <p>HEIC uses more advanced compression than JPEG, so the JPEG output will typically be larger. However, our default quality setting of 92% preserves excellent visual quality. You can adjust the quality slider from 50% (smaller file, more compression) to 100% (largest file, best quality).</p>
+        </details>
+        <details class="faq-item">
+          <summary>Why is my JPG file larger than the original HEIC?</summary>
+          <p>This is normal. HEIC (HEIF) is a modern format that compresses images about 50% more efficiently than JPEG for the same quality. Expect the resulting JPG to be 1.5&ndash;2.5x larger than the original HEIC. This is the trade-off for universal compatibility.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How many photos can I convert at once?</summary>
+          <p>There is no limit. You can select and convert as many HEIC photos as you want. For large batches, conversion may take a moment since each file is decoded locally. The ZIP download option makes it easy to save all converted files at once.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Which browsers support this tool?</summary>
+          <p>Any modern browser with WebAssembly support: Chrome, Firefox, Safari, Edge, and Opera. Safari on macOS and iOS supports HEIC natively. Chrome on desktop uses the WebAssembly decoder. Internet Explorer is not supported.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Does the tool preserve EXIF/metadata?</summary>
+          <p>heic2any preserves most EXIF data including orientation, camera model, date taken, and GPS location. Color profiles are also transferred to the output JPEG.</p>
+        </details>
+      </section>
+    </div>
+  </section>
+</main>
+<footer>
+  <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function() {
+  var dz = document.getElementById('dropzone');
+  var fileInput = document.getElementById('fileInput');
+  var fileList = document.getElementById('fileList');
+  var controlsArea = document.getElementById('controlsArea');
+  var qualitySlider = document.getElementById('qualitySlider');
+  var qualityValue = document.getElementById('qualityValue');
+  var convertAllBtn = document.getElementById('convertAllBtn');
+  var downloadAllBtn = document.getElementById('downloadAllBtn');
+  var downloadAllBtn2 = document.getElementById('downloadAllBtn2');
+  var clearBtn = document.getElementById('clearBtn');
+  var loadingOverlay = document.getElementById('loadingOverlay');
+  var loadingText = document.getElementById('loadingText');
+  var loadingBar = document.getElementById('loadingBar');
+  var loadingBarFill = document.getElementById('loadingBarFill');
+  var statsBar = document.getElementById('statsBar');
+  var totalCount = document.getElementById('totalCount');
+  var convertedCount = document.getElementById('convertedCount');
+  var originalSize = document.getElementById('originalSize');
+  var resultSize = document.getElementById('resultSize');
+  var savedPercent = document.getElementById('savedPercent');
+  var resultArea = document.getElementById('resultArea');
+  var resultInfo = document.getElementById('resultInfo');
+
+  var files = [];
+  var heic2anyLoaded = false;
+  var heic2anyLoading = null;
+
+  function showError(msg) {
+    if (typeof showStatus === 'function') {
+      showStatus('convertAllBtn', msg, 'error');
+    } else {
+      alert(msg);
+    }
+  }
+
+  function formatBytes(b) {
+    if (b === 0) return '0 B';
+    var k = 1024, u = ['B','KB','MB','GB'];
+    var i = Math.floor(Math.log(b) / Math.log(k));
+    return (b / Math.pow(k, i)).toFixed(i > 0 ? 2 : 0) + ' ' + u[i];
+  }
+
+  function loadHeic2Any() {
+    if (heic2anyLoaded) return Promise.resolve();
+    if (heic2anyLoading) return heic2anyLoading;
+    loadingOverlay.classList.add('visible');
+    loadingText.textContent = 'Loading HEIC decoder (libheif WASM)...';
+    heic2anyLoading = new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+      s.onload = function() { heic2anyLoaded = true; loadingOverlay.classList.remove('visible'); resolve(); };
+      s.onerror = function() { loadingOverlay.classList.remove('visible'); reject(new Error('Failed to load HEIC decoder')); };
+      document.head.appendChild(s);
+    });
+    return heic2anyLoading;
+  }
+
+  function isHeic(file) {
+    var n = (file.name || '').toLowerCase();
+    return n.endsWith('.heic') || n.endsWith('.heif') ||
+      file.type === 'image/heic' || file.type === 'image/heif';
+  }
+
+  function addFiles(newFiles) {
+    for (var i = 0; i < newFiles.length; i++) {
+      var f = newFiles[i];
+      if (!isHeic(f)) {
+        showError(f.name + ' is not a HEIC/HEIF file');
+        continue;
+      }
+      files.push({
+        file: f,
+        id: Date.now() + '-' + i + '-' + Math.random().toString(36).substr(2, 4),
+        status: 'pending',
+        result: null,
+        resultSize: 0,
+        previewUrl: null
+      });
+    }
+    renderFileList();
+    updateControls();
+  }
+
+  function getFileItemHtml(item, index) {
+    var statusClass = item.status === 'done' ? 'done' : item.status === 'error' ? 'error' : item.status === 'converting' ? 'processing' : '';
+    var statusText = item.status === 'pending' ? 'Ready' : item.status === 'converting' ? 'Converting...' : item.status === 'done' ? 'Converted &mdash; ' + formatBytes(item.resultSize) : 'Error';
+
+    var dims = '';
+    if (item.dimensions) dims = item.dimensions.w + 'x' + item.dimensions.h;
+
+    var thumbHtml = item.previewUrl
+      ? '<img class="file-thumb" src="' + item.previewUrl + '" alt="' + escapeHtml(item.file.name) + '">'
+      : '<div class="file-thumb-placeholder">&#128247;</div>';
+
+    var downloadBtn = item.status === 'done'
+      ? '<button class="btn-sm download-btn" onclick="window._downloadFile(' + index + ')">Download</button>'
+      : '';
+
+    var statusIcon = item.status === 'done' ? '&#10003;' : item.status === 'error' ? '&#10007;' : '';
+
+    return '<li class="file-item ' + statusClass + '" data-id="' + item.id + '">' +
+      thumbHtml +
+      '<div class="file-info-area">' +
+        '<div class="file-name">' + escapeHtml(item.file.name) + '</div>' +
+        '<div class="file-meta">' + formatBytes(item.file.size) + (dims ? ' &middot; ' + dims : '') + '</div>' +
+        '<div class="file-status">' + statusIcon + ' ' + statusText + '</div>' +
+      '</div>' +
+      '<div class="file-actions">' +
+        downloadBtn +
+        '<button class="btn-sm remove-btn" onclick="window._removeFile(' + index + ')">' + (item.status === 'done' ? '&#10005;' : '&#10005;') + '</button>' +
+      '</div>' +
+    '</li>';
+  }
+
+  window._removeFile = function(index) {
+    var item = files[index];
+    if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+    files.splice(index, 1);
+    renderFileList();
+    updateControls();
+  };
+
+  window._downloadFile = function(index) {
+    var item = files[index];
+    if (item.result) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(item.result);
+      a.download = item.file.name.replace(/\.(heic|heif)$/i, '.jpg');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(a.href); }, 10000);
+    }
+  };
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderFileList() {
+    fileList.innerHTML = files.map(function(item, i) { return getFileItemHtml(item, i); }).join('');
+  }
+
+  function updateControls() {
+    var hasFiles = files.length > 0;
+    controlsArea.classList.toggle('visible', hasFiles);
+    statsBar.style.display = hasFiles ? 'flex' : 'none';
+
+    if (hasFiles) {
+      totalCount.textContent = files.length;
+      var conv = files.filter(function(f) { return f.status === 'done'; }).length;
+      convertedCount.textContent = conv;
+
+      var origTotal = files.reduce(function(sum, f) { return sum + f.file.size; }, 0);
+      var resultTotal = files.reduce(function(sum, f) { return sum + f.resultSize; }, 0);
+      originalSize.textContent = formatBytes(origTotal);
+      resultSize.textContent = formatBytes(resultTotal);
+
+      var pct = origTotal > 0 ? Math.round((origTotal - resultTotal) / origTotal * 100) : 0;
+      savedPercent.textContent = (pct >= 0 ? '' : '+') + pct + '%';
+
+      var allDone = files.every(function(f) { return f.status === 'done'; });
+      var anyConverting = files.some(function(f) { return f.status === 'converting'; });
+
+      convertAllBtn.disabled = allDone || anyConverting;
+      convertAllBtn.textContent = anyConverting ? 'Converting...' : allDone ? 'All Converted' : 'Convert All to JPG';
+
+      downloadAllBtn.style.display = allDone && files.length > 1 ? 'inline-block' : 'none';
+      downloadAllBtn2.style.display = allDone && files.length > 1 ? 'inline-block' : 'none';
+      downloadAllBtn.disabled = !allDone;
+      downloadAllBtn2.disabled = !allDone;
+
+      resultArea.classList.toggle('visible', allDone && files.length > 0);
+      if (allDone && files.length > 0) {
+        resultInfo.innerHTML = 'All <strong>' + files.length + '</strong> photos converted successfully.';
+      }
+    }
+  }
+
+  function readFileAsArrayBuffer(file) {
+    return new Promise(function(resolve, reject) {
+      var r = new FileReader();
+      r.onload = function() { resolve(r.result); };
+      r.onerror = function() { reject(new Error('Failed to read ' + file.name)); };
+      r.readAsArrayBuffer(file);
+    });
+  }
+
+  async function convertSingle(item, index, quality) {
+    try {
+      item.status = 'converting';
+      renderFileList();
+
+      await loadHeic2Any();
+
+      var converted = await window.heic2any({
+        blob: item.file,
+        toType: 'image/jpeg',
+        quality: quality / 100
+      });
+
+      var blob = Array.isArray(converted) ? converted[0] : converted;
+
+      item.result = blob;
+      item.resultSize = blob.size;
+      item.status = 'done';
+
+      var imgUrl = URL.createObjectURL(blob);
+      item.previewUrl = imgUrl;
+
+      renderFileList();
+      updateControls();
+    } catch (e) {
+      item.status = 'error';
+      item.error = e.message;
+      renderFileList();
+      updateControls();
+      showError('Failed to convert ' + item.file.name + ': ' + e.message);
+    }
+  }
+
+  async function convertAll() {
+    var pending = files.filter(function(f) { return f.status === 'pending' || f.status === 'error'; });
+    if (pending.length === 0) return;
+
+    loadingBar.classList.add('visible');
+    loadingBarFill.style.width = '0%';
+
+    var quality = parseInt(qualitySlider.value, 10);
+
+    for (var i = 0; i < files.length; i++) {
+      if (files[i].status === 'pending' || files[i].status === 'error') {
+        await convertSingle(files[i], i, quality);
+        var doneCount = files.filter(function(f) { return f.status === 'done'; }).length;
+        loadingBarFill.style.width = Math.round((doneCount / files.length) * 100) + '%';
+      }
+    }
+
+    loadingBar.classList.remove('visible');
+  }
+
+  async function downloadAllAsZip() {
+    try {
+      var JSZip = await loadJSZip();
+      var zip = new JSZip();
+      var folder = zip.folder('converted-photos');
+
+      for (var i = 0; i < files.length; i++) {
+        if (files[i].status === 'done' && files[i].result) {
+          var name = files[i].file.name.replace(/\.(heic|heif)$/i, '.jpg');
+          folder.file(name, files[i].result);
+        }
+      }
+
+      loadingOverlay.classList.add('visible');
+      loadingText.textContent = 'Creating ZIP archive...';
+
+      var content = await zip.generateAsync({ type: 'blob' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(content);
+      a.download = 'converted-photos.zip';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(a.href); }, 10000);
+    } catch (e) {
+      showError('Failed to create ZIP: ' + e.message);
+    } finally {
+      loadingOverlay.classList.remove('visible');
+    }
+  }
+
+  function loadJSZip() {
+    return new Promise(function(resolve, reject) {
+      if (window.JSZip) { resolve(window.JSZip); return; }
+      loadingOverlay.classList.add('visible');
+      loadingText.textContent = 'Loading ZIP library...';
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      s.onload = function() { loadingOverlay.classList.remove('visible'); resolve(window.JSZip); };
+      s.onerror = function() { loadingOverlay.classList.remove('visible'); reject(new Error('Failed to load JSZip')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function clearAll() {
+    files.forEach(function(item) {
+      if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+      if (item.result) URL.revokeObjectURL(item.result);
+    });
+    files = [];
+    renderFileList();
+    updateControls();
+    resultArea.classList.remove('visible');
+    loadingBar.classList.remove('visible');
+  }
+
+  function handleFiles(selectedFiles) {
+    addFiles(Array.from(selectedFiles));
+  }
+
+  dz.addEventListener('click', function() { fileInput.click(); });
+  dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+  dz.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', function() {
+    handleFiles(fileInput.files);
+    fileInput.value = '';
+  });
+
+  qualitySlider.addEventListener('input', function() {
+    qualityValue.textContent = qualitySlider.value + '%';
+  });
+
+  convertAllBtn.addEventListener('click', convertAll);
+  downloadAllBtn.addEventListener('click', downloadAllAsZip);
+  downloadAllBtn2.addEventListener('click', downloadAllAsZip);
+  clearBtn.addEventListener('click', clearAll);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Time Calculator - Words to Minutes & Speaking Time | DevTools Hub</title>
+    <meta name="description" content="Free speech time calculator. Convert words to minutes and seconds at standard speaking rates (100-238 wpm). Paste text, set WPM, add pauses. No signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/speech-time-calculator/">
+    <meta property="og:title" content="Speech Time Calculator - Words to Minutes &amp; Speaking Time | DevTools Hub">
+    <meta property="og:description" content="Free speech time calculator. Convert words to minutes and seconds at standard speaking rates (100-238 wpm). Paste text, set WPM, add pauses. No signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/speech-time-calculator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Speech Time Calculator - Words to Minutes &amp; Speaking Time | DevTools Hub">
+    <meta name="twitter:description" content="Free speech time calculator. Convert words to minutes and seconds at standard speaking rates (100-238 wpm). Paste text, set WPM, add pauses. No signup.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/speech-time-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-07-10",
+        "dateModified": "2026-07-10",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "Speech Time Calculator",
+        "description": "Convert words to minutes and seconds at standard speaking rates with pause buffer support",
+        "url": "https://tools.scoreroute.com/tools/speech-time-calculator/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["Words to time conversion", "Time to words conversion", "Paste text analysis", "WPM rate presets", "Pause buffer", "Reference table"]
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Speech Time Calculator</h1>
+            <p class="subtitle">Words to Minutes & Speaking Time - Free & Instant</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Speech Time Calculator</span>
+              <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="tab-bar">
+                    <button class="tab-btn active" data-mode="words-to-time" onclick="switchMode('words-to-time')">Words to Time</button>
+                    <button class="tab-btn" data-mode="time-to-words" onclick="switchMode('time-to-words')">Time to Words</button>
+                    <button class="tab-btn" data-mode="paste-text" onclick="switchMode('paste-text')">Paste Text</button>
+                </div>
+
+                <div id="mode-words-to-time" class="mode-panel active">
+                    <h2>Words to Speaking Time</h2>
+                    <p class="mode-desc">Enter your word count to see how long it takes to speak.</p>
+                    <label for="word-count-input" class="input-label">Word Count</label>
+                    <input type="number" id="word-count-input" min="1" max="100000" value="500" placeholder="Enter word count...">
+                    <div class="input-group">
+                        <label for="wpm-slider-1" class="input-label">Speaking Rate: <span id="wpm-value-1">150</span> wpm</label>
+                        <input type="range" id="wpm-slider-1" class="wpm-slider" min="80" max="300" value="150" step="5">
+                    </div>
+                    <div class="preset-rates">
+                        <button class="rate-btn" data-wpm="100" data-mode="1">Slow (100)</button>
+                        <button class="rate-btn" data-wpm="130" data-mode="1">Conversational (130)</button>
+                        <button class="rate-btn active" data-wpm="150" data-mode="1">Average (150)</button>
+                        <button class="rate-btn" data-wpm="163" data-mode="1">TED Talk (163)</button>
+                        <button class="rate-btn" data-wpm="180" data-mode="1">Fast (180)</button>
+                        <button class="rate-btn" data-wpm="200" data-mode="1">Auctioneer (200)</button>
+                        <button class="rate-btn" data-wpm="238" data-mode="1">Silent Read (238)</button>
+                    </div>
+                    <label for="pause-buffer-1" class="input-label">Pause Buffer: <span id="pause-value-1">0</span>%</label>
+                    <input type="range" id="pause-buffer-1" class="pause-slider" min="0" max="50" value="0" step="5">
+                    <div class="btn-group">
+                        <button onclick="calcWordsToTime()" class="btn btn-primary">Calculate</button>
+                        <button onclick="clearWordsToTime()" class="btn btn-secondary">Clear</button>
+                    </div>
+                    <div id="result-words-to-time" class="result-panel"></div>
+                </div>
+
+                <div id="mode-time-to-words" class="mode-panel">
+                    <h2>Time to Word Count</h2>
+                    <p class="mode-desc">Enter your speaking duration to see how many words you need.</p>
+                    <div class="time-inputs">
+                        <div class="time-input-group">
+                            <label for="hours-input" class="input-label">Hours</label>
+                            <input type="number" id="hours-input" min="0" max="24" value="0" placeholder="0">
+                        </div>
+                        <div class="time-input-group">
+                            <label for="minutes-input" class="input-label">Minutes</label>
+                            <input type="number" id="minutes-input" min="0" max="59" value="5" placeholder="5">
+                        </div>
+                        <div class="time-input-group">
+                            <label for="seconds-input" class="input-label">Seconds</label>
+                            <input type="number" id="seconds-input" min="0" max="59" value="0" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="wpm-slider-2" class="input-label">Speaking Rate: <span id="wpm-value-2">150</span> wpm</label>
+                        <input type="range" id="wpm-slider-2" class="wpm-slider" min="80" max="300" value="150" step="5">
+                    </div>
+                    <div class="preset-rates">
+                        <button class="rate-btn" data-wpm="100" data-mode="2">Slow (100)</button>
+                        <button class="rate-btn" data-wpm="130" data-mode="2">Conversational (130)</button>
+                        <button class="rate-btn active" data-wpm="150" data-mode="2">Average (150)</button>
+                        <button class="rate-btn" data-wpm="163" data-mode="2">TED Talk (163)</button>
+                        <button class="rate-btn" data-wpm="180" data-mode="2">Fast (180)</button>
+                        <button class="rate-btn" data-wpm="200" data-mode="2">Auctioneer (200)</button>
+                        <button class="rate-btn" data-wpm="238" data-mode="2">Silent Read (238)</button>
+                    </div>
+                    <label for="pause-buffer-2" class="input-label">Pause Buffer: <span id="pause-value-2">0</span>%</label>
+                    <input type="range" id="pause-buffer-2" class="pause-slider" min="0" max="50" value="0" step="5">
+                    <div class="btn-group">
+                        <button onclick="calcTimeToWords()" class="btn btn-primary">Calculate</button>
+                        <button onclick="clearTimeToWords()" class="btn btn-secondary">Clear</button>
+                    </div>
+                    <div id="result-time-to-words" class="result-panel"></div>
+                </div>
+
+                <div id="mode-paste-text" class="mode-panel">
+                    <h2>Paste Your Speech Text</h2>
+                    <p class="mode-desc">Paste your speech text to count words and calculate speaking time.</p>
+                    <textarea id="speech-text" placeholder="Paste your speech text here..." aria-label="Paste your speech text here"></textarea>
+                    <div class="stat-bar">
+                        <span class="stat-item">Words: <strong id="paste-word-count">0</strong></span>
+                        <span class="stat-item">Characters: <strong id="paste-char-count">0</strong></span>
+                        <span class="stat-item">Sentences: <strong id="paste-sentence-count">0</strong></span>
+                        <span class="stat-item">Paragraphs: <strong id="paste-paragraph-count">0</strong></span>
+                    </div>
+                    <div class="input-group">
+                        <label for="wpm-slider-3" class="input-label">Speaking Rate: <span id="wpm-value-3">150</span> wpm</label>
+                        <input type="range" id="wpm-slider-3" class="wpm-slider" min="80" max="300" value="150" step="5">
+                    </div>
+                    <div class="preset-rates">
+                        <button class="rate-btn" data-wpm="100" data-mode="3">Slow (100)</button>
+                        <button class="rate-btn" data-wpm="130" data-mode="3">Conversational (130)</button>
+                        <button class="rate-btn active" data-wpm="150" data-mode="3">Average (150)</button>
+                        <button class="rate-btn" data-wpm="163" data-mode="3">TED Talk (163)</button>
+                        <button class="rate-btn" data-wpm="180" data-mode="3">Fast (180)</button>
+                        <button class="rate-btn" data-wpm="200" data-mode="3">Auctioneer (200)</button>
+                        <button class="rate-btn" data-wpm="238" data-mode="3">Silent Read (238)</button>
+                    </div>
+                    <label for="pause-buffer-3" class="input-label">Pause Buffer: <span id="pause-value-3">0</span>%</label>
+                    <input type="range" id="pause-buffer-3" class="pause-slider" min="0" max="50" value="0" step="5">
+                    <div class="btn-group">
+                        <button onclick="calcPasteText()" class="btn btn-primary">Calculate</button>
+                        <button onclick="clearPasteText()" class="btn btn-secondary">Clear</button>
+                    </div>
+                    <div id="result-paste-text" class="result-panel"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Why Use a Speech Time Calculator?</h3>
+                <p>Whether preparing a presentation, writing a podcast script, or timing a toast, knowing exactly how long your words take to speak is critical. AI chatbots hallucinate speech times — they guess word counts, apply inconsistent WPM rates, and ignore natural pauses. This tool uses deterministic math with research-backed speaking rates from the Brysbaert (2019) meta-analysis.</p>
+
+                <h3>How Speaking Rate Affects Your Speech</h3>
+                <div class="example-box">
+                    <div class="example-item">
+                        <strong>Understanding Words Per Minute (WPM)</strong>
+                        <p>Average speaking rate is 150 wpm based on a meta-analysis of 17 studies (Brysbaert, 2019). Your actual rate depends on audience, content complexity, and speaking style.</p>
+                        <ul>
+                            <li><strong>Slow (100 wpm):</strong> Formal speeches, instructional content, non-native audiences</li>
+                            <li><strong>Conversational (130 wpm):</strong> Natural dialogue, casual presentations</li>
+                            <li><strong>Average (150 wpm):</strong> Standard speaking rate for most contexts</li>
+                            <li><strong>TED Talk (163 wpm):</strong> Engaging presentations with clear enunciation</li>
+                            <li><strong>Fast (180 wpm):</strong> Excited/urgent delivery, experienced speakers</li>
+                            <li><strong>Auctioneer (200+ wpm):</strong> Rapid-fire delivery, professional auctioneers</li>
+                            <li><strong>Silent Read (238 wpm):</strong> Silent reading comprehension, not speaking</li>
+                        </ul>
+                    </div>
+                    <div class="example-item">
+                        <strong>Why Pause Buffer Matters</strong>
+                        <p>Natural speech includes pauses for breath, emphasis, audience reaction, and transitions between ideas. Adding a 15-25% pause buffer gives a realistic total duration estimate. Without it, you'll consistently underestimate your speaking time.</p>
+                    </div>
+                </div>
+
+                <h3>Reference Table: Speaking Times at 150 wpm</h3>
+                <div class="ref-table-wrapper">
+                    <table class="ref-table">
+<caption class="sr-only">How long a given number of words takes to say aloud</caption>
+                        <thead>
+                            <tr><th>Word Count</th><th>Speaking Time</th><th>With 15% Pauses</th><th>Common Use</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>50</td><td>0:20</td><td>0:23</td><td>Short introduction</td></tr>
+                            <tr><td>100</td><td>0:40</td><td>0:46</td><td>Elevator pitch</td></tr>
+                            <tr><td>150</td><td>1:00</td><td>1:09</td><td>1-minute toast</td></tr>
+                            <tr><td>300</td><td>2:00</td><td>2:18</td><td>2-minute update</td></tr>
+                            <tr><td>500</td><td>3:20</td><td>3:50</td><td>5-min lightning talk (half)</td></tr>
+                            <tr><td>750</td><td>5:00</td><td>5:45</td><td>5-minute presentation</td></tr>
+                            <tr><td>1000</td><td>6:40</td><td>7:40</td><td>10-min talk (two-thirds)</td></tr>
+                            <tr><td>1500</td><td>10:00</td><td>11:30</td><td>10-minute keynote</td></tr>
+                            <tr><td>2000</td><td>13:20</td><td>15:20</td><td>15-minute presentation</td></tr>
+                            <tr><td>3000</td><td>20:00</td><td>23:00</td><td>20-minute TED-style talk</td></tr>
+                            <tr><td>4500</td><td>30:00</td><td>34:30</td><td>30-minute lecture</td></tr>
+                            <tr><td>6000</td><td>40:00</td><td>46:00</td><td>Hour-long workshop (2/3)</td></tr>
+                            <tr><td>9000</td><td>60:00</td><td>69:00</td><td>1-hour keynote</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Common Speech Durations</h3>
+                <ul>
+                    <li><strong>Elevator Pitch:</strong> 30-60 seconds (75-150 words at 150 wpm)</li>
+                    <li><strong>Best Man Toast:</strong> 3-5 minutes (450-750 words)</li>
+                    <li><strong>TED Talk:</strong> 18 minutes (2,700-3,000 words)</li>
+                    <li><strong>Conference Keynote:</strong> 30-60 minutes (4,500-9,000 words)</li>
+                    <li><strong>Podcast Episode:</strong> 20-45 minutes (3,000-6,750 words)</li>
+                    <li><strong>Wedding Vows:</strong> 2-3 minutes (300-450 words)</li>
+                    <li><strong>Academic Lecture:</strong> 45-60 minutes (6,750-9,000 words)</li>
+                    <li><strong>Business Presentation:</strong> 10-20 minutes (1,500-3,000 words)</li>
+                </ul>
+
+                <h3>Why AI Gets Speech Times Wrong</h3>
+                <p>Large language models like ChatGPT, Claude, and Gemini cannot reliably calculate speech times. Here's why:</p>
+                <ul>
+                    <li><strong>Inconsistent WPM:</strong> AI applies different WPM rates each time you ask — it might say 130 in one response and 170 in another for the same word count</li>
+                    <li><strong>Word Count Hallucination:</strong> AI cannot accurately count words in long text — it frequently miscounts by 10-30%</li>
+                    <li><strong>No Pause Calculation:</strong> AI rarely accounts for natural pauses, breaths, and audience engagement time</li>
+                    <li><strong>Formatting Variance:</strong> AI produces different time formats inconsistently — sometimes decimal, sometimes hh:mm, with no standardization</li>
+                    <li><strong>No Math Guarantee:</strong> Deterministic division (words / wpm) is trivial for a calculator but unreliable in a language model</li>
+                </ul>
+                <p>This tool uses pure deterministic JavaScript math — every calculation is identical every time, zero approximation, zero hallucination.</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>How many words is a 5-minute speech?</summary>
+                    <p>At the average speaking rate of 150 wpm, a 5-minute speech contains approximately 750 words. With a 15% pause buffer, prepare about 640 words for 5 minutes of speaking.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How many words is a 10-minute speech?</summary>
+                    <p>At 150 wpm, a 10-minute speech is approximately 1,500 words. With pause buffer (15%), aim for 1,275-1,300 words to fill 10 minutes comfortably.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How long does it take to speak 1,000 words?</summary>
+                    <p>At 150 wpm, 1,000 words take about 6 minutes and 40 seconds to speak. With a 15% pause buffer, expect approximately 7 minutes and 40 seconds.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How many words per minute is the average speech?</summary>
+                    <p>The average speaking rate is 150 words per minute, based on a meta-analysis of 17 studies by Brysbaert (2019). This varies by context — TED speakers average 163 wpm, while conversational speech averages 130 wpm.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is the best WPM for a presentation?</summary>
+                    <p>For presentations, aim for 130-160 wpm. Slower (130 wpm) works for complex topics or non-native audiences. Faster (160 wpm) suits experienced speakers with familiar audiences. Always include pauses for emphasis.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Should I include pauses in my speech time estimate?</summary>
+                    <p>Yes. Natural speech includes pauses for breath, emphasis, transitions, and audience reaction. Adding 15-25% pause buffer gives a realistic total duration. Professional speakers often rehearse with timed pauses.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How do I calculate speech time from word count?</summary>
+                    <p>Divide your word count by your speaking rate (WPM). For example: 1,000 words ÷ 150 wpm = 6.67 minutes (6 minutes 40 seconds). Add 15% for pauses: 6.67 × 1.15 = 7.67 minutes (7 minutes 40 seconds). This tool does all the math for you.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can AI calculate speech time accurately?</summary>
+                    <p>No. Language models cannot perform reliable arithmetic divide operations. Studies show AI chatbots produce inconsistent speech time estimates — varying by 20-50% across queries for the same word count. Use a deterministic calculator like this one for accurate results.</p>
+                </details>
+
+                <h3>Research Sources</h3>
+                <ul>
+                    <li><a href="https://osf.io/zk6tg/" target="_blank" rel="noopener">Brysbaert, M. (2019). How many words do we read per minute? A review and meta-analysis of reading rate</a></li>
+                    <li><a href="https://www.ted.com/about/program-initiatives/tedx-program" target="_blank" rel="noopener">TEDx Program Guidelines — Speaking Rate</a></li>
+                    <li><a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubMed — Speech Rate Research</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="related-tools">
+            <h3>Related Tools</h3>
+            <ul>
+                <li><a href="/tools/word-counter/">Word Counter</a> - Count words, characters, sentences</li>
+                <li><a href="/tools/readability-score/">Readability Score Calculator</a> - Check text readability</li>
+                <li><a href="/tools/online-timer/">Online Timer &amp; Stopwatch</a> - Time your speech practice</li>
+            </ul>
+        </section>
+    </main>
+
+    <style>
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: #1a1a2e;
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all .2s;
+        }
+        .tab-btn.active {
+            background: #667eea;
+            color: #fff;
+        }
+        .tab-btn:hover:not(.active) {
+            color: #fff;
+        }
+        .mode-panel {
+            display: none;
+        }
+        .mode-panel.active {
+            display: block;
+        }
+        .mode-desc {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+        .input-label {
+            display: block;
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            margin-top: 12px;
+        }
+        .input-label:first-child {
+            margin-top: 0;
+        }
+        #word-count-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+        }
+        #word-count-input:focus {
+            border-color: #667eea;
+            outline: 2px solid transparent;
+        }
+        .wpm-slider, .pause-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #2a2a4a;
+            border-radius: 3px;
+            outline: none;
+            margin: 8px 0;
+        }
+        .wpm-slider::-webkit-slider-thumb, .pause-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .preset-rates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0 4px;
+        }
+        .rate-btn {
+            padding: 5px 10px;
+            border: 1px solid #2a2a4a;
+            background: #0f0f23;
+            color: #888;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            transition: all .2s;
+        }
+        .rate-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: #fff;
+        }
+        .rate-btn:hover:not(.active) {
+            border-color: #667eea;
+            color: #fff;
+        }
+        .time-inputs {
+            display: flex;
+            gap: 12px;
+        }
+        .time-input-group {
+            flex: 1;
+        }
+        .time-input-group input {
+            width: 100%;
+            padding: 10px 14px;
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+        }
+        .time-input-group input:focus {
+            border-color: #667eea;
+            outline: 2px solid transparent;
+        }
+        #speech-text {
+            width: 100%;
+            min-height: 150px;
+            padding: 12px 14px;
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            resize: vertical;
+            font-family: inherit;
+        }
+        #speech-text:focus {
+            border-color: #667eea;
+            outline: 2px solid transparent;
+        }
+        .stat-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 12px 0;
+            padding: 10px 14px;
+            background: #0f0f23;
+            border-radius: 6px;
+            border: 1px solid #2a2a4a;
+        }
+        .stat-item {
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .stat-item strong {
+            color: #667eea;
+        }
+        .result-panel {
+            margin-top: 16px;
+            display: none;
+        }
+        .result-panel.show {
+            display: block;
+        }
+        .result-card {
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 8px;
+        }
+        .result-main-time {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            text-align: center;
+            padding: 16px 0;
+        }
+        .result-main-time .unit {
+            font-size: 1rem;
+            color: #888;
+            font-weight: 400;
+        }
+        .result-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .result-detail-item {
+            background: #1a1a2e;
+            border-radius: 6px;
+            padding: 10px 14px;
+            text-align: center;
+        }
+        .result-detail-item .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+        .result-detail-item .label {
+            font-size: 0.78rem;
+            color: #888;
+            margin-top: 2px;
+        }
+        .result-breakdown {
+            font-size: 0.9rem;
+            color: #aaa;
+            line-height: 1.6;
+        }
+        .result-breakdown strong {
+            color: #fff;
+        }
+        .ref-table-wrapper {
+            overflow-x: auto;
+        }
+        .ref-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .ref-table th {
+            background: #1a1a2e;
+            color: #667eea;
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 2px solid #2a2a4a;
+        }
+        .ref-table td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #1a1a2e;
+            color: #ccc;
+        }
+        .ref-table tr:hover td {
+            background: #1a1a2e;
+        }
+        .btn-group {
+            margin-top: 16px;
+        }
+    </style>
+
+    <script>
+        function switchMode(mode) {
+            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelectorAll('.mode-panel').forEach(function(p) { p.classList.remove('active'); });
+            document.querySelector('.tab-btn[data-mode="' + mode + '"]').classList.add('active');
+            document.getElementById('mode-' + mode).classList.add('active');
+        }
+
+        function formatTime(totalMinutes, pausePercent) {
+            var factor = 1 + (pausePercent / 100);
+            var adjustedMinutes = totalMinutes * factor;
+            var totalSeconds = Math.round(adjustedMinutes * 60);
+            var hours = Math.floor(totalSeconds / 3600);
+            var mins = Math.floor((totalSeconds % 3600) / 60);
+            var secs = totalSeconds % 60;
+            var hh = hours > 0 ? hours + 'h ' : '';
+            var mm = mins > 0 ? mins + 'm ' : '';
+            var ss = secs + 's';
+            return { formatted: hh + mm + ss, hms: (hours > 0 ? pad(hours) + ':' : '') + pad(mins) + ':' + pad(secs), totalMinutes: adjustedMinutes, totalSeconds: totalSeconds, hours: hours, minutes: mins, seconds: secs };
+        }
+
+        function pad(n) {
+            return n < 10 ? '0' + n : '' + n;
+        }
+
+        function renderResult(containerId, timeData, wordCount, wpm, pausePercent) {
+            var el = document.getElementById(containerId);
+            el.innerHTML = '<div class="result-card">' +
+                '<div class="result-main-time">' + timeData.formatted + ' <span class="unit">(' + timeData.hms + ')</span></div>' +
+                '<div class="result-details">' +
+                '<div class="result-detail-item"><span class="value">' + timeData.totalMinutes.toFixed(2) + '</span><span class="label">Total Minutes</span></div>' +
+                '<div class="result-detail-item"><span class="value">' + timeData.totalSeconds + '</span><span class="label">Total Seconds</span></div>' +
+                '</div></div>' +
+                '<div class="result-card result-breakdown">' +
+                '<table style="width:100%;border-collapse:collapse;font-size:0.9rem;">' +
+                '<caption class="sr-only">The numbers behind the result: your word count, rate and pause buffer</caption>' +
+                '<tr><th scope="row" style="padding:4px 8px;color:#888;text-align:left;font-weight:400;">Words</th><td style="padding:4px 8px;text-align:right;color:#fff;font-weight:700;">' + wordCount + '</td></tr>' +
+                '<tr><th scope="row" style="padding:4px 8px;color:#888;text-align:left;font-weight:400;">Speaking Rate</th><td style="padding:4px 8px;text-align:right;color:#fff;font-weight:700;">' + wpm + ' wpm</td></tr>' +
+                '<tr><th scope="row" style="padding:4px 8px;color:#888;text-align:left;font-weight:400;">Pause Buffer</th><td style="padding:4px 8px;text-align:right;color:#fff;font-weight:700;">+' + pausePercent + '%</td></tr>' +
+                '<tr><th scope="row" style="padding:4px 8px;color:#888;text-align:left;font-weight:400;">Base Time (no pauses)</th><td style="padding:4px 8px;text-align:right;color:#fff;font-weight:700;">' + formatTime(wordCount / wpm, 0).formatted + '</td></tr>' +
+                '</table></div>';
+            el.classList.add('show');
+        }
+
+        function renderTimeToWordsResult(containerId, totalMinutes, wpm, pausePercent) {
+            var baseWords = Math.round(wpm * totalMinutes);
+            var adjustedMinutes = totalMinutes / (1 + pausePercent / 100);
+            var adjustedWords = Math.round(wpm * adjustedMinutes);
+            var el = document.getElementById(containerId);
+            el.innerHTML = '<div class="result-card">' +
+                '<div class="result-main-time">' + baseWords.toLocaleString() + ' <span class="unit">words needed</span></div>' +
+                '<div class="result-details">' +
+                '<div class="result-detail-item"><span class="value">' + formatTime(totalMinutes, 0).hms + '</span><span class="label">Total Duration</span></div>' +
+                '<div class="result-detail-item"><span class="value">' + wpm + '</span><span class="label">WPM Rate</span></div>' +
+                '</div></div>' +
+                '<div class="result-card result-breakdown">' +
+                '<table style="width:100%;border-collapse:collapse;font-size:0.9rem;">' +
+                '<caption class="sr-only">How many words fit the time you entered, with and without pauses</caption>' +
+                '<tr><th scope="row" style="padding:4px 8px;color:#888;text-align:left;font-weight:400;">Words (with ' + pausePercent + '% pauses)</th><td style="padding:4px 8px;text-align:right;color:#fff;font-weight:700;">' + adjustedWords.toLocaleString() + '</td></tr>' +
+                '<tr><th scope="row" style="padding:4px 8px;color:#888;text-align:left;font-weight:400;">Words (no pauses)</th><td style="padding:4px 8px;text-align:right;color:#fff;font-weight:700;">' + baseWords.toLocaleString() + '</td></tr>' +
+                '<tr><th scope="row" style="padding:4px 8px;color:#888;text-align:left;font-weight:400;">Speaking Rate</th><td style="padding:4px 8px;text-align:right;color:#fff;font-weight:700;">' + wpm + ' wpm</td></tr>' +
+                '<tr><th scope="row" style="padding:4px 8px;color:#888;text-align:left;font-weight:400;">Pause Buffer</th><td style="padding:4px 8px;text-align:right;color:#fff;font-weight:700;">+' + pausePercent + '%</td></tr>' +
+                '</table></div>';
+            el.classList.add('show');
+        }
+
+        function calcWordsToTime() {
+            var words = parseInt(document.getElementById('word-count-input').value) || 0;
+            if (words < 1) { showToast('Enter a word count greater than 0', 'error'); return; }
+            var wpm = parseInt(document.getElementById('wpm-slider-1').value) || 150;
+            var pause = parseInt(document.getElementById('pause-buffer-1').value) || 0;
+            var totalMinutes = words / wpm;
+            var timeData = formatTime(totalMinutes, pause);
+            renderResult('result-words-to-time', timeData, words, wpm, pause);
+        }
+
+        function clearWordsToTime() {
+            document.getElementById('word-count-input').value = '500';
+            document.getElementById('wpm-slider-1').value = '150';
+            document.getElementById('pause-buffer-1').value = '0';
+            document.getElementById('wpm-value-1').textContent = '150';
+            document.getElementById('pause-value-1').textContent = '0';
+            document.getElementById('result-words-to-time').classList.remove('show');
+            document.getElementById('result-words-to-time').innerHTML = '';
+            document.querySelectorAll('#mode-words-to-time .rate-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelector('#mode-words-to-time .rate-btn[data-wpm="150"]').classList.add('active');
+        }
+
+        function calcTimeToWords() {
+            var hours = parseInt(document.getElementById('hours-input').value) || 0;
+            var minutes = parseInt(document.getElementById('minutes-input').value) || 0;
+            var seconds = parseInt(document.getElementById('seconds-input').value) || 0;
+            var totalMinutes = (hours * 60) + minutes + (seconds / 60);
+            if (totalMinutes <= 0) { showToast('Enter a duration greater than 0', 'error'); return; }
+            var wpm = parseInt(document.getElementById('wpm-slider-2').value) || 150;
+            var pause = parseInt(document.getElementById('pause-buffer-2').value) || 0;
+            renderTimeToWordsResult('result-time-to-words', totalMinutes, wpm, pause);
+        }
+
+        function clearTimeToWords() {
+            document.getElementById('hours-input').value = '0';
+            document.getElementById('minutes-input').value = '5';
+            document.getElementById('seconds-input').value = '0';
+            document.getElementById('wpm-slider-2').value = '150';
+            document.getElementById('pause-buffer-2').value = '0';
+            document.getElementById('wpm-value-2').textContent = '150';
+            document.getElementById('pause-value-2').textContent = '0';
+            document.getElementById('result-time-to-words').classList.remove('show');
+            document.getElementById('result-time-to-words').innerHTML = '';
+            document.querySelectorAll('#mode-time-to-words .rate-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelector('#mode-time-to-words .rate-btn[data-wpm="150"]').classList.add('active');
+        }
+
+        function analyzePasteText() {
+            var text = document.getElementById('speech-text').value;
+            if (!text.trim()) {
+                document.getElementById('paste-word-count').textContent = '0';
+                document.getElementById('paste-char-count').textContent = '0';
+                document.getElementById('paste-sentence-count').textContent = '0';
+                document.getElementById('paste-paragraph-count').textContent = '0';
+                return;
+            }
+            var words = text.trim().split(/\s+/).filter(function(w) { return w.length > 0; });
+            document.getElementById('paste-word-count').textContent = words.length;
+            document.getElementById('paste-char-count').textContent = text.length;
+            var sentences = text.split(/[.!?]+/).filter(function(s) { return s.trim().length > 0; });
+            document.getElementById('paste-sentence-count').textContent = Math.max(sentences.length, text.trim().length > 0 ? 1 : 0);
+            var paragraphs = text.split(/\n\n+/).filter(function(p) { return p.trim().length > 0; });
+            document.getElementById('paste-paragraph-count').textContent = Math.max(paragraphs.length, text.trim().length > 0 ? 1 : 0);
+        }
+
+        function calcPasteText() {
+            var text = document.getElementById('speech-text').value;
+            if (!text.trim()) { showToast('Paste some text first', 'error'); return; }
+            var words = text.trim().split(/\s+/).filter(function(w) { return w.length > 0; });
+            var wordCount = words.length;
+            var wpm = parseInt(document.getElementById('wpm-slider-3').value) || 150;
+            var pause = parseInt(document.getElementById('pause-buffer-3').value) || 0;
+            var totalMinutes = wordCount / wpm;
+            var timeData = formatTime(totalMinutes, pause);
+            renderResult('result-paste-text', timeData, wordCount, wpm, pause);
+        }
+
+        function clearPasteText() {
+            document.getElementById('speech-text').value = '';
+            document.getElementById('paste-word-count').textContent = '0';
+            document.getElementById('paste-char-count').textContent = '0';
+            document.getElementById('paste-sentence-count').textContent = '0';
+            document.getElementById('paste-paragraph-count').textContent = '0';
+            document.getElementById('wpm-slider-3').value = '150';
+            document.getElementById('pause-buffer-3').value = '0';
+            document.getElementById('wpm-value-3').textContent = '150';
+            document.getElementById('pause-value-3').textContent = '0';
+            document.getElementById('result-paste-text').classList.remove('show');
+            document.getElementById('result-paste-text').innerHTML = '';
+            document.querySelectorAll('#mode-paste-text .rate-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelector('#mode-paste-text .rate-btn[data-wpm="150"]').classList.add('active');
+        }
+
+        function initSliders() {
+            for (var i = 1; i <= 3; i++) {
+                (function(idx) {
+                    var slider = document.getElementById('wpm-slider-' + idx);
+                    var display = document.getElementById('wpm-value-' + idx);
+                    if (slider && display) {
+                        slider.addEventListener('input', function() {
+                            display.textContent = slider.value;
+                            document.querySelectorAll('#mode-' + (idx === 1 ? 'words-to-time' : idx === 2 ? 'time-to-words' : 'paste-text') + ' .rate-btn').forEach(function(b) { b.classList.remove('active'); });
+                        });
+                    }
+                    var pauseSlider = document.getElementById('pause-buffer-' + idx);
+                    var pauseDisplay = document.getElementById('pause-value-' + idx);
+                    if (pauseSlider && pauseDisplay) {
+                        pauseSlider.addEventListener('input', function() {
+                            pauseDisplay.textContent = pauseSlider.value;
+                        });
+                    }
+                    document.querySelectorAll('#mode-' + (idx === 1 ? 'words-to-time' : idx === 2 ? 'time-to-words' : 'paste-text') + ' .rate-btn').forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            var wpm = parseInt(btn.getAttribute('data-wpm'));
+                            slider.value = wpm;
+                            display.textContent = wpm;
+                            document.querySelectorAll('#mode-' + (idx === 1 ? 'words-to-time' : idx === 2 ? 'time-to-words' : 'paste-text') + ' .rate-btn').forEach(function(b) { b.classList.remove('active'); });
+                            btn.classList.add('active');
+                        });
+                    });
+                })(i);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initSliders();
+            calcWordsToTime();
+
+            document.getElementById('speech-text').addEventListener('input', analyzePasteText);
+
+            document.getElementById('word-count-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') calcWordsToTime();
+            });
+            document.getElementById('hours-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') calcTimeToWords();
+            });
+            document.getElementById('minutes-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') calcTimeToWords();
+            });
+            document.getElementById('seconds-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') calcTimeToWords();
+            });
+        });
+
+        function showToast(message, type) {
+            var toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 3000);
+        }
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

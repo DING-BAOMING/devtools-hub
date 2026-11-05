@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Accessibility Checker - PDF/UA &amp; WCAG | DevTools Hub</title>
+    <meta name="description" content="Audit your PDF against PDF/UA-1, WCAG 2.1 AA and Section 508: tagging, alt text, heading order, tables, forms, contrast. No upload.">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, ai-train:no, ai-input:no">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/pdf-accessibility-checker/">
+    <meta property="og:title" content="PDF Accessibility Checker - PDF/UA &amp; WCAG">
+    <meta property="og:description" content="Audit any PDF against PDF/UA-1, WCAG 2.1 AA and Section 508. Tagging, alt text, heading order, table headers, form labels and contrast. Free and nothing uploaded.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/pdf-accessibility-checker/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PDF Accessibility Checker - PDF/UA &amp; WCAG">
+    <meta name="twitter:description" content="Check PDF accessibility against PDF/UA-1, WCAG 2.1 AA and Section 508. Nothing is uploaded, no signup, no limits.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "PDF Accessibility Checker - PDF/UA & WCAG Audit",
+        "description": "Audit a PDF for accessibility against PDF/UA-1 (ISO 14289-1), WCAG 2.1 AA and Section 508. Reports missing tagging, figures without alt text, skipped heading levels, tables without header cells, unlabelled form fields, empty link text and low colour contrast. Batch multiple files and export a JSON report. Runs entirely in the browser, so the document is never uploaded.",
+        "url": "https://tools.scoreroute.com/tools/pdf-accessibility-checker/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "isAccessibleForFree": true,
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": [
+            "Checks the tagged-PDF flag and the presence of a structure tree",
+            "Flags every figure or image that has no alternative text",
+            "Detects heading levels that skip (H1 straight to H3)",
+            "Finds tables with no header cells and header cells with no scope",
+            "Catches layout tables and malformed list structures",
+            "Reviews form field names and link annotation text",
+            "Samples text fill colours and computes WCAG contrast ratios",
+            "Audit a whole folder of PDFs in one pass",
+            "Export findings as JSON or copy a plain-text summary",
+            "Fully client-side, the PDF is never uploaded to a server"
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Is my PDF uploaded to check its accessibility?",
+                "acceptedAnswer": {"@type": "Answer", "text": "No. The file is read with the browser File API and parsed by pdf.js, which runs in a Web Worker on your own machine. No request containing the document is ever sent. Every online PDF accessibility checker, including axesCheck, PDFix, Venngage, freepdfchecker, Recite Me and the WebYes PAVE browser extension, uploads the file to a server. That is why confidential documents, medical records, contracts and government files are often blocked by policy from using them."}
+            },
+            {
+                "@type": "Question",
+                "name": "What is PDF/UA and why does it matter?",
+                "acceptedAnswer": {"@type": "Answer", "text": "PDF/UA is ISO 14289-1, the international standard for accessible PDF. It was built on WCAG and is the machine-checkable technical baseline that Section 508, the European Accessibility Act and most state accessibility rules point to. A PDF that passes PDF/UA satisfies the great majority of the technical success criteria those rules reference."}
+            },
+            {
+                "@type": "Question",
+                "name": "Can an AI chatbot tell me if my PDF is accessible?",
+                "acceptedAnswer": {"@type": "Answer", "text": "No. A language model has never seen your file and cannot open a PDF container, read the structure tree, or walk the tag hierarchy. It can recite the requirements, which is not the same as telling you which ones your document fails. This tool parses the actual document and reports the actual failures."}
+            },
+            {
+                "@type": "Question",
+                "name": "Is a passing result proof of legal compliance?",
+                "acceptedAnswer": {"@type": "Answer", "text": "No. This tool runs the machine-verifiable subset of the checks. Whether alt text is meaningful, whether reading order matches the visual intent, and how a real screen reader announces the document all need a human. Professional checkers split their output the same way, and any conformance report you file has to state both parts."}
+            },
+            {
+                "@type": "Question",
+                "name": "What are the usual causes of a failing PDF?",
+                "acceptedAnswer": {"@type": "Answer", "text": "Nine times out of ten it is an untagged export. Word, Google Docs, Canva, Google Slides and most design tools emit PDFs with no tag tree at all, which is the single most common cause of an inaccessible PDF. The next most common is figures that were pasted in without alt text."}
+            },
+            {
+                "@type": "Question",
+                "name": "How do I fix an untagged PDF?",
+                "acceptedAnswer": {"@type": "Answer", "text": "Remediating a tag tree is real work, and no browser tool can invent correct tags for you. What you can do cheaply is fix the cheap items: add a document title, add alt text to figures in the authoring tool, give form fields real labels, and rebuild the bookmarks. If the document needs a genuine tag tree, budget for a desktop tagger such as PAC or a commercial remediation service."}
+            }
+        ]
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>PDF Accessibility Checker</h1>
+            <p class="subtitle">Audit PDF/UA-1, WCAG 2.1 AA &amp; Section 508 &middot; Nothing Uploaded &middot; Batch Files &middot; JSON Report</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/pdf-tools/">PDF Tools</a> &gt; <span>PDF Accessibility</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Check PDF accessibility</h2>
+                <div id="dropzone" class="pi-dropzone" tabindex="0" role="button">
+                    <div class="pi-dropzone-icon" aria-hidden="true">&#128196;</div>
+                    <div class="pi-dropzone-text">
+                        <strong>Click to choose</strong> or drag &amp; drop<br>
+                        PDF files &mdash; several at once is fine
+                    </div>
+                    <input aria-label="PDF files to analyze" type="file" id="fileInput" accept="application/pdf,.pdf" multiple class="pi-hidden-input">
+                </div>
+                <p class="muted-note">The file never leaves your device. Parsing happens in a Web Worker via pdf.js; no upload request is made. You can confirm this in DevTools &rarr; Network.</p>
+
+                <div id="progress" class="pac-progress" hidden>
+                    <div class="pac-progress-bar"><div id="progressFill" class="pac-progress-fill"></div></div>
+                    <p id="progressText" class="muted-note" role="status" aria-live="polite"></p>
+                </div>
+
+                <div id="results" class="pac-results"></div>
+
+                <div class="btn-group">
+                    <button id="reportBtn" class="btn btn-primary" hidden>Download JSON report</button>
+                    <button id="copyBtn" class="btn" hidden>Copy summary</button>
+                    <button id="resetBtn" class="btn btn-secondary" hidden>Clear</button>
+                </div>
+                <div id="status" class="status" role="status" aria-live="polite"></div>
+            </div>
+
+            <div class="info-section">
+                <h2>What this checks</h2>
+                <p>Accessibility failures in PDFs are almost always structural rather than visual. A sighted reader can follow an untagged document perfectly well, so the problem stays invisible until someone opens it with a screen reader. The checks below read the parts of the PDF that a screen reader depends on.</p>
+                <ul>
+                    <li><strong>Tagging.</strong> Whether the document declares itself tagged and carries a structure tree. An untagged PDF fails the single most important requirement, and the vast majority of PDFs exported by Word, Google Docs, Canva and Google Slides are untagged.</li>
+                    <li><strong>Alternative text.</strong> Every figure and image element must carry a non-empty alt entry. This maps to WCAG 2.1 success criterion 1.1.1 Non-text Content.</li>
+                    <li><strong>Heading order.</strong> H1 to H6 must not skip levels, otherwise a screen reader user navigating by heading loses the document outline. Success criteria 1.3.1 and 2.4.6.</li>
+                    <li><strong>Tables.</strong> Data tables need header cells, header cells ideally need a scope, and a layout table tagged as a data table sends assistive technology reading a grid that is not there. Success criterion 1.3.1.</li>
+                    <li><strong>Lists.</strong> List items must sit inside a list and lists inside a list body, or the announced item count is wrong. Success criterion 1.3.1.</li>
+                    <li><strong>Links.</strong> Link text and link annotations need to say where the link goes. Bare text like "click here" passes the letter of the rule and fails the purpose of it. Success criterion 2.4.4.</li>
+                    <li><strong>Form fields.</strong> Fields named Text1 or Checkbox2 tell a screen reader user nothing. Fields need a real label. Success criteria 3.3.2 and 4.1.2.</li>
+                    <li><strong>Contrast.</strong> Text fill colours are sampled from the page content streams and turned into WCAG contrast ratios. Success criterion 1.4.3.</li>
+                </ul>
+
+                <h2>Why in the browser</h2>
+                <p>Every hosted PDF accessibility checker makes you upload the file. axesCheck sends it to their server, and their own guidance steers you to the Windows desktop build if you would rather not upload. PDFix, Venngage, freepdfchecker, Recite Me and the WebYes PAVE extension all behave the same way, and the PAVE extension is documented as able to keep uploaded documents for weeks.</p>
+                <p>That is workable for a brochure. It is a blocker for a patient record, a signed contract, a financial statement or anything a lawyer asked you not to put on a third party's server. Doing the parse locally removes the question entirely, and it also means no upload quota, no file size cap and no waiting on a queue.</p>
+
+                <h2>What this cannot tell you</h2>
+                <p>A machine-verifiable result is one part of a conformance assessment, and treating it as the whole answer is the most common way organisations get this wrong. These items need a person:</p>
+                <ul>
+                    <li>Whether the alt text is any <em>use</em>. Passing a non-empty check on alt text that says "image1.png" is technically a pass and practically a fail.</li>
+                    <li>Whether the reading order matches the visual layout. A tag tree can be perfectly valid and still sequence a two-column page incorrectly.</li>
+                    <li>Whether a table is genuinely tabular or decoration that happens to be a grid.</li>
+                    <li>How a real screen reader, such as NVDA, JAWS, VoiceOver or TalkBack, actually announces the document.</li>
+                    <li>Two low-level catalogue keys, <code>/Lang</code> and <code>/ViewerPreferences /DisplayDocTitle</code>. These live in the PDF catalogue dictionary, which the browser parser does not expose. They are listed in the manual checklist below rather than guessed at.</li>
+                </ul>
+
+                <h2>Frequently asked questions</h2>
+                <details class="faq-item">
+                    <summary>Is my PDF uploaded to check its accessibility?</summary>
+                    <p>No. The file is read with the browser File API and parsed by pdf.js inside a Web Worker on your own machine. No request containing the document is ever sent. Every online PDF accessibility checker, including axesCheck, PDFix, Venngage, freepdfchecker, Recite Me and the WebYes PAVE browser extension, uploads the file to a server. That is why confidential documents, medical records, contracts and government files are often blocked by policy from using them.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is PDF/UA and why does it matter?</summary>
+                    <p>PDF/UA is ISO 14289-1, the international standard for accessible PDF. It was built on WCAG and is the machine-checkable technical baseline that Section 508, the European Accessibility Act and most state accessibility rules point to. A PDF that passes PDF/UA satisfies the great majority of the technical success criteria those rules reference.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can an AI chatbot tell me if my PDF is accessible?</summary>
+                    <p>No. A language model has never seen your file and cannot open a PDF container, read the structure tree, or walk the tag hierarchy. It can recite the requirements, which is not the same as telling you which ones your document fails. This tool parses the actual document and reports the actual failures.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is a passing result proof of legal compliance?</summary>
+                    <p>No. This tool runs the machine-verifiable subset of the checks. Whether alt text is meaningful, whether reading order matches the visual intent, and how a real screen reader announces the document all need a human. Professional checkers split their output the same way, and any conformance report you file has to state both parts.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What are the usual causes of a failing PDF?</summary>
+                    <p>Nine times out of ten it is an untagged export. Word, Google Docs, Canva, Google Slides and most design tools emit PDFs with no tag tree at all, which is the single most common cause of an inaccessible PDF. The next most common is figures that were pasted in without alt text.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How do I fix an untagged PDF?</summary>
+                    <p>Remediating a tag tree is real work, and no browser tool can invent correct tags for you. What you can do cheaply is fix the cheap items: add a document title, add alt text to figures in the authoring tool, give form fields real labels, and rebuild the bookmarks. If the document needs a genuine tag tree, budget for a desktop tagger such as PAC or a commercial remediation service.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        var PDFJS_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs';
+        var WORKER_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+        var SCAN_PAGES = 12;
+        var MAX_NODES = 60000;
+
+        var el = {
+            dropzone: document.getElementById('dropzone'),
+            fileInput: document.getElementById('fileInput'),
+            progress: document.getElementById('progress'),
+            progressFill: document.getElementById('progressFill'),
+            progressText: document.getElementById('progressText'),
+            results: document.getElementById('results'),
+            reportBtn: document.getElementById('reportBtn'),
+            copyBtn: document.getElementById('copyBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            status: document.getElementById('status')
+        };
+
+        var pdfjsLib = null;
+        var reports = [];
+        var busy = false;
+
+        function setStatus(msg, type) {
+            el.status.textContent = msg || '';
+            el.status.className = 'status' + (type ? ' ' + type : '');
+        }
+
+        function esc(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function loadPdfJs() {
+            if (pdfjsLib) return Promise.resolve(pdfjsLib);
+            return import(PDFJS_URL).then(function (m) {
+                pdfjsLib = m;
+                m.GlobalWorkerOptions.workerSrc = WORKER_URL;
+                return m;
+            });
+        }
+
+        /* ---------------- colour, WCAG 2.1 relative luminance ----------------
+           pdf.js hands back setFillRGBColor as a Uint8ClampedArray in 0-255. */
+
+        function channel(c) {
+            return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+        }
+
+        function luminance(rgb) {
+            return 0.2126 * channel(rgb[0]) + 0.7152 * channel(rgb[1]) + 0.0722 * channel(rgb[2]);
+        }
+
+        function contrastRatio(fg, bg) {
+            var a = luminance(fg), b = luminance(bg);
+            if (a < b) { var t = a; a = b; b = t; }
+            return (a + 0.05) / (b + 0.05);
+        }
+
+        function toHex(rgb) {
+            function h(x) {
+                var v = Math.round(Math.max(0, Math.min(1, x)) * 255).toString(16);
+                return v.length < 2 ? '0' + v : v;
+            }
+            return '#' + h(rgb[0]) + h(rgb[1]) + h(rgb[2]);
+        }
+
+        function cmykToRgb(c) {
+            return [1 - Math.min(1, c[0] + c[3]), 1 - Math.min(1, c[1] + c[3]), 1 - Math.min(1, c[2] + c[3])];
+        }
+
+        /* ---------------- structure tree ----------------
+           page.getStructTree() is the only public route in pdf.js 4.x; there is no
+           document-level getStructTree. It returns { role, children, alt, lang, bbox }
+           and deliberately does NOT expose /A attributes, so attribute-driven
+           rules (TH Scope, for instance) are not checkable here and are not claimed. */
+
+        var GENERIC_LINKS = /^(click here|here|read more|learn more|more|this|download|click|link|continue|go|details|see more|find out more|this link)$/i;
+
+        function walkTree(node, ctx, parentRole, findings, depth) {
+            if (!node || ctx.nodes >= MAX_NODES || depth > 60) return;
+            var role = node.role;
+            /* pdf.js emits bare {type:'content'} markers for marked-content runs.
+               They carry no role, so there is nothing to test them on. */
+            if (!role) return;
+            ctx.nodes++;
+
+            var alt = node.alt == null ? '' : String(node.alt);
+            var kids = node.children || [];
+
+            if (role === 'Figure' || role === 'Formula') {
+                if (!alt.trim()) {
+                    findings.push({
+                        check: 'figure-alt', severity: 'critical', wcag: '1.1.1',
+                        label: role + ' with no alternative text',
+                        detail: 'A ' + role + ' element in the tag tree carries an empty alt entry, so a screen reader announces nothing and the information is lost. A decorative image should be tagged as an artifact instead of a figure.'
+                    });
+                } else if (alt.trim().length < 4) {
+                    findings.push({
+                        check: 'figure-alt', severity: 'minor', wcag: '1.1.1',
+                        label: 'Suspiciously short alternative text',
+                        detail: 'Alt text reads "' + alt.trim() + '". Non-empty passes the machine check, but a token that short is almost always a filename the authoring tool left behind.'
+                    });
+                }
+            }
+
+            if (/^H[1-6]$/.test(role)) {
+                var lvl = parseInt(role.slice(1), 10);
+                if (ctx.lastHeading > 0 && lvl > ctx.lastHeading + 1) {
+                    findings.push({
+                        check: 'heading-levels', severity: 'major', wcag: '1.3.1, 2.4.6',
+                        label: 'Heading level skipped',
+                        detail: 'H' + ctx.lastHeading + ' is followed by H' + lvl + '. A user navigating by heading loses a level, so the outline a screen reader builds does not match the document.'
+                    });
+                }
+                ctx.lastHeading = lvl;
+            }
+
+            if (role === 'Table') {
+                var st = countTable(kids);
+                if (st.th === 0 && st.td > 0) {
+                    findings.push({
+                        check: 'table-headers', severity: 'critical', wcag: '1.3.1',
+                        label: 'Table has no header cells',
+                        detail: 'A table with ' + st.td + ' data cell' + (st.td === 1 ? '' : 's') + ' and no TH element. A screen reader user cannot tell which column or row any cell belongs to.'
+                    });
+                }
+            }
+
+            if (role === 'L' && parentRole !== 'LBody' && parentRole !== 'L') {
+                findings.push({
+                    check: 'list-structure', severity: 'major', wcag: '1.3.1',
+                    label: 'List not inside a list body',
+                    detail: 'An L element sits directly under ' + (parentRole || 'the document root') + ' instead of LBody, so the item count is not announced.'
+                });
+            }
+            if (role === 'LI' && parentRole !== 'L') {
+                findings.push({
+                    check: 'list-structure', severity: 'major', wcag: '1.3.1',
+                    label: 'List item outside a list',
+                    detail: 'An LI element sits under ' + (parentRole || 'the document root') + ' rather than L.'
+                });
+            }
+
+            for (var i = 0; i < kids.length; i++) walkTree(kids[i], ctx, role, findings, depth + 1);
+        }
+
+        function countTable(kids) {
+            var out = { th: 0, td: 0 };
+            (function rec(list) {
+                for (var i = 0; i < list.length; i++) {
+                    var n = list[i], r = n.role;
+                    if (!r) { continue; }
+                    if (r === 'TH') out.th++;
+                    else if (r === 'TD') out.td++;
+                    if (n.children) rec(n.children);
+                }
+            })(kids);
+            return out;
+        }
+
+        /* ---------------- per-page pass: text, annotations, colour ---------------- */
+
+        function textInRect(items, rect) {
+            var x0 = Math.min(rect[0], rect[2]), x1 = Math.max(rect[0], rect[2]);
+            var y0 = Math.min(rect[1], rect[3]), y1 = Math.max(rect[1], rect[3]);
+            var out = '';
+            for (var i = 0; i < items.length; i++) {
+                var it = items[i];
+                if (typeof it.str !== 'string' || !it.str || !it.transform) continue;
+                var x = it.transform[4], y = it.transform[5];
+                if (x >= x0 - 2 && x <= x1 + 2 && y >= y0 - 2 && y <= y1 + 2) out += it.str;
+            }
+            return out;
+        }
+
+        function pageColours(ops, OPS, pageW, pageH) {
+            var fill = [0, 0, 0];
+            var rects = [];
+            var seen = {};
+            var order = [];
+            var draws = 0;
+
+            for (var i = 0; i < ops.fnArray.length; i++) {
+                var fn = ops.fnArray[i], a = ops.argsArray[i];
+                if (fn === OPS.setFillRGBColor) fill = [a[0] / 255, a[1] / 255, a[2] / 255];
+                else if (fn === OPS.setFillGray) fill = [a[0] / 255, a[0] / 255, a[0] / 255];
+                else if (fn === OPS.setFillCMYKColor) fill = cmykToRgb(a);
+                else if (fn === OPS.setFillColorN) fill = null;
+                else if (fn === OPS.rectangle && fill) {
+                    var w = Math.abs(a[2]), h = Math.abs(a[3]);
+                    if (w > 0 && h > 0) rects.push({ rgb: fill, area: w * h });
+                } else if (fn === OPS.showText || fn === OPS.showSpacedText || fn === OPS.paintTextXObject) {
+                    if (fill) {
+                        var k = toHex(fill);
+                        if (!seen[k]) { seen[k] = { hex: k, rgb: fill, count: 0 }; order.push(k); }
+                        if (seen[k].count < 5000) seen[k].count++;
+                        draws++;
+                    }
+                }
+            }
+            if (!draws) return null;
+
+            rects.sort(function (x, y) { return y.area - x.area; });
+            var bg = [1, 1, 1];
+            if (rects.length && rects[0].area >= pageW * pageH * 0.2) bg = rects[0].rgb;
+
+            var lows = [];
+            for (var j = 0; j < order.length; j++) {
+                var c = seen[order[j]];
+                var ratio = contrastRatio(c.rgb, bg);
+                if (ratio < 4.5) lows.push({ hex: c.hex, ratio: Math.round(ratio * 100) / 100, count: c.count });
+            }
+            lows.sort(function (x, y) { return x.ratio - y.ratio; });
+            return { bg: toHex(bg), colors: order.length, lows: lows.slice(0, 6) };
+        }
+
+        /* ---------------- main analysis ---------------- */
+
+        async function analyse(file) {
+            var lib = await loadPdfJs();
+            var t0 = Date.now();
+            var findings = [];
+            var doc;
+
+            try {
+                doc = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+            } catch (e) {
+                if (e && e.name === 'PasswordException') {
+                    return { file: file.name, size: file.size, error: 'This PDF is password protected. Remove the password, then audit the decrypted file.', findings: [], counts: {} };
+                }
+                return { file: file.name, size: file.size, error: 'Could not open the PDF: ' + (e && e.message ? e.message : 'unknown error'), findings: [], counts: {} };
+            }
+
+            var pages = doc.numPages;
+            var markInfo = null, meta = null, outline = null, fields = null;
+            try { markInfo = await doc.getMarkInfo(); } catch (e) { }
+            try { meta = await doc.getMetadata(); } catch (e) { }
+            try { outline = await doc.getOutline(); } catch (e) { }
+            try { fields = await doc.getFieldObjects(); } catch (e) { }
+
+            var marked = !!(markInfo && markInfo.Marked);
+
+            /* document-level checks */
+            var info = (meta && meta.info) || {};
+            var title = (info.Title || '').trim();
+            if (!title) {
+                findings.push({
+                    check: 'doc-title', severity: 'critical', wcag: '2.4.2',
+                    label: 'No title in the document metadata',
+                    detail: 'The /Title entry is empty. A screen reader falls back to announcing the file name, and "document.pdf" tells the listener nothing about the content.'
+                });
+            }
+            if (pages > 3 && (!outline || !outline.length)) {
+                findings.push({
+                    check: 'outline', severity: 'advisory', wcag: '2.4.5',
+                    label: 'No bookmarks on a ' + pages + ' page document',
+                    detail: 'A document this long has no outline, so headings are the only navigation route. Success criterion 2.4.5 Multiple Ways expects a second way through a long document.'
+                });
+            }
+            if (fields) {
+                var auto = Object.keys(fields).filter(function (n) {
+                    var t = n.trim();
+                    return !t || /^(text|checkbox|radiobutton|radio|combo|list|button|signature|group)\s*\d*$/i.test(t) || /^\d+$/.test(t);
+                });
+                if (auto.length) {
+                    findings.push({
+                        check: 'form-alt-name', severity: 'critical', wcag: '3.3.2, 4.1.2',
+                        label: auto.length + ' form field' + (auto.length === 1 ? '' : 's') + ' with an auto-generated name',
+                        detail: 'Named ' + auto.slice(0, 5).map(function (n) { return '"' + n + '"'; }).join(', ') + '. A screen reader announces that string verbatim, so the field has no usable label.'
+                    });
+                }
+            }
+
+            /* page-level pass */
+            var scan = Math.min(pages, SCAN_PAGES);
+            var linkStats = { total: 0, empty: 0, generic: 0, noDesc: 0, links: 0 };
+            var contrastRows = [];
+            var structureFound = false;
+            var ctx = { nodes: 0, lastHeading: 0, rootLang: null, sawRoot: false };
+
+            for (var p = 1; p <= scan; p++) {
+                var page = await doc.getPage(p);
+                var vp = page.getViewport({ scale: 1 });
+
+                try {
+                    var tree = await page.getStructTree();
+                    if (tree) {
+                        structureFound = true;
+                        if (!ctx.sawRoot) {
+                            ctx.sawRoot = true;
+                            var first = (tree.children || [])[0];
+                            ctx.rootLang = first && first.lang ? String(first.lang) : '';
+                        }
+                        for (var c = 0; c < (tree.children || []).length; c++) {
+                            walkTree(tree.children[c], ctx, '', findings, 0);
+                        }
+                    }
+                } catch (e) { }
+
+                var textItems = null;
+                try { textItems = (await page.getTextContent()).items; } catch (e) { }
+
+                var annots = [];
+                try { annots = await page.getAnnotations(); } catch (e) { }
+                for (var a = 0; a < annots.length; a++) {
+                    var an = annots[a];
+                    if (an.subtype !== 'Link') continue;
+                    linkStats.links++;
+                    if (!((an.contents || '').trim() || an.url || an.dest)) linkStats.noDesc++;
+                    if (textItems && an.rect && an.rect.length === 4) {
+                        var lt = textInRect(textItems, an.rect).trim();
+                        linkStats.total++;
+                        if (!lt) linkStats.empty++;
+                        else if (GENERIC_LINKS.test(lt)) linkStats.generic++;
+                    }
+                }
+
+                try {
+                    var ops = await page.getOperatorList();
+                    var col = pageColours(ops, lib.OPS, vp.width, vp.height);
+                    if (col) {
+                        if (col.lows.length) contrastRows.push({ page: p, data: col });
+                    }
+                } catch (e) { }
+
+                page.cleanup();
+            }
+
+            if (!marked || !structureFound) {
+                findings.push({
+                    check: 'tagged', severity: 'critical', wcag: '1.3.1',
+                    label: 'Document is not tagged',
+                    detail: !structureFound
+                        ? 'No structure tree was found on the first ' + scan + ' page' + (scan === 1 ? '' : 's') + '. The document is untagged, so a screen reader meets a flat stream of text with no headings, lists, tables or reading order. This is the single most common cause of an inaccessible PDF, and it is what Word, Google Docs, Canva and Google Slides produce by default.'
+                        : 'A structure tree exists but /MarkInfo /Marked is not true, so assistive technology is not told to use the tags.'
+                });
+            }
+
+            if (structureFound && ctx.sawRoot && !ctx.rootLang) {
+                findings.push({
+                    check: 'lang-indicator', severity: 'advisory', wcag: '3.1.1',
+                    label: 'No document language in the tag tree',
+                    detail: 'The root structure element carries no lang attribute. This is an indicator, not the PDF/UA test: the standard requires /Lang in the catalogue dictionary, which the browser parser does not expose. Confirm it with a desktop validator.'
+                });
+            }
+
+            if (linkStats.total > 0) {
+                if (linkStats.empty > 0) {
+                    findings.push({
+                        check: 'link-text', severity: 'major', wcag: '2.4.4, 1.1.1',
+                        label: linkStats.empty + ' link' + (linkStats.empty === 1 ? '' : 's') + ' with no text in the link area',
+                        detail: 'The rectangle of ' + (linkStats.empty === 1 ? 'one link annotation contains' : linkStats.empty + ' link annotations contain') + ' no text, so a screen reader announces only the word "link". Either the visible text sits outside the annotation rectangle or the link really is empty.'
+                    });
+                }
+                if (linkStats.generic > 0) {
+                    findings.push({
+                        check: 'link-text', severity: 'minor', wcag: '2.4.4',
+                        label: linkStats.generic + ' link' + (linkStats.generic === 1 ? '' : 's') + ' with non-descriptive text',
+                        detail: 'The link text is a phrase such as "click here" or "read more". In sequence it is fine, but pulled out of context in a list of links the destination is invisible.'
+                    });
+                }
+            }
+            if (linkStats.noDesc > 0) {
+                findings.push({
+                    check: 'annot-alt', severity: 'minor', wcag: '1.1.1, 2.4.4',
+                    label: linkStats.noDesc + ' link annotation' + (linkStats.noDesc === 1 ? '' : 's') + ' with neither description nor target',
+                    detail: 'Of ' + linkStats.links + ' link annotation' + (linkStats.links === 1 ? '' : 's') + ' on the first ' + scan + ' page' + (scan === 1 ? '' : 's') + ', ' + linkStats.noDesc + ' carr' + (linkStats.noDesc === 1 ? 'ies' : 'y') + ' no /Contents entry and no destination to fall back on.'
+                });
+            }
+
+            if (contrastRows.length) {
+                var worst = contrastRows.reduce(function (x, y) {
+                    return x.data.lows[0].ratio <= y.data.lows[0].ratio ? x : y;
+                });
+                findings.push({
+                    check: 'contrast', severity: 'major', wcag: '1.4.3',
+                    label: 'Low text contrast on ' + contrastRows.length + ' page' + (contrastRows.length === 1 ? '' : 's'),
+                    detail: 'Sampled text colours fall below the 4.5:1 ratio WCAG 1.4.3 requires. Worst case ' + worst.data.lows[0].hex + ' on ' + worst.data.bg + ' at ' + worst.data.lows[0].ratio + ':1, page ' + worst.page + '. Large text (18pt, or 14pt bold) only needs 3:1. These are colour samples taken from the page content stream, so treat them as a prompt to look at the page rather than a final verdict.'
+                });
+            }
+
+            var order = { critical: 0, major: 1, minor: 2, advisory: 3 };
+            findings.sort(function (x, y) { return order[x.severity] - order[y.severity]; });
+
+            var counts = { critical: 0, major: 0, minor: 0, advisory: 0 };
+            findings.forEach(function (f) { counts[f.severity]++; });
+
+            var verdict = counts.critical > 0 ? 'fail' : (counts.major > 0 ? 'conditional' : 'pass');
+
+            try { await doc.destroy(); } catch (e) { }
+
+            return {
+                file: file.name,
+                size: file.size,
+                pages: pages,
+                pagesScanned: scan,
+                tagged: marked && structureFound,
+                marked: marked,
+                structureFound: structureFound,
+                title: title,
+                lang: ctx.rootLang,
+                pdfua: verdict,
+                counts: counts,
+                findings: findings,
+                links: linkStats,
+                contrast: contrastRows,
+                elapsedMs: Date.now() - t0
+            };
+        }
+
+        /* ---------------- rendering ---------------- */
+
+        var SEV_LABEL = { critical: 'Critical', major: 'Major', minor: 'Minor', advisory: 'Advisory' };
+
+        function countBox(sev, n) {
+            return '<div class="pac-box pac-box-' + sev + '"><span class="pac-box-n">' + n + '</span><span class="pac-box-l">' + SEV_LABEL[sev] + '</span></div>';
+        }
+
+        function manualBlock() {
+            return '<details class="pac-manual"><summary>Checks that need a person or a desktop validator</summary>'
+                + '<ul>'
+                + '<li><strong>Catalogue /Lang</strong> and <strong>/ViewerPreferences /DisplayDocTitle</strong>. Required by PDF/UA; they live in the catalogue dictionary, which the browser parser does not expose.</li>'
+                + '<li><strong>Header cell scope</strong> and <strong>layout tables.</strong> A TH needs a Scope attribute and a decoration-only grid should be tagged as an artifact, but /A attributes are not exposed by the browser parser, so this tool reports on neither rather than guessing.</li>'
+                + '<li><strong>Font embedding and ToUnicode maps.</strong> Needs a full PDF parser, plus a check that every glyph maps to Unicode.</li>'
+                + '<li><strong>Whether the alt text is any use.</strong> A non-empty check passes on "image1.png".</li>'
+                + '<li><strong>Whether reading order matches the visual layout.</strong> Two-column and boxed layouts are the usual offenders.</li>'
+                + '<li><strong>A real screen reader test.</strong> NVDA, JAWS, VoiceOver and TalkBack all interpret structure differently.</li>'
+                + '</ul>'
+                + '<p class="muted-note">The PDF Association maintains the Matterhorn Protocol as the machine-checkable test catalogue for PDF/UA, and the PDF Accessibility Checker (PAC) for Windows runs all of it. This tool covers the subset reachable from a browser parser.</p>'
+                + '</details>';
+        }
+
+        function render() {
+            if (!reports.length) { el.results.innerHTML = ''; return; }
+
+            var t = { critical: 0, major: 0, minor: 0, advisory: 0, pages: 0, files: 0, failed: 0, unreadable: 0 };
+            reports.forEach(function (r) {
+                t.files++;
+                if (r.error) { t.unreadable++; return; }
+                t.pages += r.pages;
+                Object.keys(r.counts).forEach(function (k) { t[k] += r.counts[k]; });
+                if (r.pdfua === 'fail') t.failed++;
+            });
+
+            var h = '<div class="pac-summary"><h3>' + t.files + ' file' + (t.files === 1 ? '' : 's')
+                + ', ' + t.pages + ' page' + (t.pages === 1 ? '' : 's') + ' audited</h3><div class="pac-counts">'
+                + countBox('critical', t.critical) + countBox('major', t.major)
+                + countBox('minor', t.minor) + countBox('advisory', t.advisory) + '</div></div>';
+
+            reports.forEach(function (r) {
+                if (r.error) {
+                    h += '<div class="pac-card"><h3>' + esc(r.file) + '</h3>'
+                        + '<p class="pac-verdict pac-verdict-fail">Could not be read</p><p>' + esc(r.error) + '</p></div>';
+                    return;
+                }
+                var label = r.pdfua === 'pass' ? 'Machine checks passed'
+                    : (r.pdfua === 'conditional' ? 'Passes with findings' : 'Fails machine checks');
+
+                h += '<div class="pac-card"><h3>' + esc(r.file) + '</h3>'
+                    + '<p class="pac-meta">' + r.pages + ' page' + (r.pages === 1 ? '' : 's') + ' &middot; '
+                    + (r.size / 1024).toFixed(0) + ' KB &middot; ' + (r.elapsedMs / 1000).toFixed(1) + 's</p>'
+                    + '<p class="pac-verdict pac-verdict-' + r.pdfua + '">' + label + '</p>'
+                    + '<p class="pac-facts">Tagged: <strong>' + (r.tagged ? 'yes' : 'no') + '</strong> &middot; '
+                    + 'Title: <strong>' + (r.title ? esc(r.title) : 'missing') + '</strong> &middot; '
+                    + 'Language: <strong>' + (r.lang ? esc(r.lang) : 'not set') + '</strong> &middot; '
+                    + 'Links read: <strong>' + r.links.total + '</strong> (' + r.links.empty + ' empty, ' + r.links.generic + ' non-descriptive)'
+                    + '</p>';
+
+                if (r.contrast && r.contrast.length) {
+                    h += '<details class="pac-swatches"><summary>Sampled low-contrast colour pairs (' + r.contrast.length + ' page' + (r.contrast.length === 1 ? '' : 's') + ')</summary>';
+                    r.contrast.forEach(function (row) {
+                        h += '<div class="pac-row"><span class="pac-page">p.' + row.page + '</span>';
+                        row.data.lows.forEach(function (lo) {
+                            h += '<span class="pac-chip"><span class="pac-swatch" style="background:' + lo.hex + '"></span>'
+                                + '<span class="pac-swatch" style="background:' + row.data.bg + '"></span>'
+                                + esc(lo.hex) + ' on ' + esc(row.data.bg) + ' &middot; ' + lo.ratio + ':1</span>';
+                        });
+                        h += '</div>';
+                    });
+                    h += '<p class="muted-note">Colours are read from the page content stream, so treat them as a prompt to inspect the page. Text over a picture or a gradient is not measured correctly.</p></details>';
+                }
+
+                if (r.findings.length) {
+                    h += '<ul class="pac-findings">';
+                    r.findings.forEach(function (f) {
+                        h += '<li class="pac-finding pac-' + f.severity + '">'
+                            + '<span class="pac-badge">' + SEV_LABEL[f.severity] + '</span>'
+                            + '<strong>' + esc(f.label) + '</strong>'
+                            + '<span class="pac-wcag">WCAG ' + esc(f.wcag) + '</span>'
+                            + '<p>' + esc(f.detail) + '</p></li>';
+                    });
+                    h += '</ul>';
+                } else {
+                    h += '<p class="pac-clean">No failure found in the checks this tool can run.</p>';
+                }
+                h += manualBlock() + '</div>';
+            });
+
+            el.results.innerHTML = h;
+        }
+
+        function summaryText() {
+            var out = ['PDF ACCESSIBILITY AUDIT', 'Generated: ' + new Date().toISOString(), ''];
+            reports.forEach(function (r) {
+                if (r.error) { out.push(r.file + ': ' + r.error, ''); return; }
+                out.push('--- ' + r.file + ' ---');
+                out.push(r.pages + ' pages, ' + (r.size / 1024).toFixed(0) + ' KB');
+                out.push('Tagged: ' + (r.tagged ? 'yes' : 'no') + ' | Title: ' + (r.title || '(missing)') + ' | Language: ' + (r.lang || '(not set)'));
+                out.push('Verdict: ' + (r.pdfua === 'pass' ? 'machine checks passed'
+                    : (r.pdfua === 'conditional' ? 'passes with findings' : 'FAILS machine checks')));
+                out.push('Critical ' + r.counts.critical + ' | Major ' + r.counts.major
+                    + ' | Minor ' + r.counts.minor + ' | Advisory ' + r.counts.advisory);
+                r.findings.forEach(function (f) {
+                    out.push('[' + SEV_LABEL[f.severity] + '] ' + f.label + ' (WCAG ' + f.wcag + ')');
+                    out.push('    ' + f.detail);
+                });
+                out.push('');
+            });
+            out.push('Machine-verifiable subset only. Alt text quality, reading order intent and screen reader behaviour need a person.');
+            return out.join('\n');
+        }
+
+        /* ---------------- wiring ---------------- */
+
+        async function handleFiles(files) {
+            if (busy) return;
+            var list = Array.prototype.slice.call(files).filter(function (f) {
+                return f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+            });
+            if (!list.length) { setStatus('No PDF files in that selection.', 'error'); return; }
+
+            busy = true;
+            reports = [];
+            el.results.innerHTML = '';
+            el.reportBtn.hidden = true; el.copyBtn.hidden = true; el.resetBtn.hidden = false;
+            el.progress.hidden = false;
+            el.progressFill.style.width = '0%';
+            setStatus('');
+
+            for (var i = 0; i < list.length; i++) {
+                el.progressFill.style.width = Math.round((i / list.length) * 100) + '%';
+                el.progressText.textContent = 'Auditing ' + list[i].name + ' (' + (i + 1) + ' of ' + list.length + ')';
+                try {
+                    reports.push(await analyse(list[i]));
+                } catch (e) {
+                    reports.push({
+                        file: list[i].name, size: list[i].size, counts: {},
+                        error: 'Unexpected error: ' + (e && e.message ? e.message : String(e)), findings: []
+                    });
+                }
+                render();
+                await new Promise(function (r) { setTimeout(r, 0); });
+            }
+
+            el.progressFill.style.width = '100%';
+            el.progressText.textContent = 'Done.';
+            el.reportBtn.hidden = false;
+            el.copyBtn.hidden = false;
+
+            var failed = reports.filter(function (r) { return r.pdfua === 'fail'; }).length;
+            var broken = reports.filter(function (r) { return r.error; }).length;
+            if (failed) setStatus(failed + ' of ' + reports.length + ' file' + (reports.length === 1 ? '' : 's') + ' failed the machine checks.', 'error');
+            else if (broken) setStatus(broken + ' file' + (broken === 1 ? '' : 's') + ' could not be read.', 'error');
+            else setStatus('No critical findings.', 'success');
+            busy = false;
+        }
+
+        el.dropzone.addEventListener('click', function () { el.fileInput.click(); });
+        el.dropzone.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.fileInput.click(); }
+        });
+        el.fileInput.addEventListener('change', function () {
+            if (el.fileInput.files.length) handleFiles(el.fileInput.files);
+        });
+        ['dragenter', 'dragover'].forEach(function (ev) {
+            el.dropzone.addEventListener(ev, function (e) { e.preventDefault(); el.dropzone.classList.add('dragging'); });
+        });
+        ['dragleave', 'drop'].forEach(function (ev) {
+            el.dropzone.addEventListener(ev, function (e) { e.preventDefault(); el.dropzone.classList.remove('dragging'); });
+        });
+        el.dropzone.addEventListener('drop', function (e) {
+            if (e.dataTransfer && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+        });
+
+        el.resetBtn.addEventListener('click', function () {
+            reports = [];
+            el.results.innerHTML = '';
+            el.fileInput.value = '';
+            el.progress.hidden = true;
+            el.reportBtn.hidden = true; el.copyBtn.hidden = true; el.resetBtn.hidden = true;
+            setStatus('');
+        });
+
+        function fallbackCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); setStatus('Summary copied to the clipboard.', 'success'); }
+            catch (e) { setStatus('Copy failed, use the JSON report instead.', 'error'); }
+            document.body.removeChild(ta);
+        }
+
+        el.copyBtn.addEventListener('click', function () {
+            var text = summaryText();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(
+                    function () { setStatus('Summary copied to the clipboard.', 'success'); },
+                    function () { fallbackCopy(text); }
+                );
+            } else fallbackCopy(text);
+        });
+
+        el.reportBtn.addEventListener('click', function () {
+            var payload = {
+                tool: 'PDF Accessibility Checker',
+                standards: ['PDF/UA-1 (ISO 14289-1)', 'WCAG 2.1 AA', 'Section 508'],
+                scope: 'Machine-verifiable subset, parsed locally with pdf.js. Alt text quality, reading order intent and screen reader behaviour are not machine-verifiable.',
+                generated: new Date().toISOString(),
+                files: reports
+            };
+            var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'pdf-accessibility-report-' + new Date().toISOString().slice(0, 10) + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+            setStatus('JSON report downloaded.', 'success');
+        });
+    })();
+    </script>
+    <style>
+        .pi-hidden-input { display: none; }
+        .pac-results { margin: 18px 0; }
+        .pac-summary { background: var(--card-bg, #1a1a2e); border: 1px solid var(--border-color, #2a2a4a); border-radius: 10px; padding: 16px; margin-bottom: 18px; }
+        .pac-summary h3 { margin: 0 0 12px; font-size: 1.05rem; }
+        .pac-counts { display: flex; flex-wrap: wrap; gap: 10px; }
+        .pac-box { flex: 1 1 90px; text-align: center; border-radius: 8px; padding: 10px 6px; border: 1px solid var(--border-color, #2a2a4a); }
+        .pac-box-n { display: block; font-size: 1.5rem; font-weight: 700; line-height: 1.1; }
+        .pac-box-l { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.75; margin-top: 3px; }
+        .pac-box-critical { border-color: #e5484d; } .pac-box-critical .pac-box-n { color: #ff6369; }
+        .pac-box-major { border-color: #f5a524; } .pac-box-major .pac-box-n { color: #ffc53d; }
+        .pac-box-minor { border-color: #8b8d98; } .pac-box-minor .pac-box-n { color: #c9cdd4; }
+        .pac-box-advisory { border-color: #4a9eda; } .pac-box-advisory .pac-box-n { color: #7eb3ff; }
+        .pac-card { background: var(--card-bg, #1a1a2e); border: 1px solid var(--border-color, #2a2a4a); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+        .pac-card h3 { margin: 0 0 4px; font-size: 1rem; word-break: break-all; }
+        .pac-meta, .muted-note { font-size: 0.82rem; opacity: 0.72; margin: 4px 0; }
+        .pac-facts { font-size: 0.88rem; margin: 8px 0; }
+        .pac-verdict { display: inline-block; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 999px; border: 1px solid; }
+        .pac-verdict-pass { color: #3ddc97; border-color: #3ddc97; }
+        .pac-verdict-conditional { color: #ffc53d; border-color: #f5a524; }
+        .pac-verdict-fail { color: #ff6369; border-color: #e5484d; }
+        .pac-findings { list-style: none; padding: 0; margin: 14px 0 0; }
+        .pac-finding { border-left: 3px solid; padding: 10px 12px; margin-bottom: 8px; background: rgba(255,255,255,0.03); border-radius: 0 6px 6px 0; }
+        .pac-finding p { margin: 5px 0 0; font-size: 0.86rem; opacity: 0.86; }
+        .pac-critical { border-left-color: #e5484d; } .pac-major { border-left-color: #f5a524; }
+        .pac-minor { border-left-color: #8b8d98; } .pac-advisory { border-left-color: #4a9eda; }
+        .pac-badge { display: inline-block; font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 7px; border-radius: 4px; margin-right: 8px; vertical-align: 1px; }
+        .pac-critical .pac-badge { background: rgba(229,72,77,0.2); color: #ff6369; }
+        .pac-major .pac-badge { background: rgba(245,165,36,0.2); color: #ffc53d; }
+        .pac-minor .pac-badge { background: rgba(139,141,152,0.2); color: #c9cdd4; }
+        .pac-advisory .pac-badge { background: rgba(74,158,218,0.2); color: #7eb3ff; }
+        .pac-wcag { font-size: 0.72rem; opacity: 0.6; margin-left: 8px; }
+        .pac-clean { font-size: 0.88rem; color: #3ddc97; margin-top: 12px; }
+        .pac-swatches, .pac-manual { margin-top: 12px; font-size: 0.85rem; }
+        .pac-swatches summary, .pac-manual summary { cursor: pointer; padding: 6px 0; }
+        .pac-row { margin: 6px 0; }
+        .pac-page { display: inline-block; min-width: 34px; font-size: 0.75rem; opacity: 0.65; }
+        .pac-chip { display: inline-flex; align-items: center; gap: 6px; margin-right: 10px; font-size: 0.78rem; }
+        .pac-swatch { display: inline-block; width: 13px; height: 13px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.35); }
+        .pac-progress { margin: 14px 0; }
+        .pac-progress-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        .pac-progress-fill { height: 100%; width: 0; background: #7eb3ff; transition: width 0.2s; }
+        @media (prefers-reduced-motion: reduce) { .pac-progress-fill { transition: none; } }
+    </style>
+</body>
+</html>

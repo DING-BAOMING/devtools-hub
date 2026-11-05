@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphing Calculator - Plot Functions &amp; Find Roots Free</title>
+    <meta name="description" content="Free graphing calculator with numerical analysis. Plot any function, polar or implicit curve, then get roots, turning points, area between curves, definite integrals and regression with R2. No signup.">
+    <meta name="keywords" content="graphing calculator, graph a function, plot function, roots calculator, x intercept finder, turning point calculator, area between curves calculator, definite integral calculator, regression calculator, r squared calculator, polar graphing calculator, parametric graphing calculator, implicit plot, desmos alternative">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/graphing-calculator/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/graphing-calculator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Graphing Calculator - Plot Functions &amp; Find Roots Free">
+    <meta name="twitter:description" content="Plot any function and get the numbers back: roots, turning points, area between curves, definite integrals and regression with R2. Free, private, no signup.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/graphing-calculator/">
+    <meta name="twitter:description" content="Plot any function and get the numbers back: roots, turning points, area between curves, definite integrals and regression with R2. Free, private, no signup.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Graphing Calculator - Plot Functions &amp; Find Roots Free">
+    <meta property="og:description" content="Free graphing calculator with numerical analysis: roots, turning points, area between curves, definite integrals and regression with R2. No signup.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-10-02",
+        "dateModified": "2026-10-02",
+        "author": {"@id": "https://tools.scoreroute.com/#author", "@type": "Person", "name": "BAOMING", "url": "https://github.com/Evan-MJ", "sameAs": ["https://github.com/Evan-MJ", "https://github.com/Evan-MJ/devtools-hub"]},
+        "publisher": {"@id": "https://tools.scoreroute.com/#organization", "@type": "Organization", "name": "DevTools Hub", "url": "https://tools.scoreroute.com/"},
+        "name": "Graphing Calculator",
+        "description": "Plot functions, polar, parametric and implicit curves, then compute roots, turning points, slopes, definite integrals, area between curves and least-squares regression with R squared.",
+        "url": "https://tools.scoreroute.com/tools/graphing-calculator/",
+        "applicationCategory": "EducationalApplication",
+        "featureList": [
+            "Plot y=f(x), x=g(y), parametric, polar and implicit curves",
+            "Find real roots and x-intercepts by bisection",
+            "Find local maxima and minima (turning points)",
+            "Definite integral with adaptive Simpson rule",
+            "Area between two curves with auto-detected intersection bounds",
+            "Tangent slope at any point",
+            "Linear, quadratic, cubic, exponential, logarithmic and power regression with R squared",
+            "Table of values, PNG export and shareable link"
+        ],
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "operatingSystem": "Any",
+        "permissions": "none",
+        "softwareVersion": "1.0"
+    }
+    </script>
+    <style>
+        :root {
+            --gc-bg: #0f0f23;
+            --gc-card: #1a1a2e;
+            --gc-border: #2a2a4a;
+            --gc-primary: #667eea;
+            --gc-text: #fff;
+            --gc-muted: #888;
+            --gc-ok: #10b981;
+            --gc-err: #ef4444;
+        }
+        .gc-wrap { display: flex; flex-direction: column; gap: 14px; }
+        .gc-curve { display: grid; grid-template-columns: 24px 132px 1fr 34px 34px; gap: 8px; align-items: center; margin-bottom: 8px; }
+        /* 24x24 — the WCAG 2.5.8 floor. The swatch was 14x14 and the colour
+           column was 14px wide, so the tap target was below the minimum. */
+        .gc-curve .gc-swatch { width: 24px; height: 24px; border-radius: 4px; cursor: pointer; border: 2px solid transparent; }
+        .gc-curve select, .gc-curve input, .gc-panel input, .gc-panel select, .gc-panel textarea {
+            width: 100%; padding: 9px 10px; background: var(--gc-bg); border: 1px solid var(--gc-border);
+            border-radius: 8px; color: var(--gc-text); font-size: 0.9rem; font-family: 'JetBrains Mono', Consolas, monospace;
+        }
+        .gc-curve select { font-family: inherit; padding: 9px 4px; }
+        .gc-curve input:focus, .gc-panel input:focus, .gc-panel select:focus, .gc-panel textarea:focus { outline: 2px solid transparent; border-color: var(--gc-primary); }
+        .gc-curve .gc-mini { padding: 6px 0; font-size: 0.9rem; line-height: 1; background: var(--gc-card); border: 1px solid var(--gc-border); border-radius: 8px; color: var(--gc-muted); cursor: pointer; }
+        .gc-curve .gc-mini:hover { color: var(--gc-text); border-color: var(--gc-primary); }
+        .gc-curve.off { opacity: 0.45; }
+        .gc-curve .gc-extra { grid-column: 1 / -1; margin: -4px 0 8px 22px; }
+        .gc-curve .gc-extra input { font-size: 0.82rem; }
+        .gc-label { color: var(--gc-muted); font-size: 0.82rem; margin-bottom: 6px; display: block; }
+        .gc-canvas-wrap { position: relative; background: var(--gc-bg); border: 1px solid var(--gc-border); border-radius: 10px; overflow: hidden; }
+        canvas#gc-canvas { display: block; width: 100%; height: 440px; touch-action: none; cursor: crosshair; }
+        .gc-ctrls { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 4px; }
+        .gc-ctrls button { width: 30px; height: 26px; font-size: 0.85rem; line-height: 1; background: rgba(26,26,46,0.9); border: 1px solid var(--gc-border); border-radius: 6px; color: var(--gc-text); cursor: pointer; }
+        .gc-ctrls button:hover { border-color: var(--gc-primary); }
+        .gc-readout { font-size: 0.78rem; color: var(--gc-muted); padding: 6px 10px; border-top: 1px solid var(--gc-border); font-family: 'JetBrains Mono', Consolas, monospace; min-height: 26px; }
+        .gc-panel { background: var(--gc-card); border: 1px solid var(--gc-border); border-radius: 10px; padding: 14px; }
+        .gc-panel h3 { margin: 0 0 10px; font-size: 1rem; }
+        .gc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+        .gc-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 10px; margin-top: 10px; }
+        .gc-card { background: var(--gc-bg); border: 1px solid var(--gc-border); border-radius: 10px; padding: 12px; }
+        .gc-card .gc-k { color: var(--gc-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .gc-card .gc-v { color: var(--gc-text); font-size: 1.25rem; font-weight: 700; margin-top: 3px; word-break: break-all; }
+        .gc-card .gc-s { color: var(--gc-muted); font-size: 0.75rem; margin-top: 3px; }
+        .gc-list { margin: 6px 0 0; padding-left: 18px; }
+        .gc-list li { color: var(--gc-text); font-size: 0.88rem; margin-bottom: 4px; }
+        .gc-list button { background: none; border: none; color: var(--gc-primary); cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; padding: 0; text-decoration: underline; }
+        .gc-err { color: var(--gc-err); font-size: 0.85rem; }
+        .gc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .gc-chip { background: rgba(102,126,234,0.1); border: 1px solid var(--gc-border); border-radius: 20px; color: var(--gc-muted); cursor: pointer; font-size: 0.8rem; padding: 5px 12px; }
+        .gc-chip:hover { border-color: var(--gc-primary); color: var(--gc-text); }
+        .gc-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+        .gc-table th, .gc-table td { border-bottom: 1px solid var(--gc-border); padding: 5px 8px; text-align: right; }
+        .gc-table th { color: var(--gc-muted); font-weight: 600; }
+        .gc-scroll { max-height: 260px; overflow: auto; }
+        .gc-legend { color: var(--gc-muted); font-size: 0.78rem; margin-top: 8px; }
+        .gc-legend b { color: var(--gc-text); }
+        @media (max-width: 620px) { .gc-curve { grid-template-columns: 24px 1fr 34px 34px; } .gc-curve .gc-type { grid-column: 2 / -1; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Graphing Calculator</h1>
+            <p class="subtitle">Plot Any Function, Then Get the Numbers: Roots, Turning Points, Area &amp; Regression</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/calculators/">Calculators</a> &gt; <span>Graphing Calculator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Graph a Function and Get the Numbers Back</h2>
+                <p style="color:#888;margin-bottom:20px;font-size:0.9rem;">Most free graphing tools hand you a picture and nothing else. You get pixels, not numbers, so you still have to work out the intercepts, the turning points and the enclosed area somewhere else, usually by hand. This one draws the curve and then measures it. Type an expression, and the tool reports every real root, every local maximum and minimum, the coordinates of the turning points, the slope of the tangent at any x you name, the definite integral between two bounds, and the area trapped between two curves with the bounds worked out for you from their intersection points. Regression is built in too, so you can paste a column of data and get a fitted equation with the coefficient of determination and the residuals.</p>
+
+                <div class="gc-wrap">
+                    <div class="gc-panel">
+                        <span class="gc-label" id="gc-curve-label">Expressions &mdash; use <code>x</code> as the variable</span>
+                        <div id="gc-curves" role="group" aria-labelledby="gc-curve-label"></div>
+                        <div class="btn-group" style="margin-top:8px;">
+                            <button class="btn btn-primary" id="gc-add" onclick="gcAddCurve()">+ Add curve</button>
+                            <button class="btn" id="gc-fit" onclick="gcFitWindow()">Fit to data</button>
+                            <button class="btn" onclick="gcZoom(0.5)">Reset zoom</button>
+                            <button class="btn" onclick="gcCopyLink()">Copy link</button>
+                            <button class="btn btn-secondary" onclick="gcClearAll()">Clear</button>
+                        </div>
+                    </div>
+
+                    <div class="gc-canvas-wrap">
+                        <canvas id="gc-canvas" width="900" height="440" role="img" aria-label="Graph of the entered expressions. The same results are listed in text below."></canvas>
+                        <div class="gc-ctrls">
+                            <button type="button" onclick="gcZoom(1.6)" aria-label="Zoom in">+</button>
+                            <button type="button" onclick="gcZoom(0.625)" aria-label="Zoom out">&minus;</button>
+                            <button type="button" onclick="gcZoom(0.5)" aria-label="Reset view">&#8634;</button>
+                        </div>
+                        <div class="gc-readout" id="gc-readout">Drag to pan &middot; scroll to zoom</div>
+                    </div>
+
+                    <div class="gc-panel">
+                        <h3>Numerical analysis</h3>
+                        <div class="gc-grid">
+                            <div><label class="gc-label" for="gc-target">Curve</label><select id="gc-target"></select></div>
+                            <div><label class="gc-label" for="gc-target2">Compare with</label><select id="gc-target2"></select></div>
+                            <div><label class="gc-label" for="gc-a">Lower bound a</label><input id="gc-a" value="-2" inputmode="decimal"></div>
+                            <div><label class="gc-label" for="gc-b">Upper bound b</label><input id="gc-b" value="2" inputmode="decimal"></div>
+                            <div><label class="gc-label" for="gc-x0">Slope at x =</label><input id="gc-x0" value="1" inputmode="decimal"></div>
+                        </div>
+                        <div class="btn-group" style="margin-top:12px;">
+                            <button class="btn btn-primary" id="gc-analyze" onclick="gcAnalyze()">Analyze</button>
+                            <button class="btn" id="gc-area" onclick="gcAreaBetween()">Area between curves</button>
+                            <button class="btn" id="gc-table" onclick="gcTable()">Table of values</button>
+                            <button class="btn" id="gc-png" onclick="gcExportPNG()">Download PNG</button>
+                        </div>
+                        <div class="gc-cards" id="gc-results"></div>
+                        <div id="gc-table-out"></div>
+                    </div>
+
+                    <div class="gc-panel">
+                        <h3>Regression &amp; curve fitting</h3>
+                        <label class="gc-label" for="gc-data">Your data &mdash; x and y pairs separated by spaces, commas, tabs or new lines</label>
+                        <textarea id="gc-data" rows="4" style="width:100%;padding:12px;background:var(--gc-bg);border:1px solid var(--gc-border);border-radius:8px;color:var(--gc-text);font-family:'JetBrains Mono',Consolas,monospace;font-size:0.85rem;" placeholder="1 2.1&#10;2 3.9&#10;3 6.2&#10;4 7.8&#10;5 10.1"></textarea>
+                        <div class="gc-grid" style="margin-top:10px;">
+                            <div><label class="gc-label" for="gc-model">Model</label><select id="gc-model">
+                                <option value="linear">Linear (y = a + bx)</option>
+                                <option value="quadratic">Quadratic (y = a + bx + cx&sup2;)</option>
+                                <option value="cubic">Cubic (y = a + bx + cx&sup2; + dx&sup3;)</option>
+                                <option value="exponential">Exponential (y = ae^(bx))</option>
+                                <option value="logarithmic">Logarithmic (y = a + b&middot;ln x)</option>
+                                <option value="power">Power (y = ax^b)</option>
+                            </select></div>
+                        </div>
+                        <div class="btn-group" style="margin-top:12px;">
+                            <button class="btn btn-primary" id="gc-fitrun" onclick="gcRunFit()">Fit model</button>
+                            <button class="btn" onclick="gcLoadFitData()">Example data</button>
+                        </div>
+                        <div class="gc-cards" id="gc-fit-out"></div>
+                        <div class="gc-scroll" id="gc-fit-table"></div>
+                    </div>
+
+                    <div class="status" id="gc-status" role="status" aria-live="polite"></div>
+                    <div class="gc-legend" id="gc-legend"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>What This Graphing Calculator Computes</h3>
+                <p style="color:#aaa;line-height:1.7;">Every number on this page comes from a numerical method applied to your own expression, not from a lookup table. Roots are bracketed across the visible window and then narrowed by a bisection search that keeps halving the interval until the interval is shorter than a trillionth of a unit. Turning points are found the same way: the tool takes a central difference of your function, watches for the sign change that says the slope has flipped, and bisects to pin the x value down. Integrals use the Gauss-Kronrod fifteen point rule, which evaluates a fifteen point rule and a seven point rule on the same fifteen abscissae and compares them. When the two agree to a tolerance set against the size of the integrand, the panel is accepted; when they do not, the panel is halved and tried again, all the way down. An interval that is hundreds of units wide therefore costs nothing extra, while one full of tight oscillations costs as many panels as it needs. Intersections between two curves come from the sign changes of the difference of the two functions, which means a crossing is only ever reported when the two curves genuinely swap sides.</p>
+
+                <h3>Every kind of curve in one page</h3>
+                <ul>
+                    <li><strong>Function</strong> &mdash; <code>y = f(x)</code>. The default, and the only mode the analysis panel works on.</li>
+                    <li><strong>Sideways</strong> &mdash; <code>x = g(y)</code>. Needed for sideways parabolas, circles written as x in terms of y, and sideways ellipses.</li>
+                    <li><strong>Parametric</strong> &mdash; <code>x(t), y(t)</code> in one row. Cycloids, spirals, Lissajous figures and anything a single function cannot express.</li>
+                    <li><strong>Polar</strong> &mdash; <code>r(&theta;)</code>. Rose curves, cardioids, limacons and conic sections in polar form.</li>
+                    <li><strong>Implicit</strong> &mdash; <code>F(x, y) = 0</code>. Circles, ellipses, hyperbolas and Cassini ovals, drawn by scanning each column for sign changes in F.</li>
+                </ul>
+
+                <h3>How the regression works</h3>
+                <p style="color:#aaa;line-height:1.7;">Paste your data as x and y values separated by commas, spaces, tabs or new lines, then pick a model. Linear, quadratic and cubic fits solve the normal equations with partial pivoting, so they stay stable even when the x values are large and badly scaled. Exponential, logarithmic and power fits take logs on both sides first and are only offered when every y value is positive, because a logarithm of a negative number is not a number. You get the equation in a form you can paste straight into a calculator, the coefficient of determination, the correlation coefficient, and the root mean square error of the residuals. The fitted curve is drawn over your data on the graph so you can see immediately whether the model is telling you the truth.</p>
+
+                <h3>Why This Is Not Just Another Desmos</h3>
+                <p style="color:#aaa;line-height:1.7;">Desmos is a beautiful drawing tool and it stays that way: it plots, and it leaves the arithmetic to you. The difference here is that the measurement happens in the same place as the drawing. Nobody has to open a second tab, guess a bound, and then check a definite integral against a table of values. If you only want a picture, a graph pad is the right instrument. If you want the four decimal places that have to be right, that is a different job, and it is the job this page does.</p>
+
+                <h3>Why Use This Instead of AI</h3>
+                <p style="color:#aaa;line-height:1.7;">A language model answering from memory will happily invent a root, round an integral to two significant figures, or hand you a regression line fitted to numbers you never gave it. Arithmetic that depends on your specific expression and your specific bounds is exactly where that breaks down, and you have no way to check the answer without doing the work yourself. Here the calculation is done by an actual numerical solver on the actual expression you typed, and the result is reproducible: change the window, the numbers move the way they should, and a second run returns the same value. Nothing is uploaded either, because there is no server to upload it to.</p>
+
+                <h3>How to use it</h3>
+                <ol>
+                    <li>Start with the first input and type your function using x as the variable, for instance <code>x^2-4</code> or <code>sin(x)/x</code>. Multiplication does not need a sign, so <code>2x</code> and <code>2sin(x)</code> both work.</li>
+                    <li>Add a second row when you want a second curve, and change a row's type when you need a polar curve, a parametric pair, an implicit equation or a sideways function written as x in terms of y.</li>
+                    <li>Drag inside the graph to pan and use the wheel or the zoom buttons to change the window; the analysis follows the window, so zoom in on a region and the roots it reports are the roots in that region.</li>
+                    <li>Choose a root, a maximum or a minimum in the results list and the graph will jump to it and mark it.</li>
+                </ol>
+
+                <h3>Function reference</h3>
+                <p style="color:#aaa;line-height:1.7;">Constants: <code>pi</code>, <code>e</code>, <code>tau</code>, <code>phi</code>. Powers use <code>^</code>. Functions: <code>sin cos tan asin acos atan atan2</code>, <code>sinh cosh tanh</code>, <code>exp ln log log2 log10</code>, <code>sqrt cbrt abs sign</code>, <code>floor ceil round</code>, <code>min max mod pow hypot</code>, <code>deg rad</code>. Postfix <code>!</code> is the factorial of a non-negative integer. In polar mode the angle is <code>theta</code> (<code>th</code> also works), in parametric mode it is <code>t</code>, and in implicit mode you get both <code>x</code> and <code>y</code>.</p>
+
+                <h3>Frequently Asked Questions</h3>
+
+                <details class="faq-item">
+                    <h4>What does this graphing calculator do that others do not?</h4>
+                    <p>Graphing calculators are not exactly a new idea, so it is fair to ask what this one adds. The short answer is that the measuring is built in. Other tools either draw and stop, or they sit behind a login, or they only handle the one function you happened to load. Here the same page that draws a parabola also finds its roots, its vertex, the area under it between two chosen numbers, and the area between it and a second curve, and then fits a regression line to whatever data you paste in. It also stays in your browser, which means no account, no upload and no daily limit.</p>
+                </details>
+
+                <details class="faq-item">
+                    <h4>How do I find the roots or x-intercepts of a function?</h4>
+                    <p>A root is a value of x that makes the function equal to zero, and it shows up on the graph wherever the curve crosses the x-axis. The tool looks for sign changes across the whole window you are looking at, so a root that sits outside the current view will not appear until you zoom out far enough to contain it. Each root is then narrowed by bisection, which means the printed value is correct to about twelve decimal places rather than being a grid artefact from however many pixels the canvas happens to have. If the curve is tangent to the axis without crossing it, that is a repeated root and it will not produce a sign change, so look for it in the turning points instead.</p>
+                </details>
+
+                <details class="faq-item">
+                    <h4>How does it find turning points, maxima and minima?</h4>
+                    <p>A turning point is where the curve stops going one way and starts going the other, so the derivative changes sign there. For a local maximum the derivative goes from positive to negative; for a local minimum it goes from negative to positive. The tool finds these by taking a central difference of your function at closely spaced points and watching for a sign change in that, then bisecting to pin the x value down. Once it has x it evaluates the second difference to decide which of the two kinds it is, and it reports the y value there as well. A point of inflection, where the curve bends the other way but keeps going the same direction, is a different animal and is not listed as a turning point.</p>
+                </details>
+
+                <details class="faq-item">
+                    <h4>How is the area between two curves calculated?</h4>
+                    <p>The area between two curves is the integral of the vertical distance between them, so the tool has to know where the top curve stops being the top one. It does that by finding every intersection in the range you gave, sorting those x values, and integrating the difference separately across each resulting slice. A slice where the second curve is on top has its sign flipped, which is what makes the answer come out positive even when you enter the curves in the wrong order. This is why the area between two circles or a circle and a line comes out right even though the top curve changes halfway through, and it is the step that hand-rolled setups usually miss.</p>
+                </details>
+
+                <details class="faq-item">
+                    <h4>What is R&sup2; and how should I read the regression output?</h4>
+                    <p>The coefficient of determination, usually written R squared, is the proportion of the variation in your y values that the fitted model accounts for. One means the model reproduces the data exactly, zero means it explains nothing beyond a flat line, and values in between sit in proportion to how well it works. Read it together with the residual list rather than on its own, because a straight line through data that curves can still post a middling R squared while fitting some regions well and others badly. The root mean square error tells you the typical size of the misses in the units of your own y values, which is usually the more useful number when you are deciding whether the model is good enough to use.</p>
+                </details>
+
+                <details class="faq-item">
+                    <h4>Is my data private? Does anything get uploaded?</h4>
+                    <p>Everything you type stays on your own machine. There is no account, the data never leaves the browser, and the analysis runs on your processor through code that shipped with the page. That matters more here than in most tools because the data people fit regressions to tends to be real: sales figures, measurements, marks, whatever you are trying to understand. If you close the tab it is gone, and if you want to come back to a graph, the address bar holds the whole thing, so a bookmark or a shared link reproduces the same curves on any machine.</p>
+                </details>
+
+                <details class="faq-item">
+                    <h4>How accurate are the numbers, really?</h4>
+                    <p>The honest answer depends on what you typed. For roots, turning points, intersections and slopes the tool bisects an interval it has already proved contains a crossing, so the printed digits are good right down to the twelfth, and you can confirm it by changing the zoom and watching the number not move. Integrals are exact to roughly ten significant digits for anything with a continuous integrand, and they stay accurate for sharp corners and jumps because the panel splitting reacts to the disagreement between the two rules rather than to a smoothness assumption. The one case to be careful about is an improper integral, where the function runs off to infinity at one of your bounds, the sort of thing you get from a square root of something that reaches zero at the edge. The rule never samples the endpoints, so it cannot see the blow-up, and the answer it prints there is right to about four or five significant digits. The tool notices this and puts a warning card next to the number instead of letting you believe the last digit.</p>
+                </details>
+
+                <details class="faq-item">
+                    <h4>Why is my root not showing up?</h4>
+                    <p>Three things cause it. First, the root may be outside the window you are currently looking at, because the search only covers what is visible &mdash; press <em>Fit to data</em> or reset the zoom. Second, a root that touches the x-axis without crossing it (an even-multiplicity root, such as the zero in <code>x&sup2;</code>) produces no sign change and is therefore invisible to a bracketing search; such a point is a stationary point and shows up in the turning points list instead. Third, the expression may contain a domain error around the root, for instance <code>sqrt(x)/x</code> at zero, in which case there is no sign change to find either.</p>
+                </details>
+
+                <details class="faq-item">
+                    <h4>Can I graph a circle or an ellipse?</h4>
+                    <p>Yes, using an implicit row. Enter <code>(x-1)^2+(y-2)^2=9</code> as the expression and switch the row type to <em>Implicit</em>; the parser reads the equals sign as "set this to zero". The same row also handles <code>x^2/16+y^2/9=1</code> for an ellipse and <code>x^2-y^2=1</code> for a hyperbola. Implicit rows are for drawing only: roots, turning points, integrals and area all need an explicit <code>y = f(x)</code>, so enter the upper half as a function row when you want to measure under the curve.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        /* ---------- colours ---------- */
+        var PALETTE = ['#667eea', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#e879f9', '#84cc16', '#fb923c'];
+        var AXIS = '#3a3a5c', GRID = '#1f1f38', TEXT = '#b3b8c0', MARK_ROOT = '#10b981', MARK_EXT = '#f59e0b', MARK_INT = '#06b6d4';
+
+        var TYPES = [
+            { v: 'fn', label: 'y = f(x)' },
+            { v: 'side', label: 'x = g(y)' },
+            { v: 'para', label: 'Parametric (x(t) below, y(t) after)' },
+            { v: 'polar', label: 'Polar r(theta)' },
+            { v: 'imp', label: 'Implicit F(x,y) = 0' }
+        ];
+
+        var state = {
+            curves: [],
+            view: { xmin: -10, xmax: 10, ymin: -6, ymax: 6 },
+            fit: null,
+            marks: { roots: [], ext: [], inter: [] },
+            seq: 1
+        };
+
+        var cv = document.getElementById('gc-canvas');
+        var ctx = cv.getContext('2d');
+        var els = {
+            curves: document.getElementById('gc-curves'),
+            target: document.getElementById('gc-target'),
+            target2: document.getElementById('gc-target2'),
+            a: document.getElementById('gc-a'),
+            b: document.getElementById('gc-b'),
+            x0: document.getElementById('gc-x0'),
+            results: document.getElementById('gc-results'),
+            tableOut: document.getElementById('gc-table-out'),
+            fitOut: document.getElementById('gc-fit-out'),
+            fitTable: document.getElementById('gc-fit-table'),
+            data: document.getElementById('gc-data'),
+            model: document.getElementById('gc-model'),
+            status: document.getElementById('gc-status'),
+            legend: document.getElementById('gc-legend'),
+            readout: document.getElementById('gc-readout')
+        };
+
+        /* ================= expression parser =================
+           Hand-written recursive descent. No eval, no new Function, so
+           nothing the user types can ever reach the JavaScript compiler. */
+
+        var CONSTS = { pi: Math.PI, e: Math.E, tau: Math.PI * 2, phi: (1 + Math.sqrt(5)) / 2 };
+        var FUNCS = {
+            sin: Math.sin, cos: Math.cos, tan: Math.tan, sec: function (x) { return 1 / Math.cos(x); },
+            csc: function (x) { return 1 / Math.sin(x); }, cot: function (x) { return 1 / Math.tan(x); },
+            asin: Math.asin, acos: Math.acos, atan: Math.atan, atan2: Math.atan2,
+            sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh, asinh: Math.asinh,
+            acosh: Math.acosh, atanh: Math.atanh,
+            exp: Math.exp, ln: Math.log, log: Math.log, log2: function (x) { return Math.log(x) / Math.LN2; },
+            log10: Math.log10, sqrt: Math.sqrt, cbrt: function (x) { return Math.cbrt(x); },
+            abs: Math.abs, sign: Math.sign, floor: Math.floor, ceil: Math.ceil, round: Math.round,
+            min: Math.min, max: Math.max, mod: function (a, b) { return a % b; },
+            pow: Math.pow, hypot: Math.hyp,
+            deg: function (x) { return x * 180 / Math.PI; },
+            rad: function (x) { return x * Math.PI / 180; }
+        };
+        var VARS = { x: 1, y: 1, t: 1, th: 1, theta: 1 };
+
+        function ParseError(msg, pos) {
+            this.name = 'ParseError';
+            this.msg = msg;
+            this.pos = pos;
+        }
+        ParseError.prototype = Object.create(Error.prototype);
+
+        function tokenize(src) {
+            var t = [], i = 0, s = String(src);
+            while (i < s.length) {
+                var c = s.charAt(i);
+                if (c === ' ' || c === '\t' || c === '\n') { i++; continue; }
+                if (c >= '0' && c <= '9' || c === '.') {
+                    var j = i;
+                    while (j < s.length && (s.charAt(j) >= '0' && s.charAt(j) <= '9' || s.charAt(j) === '.')) j++;
+                    var num = s.slice(i, j);
+                    if (num.indexOf('.') !== num.lastIndexOf('.')) throw new ParseError('Malformed number "' + num + '"', i);
+                    if (num === '.') throw new ParseError('Malformed number "."', i);
+                    t.push({ k: 'num', v: parseFloat(num), p: i });
+                    i = j; continue;
+                }
+                if (/[a-zA-Z]/.test(c)) {
+                    var k = i;
+                    while (k < s.length && /[a-zA-Z0-9_]/.test(s.charAt(k))) k++;
+                    t.push({ k: 'id', v: s.slice(i, k), p: i });
+                    i = k; continue;
+                }
+                if ('+-*/^(),!='.indexOf(c) >= 0) { t.push({ k: 'op', v: c, p: i }); i++; continue; }
+                throw new ParseError('Unexpected character "' + c + '"', i);
+            }
+            return t;
+        }
+
+        function isFuncName(v) { return Object.prototype.hasOwnProperty.call(FUNCS, v); }
+
+        /* insert explicit * so "2x", "2sin(x)", "(x+1)(x-1)", "xy" all work */
+        function expand(tokens) {
+            var out = [], i;
+            for (i = 0; i < tokens.length; i++) {
+                var tk = tokens[i], nxt = tokens[i + 1];
+                out.push(tk);
+                if (!nxt) continue;
+                if (tk.k === 'id' && isFuncName(tk.v) && !(nxt.v === '(')) {
+                    /* "sin x" -> "sin(x)": wrap exactly one following value token */
+                    if (nxt.k === 'num' || nxt.k === 'id') {
+                        out.push({ k: 'op', v: '(', p: nxt.p });
+                        out.push(nxt);
+                        out.push({ k: 'op', v: ')', p: nxt.p });
+                        i++;
+                    }
+                    continue;
+                }
+                var prevVal = tk.k === 'num' || tk.v === ')' || (tk.k === 'id' && !isFuncName(tk.v));
+                var nextVal = nxt.k === 'num' || nxt.k === 'id' || nxt.v === '(';
+                if (prevVal && nextVal) out.push({ k: 'op', v: '*', p: tk.p });
+            }
+            return out;
+        }
+
+        function parse(src) {
+            var text = String(src === undefined || src === null ? '' : src).trim();
+            if (!text) throw new ParseError('Empty expression', 0);
+            /* "y = ..." / "f(x) = ..." prefix and the implicit-mode "= 0" suffix */
+            var m = /^[^=]*=\s*(.+)$/.exec(text);
+            var body = m ? m[1] : text;
+            if (m && /[\+\-\*\/]/.test(m[1]) === false && m[1].indexOf('0') >= 0) body = m[1];
+            var t = expand(tokenize(body));
+            var p = 0;
+
+            function peek() { return t[p]; }
+            function eat(v) { if (t[p] && t[p].v === v) { p++; return true; } return false; }
+
+            function parseExpr() { return parseAdd(); }
+
+            function parseAdd() {
+                var node = parseMul();
+                for (;;) {
+                    if (eat('+')) node = { t: 'bin', o: '+', a: node, b: parseMul() };
+                    else if (eat('-')) node = { t: 'bin', o: '-', a: node, b: parseMul() };
+                    else return node;
+                }
+            }
+            function parseMul() {
+                var node = parseUnary();
+                for (;;) {
+                    if (eat('*')) node = { t: 'bin', o: '*', a: node, b: parseUnary() };
+                    else if (eat('/')) node = { t: 'bin', o: '/', a: node, b: parseUnary() };
+                    else return node;
+                }
+            }
+            function parseUnary() {
+                if (eat('-')) return { t: 'neg', a: parseUnary() };
+                if (eat('+')) return parseUnary();
+                return parsePow();
+            }
+            function parsePow() {
+                var base = parsePostfix();
+                if (eat('^')) return { t: 'bin', o: '^', a: base, b: parseUnary() };
+                return base;
+            }
+            function parsePostfix() {
+                var node = parsePrimary();
+                while (peek() && peek().v === '!') { p++; node = { t: 'fac', a: node }; }
+                return node;
+            }
+            function parsePrimary() {
+                var tk = peek();
+                if (!tk) throw new ParseError('Expression ends unexpectedly', 0);
+                if (tk.k === 'num') { p++; return { t: 'num', v: tk.v }; }
+                if (tk.v === '(') {
+                    p++;
+                    var inner = parseExpr();
+                    if (!eat(')')) throw new ParseError('Missing closing bracket ")"', tk.p);
+                    return inner;
+                }
+                if (tk.k === 'id') {
+                    p++;
+                    var name = tk.v;
+                    if (peek() && peek().v === '(') {
+                        p++;
+                        var args = [];
+                        if (!(peek() && peek().v === ')')) {
+                            args.push(parseExpr());
+                            while (eat(',')) args.push(parseExpr());
+                        }
+                        if (!eat(')')) throw new ParseError('Missing closing bracket after "' + name + '(' + '"', tk.p);
+                        if (!isFuncName(name)) throw new ParseError('Unknown function "' + name + '"', tk.p);
+                        return { t: 'call', f: name, args: args };
+                    }
+                    if (isFuncName(name)) throw new ParseError('Function "' + name + '" needs brackets, e.g. ' + name + '(x)', tk.p);
+                    if (Object.prototype.hasOwnProperty.call(CONSTS, name)) return { t: 'num', v: CONSTS[name] };
+                    if (Object.prototype.hasOwnProperty.call(VARS, name)) return { t: 'var', v: name };
+                    throw new ParseError('Unknown name "' + name + '". Use x as the variable', tk.p);
+                }
+                throw new ParseError('Unexpected "' + tk.v + '"', tk.p);
+            }
+
+            var ast = parseExpr();
+            if (p < t.length) throw new ParseError('Unexpected "' + t[p].v + '"', t[p].p);
+            return ast;
+        }
+
+        function evalNode(n, env) {
+            switch (n.t) {
+                case 'num': return n.v;
+                case 'var': {
+                    var v = env[n.v];
+                    return v === undefined ? NaN : v;
+                }
+                case 'neg': return -evalNode(n.a, env);
+                case 'fac': {
+                    var f = evalNode(n.a, env);
+                    if (!(f >= 0 && f < 171 && Math.abs(f - Math.round(f)) < 1e-9)) return NaN;
+                    var r = 1;
+                    for (var i = 2; i <= f; i++) r *= i;
+                    return r;
+                }
+                case 'bin': {
+                    var a = evalNode(n.a, env), b = evalNode(n.b, env), r;
+                    switch (n.o) {
+                        case '+': return a + b;
+                        case '-': return a - b;
+                        case '*': return a * b;
+                        case '/': return a / b;
+                        case '^': r = Math.pow(a, b);
+                            /* guard against overflow to Infinity poisoning a whole pixel run */
+                            return isFinite(r) ? r : NaN;
+                        default: return NaN;
+                    }
+                }
+                case 'call': {
+                    var args = [];
+                    for (var k = 0; k < n.args.length; k++) args.push(evalNode(n.args[k], env));
+                    var fn = FUNCS[n.f];
+                    if (!fn) return NaN;
+                    var out = fn.apply(null, args);
+                    return typeof out === 'number' && !isFinite(out) ? NaN : out;
+                }
+            }
+            return NaN;
+        }
+
+        /* ================= numeric core ================= */
+
+        function bisect(f, a, b, iters) {
+            var fa = f(a);
+            if (!isFinite(fa)) return NaN;
+            if (fa === 0) return a;
+            for (var i = 0; i < (iters || 200); i++) {
+                var m = (a + b) / 2, fm = f(m);
+                if (!isFinite(fm)) return NaN;
+                if (fm === 0) return m;
+                if ((fa < 0) === (fm < 0)) { a = m; fa = fm; } else { b = m; }
+                if (Math.abs(b - a) < 1e-13 * (1 + Math.abs(m))) return (a + b) / 2;
+            }
+            return (a + b) / 2;
+        }
+
+        /* all sign changes of f over [a,b] -> roots, refined by bisection.
+           A sample that lands exactly on zero is held as a candidate and only
+           kept when the sign either side of it is different, which is what
+           separates a crossing from a tangent contact (an even multiplicity
+           root such as the zero of x^2, reported under turning points instead).
+           Without that check the answer would depend on whether the grid
+           happened to hit the root. */
+        function findZeros(f, a, b, n) {
+            n = n || 4000;
+            var out = [], h = (b - a) / n, i, x, y;
+            var lastSign = 0, lastX = 0, pending = null;
+            for (i = 0; i <= n; i++) {
+                x = a + i * h;
+                y = f(x);
+                if (!isFinite(y)) { lastSign = 0; lastX = x; pending = null; continue; }
+                if (y === 0) { if (pending === null) pending = x; continue; }
+                var s = y > 0 ? 1 : -1;
+                if (lastSign !== 0 && s !== lastSign) {
+                    if (pending !== null) out.push(pending);
+                    else {
+                        var r = bisect(f, lastX, x);
+                        if (isFinite(r)) out.push(r);
+                    }
+                }
+                pending = null;
+                lastSign = s;
+                lastX = x;
+            }
+            out.sort(function (u, v) { return u - v; });
+            var dedup = [];
+            for (i = 0; i < out.length; i++) {
+                if (!dedup.length || Math.abs(out[i] - dedup[dedup.length - 1]) > 1e-9) dedup.push(out[i]);
+            }
+            return dedup;
+        }
+
+        function derivative(f, x, h) {
+            return (f(x + h) - f(x - h)) / (2 * h);
+        }
+
+        function findExtrema(f, a, b) {
+            var span = b - a;
+            if (!(span > 0)) return [];
+            var h = span * 1e-5;
+            var g = function (x) { return derivative(f, x, h); };
+            var xs = findZeros(g, a + h, b - h, 4000), out = [];
+            for (var i = 0; i < xs.length; i++) {
+                var x = xs[i], y = f(x);
+                if (!isFinite(y)) continue;
+                var curv = f(x + h) - 2 * y + f(x - h);
+                if (Math.abs(curv) < 1e-14) continue;      /* flat: not a turning point */
+                out.push({ x: x, y: y, kind: curv < 0 ? 'max' : 'min' });
+            }
+            return out;
+        }
+
+        /* Gauss-Kronrod 15/7: the embedded 7-point Gauss rule gives a free error
+           estimate, so a panel is accepted only when the two rules agree.
+           Adaptive Simpson with a Richardson /15 correction was tried first and
+           rejected: the h^4 error model it assumes does not hold for non-
+           polynomial integrands (it returned 5.8696 for the integral of
+           x^2*sin(x) on [0,pi], whose exact value is pi^2-4 = 5.8696... only by
+           luck, and 87% wrong on other functions). */
+        var GK_X = [0.9914553711208126, 0.9491079123427585, 0.8648644233597691, 0.7415311855993944,
+            0.5860872354676911, 0.4058451513773972, 0.2077849550078985];
+        var GK_W = [0.02293532201052922, 0.06309209262997855, 0.10479001032225018, 0.14065325971552592,
+            0.16900472663926790, 0.19035057806478541, 0.20443294007529889];
+        var GK_WC = 0.20948214108472783;
+        var G7_P = [1, 3, 5];
+        var G7_W = [0.12948496616886969, 0.27970539148927667, 0.38183005050511894];
+        var G7_WC = 0.41795918367346939;
+
+        function gkPanel(f, a, b, tol, depth) {
+            var c = 0.5 * (a + b), hw = 0.5 * (b - a), i, fv = new Array(15);
+            fv[7] = f(c);
+            for (i = 0; i < 7; i++) { fv[i] = f(c + hw * GK_X[i]); fv[14 - i] = f(c - hw * GK_X[i]); }
+            for (i = 0; i < 15; i++) if (!isFinite(fv[i])) return null;
+            var resk = GK_WC * fv[7], resg = G7_WC * fv[7], resabs = GK_WC * Math.abs(fv[7]);
+            for (i = 0; i < 7; i++) {
+                resk += GK_W[i] * (fv[i] + fv[14 - i]);
+                resabs += GK_W[i] * (Math.abs(fv[i]) + Math.abs(fv[14 - i]));
+            }
+            for (i = 0; i < 3; i++) resg += G7_W[i] * (fv[G7_P[i]] + fv[14 - G7_P[i]]);
+            resk *= hw; resg *= hw; resabs *= Math.abs(hw);
+            if (depth <= 0 || Math.abs(resk - resg) <= tol * resabs) return resk;
+            var L = gkPanel(f, a, c, tol, depth - 1), R = gkPanel(f, c, b, tol, depth - 1);
+            return (L === null || R === null) ? null : L + R;
+        }
+
+        function integrate(f, a, b, tol) {
+            tol = tol || 1e-12;
+            if (a === b) return 0;
+            if (!isFinite(a) || !isFinite(b)) return NaN;
+            /* a single panel across a very wide range lets both rules agree while
+               the tails are still wrong, so start from panels no wider than 1000 */
+            var span = Math.abs(b - a);
+            var n0 = span > 1000 ? Math.min(256, Math.ceil(span / 1000)) : 1, total = 0, i, v;
+            for (i = 0; i < n0; i++) {
+                v = gkPanel(f, a + (b - a) * i / n0, a + (b - a) * (i + 1) / n0, tol, 24);
+                if (v === null) return NaN;
+                total += v;
+            }
+            return total;
+        }
+
+        /* true when the integrand blows up at or very near a bound (an improper
+           integral). GK15 never samples the endpoints, so without this the tool
+           would print a confident 5-decimal number for, say, 1/sqrt(1-x^2). */
+        function isImproper(f, a, b) {
+            var span = Math.abs(b - a) || 1, eps = span * 1e-7, i, v;
+            for (i = 0; i <= 8; i++) {
+                v = f(a + (b - a) * i / 8);
+                if (isFinite(v) && Math.abs(v) > 1e9) return true;
+            }
+            v = f(a - eps); if (isFinite(v) && Math.abs(v) > 1e9) return true;
+            v = f(b + eps); if (isFinite(v) && Math.abs(v) > 1e9) return true;
+            return false;
+        }
+
+        /* ================= formatting ================= */
+
+        function fmt(v, sig) {
+            if (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) return 'undefined';
+            if (v === Infinity) return '∞';
+            if (v === -Infinity) return '−∞';
+            if (typeof v !== 'number') return String(v);
+            if (v === 0) return '0';
+            var a = Math.abs(v);
+            if (a >= 1e9 || a < 1e-5) return v.toExponential(Math.max(2, (sig || 10) - 6));
+            return String(Number(v.toPrecision(sig || 12)));
+        }
+        function fmtCoord(x, y) { return '(' + fmt(x) + ', ' + fmt(y) + ')'; }
+        function esc(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function status(msg, type) {
+            els.status.textContent = msg || '';
+            els.status.className = 'status' + (type ? ' ' + type : '');
+        }
+
+        /* ================= curve model ================= */
+
+        function addCurve(type, expr, extra, color) {
+            var c = {
+                id: 'c' + (state.seq++),
+                type: type || 'fn',
+                expr: expr === undefined ? '' : expr,
+                extra: extra === undefined ? '' : extra,
+                color: color || PALETTE[(state.seq - 2) % PALETTE.length],
+                on: true,
+                ast: null, ast2: null, err: null
+            };
+            state.curves.push(c);
+            compile(c);
+            return c;
+        }
+
+        function compile(c) {
+            c.err = null;
+            c.ast = null;
+            c.ast2 = null;
+            var raw = String(c.expr || '').trim();
+            if (!raw && !(c.type === 'para' || c.type === 'imp')) return;
+            try {
+                if (c.type === 'para') {
+                    /* the main input is x(t) and the second input is y(t), which
+                       is what the row renders and what the example presets fill */
+                    if (!String(c.extra || '').trim()) throw new ParseError('Parametric needs a second expression: enter y(t) in the box below', 0);
+                    c.ast = parse(raw);
+                    c.ast2 = parse(String(c.extra).trim());
+                } else {
+                    c.ast = parse(raw);
+                }
+            } catch (e) {
+                c.err = (e && e.msg) ? e.msg : String(e && e.message || e);
+            }
+        }
+
+        function sampler(c) {
+            if (!c.ast) return null;
+            if (c.type === 'fn') return function (x) { return evalNode(c.ast, { x: x }); };
+            if (c.type === 'side') return function (x) { return evalNode(c.ast, { y: x }); };
+            return null;
+        }
+
+        /* a "y as a function of x" accessor for anything the analysis panel can use */
+        function yOfX(c) {
+            if (c.type === 'fn') return function (x) { return evalNode(c.ast, { x: x }); };
+            if (c.type === 'side') {
+                /* x = g(y): solve for y numerically is overkill for analysis; not offered */
+                return null;
+            }
+            return null;
+        }
+
+        /* ================= rendering ================= */
+
+        var DPR = 1;
+        function resize() {
+            var rect = cv.getBoundingClientRect();
+            DPR = Math.min(2, window.devicePixelRatio || 1);
+            var w = Math.max(320, Math.round(rect.width)), h = Math.round(rect.height) || 440;
+            cv.width = Math.round(w * DPR);
+            cv.height = Math.round(h * DPR);
+        }
+        function px(x) { return (x - state.view.xmin) / (state.view.xmax - state.view.xmin) * cv.width; }
+        function py(y) { return cv.height - (y - state.view.ymin) / (state.view.ymax - state.view.ymin) * cv.height; }
+
+        function tickStep(span, targetPx, totalPx) {
+            var raw = span * targetPx / totalPx;
+            var mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+            var norm = raw / mag;
+            var step = norm < 1.5 ? 1 : norm < 3.5 ? 2 : norm < 7.5 ? 5 : 10;
+            return step * mag;
+        }
+
+        function draw() {
+            if (!cv.width) resize();
+            var v = state.view, W = cv.width, H = cv.height;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, W, H);
+            ctx.fillStyle = '#0f0f23';
+            ctx.fillRect(0, 0, W, H);
+
+            var sx = tickStep(v.xmax - v.xmin, 90, W), sy = tickStep(v.ymax - v.ymin, 60, H);
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = GRID;
+            ctx.beginPath();
+            var gx, i;
+            for (gx = Math.ceil(v.xmin / sx) * sx; gx <= v.xmax; gx += sx) { var X = Math.round(px(gx)) + 0.5; ctx.moveTo(X, 0); ctx.lineTo(X, H); }
+            for (i = Math.ceil(v.ymin / sy) * sy; i <= v.ymax; i += sy) { var Y = Math.round(py(i)) + 0.5; ctx.moveTo(0, Y); ctx.lineTo(W, Y); }
+            ctx.stroke();
+
+            ctx.strokeStyle = AXIS;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            if (v.ymin <= 0 && v.ymax >= 0) { var ay = Math.round(py(0)) + 0.5; ctx.moveTo(0, ay); ctx.lineTo(W, ay); }
+            if (v.xmin <= 0 && v.xmax >= 0) { var ax = Math.round(px(0)) + 0.5; ctx.moveTo(ax, 0); ctx.lineTo(ax, H); }
+            ctx.stroke();
+
+            ctx.fillStyle = TEXT;
+            ctx.font = (11 * DPR) + 'px JetBrains Mono, Consolas, monospace';
+            ctx.textAlign = 'center';
+            for (gx = Math.ceil(v.xmin / sx) * sx; gx <= v.xmax; gx += sx) {
+                if (Math.abs(gx) < sx / 1000) continue;
+                ctx.fillText(fmt(gx, 6), px(gx), py(0) - 6 * DPR);
+            }
+            ctx.textAlign = 'right';
+            for (i = Math.ceil(v.ymin / sy) * sy; i <= v.ymax; i += sy) {
+                if (Math.abs(i) < sy / 1000) continue;
+                ctx.fillText(fmt(i, 6), px(0) - 6 * DPR, py(i) + 4 * DPR);
+            }
+
+            drawFit();
+            for (var c = 0; c < state.curves.length; c++) {
+                if (state.curves[c].on && !state.curves[c].err) drawCurve(state.curves[c]);
+            }
+            drawMarks();
+        }
+
+        function drawCurve(c) {
+            ctx.lineWidth = 2.4 * DPR;
+            ctx.strokeStyle = c.color;
+            ctx.lineJoin = 'round';
+            var v = state.view, i, k;
+
+            if (c.type === 'fn' || c.type === 'side') {
+                var f = sampler(c);
+                if (!f) return;
+                ctx.beginPath();
+                var started = false, lastY = null, lastX = null;
+                var steps = Math.max(200, Math.min(2400, Math.round(cv.width)));
+                for (i = 0; i <= steps; i++) {
+                    var xv = v.xmin + (v.xmax - v.xmin) * i / steps;
+                    var yv = f(xv);
+                    if (!isFinite(yv)) { started = false; lastY = null; continue; }
+                    var X = px(xv), Y = py(yv);
+                    if (Y < -1e5 * DPR || Y > 1e5 * DPR) { started = false; lastY = null; continue; }
+                    if (started && lastY !== null && Math.abs(Y - lastY) > cv.height * 0.5) {
+                        ctx.moveTo(X, Y); lastX = X; lastY = Y; continue;
+                    }
+                    if (!started) { ctx.moveTo(X, Y); started = true; } else ctx.lineTo(X, Y);
+                    lastX = X; lastY = Y;
+                }
+                ctx.stroke();
+                return;
+            }
+
+            if (c.type === 'para') {
+                ctx.beginPath();
+                var started2 = false, t0 = -10 * Math.PI, t1 = 10 * Math.PI, ts = 4000, prev = null;
+                for (i = 0; i <= ts; i++) {
+                    var t = t0 + (t1 - t0) * i / ts;
+                    var X2 = evalNode(c.ast, { t: t }), Y2 = evalNode(c.ast2, { t: t });
+                    if (!isFinite(X2) || !isFinite(Y2)) { started2 = false; prev = null; continue; }
+                    var sx2 = px(X2), sy2 = py(Y2);
+                    if (sx2 < -1e5 * DPR || sx2 > 1e5 * DPR || sy2 < -1e5 * DPR || sy2 > 1e5 * DPR) { started2 = false; prev = null; continue; }
+                    if (started2 && prev && Math.abs(sx2 - prev[0]) + Math.abs(sy2 - prev[1]) > cv.width * 0.5) {
+                        ctx.moveTo(sx2, sy2); prev = [sx2, sy2]; continue;
+                    }
+                    if (!started2) { ctx.moveTo(sx2, sy2); started2 = true; } else ctx.lineTo(sx2, sy2);
+                    prev = [sx2, sy2];
+                }
+                ctx.stroke();
+                return;
+            }
+
+            if (c.type === 'polar') {
+                ctx.beginPath();
+                var started3 = false, a0 = 0, a1 = 4 * Math.PI, as = 4000, prev3 = null;
+                for (k = 0; k <= as; k++) {
+                    var a = a0 + (a1 - a0) * k / as;
+                    var r = evalNode(c.ast, { theta: a, th: a });
+                    if (!isFinite(r)) { started3 = false; prev3 = null; continue; }
+                    var X3 = px(r * Math.cos(a)), Y3 = py(r * Math.sin(a));
+                    if (X3 < -1e5 * DPR || X3 > 1e5 * DPR || Y3 < -1e5 * DPR || Y3 > 1e5 * DPR) { started3 = false; prev3 = null; continue; }
+                    if (started3 && prev3 && Math.abs(X3 - prev3[0]) + Math.abs(Y3 - prev3[1]) > cv.width * 0.5) {
+                        ctx.moveTo(X3, Y3); prev3 = [X3, Y3]; continue;
+                    }
+                    if (!started3) { ctx.moveTo(X3, Y3); started3 = true; } else ctx.lineTo(X3, Y3);
+                    prev3 = [X3, Y3];
+                }
+                ctx.stroke();
+                return;
+            }
+
+            if (c.type === 'imp') {
+                var cols = Math.max(120, Math.min(900, Math.round(cv.width / 2)));
+                for (i = 0; i <= cols; i++) {
+                    var xi = v.xmin + (v.xmax - v.xmin) * i / cols;
+                    var Ylo = v.ymin, Yhi = v.ymax, stepsY = 420, dy = (Yhi - Ylo) / stepsY, hits = 0, py0 = null;
+                    for (k = 0; k <= stepsY; k++) {
+                        var yi = Ylo + dy * k;
+                        var val = evalNode(c.ast, { x: xi, y: yi });
+                        var ok = isFinite(val);
+                        if (ok && py0 !== null && ((py0 < 0) !== (val < 0))) {
+                            var lo = yi - dy, hi = yi, flo = py0;
+                            for (var q = 0; q < 60; q++) {
+                                var mid = (lo + hi) / 2, fm = evalNode(c.ast, { x: xi, y: mid });
+                                if (!isFinite(fm)) break;
+                                if ((flo < 0) === (fm < 0)) { lo = mid; flo = fm; } else hi = mid;
+                            }
+                            var yr = (lo + hi) / 2;
+                            if (px(xi) >= -10 && px(xi) <= cv.width + 10 && py(yr) >= -10 && py(yr) <= cv.height + 10) {
+                                if (hits === 0) ctx.moveTo(px(xi), py(yr)); else ctx.lineTo(px(xi), py(yr));
+                                hits++;
+                            }
+                            if (hits > 8) break;
+                        }
+                        py0 = ok ? val : null;
+                    }
+                    if (hits > 1) ctx.stroke();
+                }
+            }
+        }
+
+        function drawFit() {
+            if (!state.fit) return;
+            ctx.save();
+            ctx.setLineDash([7 * DPR, 5 * DPR]);
+            ctx.lineWidth = 2.2 * DPR;
+            ctx.strokeStyle = '#e879f9';
+            ctx.beginPath();
+            var v = state.view, steps = Math.max(300, Math.min(2400, Math.round(cv.width))), started = false, lastY = null;
+            for (var i = 0; i <= steps; i++) {
+                var x = v.xmin + (v.xmax - v.xmin) * i / steps;
+                var y = state.fit.fn(x);
+                if (!isFinite(y)) { started = false; lastY = null; continue; }
+                var X = px(x), Y = py(y);
+                if (Y < -1e5 * DPR || Y > 1e5 * DPR) { started = false; lastY = null; continue; }
+                if (started && lastY !== null && Math.abs(Y - lastY) > cv.height * 0.5) { ctx.moveTo(X, Y); lastY = Y; continue; }
+                if (!started) { ctx.moveTo(X, Y); started = true; } else ctx.lineTo(X, Y);
+                lastY = Y;
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            if (state.fit.pts && state.fit.pts.length) {
+                ctx.fillStyle = '#e879f9';
+                for (var k = 0; k < state.fit.pts.length; k++) {
+                    var pt = state.fit.pts[k];
+                    if (pt.x < v.xmin || pt.x > v.xmax || pt.y < v.ymin || pt.y > v.ymax) continue;
+                    ctx.beginPath();
+                    ctx.arc(px(pt.x), py(pt.y), 4.2 * DPR, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        function drawMarks() {
+            var m = state.marks, i;
+            ctx.lineWidth = 2 * DPR;
+            ctx.font = '600 ' + (11 * DPR) + 'px JetBrains Mono, Consolas, monospace';
+            for (i = 0; i < m.roots.length; i++) {
+                var X = px(m.roots[i]), Y = py(0);
+                if (X < 0 || X > cv.width) continue;
+                ctx.strokeStyle = MARK_ROOT;
+                ctx.beginPath(); ctx.arc(X, Y, 5.5 * DPR, 0, Math.PI * 2); ctx.stroke();
+            }
+            for (i = 0; i < m.ext.length; i++) {
+                var e = m.ext[i];
+                if (!isFinite(e.y)) continue;
+                var EX = px(e.x), EY = py(e.y);
+                ctx.fillStyle = MARK_EXT;
+                ctx.beginPath(); ctx.arc(EX, EY, 4.6 * DPR, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = MARK_EXT;
+                ctx.textAlign = 'left';
+                ctx.fillText(e.kind, EX + 8 * DPR, EY - 6 * DPR);
+            }
+            for (i = 0; i < m.inter.length; i++) {
+                var p = m.inter[i];
+                if (!isFinite(p.y)) continue;
+                var IX = px(p.x), IY = py(p.y);
+                ctx.strokeStyle = MARK_INT;
+                ctx.beginPath();
+                ctx.moveTo(IX - 6 * DPR, IY - 6 * DPR); ctx.lineTo(IX + 6 * DPR, IY + 6 * DPR);
+                ctx.moveTo(IX + 6 * DPR, IY - 6 * DPR); ctx.lineTo(IX - 6 * DPR, IY + 6 * DPR);
+                ctx.stroke();
+            }
+        }
+
+        /* ================= view helpers ================= */
+
+        function gcZoom(factor) {
+            var v = state.view, cx = (v.xmin + v.xmax) / 2, cy = (v.ymin + v.ymax) / 2;
+            var hw = (v.xmax - v.xmin) * factor / 2, hh = (v.ymax - v.ymin) * factor / 2;
+            if (hw < 1e-6 || hh < 1e-6) return;
+            state.view = { xmin: cx - hw, xmax: cx + hw, ymin: cy - hh, ymax: cy + hh };
+            if (factor === 0.5) { /* reset also clears stale marks so nothing lies */ }
+            draw();
+        }
+        function gcFitWindow() {
+            var any = false, minx = Infinity, maxx = -Infinity, miny = Infinity, maxy = -Infinity;
+            for (var i = 0; i < state.curves.length; i++) {
+                var c = state.curves[i];
+                if (!c.on || c.err) continue;
+                var f = sampler(c);
+                if (f) {
+                    for (var x = -20; x <= 20; x += 0.05) {
+                        var y = f(x);
+                        if (!isFinite(y) || Math.abs(y) > 1e5) continue;
+                        if (x < minx) minx = x; if (x > maxx) maxx = x;
+                        if (y < miny) miny = y; if (y > maxy) maxy = y;
+                    }
+                    any = true;
+                } else if (c.type === 'para') {
+                    for (var t = -10 * Math.PI; t <= 10 * Math.PI; t += 0.02) {
+                        var X = evalNode(c.ast, { t: t }), Y = evalNode(c.ast2, { t: t });
+                        if (!isFinite(X) || !isFinite(Y) || Math.abs(X) > 1e5 || Math.abs(Y) > 1e5) continue;
+                        if (X < minx) minx = X; if (X > maxx) maxx = X;
+                        if (Y < miny) miny = Y; if (Y > maxy) maxy = Y;
+                    }
+                    any = true;
+                } else if (c.type === 'polar') {
+                    for (var a = 0; a <= 4 * Math.PI; a += 0.01) {
+                        var r = evalNode(c.ast, { theta: a, th: a });
+                        if (!isFinite(r) || Math.abs(r) > 1e5) continue;
+                        var X2 = r * Math.cos(a), Y2 = r * Math.sin(a);
+                        if (X2 < minx) minx = X2; if (X2 > maxx) maxx = X2;
+                        if (Y2 < miny) miny = Y2; if (Y2 > maxy) maxy = Y2;
+                    }
+                    any = true;
+                } else if (c.type === 'imp') {
+                    any = true;
+                }
+            }
+            if (state.fit && state.fit.pts) {
+                for (var p = 0; p < state.fit.pts.length; p++) {
+                    var pt = state.fit.pts[p];
+                    if (pt.x < minx) minx = pt.x; if (pt.x > maxx) maxx = pt.x;
+                    if (pt.y < miny) miny = pt.y; if (pt.y > maxy) maxy = pt.y;
+                }
+                any = true;
+            }
+            if (!any || !isFinite(minx) || !isFinite(maxx) || !isFinite(miny) || !isFinite(maxy)) {
+                state.view = { xmin: -10, xmax: 10, ymin: -6, ymax: 6 };
+                draw(); return;
+            }
+            if (maxx - minx < 1e-9) { minx -= 5; maxx += 5; }
+            if (maxy - miny < 1e-9) { miny -= 5; maxy += 5; }
+            var padx = (maxx - minx) * 0.12, pady = (maxy - miny) * 0.12;
+            state.view = { xmin: minx - padx, xmax: maxx + padx, ymin: miny - pady, ymax: maxy + pady };
+            state.marks = { roots: [], ext: [], inter: [] };
+            draw();
+        }
+
+        /* ================= UI: expression rows ================= */
+
+        function gcAddCurve() {
+            var c = addCurve('fn', '');
+            renderRows();
+            var inputs = document.querySelectorAll('#gc-curves .gc-curve input.gc-expr');
+            if (inputs.length) inputs[inputs.length - 1].focus();
+            status('Curve added. Type an expression such as x^2-4.', 'success');
+        }
+
+        function renderRows() {
+            var html = '';
+            for (var i = 0; i < state.curves.length; i++) {
+                var c = state.curves[i];
+                var opts = '';
+                for (var t = 0; t < TYPES.length; t++) {
+                    opts += '<option value="' + TYPES[t].v + '"' + (c.type === TYPES[t].v ? ' selected' : '') + '>' + TYPES[t].label + '</option>';
+                }
+                html += '<div class="gc-curve' + (c.on ? '' : ' off') + '" data-id="' + c.id + '">';
+                html += '<span class="gc-swatch" style="background:' + c.color + '" data-act="color" title="Change colour" role="button" tabindex="0" aria-label="Change colour of curve ' + (i + 1) + '"></span>';
+                html += '<label class="sr-only" for="gc-type-' + c.id + '">Curve type</label>';
+                html += '<select id="gc-type-' + c.id + '" class="gc-type" data-act="type">' + opts + '</select>';
+                html += '<input class="gc-expr" data-act="expr" value="' + esc(c.expr) + '" placeholder="' + (c.type === 'para' ? 'x(t), e.g. t-3sin(t)' : c.type === 'polar' ? 'r(theta), e.g. 3cos(2theta)' : c.type === 'imp' ? 'F(x,y) = 0, e.g. x^2+y^2-9' : 'expression, e.g. x^2-4') + '" aria-label="Expression for curve ' + (i + 1) + '">';
+                html += '<button type="button" class="gc-mini" data-act="vis" aria-label="' + (c.on ? 'Hide' : 'Show') + ' curve ' + (i + 1) + '" title="' + (c.on ? 'Hide' : 'Show') + '">' + (c.on ? '👁' : '—') + '</button>';
+                html += '<button type="button" class="gc-mini" data-act="del" aria-label="Delete curve ' + (i + 1) + '" title="Delete">&times;</button>';
+                if (c.type === 'para') {
+                    html += '<div class="gc-extra"><input class="gc-extra-in" data-act="extra" value="' + esc(c.extra) + '" placeholder="y(t) here, e.g. 2-2cos(t)" aria-label="y of t for curve ' + (i + 1) + '"></div>';
+                } else if (c.type === 'imp' && i === 0) {
+                    html += '<div class="gc-extra"><input disabled value="Use F(x,y) = 0 form, e.g. (x-1)^2+(y-2)^2-9" aria-label="Implicit hint"></div>';
+                }
+                html += '</div>';
+                if (c.err) html += '<div class="gc-err" style="margin:-6px 0 10px 22px;">Curve ' + (i + 1) + ': ' + esc(c.err) + '</div>';
+            }
+            els.curves.innerHTML = html;
+            renderTargets();
+            renderLegend();
+        }
+
+        function findCurve(id) {
+            for (var i = 0; i < state.curves.length; i++) if (state.curves[i].id === id) return state.curves[i];
+            return null;
+        }
+
+        function curveLabel(c, idx) {
+            var lbl = 'Curve ' + (idx + 1) + ': ' + (c.expr || '(empty)');
+            if (c.type !== 'fn') lbl += '  [' + c.type + ']';
+            return lbl;
+        }
+
+        function renderTargets() {
+            var fns = [], any = [], i;
+            for (i = 0; i < state.curves.length; i++) {
+                var c = state.curves[i];
+                if (c.on && !c.err && String(c.expr).trim()) {
+                    any.push(i);
+                    if (c.type === 'fn') fns.push(i);
+                }
+            }
+            function opts(list, selectedIdx, emptyLabel) {
+                if (!list.length) return '<option value="">' + emptyLabel + '</option>';
+                var s = '<option value="">' + emptyLabel + '</option>';
+                for (var k = 0; k < list.length; k++) {
+                    s += '<option value="' + list[k] + '"' + (list[k] === selectedIdx ? ' selected' : '') + '>' + esc(curveLabel(state.curves[list[k]], list[k])) + '</option>';
+                }
+                return s;
+            }
+            var prev = els.target.value, prev2 = els.target2.value;
+            els.target.innerHTML = opts(fns, prev === '' ? null : parseInt(prev, 10), 'No function curve yet');
+            els.target2.innerHTML = opts(fns, prev2 === '' ? null : parseInt(prev2, 10), 'Second function curve');
+            if (els.target.value === '' && fns.length) els.target.value = String(fns[0]);
+            if (els.target2.value === '' && fns.length > 1) els.target2.value = String(fns[1]);
+        }
+
+        function renderLegend() {
+            var s = '';
+            for (var i = 0; i < state.curves.length; i++) {
+                var c = state.curves[i];
+                if (!String(c.expr).trim()) continue;
+                s += '<b style="color:' + c.color + '">' + (c.on ? '●' : '○') + '</b> ' + esc(curveLabel(c, i)) + ' &nbsp; ';
+            }
+            if (state.fit) s += '<b style="color:#e879f9">●</b> regression fit: ' + esc(state.fit.label) + ' (R&sup2; = ' + fmt(state.fit.r2, 6) + ') &nbsp; ';
+            if (state.marks.roots.length || state.marks.ext.length || state.marks.inter.length) {
+                s += '<span style="color:' + MARK_ROOT + '">● root</span> <span style="color:' + MARK_EXT + '">● turning point</span> <span style="color:' + MARK_INT + '">✕ intersection</span>';
+            }
+            els.legend.innerHTML = s;
+        }
+
+        /* ================= UI: analysis ================= */
+
+        function getBound(id, fallback) {
+            var raw = String(document.getElementById(id).value).trim();
+            if (raw === '') return fallback;
+            var n = Number(raw);
+            if (!isFinite(n)) throw new Error('"' + raw + '" is not a number (' + id + ')');
+            return n;
+        }
+
+        function card(k, v, sub) {
+            return '<div class="gc-card"><div class="gc-k">' + k + '</div><div class="gc-v">' + v + '</div>' + (sub ? '<div class="gc-s">' + sub + '</div>' : '') + '</div>';
+        }
+
+        function pickFn(sel, which) {
+            var v = document.getElementById(sel).value;
+            if (v === '') throw new Error(which + ': add a y = f(x) curve first, then pick it in the dropdown.');
+            var c = state.curves[parseInt(v, 10)];
+            if (!c || c.err) throw new Error(which + ': that curve has a syntax error.');
+            return { c: c, f: yOfX(c) };
+        }
+
+        function gcAnalyze() {
+            els.results.innerHTML = '';
+            els.tableOut.innerHTML = '';
+            try {
+                var a = getBound('gc-a', state.view.xmin), b = getBound('gc-b', state.view.xmax);
+                var x0 = getBound('gc-x0', 1);
+                if (b <= a) throw new Error('Upper bound b must be bigger than lower bound a.');
+                var pick = pickFn('gc-target', 'Curve');
+                var f = pick.f;
+                var name = pick.c.expr;
+
+                var roots = findZeros(f, a, b, 4000);
+                var ext = findExtrema(f, a, b);
+                var intg = integrate(f, a, b);
+                var absIntg = integrate(function (x) { return Math.abs(f(x)); }, a, b);
+                var h = (b - a) * 1e-5;
+                var slope = derivative(f, x0, h);
+                var y0 = f(0);
+
+                state.marks = { roots: roots, ext: ext, inter: state.marks.inter };
+
+                var html = '';
+                html += card('Real roots in [' + fmt(a, 6) + ', ' + fmt(b, 6) + ']', roots.length ? roots.length + ' found' : 'none', roots.length ? 'x = ' + roots.slice(0, 3).map(function (r) { return fmt(r, 8); }).join(', ') + (roots.length > 3 ? ', …' : '') : 'no sign change of f across the range');
+                if (roots.length) {
+                    var lis = '';
+                    for (var i = 0; i < roots.length; i++) {
+                        lis += '<li><button type="button" data-x="' + roots[i] + '">x = ' + fmt(roots[i], 12) + '</button> &nbsp; y = ' + fmt(f(roots[i]), 8) + '</li>';
+                    }
+                    html += '<div class="gc-card" style="grid-column:1/-1"><div class="gc-k">Roots (x-intercepts)</div><ul class="gc-list">' + lis + '</ul></div>';
+                }
+                html += card('Turning points', ext.length ? ext.length + ' found' : 'none', ext.length ? ext.map(function (e) { return e.kind + ' at x = ' + fmt(e.x, 8); }).slice(0, 3).join(', ') : 'derivative never changes sign');
+                if (ext.length) {
+                    var le = '';
+                    for (var j = 0; j < ext.length; j++) {
+                        le += '<li><button type="button" data-x="' + ext[j].x + '">' + ext[j].kind + '</button> at ' + fmtCoord(ext[j].x, ext[j].y) + '</li>';
+                    }
+                    html += '<div class="gc-card" style="grid-column:1/-1"><div class="gc-k">Local maxima &amp; minima</div><ul class="gc-list">' + le + '</ul></div>';
+                }
+                html += card('Definite integral', isFinite(intg) ? fmt(intg, 10) : 'undefined', '∫ f(x) dx from ' + fmt(a, 6) + ' to ' + fmt(b, 6) + ' (signed)');
+                if (isFinite(intg) && isImproper(f, a, b)) {
+                    html += card('Read this before you trust it', 'improper integral', 'f(x) is unbounded at or very near a bound. The value above is a numerical approximation that is good to about 4-5 significant digits, not the last digit you can see.');
+                }
+                html += card('Total area under curve', isFinite(absIntg) ? fmt(absIntg, 10) : 'undefined', '∫ |f(x)| dx over the same range');
+                html += card('Slope at x = ' + fmt(x0, 6), fmt(slope, 10), 'f′(' + fmt(x0, 6) + ') by central difference');
+                html += card('y-intercept', isFinite(y0) ? fmt(y0, 10) : 'undefined', 'f(0)');
+                html += card('Expression analysed', esc(name), 'searched over [' + fmt(a, 6) + ', ' + fmt(b, 6) + ']');
+                els.results.innerHTML = html;
+
+                var jump = els.results.querySelectorAll('button[data-x]');
+                for (var k = 0; k < jump.length; k++) {
+                    (function (btn) {
+                        btn.addEventListener('click', function () {
+                            var x = parseFloat(btn.getAttribute('data-x'));
+                            var w = state.view.xmax - state.view.xmin, hgt = state.view.ymax - state.view.ymin;
+                            state.view = { xmin: x - w / 4, xmax: x + w / 4, ymin: (isFinite(f(x)) ? f(x) : 0) - hgt / 3, ymax: (isFinite(f(x)) ? f(x) : 0) + hgt / 3 };
+                            draw();
+                            status('Jumped to x = ' + fmt(x, 12), 'success');
+                        });
+                    })(jump[k]);
+                }
+                status('Analysis complete: ' + roots.length + ' root(s), ' + ext.length + ' turning point(s).', 'success');
+                renderLegend();
+                draw();
+            } catch (e) {
+                status('Error: ' + (e && e.message || e), 'error');
+            }
+        }
+
+        function gcAreaBetween() {
+            els.results.innerHTML = '';
+            try {
+                var a = getBound('gc-a', state.view.xmin), b = getBound('gc-b', state.view.xmax);
+                if (b <= a) throw new Error('Upper bound b must be bigger than lower bound a.');
+                var p1 = pickFn('gc-target', 'Curve'), p2 = pickFn('gc-target2', 'Second curve');
+                if (p1.c === p2.c) throw new Error('Pick two different curves to compare.');
+                var f = p1.f, g = p2.f, d = function (x) { return f(x) - g(x); };
+                var xs = findZeros(d, a, b, 4000);
+                var bounds = [a].concat(xs, [b]);
+                var total = 0, slices = '', improper = false;
+                for (var i = 0; i < bounds.length - 1; i++) {
+                    var lo = bounds[i], hi = bounds[i + 1];
+                    if (hi - lo < 1e-12) continue;
+                    var mid = (lo + hi) / 2, top = f(mid) >= g(mid) ? 'f' : 'g';
+                    var area = integrate(function (x) { return Math.abs(f(x) - g(x)); }, lo, hi);
+                    if (isFinite(area)) total += area;
+                    if (isImproper(function (x) { return Math.abs(f(x) - g(x)); }, lo, hi)) improper = true;
+                    slices += '<li>' + fmt(lo, 8) + ' → ' + fmt(hi, 8) + ': ' + fmt(area, 8) + ' (top curve: ' + top + ')</li>';
+                }
+                var signed = integrate(d, a, b);
+                state.marks.inter = xs.map(function (x) { return { x: x, y: f(x) }; });
+                els.results.innerHTML =
+                    card('Area between the two curves', fmt(total, 10), 'from x = ' + fmt(a, 6) + ' to ' + fmt(b, 6) + (xs.length ? ' across ' + xs.length + ' intersection(s)' : ', curves do not cross here')) +
+                    (improper ? card('Read this before you trust it', 'improper integral', 'one of the curves is unbounded at a bound, so this is good to about 4-5 significant digits rather than the last digit shown') : '') +
+                    card('Signed integral of (f − g)', fmt(signed, 10), 'positive means f is on top for the net balance') +
+                    '<div class="gc-card" style="grid-column:1/-1"><div class="gc-k">Slice by slice (|f − g| integrated per interval)</div><ul class="gc-list">' + (slices || '<li>no interval</li>') + '</ul></div>';
+                status('Area between curves: ' + fmt(total, 10), 'success');
+                renderLegend();
+                draw();
+            } catch (e) {
+                status('Error: ' + (e && e.message || e), 'error');
+            }
+        }
+
+        function gcTable() {
+            els.tableOut.innerHTML = '';
+            try {
+                var a = getBound('gc-a', -5), b = getBound('gc-b', 5), x0 = getBound('gc-x0', 0);
+                if (b <= a) throw new Error('Upper bound b must be bigger than lower bound a.');
+                var pick = pickFn('gc-target', 'Curve');
+                var f = pick.f;
+                var step = (b - a) / 10, rows = '', i;
+                for (i = 0; i <= 10; i++) {
+                    var x = a + step * i, y = f(x);
+                    rows += '<tr><td>' + fmt(x, 8) + '</td><td>' + (isFinite(y) ? fmt(y, 10) : 'undefined') + '</td><td>' + (isFinite(derivative(f, x, step / 1000 || 1e-4)) ? fmt(derivative(f, x, step / 1000 || 1e-4), 8) : 'undefined') + '</td></tr>';
+                }
+                els.tableOut.innerHTML = '<div class="gc-scroll"><table class="gc-table"><caption class="sr-only">Table of values for ' + esc(pick.c.expr) + '</caption><thead><tr><th>x</th><th>f(x)</th><th>f′(x)</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+                    '<p class="gc-legend">11 equally spaced points from ' + fmt(a, 6) + ' to ' + fmt(b, 6) + ', step ' + fmt(step, 6) + '. Slope column uses a central difference.</p>';
+                status('Table of values generated for ' + pick.c.expr, 'success');
+            } catch (e) {
+                status('Error: ' + (e && e.message || e), 'error');
+            }
+        }
+
+        function gcExportPNG() {
+            try {
+                var a = document.createElement('a');
+                a.download = 'graphing-calculator.png';
+                a.href = cv.toDataURL('image/png');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                status('PNG downloaded.', 'success');
+            } catch (e) {
+                status('Error: could not export the image: ' + (e && e.message || e), 'error');
+            }
+        }
+
+        function gcCopyLink() {
+            try {
+                var payload = {
+                    c: state.curves.map(function (c) { return { t: c.type, e: c.expr, x: c.extra, k: c.color, on: c.on ? 1 : 0 }; }),
+                    v: [state.view.xmin, state.view.xmax, state.view.ymin, state.view.ymax]
+                };
+                var url = location.origin + location.pathname + '#g=' + encodeURIComponent(JSON.stringify(payload));
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(function () {
+                        status('Link copied. It restores these exact curves and this exact window.', 'success');
+                    }, function () { fallbackCopy(url); });
+                } else fallbackCopy(url);
+            } catch (e) {
+                status('Error: ' + (e && e.message || e), 'error');
+            }
+        }
+        function fallbackCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); status('Link copied to clipboard.', 'success'); }
+            catch (e) { status('Copy failed. The link is in the address bar after pressing Copy link.', 'error'); }
+            document.body.removeChild(ta);
+        }
+
+        function gcClearAll() {
+            state.curves = [];
+            state.fit = null;
+            state.marks = { roots: [], ext: [], inter: [] };
+            state.view = { xmin: -10, xmax: 10, ymin: -6, ymax: 6 };
+            els.results.innerHTML = '';
+            els.tableOut.innerHTML = '';
+            els.fitOut.innerHTML = '';
+            els.fitTable.innerHTML = '';
+            addCurve('fn', '');
+            renderRows();
+            draw();
+            status('Cleared.', 'success');
+        }
+
+        /* ================= regression ================= */
+
+        function parseData(text) {
+            var lines = String(text).split(/[\n\r;]+/), pts = [], k;
+            for (k = 0; k < lines.length; k++) {
+                var ln = lines[k].trim();
+                if (!ln) continue;
+                if (/[,	]/.test(ln)) {
+                    var cells = ln.split(/[,	]/);
+                    for (var c = 0; c + 1 < cells.length; c += 2) {
+                        var x = Number(cells[c].trim()), y = Number(cells[c + 1].trim());
+                        if (isFinite(x) && isFinite(y)) pts.push({ x: x, y: y });
+                    }
+                } else {
+                    var nums = ln.split(/[\s]+/).filter(function (s) { return s.length; }).map(Number).filter(function (n) { return isFinite(n); });
+                    for (var n = 0; n + 1 < nums.length; n += 2) pts.push({ x: nums[n], y: nums[n + 1] });
+                }
+            }
+            if (!pts.length) throw new Error('No data found. Enter x and y numbers, e.g. "1 2.1" on one line or "1, 2.1" as a pair.');
+            return pts;
+        }
+
+        /* Gaussian elimination with partial pivoting on the normal equations */
+        function solve(A, b) {
+            var n = b.length, i, j, k;
+            for (i = 0; i < n; i++) {
+                var piv = i, best = Math.abs(A[i][i]);
+                for (j = i + 1; j < n; j++) { if (Math.abs(A[j][i]) > best) { best = Math.abs(A[j][i]); piv = j; } }
+                if (best < 1e-14) throw new Error('The data are degenerate for this model (columns are linearly dependent).');
+                if (piv !== i) { var t = A[i]; A[i] = A[piv]; A[piv] = t; var tb = b[i]; b[i] = b[piv]; b[piv] = tb; }
+                for (j = i + 1; j < n; j++) {
+                    var f = A[j][i] / A[i][i];
+                    for (k = i; k < n; k++) A[j][k] -= f * A[i][k];
+                    b[j] -= f * b[i];
+                }
+            }
+            var out = new Array(n);
+            for (i = n - 1; i >= 0; i--) {
+                var s = b[i];
+                for (j = i + 1; j < n; j++) s -= A[i][j] * out[j];
+                out[i] = s / A[i][i];
+            }
+            return out;
+        }
+
+        function lstsq(basisFn, pts) {
+            var k = basisFn(pts[0]).length, i, j;
+            var A = [], b = [];
+            for (i = 0; i < k; i++) { A.push(new Array(k).fill(0)); b.push(0); }
+            for (i = 0; i < pts.length; i++) {
+                var bi = basisFn(pts[i]);
+                for (j = 0; j < k; j++) {
+                    b[j] += bi[j] * pts[i].y;
+                    for (var l = 0; l < k; l++) A[j][l] += bi[j] * bi[l];
+                }
+            }
+            return solve(A, b);
+        }
+
+        var MODELS = {
+            linear: {
+                k: 2, label: 'linear',
+                basis: function (p) { return [1, p.x]; },
+                fn: function (c) { return function (x) { return c[0] + c[1] * x; }; },
+                eq: function (c) { return 'y = ' + fmt(c[0], 10) + (c[1] >= 0 ? ' + ' : ' − ') + fmt(Math.abs(c[1]), 10) + 'x'; },
+                check: function () { return true; }
+            },
+            quadratic: {
+                k: 3, label: 'quadratic',
+                basis: function (p) { return [1, p.x, p.x * p.x]; },
+                fn: function (c) { return function (x) { return c[0] + c[1] * x + c[2] * x * x; }; },
+                eq: function (c) {
+                    return 'y = ' + fmt(c[0], 10) + (c[1] >= 0 ? ' + ' : ' − ') + fmt(Math.abs(c[1]), 10) + 'x' +
+                        (c[2] >= 0 ? ' + ' : ' − ') + fmt(Math.abs(c[2]), 8) + 'x²';
+                },
+                check: function () { return true; }
+            },
+            cubic: {
+                k: 4, label: 'cubic',
+                basis: function (p) { return [1, p.x, p.x * p.x, p.x * p.x * p.x]; },
+                fn: function (c) { return function (x) { return c[0] + c[1] * x + c[2] * x * x + c[3] * x * x * x; }; },
+                eq: function (c) {
+                    return 'y = ' + fmt(c[0], 10) + (c[1] >= 0 ? ' + ' : ' − ') + fmt(Math.abs(c[1]), 10) + 'x' +
+                        (c[2] >= 0 ? ' + ' : ' − ') + fmt(Math.abs(c[2]), 8) + 'x²' +
+                        (c[3] >= 0 ? ' + ' : ' − ') + fmt(Math.abs(c[3]), 8) + 'x³';
+                },
+                check: function () { return true; }
+            },
+            exponential: {
+                k: 2, label: 'exponential',
+                basis: function (p) { return [1, p.x]; },
+                pre: function (p) { return { x: p.x, y: Math.log(p.y) }; },
+                fn: function (c) { return function (x) { return Math.exp(c[0]) * Math.exp(c[1] * x); }; },
+                eq: function (c) { return 'y = ' + fmt(Math.exp(c[0]), 10) + '·e^(' + fmt(c[1], 10) + 'x)'; },
+                check: function (pts) { return pts.every(function (p) { return p.y > 0; }); }
+            },
+            logarithmic: {
+                k: 2, label: 'logarithmic',
+                basis: function (p) { return [1, Math.log(p.x)]; },
+                fn: function (c) { return function (x) { return x > 0 ? c[0] + c[1] * Math.log(x) : NaN; }; },
+                eq: function (c) { return 'y = ' + fmt(c[0], 10) + (c[1] >= 0 ? ' + ' : ' − ') + fmt(Math.abs(c[1]), 10) + '·ln(x)'; },
+                check: function (pts) { return pts.every(function (p) { return p.x > 0; }); }
+            },
+            power: {
+                k: 2, label: 'power',
+                /* pre() already replaced x with ln(x), so the basis must NOT log again */
+                basis: function (p) { return [1, p.x]; },
+                pre: function (p) { return { x: Math.log(p.x), y: Math.log(p.y) }; },
+                fn: function (c) { return function (x) { return x > 0 ? Math.exp(c[0]) * Math.pow(x, c[1]) : NaN; }; },
+                eq: function (c) { return 'y = ' + fmt(Math.exp(c[0]), 10) + '·x^(' + fmt(c[1], 10) + ')'; },
+                check: function (pts) { return pts.every(function (p) { return p.x > 0 && p.y > 0; }); }
+            }
+        };
+
+        function gcRunFit() {
+            els.fitOut.innerHTML = '';
+            els.fitTable.innerHTML = '';
+            try {
+                var pts = parseData(els.data.value);
+                var key = els.model.value, model = MODELS[key];
+                if (!model) throw new Error('Unknown model.');
+                if (pts.length < model.k + 1) throw new Error('The ' + model.label + ' model needs at least ' + (model.k + 1) + ' points; you gave ' + pts.length + '.');
+                if (!model.check(pts)) {
+                    throw new Error('The ' + model.label + ' model needs ' + (key === 'logarithmic' ? 'every x value to be positive' : 'every x and y value to be positive') + '.');
+                }
+                var work = model.pre ? pts.map(model.pre) : pts;
+                var coef = lstsq(model.basis, work);
+                var fn = model.fn(coef);
+
+                var ybar = 0, i;
+                for (i = 0; i < pts.length; i++) ybar += pts[i].y;
+                ybar /= pts.length;
+                var ssRes = 0, ssTot = 0, maxRes = 0, rows = '';
+                for (i = 0; i < pts.length; i++) {
+                    var yh = fn(pts[i].x);
+                    var res = isFinite(yh) ? pts[i].y - yh : 0;
+                    ssRes += res * res;
+                    ssTot += (pts[i].y - ybar) * (pts[i].y - ybar);
+                    if (Math.abs(res) > maxRes) maxRes = Math.abs(res);
+                    rows += '<tr><td>' + fmt(pts[i].x, 8) + '</td><td>' + fmt(pts[i].y, 8) + '</td><td>' + (isFinite(yh) ? fmt(yh, 8) : 'n/a') + '</td><td>' + (isFinite(res) ? fmt(res, 8) : 'n/a') + '</td></tr>';
+                }
+                var r2 = ssTot > 0 ? 1 - ssRes / ssTot : 1;
+                var rmse = Math.sqrt(ssRes / pts.length);
+                var r = (ssTot > 0 && isFinite(coef[1]) !== undefined) ? Math.sign(coef[1] || 1) * Math.sqrt(Math.max(0, r2)) : NaN;
+
+                state.fit = { fn: fn, label: model.eq(coef), r2: r2, pts: pts, model: key };
+                els.fitOut.innerHTML =
+                    card('Model', esc(model.label), model.eq(coef)) +
+                    card('R² (coefficient of determination)', fmt(r2, 8), r2 >= 0.99 ? 'excellent fit' : r2 >= 0.9 ? 'good fit' : r2 >= 0.7 ? 'moderate fit' : 'poor fit') +
+                    card('r (correlation)', isFinite(r) ? fmt(r, 8) : 'n/a', 'sign follows the slope') +
+                    card('RMSE', fmt(rmse, 8), 'typical error in your y units') +
+                    card('Largest residual', fmt(maxRes, 8), 'worst single miss') +
+                    card('Points used', String(pts.length), 'n must exceed the ' + model.k + ' fitted parameters');
+                els.fitTable.innerHTML = '<table class="gc-table"><thead><tr><th>x</th><th>y actual</th><th>y fitted</th><th>residual</th></tr></thead><tbody>' + rows + '</tbody></table>';
+                status('Regression fitted: R² = ' + fmt(r2, 8) + ' over ' + pts.length + ' points.', 'success');
+                renderLegend();
+                draw();
+            } catch (e) {
+                state.fit = null;
+                draw();
+                status('Error: ' + (e && e.message || e), 'error');
+            }
+        }
+
+        function gcLoadFitData() {
+            els.data.value = '1 2.1\n2 3.9\n3 6.2\n4 7.8\n5 10.1\n6 12.0\n7 14.2\n8 16.1';
+            els.model.value = 'quadratic';
+            status('Example data loaded: 8 points with a clear quadratic trend. Press Fit model.', 'success');
+        }
+
+        /* ================= examples ================= */
+
+        var EXAMPLES = [
+            {
+                label: 'Parabola y = x² − 4',
+                build: function () {
+                    state.curves = []; state.fit = null;
+                    addCurve('fn', 'x^2-4', '', '#667eea');
+                }
+            },
+            {
+                label: 'Sine with turning points',
+                build: function () {
+                    state.curves = []; state.fit = null;
+                    addCurve('fn', 'sin(x)', '', '#10b981');
+                }
+            },
+            {
+                label: 'Two curves, area between',
+                build: function () {
+                    state.curves = []; state.fit = null;
+                    addCurve('fn', 'x^2', '', '#667eea');
+                    addCurve('fn', '2', '', '#f59e0b');
+                }
+            },
+            {
+                label: 'Circle (implicit)',
+                build: function () {
+                    state.curves = []; state.fit = null;
+                    addCurve('imp', '(x-1)^2+(y-2)^2-9', '', '#ef4444');
+                }
+            },
+            {
+                label: 'Rose r = 3cos(2θ)',
+                build: function () {
+                    state.curves = []; state.fit = null;
+                    addCurve('polar', '3cos(2theta)', '', '#06b6d4');
+                }
+            },
+            {
+                label: 'Cycloid (parametric)',
+                build: function () {
+                    state.curves = []; state.fit = null;
+                    addCurve('para', 't-3sin(t)', '2-2cos(t)', '#e879f9');
+                }
+            },
+            {
+                label: 'Sigmoid y = 1/(1+e^−x)',
+                build: function () {
+                    state.curves = []; state.fit = null;
+                    addCurve('fn', '1/(1+exp(-x))', '', '#84cc16');
+                }
+            },
+            {
+                label: 'Rational 1/x',
+                build: function () {
+                    state.curves = []; state.fit = null;
+                    addCurve('fn', '1/x', '', '#fb923c');
+                }
+            }
+        ];
+
+        function gcLoadExample(i) {
+            if (!EXAMPLES[i]) return;
+            EXAMPLES[i].build();
+            state.marks = { roots: [], ext: [], inter: [] };
+            els.results.innerHTML = '';
+            els.tableOut.innerHTML = '';
+            renderRows();
+            gcFitWindow();
+            status('Loaded: ' + EXAMPLES[i].label, 'success');
+        }
+
+        /* ================= wiring ================= */
+
+        function onCurveEvent(ev) {
+            var host = ev.target.closest ? ev.target.closest('.gc-curve') : null;
+            if (!host) return;
+            var c = findCurve(host.getAttribute('data-id'));
+            if (!c) return;
+            var act = ev.target.getAttribute('data-act');
+            if (!act) return;
+            if (act === 'color') {
+                c.color = PALETTE[(PALETTE.indexOf(c.color) + 1) % PALETTE.length];
+                renderRows(); draw(); return;
+            }
+            if (act === 'vis') { c.on = !c.on; renderRows(); draw(); return; }
+            if (act === 'del') {
+                if (state.curves.length === 1) { gcClearAll(); return; }
+                state.curves.splice(state.curves.indexOf(c), 1);
+                renderRows(); draw(); return;
+            }
+            if (act === 'type') {
+                c.type = ev.target.value;
+                if (c.type !== 'para') c.extra = '';
+                if (c.type !== 'imp' && c.type !== 'para' && String(c.expr).indexOf('=') > -1) c.expr = '';
+                compile(c); renderRows(); draw(); return;
+            }
+            if (act === 'expr' || act === 'extra') {
+                if (act === 'expr') c.expr = ev.target.value; else c.extra = ev.target.value;
+                compile(c);
+                var errEl = null;
+                var nodes = els.curves.querySelectorAll('.gc-err');
+                renderRows();
+                if (c.err) status('Curve "' + c.expr + '": ' + c.err, 'error');
+                else status('');
+                renderTargets();
+                draw();
+                return;
+            }
+        }
+
+        function init() {
+            resize();
+            addCurve('fn', 'x^2-4');
+            addCurve('fn', '');
+            renderRows();
+            draw();
+
+            /* example chips */
+            var chipHtml = '<span class="gc-label">Examples</span><div class="gc-chips">';
+            for (var i = 0; i < EXAMPLES.length; i++) {
+                chipHtml += '<button type="button" class="gc-chip" data-ex="' + i + '" onclick="gcLoadExample(' + i + ')">' + esc(EXAMPLES[i].label) + '</button>';
+            }
+            chipHtml += '</div>';
+            var anchor = document.getElementById('gc-legend');
+            anchor.parentNode.insertBefore(document.createRange().createContextualFragment(chipHtml), anchor);
+
+            els.curves.addEventListener('input', onCurveEvent);
+            els.curves.addEventListener('change', onCurveEvent);
+            els.curves.addEventListener('click', onCurveEvent);
+            els.curves.addEventListener('keydown', function (ev) {
+                if (ev.key === 'Enter' || ev.key === 'Escape') ev.target.blur();
+                if (ev.key === 'Enter' || ev.key === ' ') onCurveEvent(ev);
+            });
+
+            /* pan */
+            var drag = null;
+            cv.addEventListener('pointerdown', function (ev) {
+                drag = { x: ev.clientX, y: ev.clientY, vx: state.view.xmin, vmax: state.view.xmax, vy: state.view.ymin, vymax: state.view.ymax };
+                cv.setPointerCapture(ev.pointerId);
+            });
+            cv.addEventListener('pointermove', function (ev) {
+                var v = state.view;
+                var rect = cv.getBoundingClientRect();
+                var nx = (ev.clientX - rect.left) / rect.width, ny = (ev.clientY - rect.top) / rect.height;
+                var wx = v.xmin + nx * (v.xmax - v.xmin), wy = v.ymax - ny * (v.ymax - v.ymin);
+                if (drag) {
+                    var sx = (drag.xmax - drag.vx) / rect.width, sy = (drag.vymax - drag.vy) / rect.height;
+                    state.view = { xmin: drag.vx - (ev.clientX - drag.x) * sx, xmax: drag.vmax - (ev.clientX - drag.x) * sx, ymin: drag.vy + (ev.clientY - drag.y) * sy, ymax: drag.vymax + (ev.clientY - drag.y) * sy };
+                    draw();
+                } else {
+                    els.readout.textContent = 'x = ' + fmt(wx, 8) + '   y = ' + fmt(wy, 8);
+                }
+            });
+            cv.addEventListener('pointerup', function () { drag = null; els.readout.textContent = 'Drag to pan · scroll to zoom'; });
+            cv.addEventListener('pointercancel', function () { drag = null; });
+            cv.addEventListener('pointerleave', function () { if (!drag) els.readout.textContent = 'Drag to pan · scroll to zoom'; });
+            cv.addEventListener('wheel', function (ev) {
+                ev.preventDefault();
+                var f = ev.deltaY > 0 ? 1.12 : 0.89;
+                var rect = cv.getBoundingClientRect();
+                var nx = (ev.clientX - rect.left) / rect.width, ny = (ev.clientY - rect.top) / rect.height;
+                var v = state.view;
+                var wx = v.xmin + nx * (v.xmax - v.xmin), wy = v.ymax - ny * (v.ymax - v.ymin);
+                var hw = (v.xmax - v.xmin) * f / 2, hh = (v.ymax - v.ymin) * f / 2;
+                state.view = { xmin: wx - nx * 2 * hw, xmax: wx + (1 - nx) * 2 * hw, ymin: wy - (1 - ny) * 2 * hh, ymax: wy + ny * 2 * hh };
+                draw();
+            }, { passive: false });
+
+            window.addEventListener('resize', function () { resize(); draw(); });
+
+            /* restore from the shared link, if any */
+            var m = /[#&]g=([^&]+)/.exec(location.hash);
+            if (m) {
+                try {
+                    var p = JSON.parse(decodeURIComponent(m[1]));
+                    if (p && p.c && p.c.length) {
+                        state.curves = [];
+                        for (var k = 0; k < p.c.length; k++) {
+                            var rec = p.c[k];
+                            addCurve(rec.t || 'fn', rec.e || '', rec.x || '', rec.k || undefined);
+                            state.curves[k].on = rec.on !== 0;
+                        }
+                        if (p.v && p.v.length === 4) state.view = { xmin: p.v[0], xmax: p.v[1], ymin: p.v[2], ymax: p.v[3] };
+                        status('Graph restored from the shared link.', 'success');
+                    }
+                } catch (e) { /* a malformed link must never break the page */ }
+            }
+            renderRows();
+            draw();
+        }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+        else init();
+
+        /* exposed for the page's inline onclick handlers and for tests */
+        window.gcAnalyze = gcAnalyze;
+        window.gcAreaBetween = gcAreaBetween;
+        window.gcTable = gcTable;
+        window.gcExportPNG = gcExportPNG;
+        window.gcCopyLink = gcCopyLink;
+        window.gcClearAll = gcClearAll;
+        window.gcAddCurve = gcAddCurve;
+        window.gcFitWindow = gcFitWindow;
+        window.gcZoom = gcZoom;
+        window.gcLoadExample = gcLoadExample;
+        window.gcRunFit = gcRunFit;
+        window.gcLoadFitData = gcLoadFitData;
+        window.__gc = {
+            parse: parse, evalNode: evalNode, findZeros: findZeros, findExtrema: findExtrema,
+            integrate: integrate, bisect: bisect, fmt: fmt, state: state, solve: solve, MODELS: MODELS
+        };
+    })();
+    </script>
+</body>
+</html>

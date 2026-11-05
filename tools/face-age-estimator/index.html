@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>Face Age Estimator - How Old Do I Look? Free AI Face Age Detector | DevTools Hub</title>
+    <meta name="description" content="Free AI face age estimator. Detect how old you look in any photo or via live camera. 100% private browser processing, no upload, no signup. Detects multiple faces, expressions & gender. AI cannot analyze real faces - we do.">
+    <meta name="keywords" content="face age, age detector, how old do i look, face age calculator, age estimator, AI face age, age detection online, free age detector, privacy face age">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/face-age-estimator/">
+    <meta property="og:title" content="Face Age Estimator - Free AI Age Detector | DevTools Hub">
+    <meta property="og:description" content="Detect how old you look from any photo or live camera. 100% private browser processing, no signup, no upload. Multi-face, expression & gender detection. AI cannot analyze real faces - we do.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/face-age-estimator/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Face Age Estimator",
+      "description": "AI-powered face age estimator. Detects how old you look in any photo or via live camera, with multi-face, expression, and gender analysis. 100% browser-based, no upload, no signup, no watermark.",
+      "url": "https://tools.scoreroute.com/tools/face-age-estimator/",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "All",
+      "browserRequirements": "Requires camera access (optional) and modern browser with WebGL",
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+      "author": {"@type": "Person", "name": "BAOMING"},
+      "datePublished": "2026-06-06",
+      "dateModified": "2026-09-09",
+      "featureList": [
+        "Live camera age detection",
+        "Photo upload age detection",
+        "Multiple face detection",
+        "Expression recognition (7 emotions)",
+        "Gender detection",
+        "Age range confidence",
+        "Download annotated image",
+        "100% private (no upload)",
+        "No signup required"
+      ]
+    }
+    </script>
+    <style>
+        .fae-container { max-width: 1200px; margin: 0 auto; }
+        .fae-section { background: #1a1a2e; border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid #2a2a4a; }
+        .fae-section h2 { color: #667eea; margin-bottom: 16px; font-size: 1.3rem; }
+        .fae-mode-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .fae-mode-tab { flex: 1; min-width: 140px; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; padding: 12px 16px; border-radius: 10px; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; text-align: center; }
+        .fae-mode-tab:hover { border-color: #667eea; }
+        .fae-mode-tab.active { background: linear-gradient(135deg, #667eea, #764ba2); border-color: #667eea; }
+        .fae-mode-tab .icon { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+        .fae-dropzone { border: 3px dashed #444; border-radius: 14px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #0f0f23; }
+        .fae-dropzone:hover, .fae-dropzone.dragover { border-color: #667eea; background: #1a1a3e; }
+        .fae-dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+        .fae-dropzone-icon { font-size: 3rem; margin-bottom: 8px; }
+        .fae-dropzone-text { font-size: 1rem; color: #ccc; }
+        .fae-dropzone-text strong { color: #667eea; }
+        .fae-camera-area { display: none; text-align: center; }
+        .fae-camera-area.visible { display: block; }
+        .fae-video-wrap { position: relative; display: inline-block; max-width: 100%; border-radius: 12px; overflow: hidden; background: #0f0f23; border: 1px solid #2a2a4a; }
+        .fae-video, .fae-canvas { display: block; max-width: 100%; height: auto; }
+        .fae-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .fae-camera-controls { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .fae-status { padding: 10px 16px; border-radius: 8px; margin: 12px 0; font-size: 0.9rem; display: none; }
+        .fae-status.visible { display: block; }
+        .fae-status.info { background: #1a1a3e; color: #8b9ef5; border: 1px solid #333; }
+        .fae-status.error { background: #3e1a1a; color: #ff9999; border: 1px solid #aa3333; }
+        .fae-status.success { background: #1a3e2a; color: #99ff99; border: 1px solid #33aa33; }
+        .fae-progress { display: none; margin: 14px 0; padding: 12px 16px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+        .fae-progress.visible { display: block; }
+        .fae-progress-bar { height: 6px; background: #0f0f23; border-radius: 3px; overflow: hidden; margin-top: 6px; }
+        .fae-progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.3s; }
+        .fae-result { display: none; margin-top: 20px; }
+        .fae-result.visible { display: block; }
+        .fae-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+        .fae-result-header h2 { color: #fff; margin: 0; font-size: 1.3rem; }
+        .fae-faces-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 16px; }
+        .fae-face-card { background: linear-gradient(135deg, #1a1a3e, #0f0f23); border: 1px solid #2a2a4a; border-radius: 14px; padding: 18px; transition: transform 0.2s; }
+        .fae-face-card:hover { transform: translateY(-2px); border-color: #667eea; }
+        .fae-face-rank { color: #667eea; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+        .fae-face-age { color: #fff; font-size: 2.4rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1; margin-bottom: 4px; }
+        .fae-face-age-label { color: #888; font-size: 0.8rem; margin-bottom: 12px; }
+        .fae-face-meta { display: flex; gap: 14px; flex-wrap: wrap; padding-top: 12px; border-top: 1px solid #2a2a4a; }
+        .fae-face-meta-item { font-size: 0.85rem; }
+        .fae-face-meta-label { color: #888; }
+        .fae-face-meta-value { color: #fff; font-weight: 500; }
+        .fae-expressions { margin-top: 12px; padding-top: 12px; border-top: 1px solid #2a2a4a; }
+        .fae-expr-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.82rem; }
+        .fae-expr-label { color: #aaa; min-width: 80px; text-transform: capitalize; }
+        .fae-expr-bar { flex: 1; height: 6px; background: #0f0f23; border-radius: 3px; overflow: hidden; }
+        .fae-expr-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); }
+        .fae-expr-value { color: #fff; min-width: 40px; text-align: right; font-family: monospace; font-size: 0.78rem; }
+        .fae-summary { background: linear-gradient(135deg, #1a1a3e, #131826); border-radius: 12px; padding: 20px; margin-top: 16px; border: 1px solid #2a2a4a; }
+        .fae-summary h3 { color: #667eea; margin-bottom: 10px; font-size: 1.05rem; }
+        .fae-summary p { color: #ccc; line-height: 1.6; font-size: 0.95rem; }
+        .fae-summary .stat { display: inline-block; margin: 4px 8px 4px 0; padding: 4px 12px; background: #0f0f23; border-radius: 20px; font-size: 0.85rem; }
+        .fae-summary .stat strong { color: #667eea; margin-right: 4px; }
+        .fae-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: all 0.2s; }
+        .fae-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
+        .fae-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .fae-btn-secondary { background: #0f0f23; border: 1px solid #2a2a4a; }
+        .fae-btn-secondary:hover { background: #1a1a3e; box-shadow: none; }
+        .fae-privacy-note { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #1a3e2a; border: 1px solid #33aa33; border-radius: 8px; margin-top: 16px; font-size: 0.85rem; color: #99ff99; }
+        .fae-privacy-note .icon { font-size: 1.2rem; }
+        .fae-error { display: none; margin: 14px 0; padding: 12px 16px; background: #3e1a1a; color: #ff9999; border-radius: 8px; border: 1px solid #aa3333; font-size: 0.9rem; }
+        .fae-error.visible { display: block; }
+        .fae-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+        .fae-loading-overlay { position: fixed; inset: 0; background: rgba(15, 15, 35, 0.85); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .fae-loading-overlay.visible { display: flex; }
+        .fae-loading-content { text-align: center; color: #fff; }
+        .fae-loading-spinner { width: 48px; height: 48px; border: 4px solid #2a2a4a; border-top-color: #667eea; border-radius: 50%; animation: fae-spin 1s linear infinite; margin: 0 auto 16px; }
+        @keyframes fae-spin { to { transform: rotate(360deg); } }
+        @media (max-width: 600px) {
+            .fae-face-age { font-size: 1.9rem; }
+            .fae-section { padding: 18px; }
+            .fae-mode-tab { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Face Age Estimator</h1>
+            <p class="subtitle">AI-Powered Age Detection - How Old Do You Look?</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/media/">Media Tools</a> &gt; <span>Face Age Estimator</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Detect Age from Any Face Photo</h2>
+                <p style="color: #aaa; margin-bottom: 20px;">Powered by TensorFlow.js + face-api.js running locally in your browser. Your photos never leave your device.</p>
+
+                <div class="fae-mode-tabs">
+                    <div class="fae-mode-tab active" data-mode="upload" onclick="switchMode('upload')">
+                        <span class="icon">📁</span> Upload Photo
+                    </div>
+                    <div class="fae-mode-tab" data-mode="camera" onclick="switchMode('camera')">
+                        <span class="icon">📷</span> Live Camera
+                    </div>
+                </div>
+
+                <div id="uploadPanel">
+                    <div id="dropzone" class="fae-dropzone" onclick="document.getElementById('fileInput').click()">
+                        <div class="fae-dropzone-icon">📸</div>
+                        <div class="fae-dropzone-text">
+                            <strong>Click to choose</strong> or drag &amp; drop an image<br>
+                            <small style="color: #888;">JPG, PNG, WebP, BMP — max 10MB</small>
+                        </div>
+                        <input type="file" id="fileInput" accept="image/*" style="display: none;" aria-label="Upload image file">
+                    </div>
+                </div>
+
+                <div id="cameraPanel" class="fae-camera-area">
+                    <div class="fae-video-wrap">
+                        <video id="video" class="fae-video" autoplay muted playsinline poster="https://tools.scoreroute.com/og-image.png" aria-label="Live camera preview for face age detection"></video>
+                        <canvas id="overlay" class="fae-canvas"></canvas>
+                    </div>
+                    <div class="fae-camera-controls">
+                        <button class="fae-btn" id="captureBtn" onclick="captureFromCamera()">📸 Capture &amp; Analyze</button>
+                        <button class="fae-btn fae-btn-secondary" id="toggleDetectBtn" onclick="toggleRealtimeDetect()" disabled>▶ Start Real-time</button>
+                    </div>
+                </div>
+
+                <div class="fae-privacy-note">
+                    <span class="icon">🔒</span>
+                    <span><strong>100% Private:</strong> All processing happens in your browser. No image, video, or biometric data is ever uploaded to any server.</span>
+                </div>
+
+                <div id="status" class="fae-status"></div>
+                <div id="progress" class="fae-progress">
+                    <div id="progressText" style="color: #667eea; font-size: 0.9rem;">Loading AI models…</div>
+                    <div class="fae-progress-bar"><div id="progressFill" class="fae-progress-fill"></div></div>
+                </div>
+                <div id="error" class="fae-error"></div>
+
+                <div id="result" class="fae-result">
+                    <div class="fae-result-header">
+                        <h2>Detection Results</h2>
+                        <div class="fae-actions">
+                            <button class="fae-btn fae-btn-secondary" onclick="downloadAnnotated()">💾 Download Annotated Image</button>
+                            <button class="fae-btn fae-btn-secondary" onclick="resetAll()">🔄 New Photo</button>
+                        </div>
+                    </div>
+                    <div id="summary" class="fae-summary"></div>
+                    <div id="facesGrid" class="fae-faces-grid"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>About This Tool</h3>
+                <p>The <strong>Face Age Estimator</strong> uses TensorFlow.js with the face-api.js library to detect human faces and estimate their age, gender, and emotional expression. All AI models run entirely in your browser — no server upload, no signup, no data collection.</p>
+
+                <h3>How It Works</h3>
+                <ol style="color: #aaa; margin-left: 24px; line-height: 1.8;">
+                    <li><strong>Load Models</strong> — Four pre-trained neural networks (~6MB total) load on first use, then cache for instant subsequent uses.</li>
+                    <li><strong>Detect Faces</strong> — TinyFaceDetector scans the image to locate all visible faces with bounding boxes.</li>
+                    <li><strong>Landmark Alignment</strong> — 68-point face landmarks are detected to align the face for accurate analysis.</li>
+                    <li><strong>Estimate Age &amp; Gender</strong> — A convolutional neural network estimates the age and gender of each detected face.</li>
+                    <li><strong>Recognize Expressions</strong> — 7 emotion categories (neutral, happy, sad, angry, fearful, disgusted, surprised) are scored.</li>
+                </ol>
+
+                <h3>Why Our Tool Is Different</h3>
+                <ul>
+                    <li><strong>No Upload</strong> — Photos never leave your device. Existing tools (FaceApp, YouCam) upload your face to their servers, raising privacy concerns.</li>
+                    <li><strong>No Signup</strong> — No account, no email, no tracking. Just open and use.</li>
+                    <li><strong>No Watermark</strong> — Download clean, annotated images without any branding overlay.</li>
+                    <li><strong>No Daily Limit</strong> — Use as many times as you want, free forever.</li>
+                    <li><strong>Multiple Faces</strong> — Detect and analyze all faces in a group photo simultaneously.</li>
+                    <li><strong>Live Camera</strong> — Capture and analyze in real-time without taking a photo first.</li>
+                </ul>
+
+                <h3>What AI Can (and Cannot) Do</h3>
+                <p>Large language models like ChatGPT, Claude, or Gemini can describe how age detection works in theory, but they <strong>cannot actually analyze a face image to determine how old someone looks</strong>. Real face age estimation requires running a trained convolutional neural network on your actual photo — which is exactly what this tool does, in your browser, in seconds.</p>
+
+                <h3>Privacy &amp; Data Handling</h3>
+                <ul>
+                    <li>All computation happens locally in your browser using WebGL acceleration.</li>
+                    <li>No image data is transmitted to any server at any point.</li>
+                    <li>The face-api.js library is open-source (MIT License) and the models are publicly hosted on jsDelivr CDN.</li>
+                    <li>You can verify this by opening browser DevTools → Network tab → no requests with image data after page load.</li>
+                </ul>
+
+                <h3>Accuracy &amp; Limitations</h3>
+                <p>Age estimation has a typical error margin of <strong>±4-7 years</strong> — the model was trained on diverse photos but cannot account for lighting, makeup, hairstyle, glasses, or unusual angles. Results are best viewed as a fun estimate rather than a precise measurement. The model performs best on frontal faces with good lighting.</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>Is my photo uploaded to a server?</summary>
+                    <p>No. The face-api.js library runs entirely in your browser via TensorFlow.js. Your photos and video never leave your device. You can verify this by opening the browser's DevTools Network tab and observing zero image uploads.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How accurate is the age estimation?</summary>
+                    <p>The age estimation model has a typical error of ±4-7 years. It's most accurate on frontal faces with good lighting. Factors like makeup, facial hair, glasses, and expression can shift the estimate. Use the result as a fun estimate rather than a precise age.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I analyze a group photo with multiple people?</summary>
+                    <p>Yes. The tool detects and analyzes all faces in a photo simultaneously. Each face gets its own age, gender, and expression card in the results.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why does the first use take a few seconds?</summary>
+                    <p>On first use, the AI models (~6MB total) need to download from the CDN. They're then cached by your browser, so subsequent uses start instantly. The real-time camera mode is also more responsive after the first load.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What about real-time camera mode?</summary>
+                    <p>Click the "Live Camera" tab, allow camera permission, and click "Start Real-time" to see live age detection overlaid on the video feed. Click "Capture &amp; Analyze" for a still-image detailed report.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What facial expressions can be detected?</summary>
+                    <p>The model recognizes 7 expressions: neutral, happy, sad, angry, fearful, disgusted, and surprised. Each is given a confidence score (0-100%) so you can see the top expression plus runner-ups.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does this work on mobile?</summary>
+                    <p>Yes. The tool works on any modern browser (Chrome, Edge, Firefox, Safari) on desktop and mobile. The camera mode works on phones, tablets, and laptops. For best results on older devices, use a small image size.</p>
+                </details>
+
+                <h3>Related Tools</h3>
+                <ul>
+                    <li><a href="/tools/image-upscaler/">Image Upscaler</a> — Enhance face photos to 4K resolution</li>
+                    <li><a href="/tools/image-compressor/">Image Compressor</a> — Reduce image file size</li>
+                    <li><a href="/tools/image-format-converter/">Image Format Converter</a> — Convert between JPG, PNG, WebP</li>
+                    <li><a href="/tools/background-remover/">Background Remover</a> — Remove image backgrounds</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script src="/tools.js"></script>
+    <script>
+        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+        let modelsLoaded = false;
+        let currentImage = null;
+        let currentResults = null;
+        let currentMode = 'upload';
+        let stream = null;
+        let realtimeRunning = false;
+        let realtimeRafId = null;
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const statusEl = document.getElementById('status');
+        const progressEl = document.getElementById('progress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const errorEl = document.getElementById('error');
+        const resultEl = document.getElementById('result');
+        const facesGrid = document.getElementById('facesGrid');
+        const summaryEl = document.getElementById('summary');
+
+        ['dragenter', 'dragover'].forEach(evt => {
+            dropzone.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); dropzone.classList.add('dragover'); });
+        });
+        ['dragleave', 'drop'].forEach(evt => {
+            dropzone.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('dragover'); });
+        });
+        dropzone.addEventListener('drop', e => {
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) handleFile(file);
+            else showError('Please drop an image file (JPG, PNG, WebP).');
+        });
+        fileInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        function showError(msg) {
+            errorEl.textContent = msg;
+            errorEl.classList.add('visible');
+            setTimeout(() => errorEl.classList.remove('visible'), 5000);
+        }
+        function showStatus(msg, type) {
+            statusEl.textContent = msg;
+            statusEl.className = 'fae-status visible ' + (type || 'info');
+        }
+        function setProgress(pct, text) {
+            progressEl.classList.add('visible');
+            progressFill.style.width = pct + '%';
+            if (text) progressText.textContent = text;
+        }
+        function hideProgress() { progressEl.classList.remove('visible'); }
+
+        async function loadModels() {
+            if (modelsLoaded) return true;
+            try {
+                setProgress(10, 'Loading face detector…');
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                setProgress(35, 'Loading landmark model…');
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                setProgress(60, 'Loading age/gender model…');
+                await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
+                setProgress(85, 'Loading expression model…');
+                await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+                setProgress(100, 'Models loaded!');
+                modelsLoaded = true;
+                setTimeout(hideProgress, 800);
+                return true;
+            } catch (e) {
+                hideProgress();
+                showError('Failed to load AI models: ' + e.message);
+                return false;
+            }
+        }
+
+        async function handleFile(file) {
+            if (file.size > 10 * 1024 * 1024) {
+                showError('Image too large. Maximum 10MB.');
+                return;
+            }
+            errorEl.classList.remove('visible');
+            resultEl.classList.remove('visible');
+            showStatus('Loading image…', 'info');
+            const img = new Image();
+            img.onload = async () => {
+                currentImage = img;
+                dropzone.classList.add('has-file');
+                dropzone.querySelector('.fae-dropzone-text').innerHTML = '<strong>✓ Image loaded:</strong> ' + file.name + '<br><small style="color: #888;">Click to choose a different image</small>';
+                await runDetection(img);
+            };
+            img.onerror = () => showError('Failed to load image. Please try a JPG or PNG file.');
+            img.src = URL.createObjectURL(file);
+        }
+
+        async function runDetection(input) {
+            const ok = await loadModels();
+            if (!ok) return;
+            showStatus('Detecting faces…', 'info');
+            try {
+                const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 });
+                const results = await faceapi
+                    .detectAllFaces(input, options)
+                    .withFaceLandmarks()
+                    .withAgeAndGender()
+                    .withFaceExpressions();
+                currentResults = results;
+                if (results.length === 0) {
+                    showStatus('No faces detected. Try a clearer photo with the face well-lit and facing the camera.', 'error');
+                    resultEl.classList.remove('visible');
+                    return;
+                }
+                renderResults(results, input);
+                showStatus('✓ Detected ' + results.length + ' face' + (results.length === 1 ? '' : 's') + '.', 'success');
+            } catch (e) {
+                showError('Detection error: ' + e.message);
+            }
+        }
+
+        function ageRange(age) {
+            const lo = Math.max(0, Math.floor(age - 5));
+            const hi = Math.ceil(age + 5);
+            return lo + '–' + hi;
+        }
+
+        function ageGroup(age) {
+            if (age < 13) return 'Child';
+            if (age < 20) return 'Teen';
+            if (age < 30) return '20s';
+            if (age < 40) return '30s';
+            if (age < 50) return '40s';
+            if (age < 60) return '50s';
+            if (age < 70) return '60s';
+            return '70+';
+        }
+
+        function expressionEmoji(expr) {
+            const map = { neutral: '😐', happy: '😄', sad: '😢', angry: '😠', fearful: '😨', disgusted: '🤢', surprised: '😮' };
+            return map[expr] || '🙂';
+        }
+
+        function renderResults(results, input) {
+            const cards = results.map((r, i) => {
+                const age = Math.round(r.age);
+                const topExpr = Object.entries(r.expressions).sort((a, b) => b[1] - a[1])[0];
+                const exprs = Object.entries(r.expressions)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([k, v]) => '<div class="fae-expr-row"><span class="fae-expr-label">' + expressionEmoji(k) + ' ' + k + '</span><div class="fae-expr-bar"><div class="fae-expr-fill" style="width: ' + (v * 100).toFixed(0) + '%"></div></div><span class="fae-expr-value">' + (v * 100).toFixed(0) + '%</span></div>')
+                    .join('');
+                return '<div class="fae-face-card">' +
+                    '<div class="fae-face-rank">Face ' + (i + 1) + ' of ' + results.length + '</div>' +
+                    '<div class="fae-face-age">' + age + '</div>' +
+                    '<div class="fae-face-age-label">years old (est. range ' + ageRange(age) + ') • ' + ageGroup(age) + '</div>' +
+                    '<div class="fae-face-meta">' +
+                        '<div class="fae-face-meta-item"><span class="fae-face-meta-label">Gender:</span> <span class="fae-face-meta-value">' + r.gender + ' (' + (r.genderProbability * 100).toFixed(0) + '%)</span></div>' +
+                    '</div>' +
+                    '<div class="fae-expressions"><div class="fae-face-meta-label" style="margin-bottom: 6px;">Top expression: <span style="color: #fff;">' + topExpr[0] + ' ' + (topExpr[1] * 100).toFixed(0) + '%</span></div>' + exprs + '</div>' +
+                '</div>';
+            }).join('');
+
+            const ages = results.map(r => Math.round(r.age));
+            const avg = (ages.reduce((a, b) => a + b, 0) / ages.length).toFixed(1);
+            const min = Math.min(...ages);
+            const max = Math.max(...ages);
+            const males = results.filter(r => r.gender === 'male').length;
+            const females = results.filter(r => r.gender === 'female').length;
+            const summary = '<h3>Summary</h3>' +
+                '<p>Detected <strong>' + results.length + '</strong> face' + (results.length === 1 ? '' : 's') + ' in this image.</p>' +
+                '<div style="margin-top: 8px;">' +
+                    '<span class="stat"><strong>Avg age:</strong> ' + avg + '</span>' +
+                    '<span class="stat"><strong>Range:</strong> ' + min + '–' + max + '</span>' +
+                    '<span class="stat"><strong>Male:</strong> ' + males + '</span>' +
+                    '<span class="stat"><strong>Female:</strong> ' + females + '</span>' +
+                '</div>';
+
+            summaryEl.innerHTML = summary;
+            facesGrid.innerHTML = cards;
+            resultEl.classList.add('visible');
+        }
+
+        function resetAll() {
+            currentImage = null;
+            currentResults = null;
+            fileInput.value = '';
+            dropzone.classList.remove('has-file');
+            dropzone.querySelector('.fae-dropzone-text').innerHTML = '<strong>Click to choose</strong> or drag &amp; drop an image<br><small style="color: #888;">JPG, PNG, WebP, BMP — max 10MB</small>';
+            resultEl.classList.remove('visible');
+            statusEl.classList.remove('visible');
+            errorEl.classList.remove('visible');
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.fae-mode-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-mode="' + mode + '"]').classList.add('active');
+            document.getElementById('uploadPanel').style.display = mode === 'upload' ? 'block' : 'none';
+            document.getElementById('cameraPanel').classList.toggle('visible', mode === 'camera');
+            if (mode === 'camera') startCamera();
+            else stopCamera();
+        }
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                await video.play();
+                document.getElementById('toggleDetectBtn').disabled = false;
+            } catch (e) {
+                showError('Camera access denied or unavailable: ' + e.message);
+            }
+        }
+
+        function stopCamera() {
+            if (realtimeRunning) toggleRealtimeDetect();
+            if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+            const video = document.getElementById('video');
+            if (video) video.srcObject = null;
+            const overlay = document.getElementById('overlay');
+            if (overlay) { const ctx = overlay.getContext('2d'); ctx.clearRect(0, 0, overlay.width, overlay.height); }
+        }
+
+        async function captureFromCamera() {
+            const video = document.getElementById('video');
+            if (!video.videoWidth) { showError('Camera not ready yet.'); return; }
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            const img = new Image();
+            img.onload = async () => { currentImage = img; await runDetection(img); };
+            img.src = canvas.toDataURL('image/jpeg', 0.9);
+        }
+
+        async function toggleRealtimeDetect() {
+            const btn = document.getElementById('toggleDetectBtn');
+            if (realtimeRunning) {
+                realtimeRunning = false;
+                if (realtimeRafId) cancelAnimationFrame(realtimeRafId);
+                btn.textContent = '▶ Start Real-time';
+                const overlay = document.getElementById('overlay');
+                const ctx = overlay.getContext('2d');
+                ctx.clearRect(0, 0, overlay.width, overlay.height);
+                return;
+            }
+            const ok = await loadModels();
+            if (!ok) return;
+            realtimeRunning = true;
+            btn.textContent = '⏸ Stop Real-time';
+            const video = document.getElementById('video');
+            const overlay = document.getElementById('overlay');
+            overlay.width = video.videoWidth || video.clientWidth;
+            overlay.height = video.videoHeight || video.clientHeight;
+            const loop = async () => {
+                if (!realtimeRunning) return;
+                try {
+                    const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+                    const results = await faceapi.detectAllFaces(video, options).withAgeAndGender();
+                    const ctx = overlay.getContext('2d');
+                    ctx.clearRect(0, 0, overlay.width, overlay.height);
+                    const scaleX = overlay.width / video.videoWidth;
+                    const scaleY = overlay.height / video.videoHeight;
+                    results.forEach(r => {
+                        const box = r.detection.box;
+                        ctx.strokeStyle = '#667eea';
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(box.x * scaleX, box.y * scaleY, box.width * scaleX, box.height * scaleY);
+                        const age = Math.round(r.age);
+                        const label = age + ' • ' + r.gender;
+                        ctx.font = 'bold 16px sans-serif';
+                        const textW = ctx.measureText(label).width + 12;
+                        ctx.fillStyle = 'rgba(102, 126, 234, 0.9)';
+                        ctx.fillRect(box.x * scaleX, (box.y * scaleY) - 24, textW, 24);
+                        ctx.fillStyle = '#fff';
+                        ctx.fillText(label, (box.x * scaleX) + 6, (box.y * scaleY) - 7);
+                    });
+                } catch (e) {}
+                realtimeRafId = requestAnimationFrame(loop);
+            };
+            loop();
+        }
+
+        async function downloadAnnotated() {
+            if (!currentImage || !currentResults || currentResults.length === 0) { showError('No results to download.'); return; }
+            const canvas = document.createElement('canvas');
+            canvas.width = currentImage.naturalWidth || currentImage.width;
+            canvas.height = currentImage.naturalHeight || currentImage.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(currentImage, 0, 0);
+            const scaleX = canvas.width / currentImage.width;
+            const scaleY = canvas.height / currentImage.height;
+            const boxColor = '#667eea';
+            currentResults.forEach((r, i) => {
+                const box = r.detection.box;
+                const x = box.x * scaleX;
+                const y = box.y * scaleY;
+                const w = box.width * scaleX;
+                const h = box.height * scaleY;
+                ctx.strokeStyle = boxColor;
+                ctx.lineWidth = Math.max(2, canvas.width / 400);
+                ctx.strokeRect(x, y, w, h);
+                const age = Math.round(r.age);
+                const topExpr = Object.entries(r.expressions).sort((a, b) => b[1] - a[1])[0];
+                const label1 = 'Face ' + (i + 1) + ' • ' + age + ' yrs • ' + r.gender;
+                const label2 = 'Top: ' + topExpr[0] + ' (' + (topExpr[1] * 100).toFixed(0) + '%)';
+                ctx.font = 'bold ' + Math.max(14, canvas.width / 50) + 'px sans-serif';
+                const textW1 = ctx.measureText(label1).width + 12;
+                const textW2 = ctx.measureText(label2).width + 12;
+                const lineH = Math.max(20, canvas.width / 50);
+                ctx.fillStyle = 'rgba(102, 126, 234, 0.9)';
+                ctx.fillRect(x, y - lineH * 2 - 4, Math.max(textW1, textW2), lineH * 2 + 4);
+                ctx.fillStyle = '#fff';
+                ctx.fillText(label1, x + 6, y - lineH - 6);
+                ctx.fillText(label2, x + 6, y - 6);
+            });
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'face-age-estimation-' + Date.now() + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }, 'image/png');
+        }
+
+        window.addEventListener('beforeunload', stopCamera);
+    </script>
+</body>
+</html>

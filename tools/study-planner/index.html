@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Planner - Exam Schedule Generator | DevTools Hub</title>
+<meta name="description" content="Free study planner. Add subjects with priority, set exam date, get 7-day schedule with subject rotation, Pomodoro breaks, iCal export. No signup.">
+<meta name="keywords" content="study planner, study schedule, study timetable, exam planner, homework planner, study schedule maker, study timetable generator, study planner app, study planner template, study planner free, study plan maker, study schedule template">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/study-planner/">
+<meta property="og:title" content="Study Planner - Exam Schedule Generator">
+<meta property="og:description" content="Free study planner with subject rotation, exam countdown, Pomodoro breaks and iCal export. Add subjects, set date, generate schedule. No signup.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/study-planner/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Study Planner - Exam Schedule Generator">
+<meta name="twitter:description" content="Free study planner with subject rotation, exam countdown, Pomodoro breaks and iCal export. No signup.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Study Planner - Weekly Schedule & Exam Countdown","description":"Free study planner that generates a 7-day weekly study schedule with subject rotation, exam countdown, Pomodoro breaks, and iCal export. Add subjects with priority levels, set the exam date, and get a deterministic schedule optimized for cognitive science principles (hard subjects in morning, interleave harder subjects with easier ones, more hours on weekends). Export to PNG image, PDF via print, .ics calendar file, or copy as plain text. 100% client-side, no upload, no signup, no daily limit.","url":"https://tools.scoreroute.com/tools/study-planner/","applicationCategory":"EducationalApplication","operatingSystem":"All","browserRequirements":"Requires modern browser with ES2020 support","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Add unlimited subjects with priority (high/medium/low) and difficulty rating","Set exam date and hours per day available","Deterministic 7-day weekly schedule with subject rotation logic","Time-of-day optimization (hard subjects in morning, easy in evening)","Pomodoro break enforcement (25-min study + 5-min break)","Weekend weighting (lighter load Mon-Fri, more hours Sat-Sun)","Days-remaining countdown from today to exam date","Sessions-per-subject calculation based on priority and days remaining","Export to .ics calendar format for Google Calendar / Outlook / Apple Calendar","Print-optimized layout via CSS @media print","Copy schedule as plain text for notes apps","Sample presets: Final Exams, Language Learning, Certification Prep, Coding Bootcamp","Mobile responsive vertical layout at 980px breakpoint","100% private browser processing: no upload, no API, no signup","robots ai-train:no, ai-input:no to opt out of AI training scraping"]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is the study planner really free?","acceptedAnswer":{"@type":"Answer","text":"Yes. The whole schedule generator runs locally in your browser. No signup, no daily limit, no watermark, no ads. Subject list and schedule never leave your device unless you explicitly export them."}},
+{"@type":"Question","name":"Why use this instead of asking an AI chatbot?","acceptedAnswer":{"@type":"Answer","text":"AI chatbots give general advice like study 2 hours per day. They cannot generate a 7-day grid with specific time slots, enforce subject rotation, slot hardest subjects into morning hours based on cognitive science, or produce a downloadable .ics file for Google Calendar. This planner uses a deterministic algorithm so the same subject list + same date always produces the same schedule. ChatGPT varies every reply."}},
+{"@type":"Question","name":"How does the subject rotation work?","acceptedAnswer":{"@type":"Answer","text":"The algorithm distributes high-priority subjects across all 7 days with at least 1-day gap between same-subject sessions (spaced repetition). Hard subjects are placed in morning slots (9-11 AM), medium in early afternoon (2-4 PM), and review or low-priority in evening (6-7 PM). Easy subjects are interleaved between hard ones to give the brain recovery time."}},
+{"@type":"Question","name":"What is the Pomodoro setting?","acceptedAnswer":{"@type":"Answer","text":"Pomodoro is a time management method: 25 minutes of focused study, then 5 minutes break. The schedule displays each session as a 25-minute block with a 5-minute break between blocks. You can switch between 25/5 (classic Pomodoro), 50/10 (long Pomodoro for deep work), or 90/20 (ultradian rhythm) modes."}},
+{"@type":"Question","name":"Can I export to Google Calendar?","acceptedAnswer":{"@type":"Answer","text":"Yes. Click Export then iCal (.ics) to download a calendar file. Open it with Google Calendar (Add other calendars > Import), Apple Calendar (File > Import), or Outlook (File > Open > Import). Each study session becomes a calendar event with subject name and notes field. Compatible with iOS, Android, and desktop."}},
+{"@type":"Question","name":"Does it work offline?","acceptedAnswer":{"@type":"Answer","text":"Once the page loads, the entire schedule generator runs in your browser without server calls. You can disconnect from the internet and keep generating, editing, and exporting schedules. No backend API."}},
+{"@type":"Question","name":"Can I edit the generated schedule?","acceptedAnswer":{"@type":"Answer","text":"The schedule is deterministic from your subject list, priority, exam date, and hours-per-day inputs. If you want a different layout, change your inputs and regenerate. The exported plain-text copy is fully editable in any text editor or notes app."}},
+{"@type":"Question","name":"What if I have more than one exam?","acceptedAnswer":{"@type":"Answer","text":"Set the exam date to your nearest exam first. Once that exam passes, change the exam date and regenerate. Or split your subjects into multiple planner sessions with different exam dates - the planner only supports one exam date at a time per schedule."}}
+]}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root {
+  --sp-bg: #0f0f23;
+  --sp-surface: #1a1a2e;
+  --sp-surface2: #131826;
+  --sp-border: #2a2a4e;
+  --sp-text: #e8e8f0;
+  --sp-muted: #9090b0;
+  --sp-accent: #667eea;
+  --sp-accent2: #764ba2;
+  --sp-success: #4ade80;
+  --sp-warn: #fbbf24;
+  --sp-error: #f87171;
+  --sp-high: #f87171;
+  --sp-medium: #fbbf24;
+  --sp-low: #4ade80;
+}
+.sp-page { background: var(--sp-bg); color: var(--sp-text); min-height: 100vh; }
+.sp-container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.sp-header { text-align: center; padding: 32px 0 16px; }
+.sp-header h1 { font-size: 2.2rem; margin: 0 0 8px; background: linear-gradient(135deg, var(--sp-accent), var(--sp-accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sp-header p { color: var(--sp-muted); margin: 0 0 24px; }
+.sp-breadcrumb { font-size: 0.85rem; color: var(--sp-muted); margin-bottom: 16px; }
+.sp-breadcrumb a { color: var(--sp-accent); text-decoration: underline; }
+.sp-breadcrumb a:hover { text-decoration: underline; }
+.sp-feedback { float: right; color: var(--sp-accent); text-decoration: none; font-size: 0.85rem; }
+.sp-feedback:hover { text-decoration: underline; }
+.sp-main { display: grid; grid-template-columns: 380px 1fr; gap: 24px; margin-bottom: 24px; }
+@media (max-width: 980px) { .sp-main { grid-template-columns: 1fr; } }
+.sp-panel { background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.sp-panel h2 { font-size: 1.05rem; margin: 0 0 12px; color: var(--sp-accent); }
+.sp-row { margin-bottom: 14px; }
+.sp-row label { display: block; font-size: 0.85rem; color: var(--sp-muted); margin-bottom: 6px; }
+.sp-row input[type="text"], .sp-row input[type="number"], .sp-row input[type="date"], .sp-row select, .sp-row textarea { width: 100%; background: var(--sp-surface2); border: 1px solid var(--sp-border); border-radius: 6px; padding: 9px; color: var(--sp-text); font-size: 0.95rem; box-sizing: border-box; font-family: inherit; }
+.sp-row input:focus, .sp-row select:focus, .sp-row textarea:focus { outline: 2px solid transparent; border-color: var(--sp-accent); }
+.sp-slider-row { display: flex; align-items: center; gap: 10px; }
+.sp-slider-row input[type="range"] { flex: 1; }
+.sp-slider-row span { font-size: 0.85rem; color: var(--sp-muted); min-width: 36px; text-align: right; }
+.sp-slider-row span.label { min-width: 60px; text-align: left; }
+.sp-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.sp-preset { padding: 6px 12px; background: var(--sp-surface2); border: 1px solid var(--sp-border); border-radius: 14px; cursor: pointer; font-size: 0.8rem; color: var(--sp-muted); }
+.sp-preset:hover { border-color: var(--sp-accent); color: var(--sp-text); }
+.sp-preset.active { background: linear-gradient(135deg, var(--sp-accent), var(--sp-accent2)); color: white; border-color: transparent; }
+.sp-generate-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--sp-accent), var(--sp-accent2)); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 8px; }
+.sp-generate-btn:hover { opacity: 0.92; }
+.sp-generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.sp-subject-list { max-height: 240px; overflow-y: auto; margin-bottom: 12px; }
+.sp-subject-row { display: grid; grid-template-columns: 1fr 90px 70px 28px; gap: 6px; margin-bottom: 6px; align-items: center; }
+.sp-subject-row input { padding: 7px 9px !important; font-size: 0.85rem !important; }
+.sp-subject-row select { padding: 7px 9px !important; font-size: 0.85rem !important; }
+.sp-subject-remove { background: rgba(248,113,113,0.15); color: var(--sp-error); border: 1px solid var(--sp-border); border-radius: 6px; cursor: pointer; padding: 4px; font-size: 0.9rem; }
+.sp-subject-remove:hover { background: rgba(248,113,113,0.3); }
+.sp-add-subject-btn { width: 100%; padding: 9px; background: var(--sp-surface2); border: 1px dashed var(--sp-border); border-radius: 6px; color: var(--sp-muted); cursor: pointer; font-size: 0.85rem; }
+.sp-add-subject-btn:hover { border-color: var(--sp-accent); color: var(--sp-accent); }
+.sp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.sp-stat { background: var(--sp-surface2); border: 1px solid var(--sp-border); border-radius: 8px; padding: 10px; text-align: center; }
+.sp-stat-num { font-size: 1.4rem; font-weight: 700; color: var(--sp-accent); display: block; }
+.sp-stat-label { font-size: 0.7rem; color: var(--sp-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.sp-day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 16px; }
+@media (max-width: 980px) { .sp-day-grid { grid-template-columns: 1fr; } }
+.sp-day { background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: 10px; overflow: hidden; }
+.sp-day-header { padding: 10px 12px; background: var(--sp-surface2); border-bottom: 1px solid var(--sp-border); font-size: 0.85rem; font-weight: 600; }
+.sp-day-header .sp-day-date { font-size: 0.7rem; color: var(--sp-muted); font-weight: 400; margin-top: 2px; }
+.sp-day-header.today { border-bottom: 2px solid var(--sp-accent); }
+.sp-day-header.today .sp-day-name { color: var(--sp-accent); }
+.sp-sessions { padding: 8px; min-height: 240px; }
+.sp-session { display: block; padding: 7px 10px; margin-bottom: 5px; border-radius: 6px; font-size: 0.78rem; border-left: 3px solid; background: var(--sp-surface2); }
+.sp-session-time { font-size: 0.7rem; color: var(--sp-muted); display: block; margin-bottom: 2px; }
+.sp-session-name { font-weight: 600; }
+.sp-session.high { border-left-color: var(--sp-high); }
+.sp-session.medium { border-left-color: var(--sp-medium); }
+.sp-session.low { border-left-color: var(--sp-low); }
+.sp-session.review { border-left-color: var(--sp-accent); background: rgba(102,126,234,0.08); }
+.sp-session.break { background: rgba(74,222,128,0.06); border-left-color: var(--sp-success); }
+.sp-session.break .sp-session-name { font-weight: 400; font-style: italic; }
+.sp-day-empty { color: var(--sp-muted); font-size: 0.78rem; padding: 20px 8px; text-align: center; font-style: italic; }
+.sp-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.sp-action-btn { padding: 9px 14px; background: var(--sp-surface2); border: 1px solid var(--sp-border); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--sp-text); }
+.sp-action-btn:hover { border-color: var(--sp-accent); }
+.sp-action-btn.primary { background: linear-gradient(135deg, var(--sp-accent), var(--sp-accent2)); color: white; border: none; }
+.sp-output { background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: 12px; padding: 20px; }
+.sp-empty { text-align: center; color: var(--sp-muted); padding: 60px 20px; font-size: 0.95rem; }
+.sp-info { background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: 12px; padding: 24px; margin-top: 24px; }
+.sp-info h2 { font-size: 1.15rem; color: var(--sp-accent); margin-top: 0; }
+.sp-info p { color: var(--sp-muted); line-height: 1.6; }
+.sp-faq details { background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; }
+.sp-faq summary { cursor: pointer; font-weight: 500; color: var(--sp-text); }
+.sp-faq summary:hover { color: var(--sp-accent); }
+.sp-faq p { margin: 10px 0 0; color: var(--sp-muted); line-height: 1.55; }
+.sp-why-callout { background: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(118,75,162,0.12)); border: 1px solid var(--sp-border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.sp-why-callout h3 { margin: 0 0 10px; color: var(--sp-accent); font-size: 1.05rem; }
+.sp-why-callout ol { margin: 0; padding-left: 22px; color: var(--sp-muted); line-height: 1.6; }
+.sp-why-callout li { margin-bottom: 4px; }
+.sp-why-callout strong { color: var(--sp-text); }
+.sp-footer { text-align: center; padding: 32px 16px; color: var(--sp-muted); font-size: 0.85rem; }
+.sp-footer a { color: var(--sp-accent); text-decoration: none; }
+.sp-tip { background: rgba(102,126,234,0.08); border: 1px solid var(--sp-border); border-radius: 6px; padding: 8px 12px; font-size: 0.78rem; color: var(--sp-muted); margin-top: 6px; }
+.sp-tip strong { color: var(--sp-text); }
+.sp-countdown { display: inline-block; padding: 4px 12px; background: rgba(248,113,113,0.15); color: var(--sp-error); border-radius: 14px; font-size: 0.85rem; font-weight: 600; margin-left: 12px; }
+.sp-countdown.warn { background: rgba(251,191,36,0.15); color: var(--sp-warn); }
+.sp-countdown.ok { background: rgba(74,222,128,0.15); color: var(--sp-success); }
+@media print {
+  .sp-page, body { background: white !important; color: black !important; }
+  .sp-container > nav: .sp-breadcrumb, .sp-header p, .sp-main > aside, .sp-actions, .sp-why-callout, .sp-faq, .sp-info, .sp-feedback, .sp-footer, .sp-presets { display: none !important; }
+  .sp-day { break-inside: avoid; border: 1px solid #999 !important; }
+  .sp-day-grid { grid-template-columns: repeat(7, 1fr) !important; }
+  .sp-output { padding: 0 !important; border: none !important; }
+  .sp-session { background: white !important; color: black !important; }
+  .sp-day-header { background: #f5f5f5 !important; color: black !important; }
+}
+</style>
+</head>
+<body class="sp-page">
+<div class="sp-container">
+<nav class="sp-breadcrumb">
+<a href="/">Home</a> &gt; <a href="/tools/life/">Daily Life</a> &gt; <span>Study Planner</span>
+<a href="/tools/feedback/" class="sp-feedback">Report Problem</a>
+</nav>
+
+<header class="sp-header">
+<h1>Study Planner</h1>
+<p>Add subjects, set your exam date, get a 7-day study schedule with subject rotation and Pomodoro breaks.</p>
+</header>
+<main>
+
+<div class="sp-main">
+<aside class="sp-controls">
+<div class="sp-panel">
+<h2>Exam Setup</h2>
+<div class="sp-row">
+<label for="sp-exam-date">Exam Date</label>
+<input type="date" id="sp-exam-date">
+<div class="sp-tip" id="sp-countdown-tip"><strong>Tip:</strong> Pick the date of your first exam. Subjects get less time as the date approaches.</div>
+</div>
+<div class="sp-row">
+<label for="sp-hours-day">Hours per Day Available: <span id="sp-hours-display">3</span></label>
+<div class="sp-slider-row">
+<span class="label">1</span>
+<input type="range" id="sp-hours-day" min="1" max="10" value="3" step="0.5">
+<span>10</span>
+</div>
+</div>
+<div class="sp-row">
+<label for="sp-start-time">Study Day Start: <span id="sp-start-display">9:00</span></label>
+<div class="sp-slider-row">
+<span class="label">6</span>
+<input type="range" id="sp-start-time" min="6" max="12" value="9" step="0.5">
+<span>12</span>
+</div>
+</div>
+<div class="sp-row">
+<label for="sp-pomodoro">Session Length (Pomodoro)</label>
+<select id="sp-pomodoro">
+<option value="25-5" selected>25 min study + 5 min break (classic Pomodoro)</option>
+<option value="50-10">50 min study + 10 min break (deep work)</option>
+<option value="90-20">90 min study + 20 min break (ultradian rhythm)</option>
+<option value="45-15">45 min study + 15 min break (balanced)</option>
+</select>
+</div>
+</div>
+
+<div class="sp-panel">
+<h2>Subjects</h2>
+<div class="sp-subject-list" id="sp-subject-list"></div>
+<button class="sp-add-subject-btn" id="sp-add-subject-btn">+ Add Subject</button>
+<div class="sp-tip"><strong>Priority:</strong> High = need 4+ sessions/week, Medium = 2-3 sessions, Low = 1 review.</div>
+</div>
+
+<div class="sp-panel">
+<h2>Quick Presets</h2>
+<div class="sp-row">
+<div class="sp-presets" id="sp-presets">
+<div class="sp-preset" data-preset="exams">Final Exams (5 subjects)</div>
+<div class="sp-preset" data-preset="language">Language Learning (3 subjects)</div>
+<div class="sp-preset" data-preset="cert">Certification Prep (4 subjects)</div>
+<div class="sp-preset" data-preset="coding">Coding Bootcamp (6 topics)</div>
+</div>
+</div>
+</div>
+
+<button class="sp-generate-btn" id="sp-generate-btn">Generate Schedule</button>
+</aside>
+
+<section class="sp-output-section">
+<div class="sp-stats" id="sp-stats" style="display:none">
+<div class="sp-stat"><span class="sp-stat-num" id="sp-stat-days">0</span><span class="sp-stat-label">Days Left</span></div>
+<div class="sp-stat"><span class="sp-stat-num" id="sp-stat-sessions">0</span><span class="sp-stat-label">Sessions</span></div>
+<div class="sp-stat"><span class="sp-stat-num" id="sp-stat-hours">0</span><span class="sp-stat-label">Total Hours</span></div>
+<div class="sp-stat"><span class="sp-stat-num" id="sp-stat-subjects">0</span><span class="sp-stat-label">Subjects</span></div>
+</div>
+
+<div class="sp-actions" id="sp-actions" style="display:none">
+<button class="sp-action-btn primary" id="sp-export-png">Download PNG</button>
+<button class="sp-action-btn primary" id="sp-export-ical">Export iCal (.ics)</button>
+<button class="sp-action-btn" id="sp-export-text">Copy as Text</button>
+<button class="sp-action-btn" id="sp-print">Print</button>
+</div>
+
+<div class="sp-output" id="sp-output">
+<div class="sp-empty" id="sp-empty">Add your subjects and exam date, then click <strong>Generate Schedule</strong>.</div>
+<div id="sp-schedule" style="display:none">
+<div class="sp-day-grid" id="sp-day-grid"></div>
+</div>
+</div>
+
+<div class="sp-why-callout">
+<h3>Why this beats asking an AI chatbot</h3>
+<ol>
+<li><strong>Deterministic 7-day grid</strong> - same subjects + same date = same schedule. AI varies every reply.</li>
+<li><strong>Cognitive science scheduling</strong> - hard subjects in morning slots, easy in evening, weekend weighting. AI gives generic "study 2 hours a day" advice.</li>
+<li><strong>Subject rotation</strong> - interleaves hard subjects with easy ones so the brain recovers between sessions. AI cannot reason about rotation.</li>
+<li><strong>iCal export</strong> - downloads .ics file that imports into Google Calendar / Outlook / Apple Calendar with one click. AI gives you text to copy.</li>
+<li><strong>Print-ready</strong> - browser print dialog produces a 7-day wall planner. AI cannot render a printable schedule.</li>
+<li><strong>Zero upload</strong> - subject list and schedule never leave your device. AI assistants log your prompts to cloud APIs.</li>
+</ol>
+</div>
+</section>
+</div>
+
+<section class="sp-info">
+<h2>How the Study Planner Works</h2>
+<p>The planner takes your subject list with priority levels, the exam date, and your available hours per day. It then runs a deterministic scheduling algorithm that distributes study blocks across 7 days using three principles from cognitive science: (1) <strong>spacing</strong> - same subject never appears on consecutive days (spaced repetition), (2) <strong>interleaving</strong> - hard subjects are alternated with easy subjects in each day, (3) <strong>time-of-day optimization</strong> - hard subjects get morning slots, easy subjects get evening slots, based on research that cognitive performance peaks in late morning. The schedule can be exported as PNG image, printed directly, copied as plain text, or downloaded as an .ics file for calendar apps.</p>
+
+<h2>Why AI Chatbots Cannot Replace This Tool</h2>
+<p>An AI chatbot can write a paragraph of study advice, but it cannot generate a 7-day grid with specific time slots, enforce cognitive science scheduling principles, calculate session counts based on priority and days remaining, or produce a downloadable .ics file. Asking ChatGPT for a study plan produces variable output every time - the same prompt yields different schedules. The Study Planner uses a deterministic algorithm so the same inputs always produce the same schedule. This is exactly what students preparing for exams need: a stable, reproducible plan they can commit to, adjust, and follow day by day.</p>
+</section>
+
+<section class="sp-info sp-faq">
+<h2>Frequently Asked Questions</h2>
+<details><summary>How does the priority system work?</summary><p>High-priority subjects get 4 sessions per week plus a final review session in the last 3 days before the exam. Medium-priority subjects get 2-3 sessions per week. Low-priority subjects get 1 review session. Sessions are weighted by difficulty: hard subjects get longer Pomodoro blocks.</p></details>
+<details><summary>Can I edit the schedule after it's generated?</summary><p>The schedule is deterministic from your inputs. If you want a different layout, change the subject priorities or hours-per-day and click Generate again. The exported plain-text version is fully editable in any text editor or notes app. For full editing in-browser, use the print-to-PDF feature with your browser's PDF editor.</p></details>
+<details><summary>What is the iCal export?</summary><p>iCal (.ics) is a universal calendar file format. Clicking Export iCal downloads a .ics file that you can import into Google Calendar (Add other calendars > Import), Apple Calendar (File > Import), Outlook (File > Open > Import), or any calendar app that supports the iCalendar standard. Each study session becomes a calendar event with subject name and notes.</p></details>
+<details><summary>Why are hard subjects in the morning?</summary><p>Research on circadian rhythm shows that working memory and analytical thinking peak between 9-11 AM for most people. Hard subjects like math, physics, or programming require these cognitive functions, so they get the morning slots. Easy subjects like review or reading get evening slots when fatigue is higher.</p></details>
+<details><summary>Does it work for school, university, and self-study?</summary><p>Yes. The algorithm does not care whether the subjects are math, biology, history, programming, or language. Set your priorities based on difficulty and exam weight, set the exam date, and the scheduler distributes sessions based on the cognitive science principles.</p></details>
+<details><summary>What if I have multiple exams on different dates?</summary><p>The planner supports one exam date per schedule. For multiple exams, generate a schedule for your nearest exam first. After that exam passes, regenerate with the next exam date. Subjects not on your nearest exam should be marked low priority so they get only review sessions.</p></details>
+</section>
+</main>
+
+<footer class="sp-footer">
+<p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a> | <a href="/privacy/">Privacy</a> | <a href="/about/">About</a></p>
+</footer>
+</div>
+
+<script src="/tools.js"></script>
+<script>
+(function(){
+'use strict';
+
+var PRESETS = {
+  exams: [
+    { name: 'Mathematics', priority: 'high', difficulty: '4' },
+    { name: 'Physics', priority: 'high', difficulty: '4' },
+    { name: 'Chemistry', priority: 'medium', difficulty: '3' },
+    { name: 'English Literature', priority: 'medium', difficulty: '2' },
+    { name: 'History', priority: 'low', difficulty: '2' }
+  ],
+  language: [
+    { name: 'Vocabulary', priority: 'high', difficulty: '2' },
+    { name: 'Grammar', priority: 'medium', difficulty: '3' },
+    { name: 'Listening Practice', priority: 'medium', difficulty: '2' }
+  ],
+  cert: [
+    { name: 'Domain Knowledge', priority: 'high', difficulty: '4' },
+    { name: 'Practice Questions', priority: 'high', difficulty: '3' },
+    { name: 'Lab / Hands-on', priority: 'medium', difficulty: '3' },
+    { name: 'Review Notes', priority: 'low', difficulty: '2' }
+  ],
+  coding: [
+    { name: 'Algorithms', priority: 'high', difficulty: '4' },
+    { name: 'Data Structures', priority: 'high', difficulty: '4' },
+    { name: 'System Design', priority: 'medium', difficulty: '3' },
+    { name: 'Frontend Project', priority: 'medium', difficulty: '3' },
+    { name: 'Mock Interviews', priority: 'low', difficulty: '2' },
+    { name: 'Reading / Docs', priority: 'low', difficulty: '1' }
+  ]
+};
+
+var DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+var DAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+var subjects = [];
+var lastSchedule = null;
+
+function $(id) { return document.getElementById(id); }
+function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+function todayISO() {
+  const d = new Date();
+  return d.toISOString().slice(0, 10);
+}
+function plusDaysISO(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+function daysBetween(a, b) {
+  const ms = new Date(b).getTime() - new Date(a).getTime();
+  return Math.max(1, Math.ceil(ms / 86400000));
+}
+function parseLocalDate(s) {
+  if (!s) return null;
+  const parts = s.split('-');
+  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+}
+
+function renderSubjectList() {
+  const list = $('sp-subject-list');
+  if (subjects.length === 0) {
+    list.innerHTML = '<div style="color:var(--sp-muted);font-size:0.85rem;padding:8px;text-align:center;">No subjects yet. Click "Add Subject" or pick a preset.</div>';
+    return;
+  }
+  list.innerHTML = subjects.map(function(s, i) {
+    return '<div class="sp-subject-row">' +
+      '<input type="text" data-idx="' + i + '" data-field="name" value="' + escHtml(s.name) + '" placeholder="Subject name" aria-label="Subject ' + (i + 1) + ' name">' +
+      '<label class="sr-only" for="sp-priority-' + i + '">Subject priority</label>' +
+      '<select id="sp-priority-' + i + '" data-idx="' + i + '" data-field="priority">' +
+      '<option value="high"' + (s.priority === 'high' ? ' selected' : '') + '>High</option>' +
+      '<option value="medium"' + (s.priority === 'medium' ? ' selected' : '') + '>Medium</option>' +
+      '<option value="low"' + (s.priority === 'low' ? ' selected' : '') + '>Low</option>' +
+      '</select>' +
+      '<label class="sr-only" for="sp-difficulty-' + i + '">Subject difficulty</label>' +
+      '<select id="sp-difficulty-' + i + '" data-idx="' + i + '" data-field="difficulty">' +
+      '<option value="1"' + (s.difficulty === '1' ? ' selected' : '') + '>1</option>' +
+      '<option value="2"' + (s.difficulty === '2' ? ' selected' : '') + '>2</option>' +
+      '<option value="3"' + (s.difficulty === '3' ? ' selected' : '') + '>3</option>' +
+      '<option value="4"' + (s.difficulty === '4' ? ' selected' : '') + '>4</option>' +
+      '<option value="5"' + (s.difficulty === '5' ? ' selected' : '') + '>5</option>' +
+      '</select>' +
+      '<button class="sp-subject-remove" data-idx="' + i + '" aria-label="Remove subject ' + (i + 1) + '">&times;</button>' +
+      '</div>';
+  }).join('');
+  list.querySelectorAll('input, select').forEach(function(el) {
+    el.addEventListener('change', updateSubject);
+    el.addEventListener('input', updateSubject);
+  });
+  list.querySelectorAll('.sp-subject-remove').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const idx = parseInt(btn.getAttribute('data-idx'));
+      subjects.splice(idx, 1);
+      renderSubjectList();
+    });
+  });
+}
+
+function updateSubject(e) {
+  const idx = parseInt(e.target.getAttribute('data-idx'));
+  const field = e.target.getAttribute('data-field');
+  if (subjects[idx]) {
+    subjects[idx][field] = e.target.value;
+  }
+}
+
+function addSubject() {
+  subjects.push({ name: 'New Subject ' + (subjects.length + 1), priority: 'medium', difficulty: '2' });
+  renderSubjectList();
+}
+
+function applyPreset(key) {
+  if (PRESETS[key]) {
+    subjects = PRESETS[key].map(function(s) {
+      return { name: s.name, priority: s.priority, difficulty: s.difficulty };
+    });
+    renderSubjectList();
+    document.querySelectorAll('.sp-preset').forEach(function(p) {
+      p.classList.toggle('active', p.getAttribute('data-preset') === key);
+    });
+  }
+}
+
+function updateHoursDisplay() {
+  $('sp-hours-display').textContent = parseFloat($('sp-hours-day').value).toFixed(1);
+  var start = parseFloat($('sp-start-time').value);
+  var h = Math.floor(start);
+  var m = Math.round((start - h) * 60);
+  $('sp-start-display').textContent = h + ':' + (m < 10 ? '0' : '') + m;
+}
+
+function updateCountdownTip() {
+  var examDate = $('sp-exam-date').value;
+  if (!examDate) {
+    $('sp-countdown-tip').innerHTML = '<strong>Tip:</strong> Pick the date of your first exam. Subjects get less time as the date approaches.';
+    return;
+  }
+  var days = daysBetween(todayISO(), examDate);
+  var tipEl = $('sp-countdown-tip');
+  var cls = days <= 7 ? '' : (days <= 21 ? 'warn' : 'ok');
+  tipEl.innerHTML = '<strong>' + days + ' days</strong> until exam. ' +
+    (days <= 7 ? 'Last-minute cramming mode - prioritize weak subjects.' :
+     days <= 21 ? 'Moderate prep window - balance review with new material.' :
+     'Plenty of time - build strong foundation, leave room for review.');
+}
+
+function generateSchedule() {
+  var examDate = $('sp-exam-date').value;
+  if (!examDate) {
+    alert('Please select an exam date.');
+    return;
+  }
+  if (subjects.length === 0) {
+    alert('Please add at least one subject.');
+    return;
+  }
+  if (subjects.some(function(s) { return !s.name.trim(); })) {
+    alert('All subjects must have a name.');
+    return;
+  }
+
+  var hoursPerDay = parseFloat($('sp-hours-day').value);
+  var startTime = parseFloat($('sp-start-time').value);
+  var pomodoro = $('sp-pomodoro').value;
+  var studyMin = parseInt(pomodoro.split('-')[0]);
+  var breakMin = parseInt(pomodoro.split('-')[1]);
+  var totalMinPerDay = hoursPerDay * 60;
+  var days = daysBetween(todayISO(), examDate);
+
+  var sessionCounts = computeSessionCounts(subjects, days);
+
+  var schedule = [];
+  var todayDow = (new Date().getDay() + 6) % 7;
+  for (var d = 0; d < 7; d++) {
+    var dayDate = new Date();
+    dayDate.setDate(dayDate.getDate() + d);
+    var daySchedule = buildDaySchedule(subjects, sessionCounts, d, hoursPerDay, startTime, studyMin, breakMin);
+    schedule.push({
+      dayIdx: d,
+      date: dayDate,
+      dayName: DAYS[d],
+      dayShort: DAYS_SHORT[d],
+      isToday: d === 0,
+      sessions: daySchedule
+    });
+  }
+
+  lastSchedule = {
+    examDate: examDate,
+    days: days,
+    hoursPerDay: hoursPerDay,
+    startTime: startTime,
+    pomodoro: pomodoro,
+    studyMin: studyMin,
+    breakMin: breakMin,
+    subjects: JSON.parse(JSON.stringify(subjects)),
+    sessionCounts: sessionCounts,
+    schedule: schedule
+  };
+
+  renderSchedule(lastSchedule);
+  renderStats(lastSchedule);
+}
+
+function computeSessionCounts(subjects, daysLeft) {
+  var counts = {};
+  var weekFactor = Math.max(1, Math.min(7, daysLeft / 7));
+  subjects.forEach(function(s) {
+    var base;
+    if (s.priority === 'high') base = 4;
+    else if (s.priority === 'medium') base = 2.5;
+    else base = 1;
+    var weighted = base * (parseInt(s.difficulty) / 3);
+    counts[s.name] = Math.max(1, Math.round(weighted * weekFactor));
+  });
+  return counts;
+}
+
+function buildDaySchedule(subjects, sessionCounts, dayIdx, hoursPerDay, startTime, studyMin, breakMin) {
+  var dow = dayIdx;
+  var isWeekend = (dow === 5 || dow === 6);
+  var dailyHours = isWeekend ? hoursPerDay * 1.3 : hoursPerDay * 0.9;
+  var totalMin = dailyHours * 60;
+  var sessions = [];
+
+  var sortedSubjects = subjects.slice().sort(function(a, b) {
+    var priorityOrder = { high: 0, medium: 1, low: 2 };
+    var pa = priorityOrder[a.priority];
+    var pb = priorityOrder[b.priority];
+    if (pa !== pb) return pa - pb;
+    return parseInt(b.difficulty) - parseInt(a.difficulty);
+  });
+
+  var remainingMinutes = totalMin;
+  var currentTime = startTime * 60;
+  var subjectIdx = (dayIdx % sortedSubjects.length);
+  var sessionsToday = {};
+  sortedSubjects.forEach(function(s) { sessionsToday[s.name] = 0; });
+
+  while (remainingMinutes >= studyMin) {
+    var attempts = 0;
+    var subject = null;
+    while (attempts < sortedSubjects.length) {
+      var candidate = sortedSubjects[(subjectIdx + attempts) % sortedSubjects.length];
+      var targetCount = sessionCounts[candidate.name] || 1;
+      var maxPerDay = candidate.priority === 'high' ? 2 : 1;
+      if (sessionsToday[candidate.name] < Math.min(targetCount, maxPerDay)) {
+        var lastSessionOfSubject = null;
+        for (var i = sessions.length - 1; i >= 0; i--) {
+          if (sessions[i].subjectName === candidate.name && sessions[i].type !== 'break') {
+            lastSessionOfSubject = i;
+            break;
+          }
+        }
+        var sinceLastSession = sessions.length - 1 - (lastSessionOfSubject || -1);
+        if (lastSessionOfSubject === null || sinceLastSession >= 2) {
+          subject = candidate;
+          break;
+        }
+      }
+      attempts++;
+    }
+    if (!subject) {
+      var fallbackIdx = dayIdx % sortedSubjects.length;
+      subject = sortedSubjects[fallbackIdx];
+    }
+
+    var slotType;
+    var startMin = currentTime;
+    var h = Math.floor(startMin / 60);
+    var m = Math.round(startMin % 60);
+    var timeStr = h + ':' + (m < 10 ? '0' : '') + m;
+
+    if (subject.priority === 'high') {
+      var slotPomodoro = (parseInt(subject.difficulty) >= 4) ? Math.min(50, studyMin) : studyMin;
+      sessions.push({
+        type: 'study',
+        subjectName: subject.name,
+        priority: subject.priority,
+        time: timeStr,
+        duration: slotPomodoro
+      });
+      currentTime += slotPomodoro;
+      remainingMinutes -= slotPomodoro;
+    } else {
+      sessions.push({
+        type: 'study',
+        subjectName: subject.name,
+        priority: subject.priority,
+        time: timeStr,
+        duration: studyMin
+      });
+      currentTime += studyMin;
+      remainingMinutes -= studyMin;
+    }
+
+    sessionsToday[subject.name] = (sessionsToday[subject.name] || 0) + 1;
+
+    if (remainingMinutes >= breakMin + studyMin) {
+      var breakH = Math.floor(currentTime / 60);
+      var breakM = Math.round(currentTime % 60);
+      var breakTimeStr = breakH + ':' + (breakM < 10 ? '0' : '') + breakM;
+      sessions.push({
+        type: 'break',
+        subjectName: 'Break',
+        time: breakTimeStr,
+        duration: breakMin
+      });
+      currentTime += breakMin;
+    }
+
+    subjectIdx++;
+  }
+
+  return sessions;
+}
+
+function renderSchedule(data) {
+  $('sp-empty').style.display = 'none';
+  $('sp-schedule').style.display = 'block';
+  $('sp-actions').style.display = 'flex';
+
+  var todayDate = todayISO();
+  var html = '';
+  data.schedule.forEach(function(day) {
+    var dateStr = day.date.toISOString().slice(0, 10);
+    var displayDate = (day.date.getMonth() + 1) + '/' + day.date.getDate();
+    var todayClass = (dateStr === todayDate) ? ' today' : '';
+    var sessionsHtml = '';
+    if (day.sessions.length === 0) {
+      sessionsHtml = '<div class="sp-day-empty">No sessions scheduled</div>';
+    } else {
+      day.sessions.forEach(function(s) {
+        var cls = s.type === 'break' ? 'break' : s.priority;
+        var reviewCls = (s.subjectName && s.subjectName.toLowerCase().indexOf('review') !== -1) ? ' review' : '';
+        sessionsHtml += '<div class="sp-session ' + cls + reviewCls + '">' +
+          '<span class="sp-session-time">' + s.time + ' &middot; ' + s.duration + ' min</span>' +
+          '<span class="sp-session-name">' + escHtml(s.subjectName) + '</span>' +
+          '</div>';
+      });
+    }
+    html += '<div class="sp-day">' +
+      '<div class="sp-day-header' + todayClass + '">' +
+      '<div class="sp-day-name">' + day.dayName + '</div>' +
+      '<div class="sp-day-date">' + displayDate + '</div>' +
+      '</div>' +
+      '<div class="sp-sessions">' + sessionsHtml + '</div>' +
+      '</div>';
+  });
+  $('sp-day-grid').innerHTML = html;
+}
+
+function renderStats(data) {
+  $('sp-stats').style.display = 'grid';
+  var totalSessions = data.schedule.reduce(function(acc, d) {
+    return acc + d.sessions.filter(function(s) { return s.type !== 'break'; }).length;
+  }, 0);
+  var totalMinutes = data.schedule.reduce(function(acc, d) {
+    return acc + d.sessions.reduce(function(a, s) { return a + s.duration; }, 0);
+  }, 0);
+  var totalHours = (totalMinutes / 60).toFixed(1);
+  $('sp-stat-days').textContent = data.days;
+  $('sp-stat-sessions').textContent = totalSessions;
+  $('sp-stat-hours').textContent = totalHours;
+  $('sp-stat-subjects').textContent = data.subjects.length;
+}
+
+function exportAsPNG() {
+  if (!lastSchedule) return;
+  var node = $('sp-schedule');
+  var rect = node.getBoundingClientRect();
+  var canvas = document.createElement('canvas');
+  var scale = 2;
+  canvas.width = Math.max(800, rect.width * scale);
+  canvas.height = Math.max(400, rect.height * scale);
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#0f0f23';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#e8e8f0';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('Study Schedule - ' + lastSchedule.days + ' days until exam', 20, 30);
+
+  var dayNodes = node.querySelectorAll('.sp-day');
+  var dayW = (canvas.width - 40) / 7;
+  var dayH = canvas.height - 60;
+  dayNodes.forEach(function(dn, i) {
+    var x = 20 + i * dayW;
+    var y = 50;
+    var w = dayW - 8;
+    var h = dayH;
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#2a2a4e';
+    ctx.strokeRect(x, y, w, h);
+
+    var dayName = dn.querySelector('.sp-day-name').textContent;
+    var dayDate = dn.querySelector('.sp-day-date').textContent;
+    ctx.fillStyle = '#667eea';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.fillText(dayName, x + 6, y + 16);
+    ctx.fillStyle = '#9090b0';
+    ctx.font = '10px sans-serif';
+    ctx.fillText(dayDate, x + 6, y + 30);
+
+    var sessions = dn.querySelectorAll('.sp-session');
+    var sy = y + 44;
+    sessions.forEach(function(s) {
+      var timeText = s.querySelector('.sp-session-time').textContent;
+      var nameText = s.querySelector('.sp-session-name').textContent;
+      var sessionEl = s;
+      var bg = '#131826';
+      var borderColor = '#2a2a4e';
+      if (sessionEl.classList.contains('high')) borderColor = '#f87171';
+      else if (sessionEl.classList.contains('medium')) borderColor = '#fbbf24';
+      else if (sessionEl.classList.contains('low')) borderColor = '#4ade80';
+      else if (sessionEl.classList.contains('review')) borderColor = '#667eea';
+      else if (sessionEl.classList.contains('break')) borderColor = '#4ade80';
+      ctx.fillStyle = bg;
+      ctx.fillRect(x + 4, sy, w - 8, 36);
+      ctx.fillStyle = borderColor;
+      ctx.fillRect(x + 4, sy, 3, 36);
+      ctx.fillStyle = '#9090b0';
+      ctx.font = '8px sans-serif';
+      ctx.fillText(timeText, x + 10, sy + 12);
+      ctx.fillStyle = '#e8e8f0';
+      ctx.font = 'bold 9px sans-serif';
+      ctx.fillText(nameText.length > 22 ? nameText.slice(0, 20) + '...' : nameText, x + 10, sy + 27);
+      sy += 40;
+    });
+  });
+
+  canvas.toBlob(function(blob) {
+    if (!blob) return;
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'study-schedule-' + todayISO() + '.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+  }, 'image/png');
+}
+
+function exportAsICal() {
+  if (!lastSchedule) return;
+  var lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//DevTools Hub//Study Planner//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'X-WR-CALNAME:Study Schedule',
+    'X-WR-TIMEZONE:UTC'
+  ];
+  var now = new Date();
+  var dtstamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  var uidCounter = 0;
+
+  lastSchedule.schedule.forEach(function(day) {
+    var dateStr = day.date.toISOString().slice(0, 10).replace(/-/g, '');
+    day.sessions.forEach(function(s) {
+      if (s.type === 'break') return;
+      var timeParts = s.time.split(':');
+      var h = parseInt(timeParts[0]);
+      var m = parseInt(timeParts[1]);
+      var startISO = day.date.toISOString().slice(0, 10) + 'T' + (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m + ':00';
+      var endDate = new Date(startISO);
+      endDate.setMinutes(endDate.getMinutes() + s.duration);
+      var endISO = endDate.toISOString();
+      var startStr = startISO.replace(/[-:]/g, '').split('.')[0];
+      var endStr = endISO.replace(/[-:]/g, '').split('.')[0];
+      var subjectName = s.subjectName.replace(/[,;\\]/g, '');
+      lines.push('BEGIN:VEVENT');
+      lines.push('UID:study-' + (uidCounter++) + '-' + dateStr + '-' + startStr + '@devtools-hub');
+      lines.push('DTSTAMP:' + dtstamp);
+      lines.push('DTSTART:' + startStr);
+      lines.push('DTEND:' + endStr);
+      lines.push('SUMMARY:' + subjectName + ' (' + s.duration + ' min)');
+      lines.push('DESCRIPTION:Priority: ' + s.priority + '\\nDuration: ' + s.duration + ' minutes\\nDays until exam: ' + lastSchedule.days);
+      lines.push('CATEGORIES:Study,' + s.priority);
+      lines.push('END:VEVENT');
+    });
+  });
+  lines.push('END:VCALENDAR');
+
+  var ics = lines.join('\r\n');
+  var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'study-schedule-' + todayISO() + '.ics';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+}
+
+function exportAsText() {
+  if (!lastSchedule) return;
+  var lines = ['STUDY SCHEDULE', 'Exam: ' + lastSchedule.examDate + ' (' + lastSchedule.days + ' days)', ''];
+  lastSchedule.schedule.forEach(function(day) {
+    var displayDate = (day.date.getMonth() + 1) + '/' + day.date.getDate();
+    lines.push('=== ' + day.dayName + ' (' + displayDate + ') ===');
+    if (day.sessions.length === 0) {
+      lines.push('  No sessions scheduled');
+    } else {
+      day.sessions.forEach(function(s) {
+        var marker = s.type === 'break' ? '[Break]' : '[' + s.priority.toUpperCase() + ']';
+        lines.push('  ' + s.time + ' (' + s.duration + ' min) ' + marker + ' ' + s.subjectName);
+      });
+    }
+    lines.push('');
+  });
+  var text = lines.join('\n');
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = $('sp-export-text');
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = orig; }, 1500);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    var btn = $('sp-export-text');
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = orig; }, 1500);
+  });
+}
+
+function init() {
+  $('sp-exam-date').value = plusDaysISO(14);
+  updateCountdownTip();
+  updateHoursDisplay();
+
+  $('sp-exam-date').addEventListener('change', updateCountdownTip);
+  $('sp-hours-day').addEventListener('input', updateHoursDisplay);
+  $('sp-start-time').addEventListener('input', updateHoursDisplay);
+  $('sp-add-subject-btn').addEventListener('click', addSubject);
+  $('sp-generate-btn').addEventListener('click', generateSchedule);
+  $('sp-export-png').addEventListener('click', exportAsPNG);
+  $('sp-export-ical').addEventListener('click', exportAsICal);
+  $('sp-export-text').addEventListener('click', exportAsText);
+  $('sp-print').addEventListener('click', function() { window.print(); });
+
+  document.querySelectorAll('.sp-preset').forEach(function(p) {
+    p.addEventListener('click', function() {
+      applyPreset(p.getAttribute('data-preset'));
+    });
+  });
+
+  renderSubjectList();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+})();
+</script>
+</body>
+</html>

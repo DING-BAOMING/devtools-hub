@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual Piano - Play Online Keyboard Free | DevTools Hub</title>
+<meta name="description" content="Free virtual piano you can play right in your browser. Use your computer keyboard or mouse, record and download WAV, follow along with 6 songs, chord detection.">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/virtual-piano/">
+<meta property="og:title" content="Virtual Piano - Play Online Keyboard Free">
+<meta property="og:description" content="Free virtual piano. Play with your computer keyboard or mouse, record, pick from 6 synthesized voices, follow songs, detect chords. No signup, 100% private.">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/virtual-piano/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Virtual Piano",
+  "url": "https://tools.scoreroute.com/tools/virtual-piano/",
+  "description": "Free online virtual piano with 6 synthesized voices, computer keyboard and mouse play, recording with WAV export, follow-along songs, and chord detection.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "All",
+  "browserRequirement": "Requires JavaScript and Web Audio API",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I play this virtual piano?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Click the keys with your mouse, tap them on a touch screen, or press the mapped letters on your computer keyboard (A S D F G H J K L ; for white keys, W E T Y U O P for the black keys). Move the window with the left/right octave buttons to reach lower or higher notes." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I record and save my piano playing?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Press Record, play your melody, press Stop, then Playback to hear it or Download WAV to save it as an audio file. Everything renders in your browser and nothing is uploaded anywhere." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it use real piano samples?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. All sounds are synthesized in real time with the Web Audio API, which keeps the page fast, private, and free of large audio downloads. Six selectable voices: Grand Piano, Piano, E-Piano, Organ, Harpsichord, and Music Box." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is there a way to learn a song?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Pick a song from the library (Twinkle Twinkle, Ode to Joy, Happy Birthday, Jingle Bells, Mary Had a Little Lamb) and press Practice. The keys light up in order and you are scored as you play the right notes." }
+    },
+    {
+      "@type": "Question",
+      "name": "How does chord detection work?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Hold two or more keys at the same time and the page reads the notes to identify the chord, for example C major, A minor, or G7. It uses standard interval detection so you can check what you are playing without reading music." }
+    }
+  ]
+}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.vp-wrap { max-width: 820px; margin: 0 auto; }
+.vp-controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: center; padding: 8px 0 14px; }
+.vp-control-group { display: flex; align-items: center; gap: 8px; }
+.vp-control-group label { color: #888; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; }
+.vp-select { background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; padding: 7px 12px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+.vp-select:focus { outline: 2px solid transparent; border-color: #667eea; }
+.vp-num { background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 0.9rem; width: 74px; text-align: center; font-family: monospace; }
+.vp-num:focus { outline: 2px solid transparent; border-color: #667eea; }
+/* The keyboard scrolls horizontally on a phone: 15 white keys at the 44px
+   WCAG 2.5.8 floor need ~700px, more than a 390px screen has. Scrolling keeps
+   every key at the same tap size as on a desktop instead of shrinking the
+   keys to 21px. */
+.vp-kb-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+.vp-kb { position: relative; width: 100%; max-width: 700px; min-width: 700px; height: 210px; margin: 10px auto 8px; user-select: none; -webkit-user-select: none; touch-action: pan-x; }
+.vp-kb-scroll::-webkit-scrollbar { height: 6px; }
+.vp-kb-scroll::-webkit-scrollbar-thumb { background: #3a3a5a; border-radius: 3px; }
+.vp-white-row { position: absolute; inset: 0; display: flex; }
+.vp-white { flex: 1; position: relative; background: #f4f4f8; border: 1px solid #8a8aa0; border-radius: 0 0 6px 6px; cursor: pointer; margin: 0 1px 0 0; }
+.vp-white:last-child { margin: 0; }
+.vp-white .vp-mark { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 0.72rem; color: #556; font-weight: 700; }
+.vp-black { position: absolute; top: 0; width: 7.8%; height: 58%; background: #1a1a1e; border-bottom: 3px solid #000; border-radius: 0 0 4px 4px; cursor: pointer; z-index: 3; box-shadow: 0 3px 4px rgba(0,0,0,0.45); }
+.vp-black .vp-mark { position: absolute; bottom: 6px; left: 0; right: 0; text-align: center; font-size: 0.62rem; color: #aab; font-weight: 600; }
+.vp-white.playing { background: #667eea; border-color: #667eea; }
+.vp-white.playing .vp-mark { color: #fff; }
+.vp-black.playing { background: #4a5bd6; }
+.vp-white.next { box-shadow: inset 0 -6px 0 #22c55e; }
+.vp-black.next { box-shadow: inset 0 -4px 0 #22c55e; border-bottom: 3px solid #14532d; }
+.vp-white.miss { background: #f87171; border-color: #f87171; }
+.vp-white.miss .vp-mark { color: #fff; }
+.vp-black.miss { background: #b4514a; }
+.vp-sustain-on { box-shadow: 0 0 0 2px #667eea inset; }
+.vp-status { text-align: center; min-height: 1.6em; padding: 2px 0 6px; font-size: 0.9rem; color: #aaa; }
+.vp-status.good { color: #4ade80; }
+.vp-status.bad { color: #f87171; }
+.vp-transport { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 6px 0 12px; }
+.vp-songs { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; padding: 6px 0 10px; }
+.vp-progress-track { height: 6px; background: #1a1a2e; border-radius: 3px; max-width: 420px; margin: 6px auto 4px; overflow: hidden; }
+.vp-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #667eea, #4ade80); transition: width 0.15s linear; }
+.vp-chord { text-align: center; font-size: 1.05rem; color: #ddd; padding: 4px 0 2px; min-height: 1.4em; font-weight: 600; }
+.vp-chord .chord-name { color: #667eea; }
+.vp-volume { width: 140px; -webkit-appearance: none; appearance: none; height: 5px; background: #2a2a4a; border-radius: 3px; outline: none; cursor: pointer; }
+.vp-volume::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #667eea; cursor: pointer; }
+.vp-volume::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #667eea; cursor: pointer; border: none; }
+.vp-songs-wrap { border: 1px solid #2a2a4a; background: #0f0f23; border-radius: 12px; padding: 10px 14px; margin-top: 6px; }
+.vp-opts { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; align-items: center; padding: 4px 0 8px; }
+.vp-opts label { display: flex; align-items: center; gap: 6px; color: #bbb; font-size: 0.85rem; cursor: pointer; }
+.vp-opts input[type="checkbox"] { accent-color: #667eea; width: 15px; height: 15px; }
+.vp-bpm-row { display: flex; align-items: center; gap: 8px; }
+@media (max-width: 600px) {
+  .vp-kb { height: 170px; }
+  .vp-controls, .vp-transport, .vp-songs { gap: 8px; }
+  .vp-select, .vp-num { font-size: 0.8rem; padding: 6px 8px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Virtual Piano</h1>
+    <p class="subtitle">Play a Full Keyboard in Your Browser - Free</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Virtual Piano</span>
+      <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+    </nav>
+  </div>
+</header>
+<main class="container vp-wrap">
+  <section class="tool-page">
+    <div class="tool-main">
+      <div class="vp-controls">
+        <div class="vp-control-group">
+          <button type="button" class="btn" onclick="octaveShift(-12)" aria-label="Shift octaves down" title="Move keyboard one octave down">Oct &lt;</button>
+          <button type="button" class="btn" onclick="octaveShift(12)" aria-label="Shift octaves up" title="Move keyboard one octave up">Oct &gt;</button>
+        </div>
+        <div class="vp-control-group">
+          <label for="voiceSel">Voice</label>
+          <select id="voiceSel" class="vp-select" onchange="setVoice(parseInt(this.value))">
+            <option value="0">Grand Piano</option>
+            <option value="1" selected>Piano</option>
+            <option value="2">E-Piano</option>
+            <option value="3">Organ</option>
+            <option value="4">Harpsichord</option>
+            <option value="5">Music Box</option>
+          </select>
+        </div>
+        <div class="vp-control-group">
+          <button type="button" id="sustainBtn" class="btn" onclick="toggleSustain()" title="Hold notes after release (Space)">Sustain</button>
+        </div>
+        <div class="vp-control-group">
+          <label for="volumeSlider">Volume</label>
+          <input type="range" id="volumeSlider" class="vp-volume" min="0" max="100" value="70" aria-label="Volume">
+        </div>
+      </div>
+
+      <div class="vp-chord" id="chordDisplay">Hold two or more keys to detect a chord.</div>
+
+      <div class="vp-kb-scroll">
+        <div class="vp-kb" id="piano">
+          <div class="vp-white-row" id="whiteRow"></div>
+          <div id="blackRow"></div>
+        </div>
+      </div>
+
+      <div class="vp-status" id="status"></div>
+
+      <div class="vp-transport">
+        <button type="button" class="btn btn-primary" onclick="toggleRecord()" id="recBtn">Record</button>
+        <button type="button" class="btn" onclick="playbackRecording()" id="playBtn">Playback</button>
+        <button type="button" class="btn" onclick="exportWav()" id="wavBtn">Download WAV</button>
+        <button type="button" class="btn" id="mtrBtn" onclick="toggleMetronome()">Metronome: Off</button>
+        <div class="vp-bpm-row">
+          <label for="bpmInput" style="color:#888;font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;">BPM</label>
+          <input type="number" id="bpmInput" class="vp-num" value="90" min="40" max="208" onchange="setBpm(parseInt(this.value))" aria-label="Metronome BPM">
+        </div>
+      </div>
+
+      <div class="vp-opts">
+        <label><input type="checkbox" id="noteLabels" checked onchange="toggleLabels()"> Note labels</label>
+        <label><input type="checkbox" id="keyHints" checked onchange="toggleHints()"> Keyboard hints</label>
+        <label><input type="checkbox" id="autoPlay" onchange="toggleAutoPlay()"> Auto-play preview</label>
+      </div>
+
+      <div class="vp-songs-wrap">
+        <div class="vp-songs">
+          <label for="songSel" style="color:#888;font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;">Learn a song</label>
+          <select id="songSel" class="vp-select">
+            <option value="0">Twinkle Twinkle Little Star</option>
+            <option value="1">Ode to Joy</option>
+            <option value="2">Happy Birthday</option>
+            <option value="3">Jingle Bells</option>
+            <option value="4">Mary Had a Little Lamb</option>
+          </select>
+          <button type="button" class="btn" id="demoBtn" onclick="demoSong()">Demo</button>
+          <button type="button" class="btn btn-primary" id="pracBtn" onclick="startPractice()">Practice</button>
+          <button type="button" class="btn" onclick="stopSong()">Stop</button>
+        </div>
+        <div class="vp-progress-track"><div class="vp-progress-fill" id="progFill"></div></div>
+        <div class="vp-status" id="songStatus" style="min-height:1.3em;">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h2>Free Online Virtual Piano You Can Play Right Now</h2>
+      <p>This <strong>free virtual piano</strong> turns your browser into an instrument. Use your <strong>computer keyboard</strong>, mouse, or touch screen to play notes, switch between <strong>6 synthesized voices</strong>, record your own tune and <strong>download it as a WAV file</strong>, or follow along with built-in songs that score your accuracy as you play. Everything runs locally in your browser - no signup, no upload, no audio samples to download.</p>
+
+      <h3>Why AI Cannot Replace This Tool</h3>
+      <p>An AI chatbot can name notes and write out sheet music, but it <strong>cannot produce a working, touch-responsive musical instrument</strong>. Playing a real keyboard needs instant, sample-accurate audio synthesis plus real-time input handling - a constant-loop capability that chat interfaces do not have. This tool is a genuine player for your hands, not advice for your eyes.</p>
+
+      <h3>How to Use</h3>
+      <ul>
+        <li><strong>Play</strong> - Click or tap any key, or use the mapped letters on the QWERTY keyboard. Release to stop the note.</li>
+        <li><strong>Change octave</strong> - Use the Oct &lt; / Oct &gt; buttons to slide the keyboard up or down by one octave.</li>
+        <li><strong>Pick a voice</strong> - Grand Piano, Piano, E-Piano, Organ, Harpsichord, or Music Box from the Voice menu.</li>
+        <li><strong>Sustain</strong> - Hold the Sustain button (or press Space) to let notes ring after you release a key.</li>
+        <li><strong>Record</strong> - Press Record, play your melody, press Stop, then Playback to hear it or Download WAV to save it.</li>
+        <li><strong>Learn a song</strong> - Choose a song, press Practice, and play the highlighted keys. You are scored on each correct note.</li>
+        <li><strong>Metronome</strong> - Switch it on and set the BPM to keep steady time while you play.</li>
+        <li><strong>Chord detection</strong> - Hold two or more keys and the page names the chord for you.</li>
+      </ul>
+
+      <h3>Keyboard Map</h3>
+      <table class="info-table">
+        <caption class="sr-only">Computer keyboard map</caption>
+        <tr><th>White keys</th><th>Black keys</th><th>Other</th></tr>
+        <tr><td>A S D F G H J K L ; ' &rarr; white notes</td><td>W E T Y U O P &rarr; black notes</td><td>Space = sustain, arrows = octave</td></tr>
+      </table>
+
+      <h3>Why Play a Virtual Piano?</h3>
+      <table class="info-table">
+        <caption class="sr-only">What a virtual piano is good for</caption>
+        <tr><th>Scenario</th><th>How This Helps</th></tr>
+        <tr><td>Trying piano for the first time</td><td>Test melodies and chords with zero equipment or cost before buying a real instrument</td></tr>
+        <tr><td>Learning a melody</td><td>Practice mode highlights each key and scores your accuracy note by note</td></tr>
+        <tr><td>Writing music</td><td>Finds chords from what you play and records ideas straight to a WAV file</td></tr>
+        <tr><td>Practicing rhythm</td><td>Built-in metronome with adjustable BPM keeps your timing steady</td></tr>
+        <tr><td>Teaching kids</td><td>Key labels and simple song library make the first lesson playful and free</td></tr>
+      </table>
+
+      <h3>Frequently Asked Questions</h3>
+      <details class="faq-item">
+        <summary>How do I play the virtual piano with my computer keyboard?</summary>
+        <p>The white keys map to A S D F G H J K L ; and the black keys to W E T Y U O P. Press a letter to sound that note and release it to stop. The audio is synthesized instantly with the Web Audio API, so there is no latency from loading sound files.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I save what I play?</summary>
+        <p>Yes. Press Record, play your melody, press Stop, then Download WAV. The file renders from the events you played and saves as a standard .wav file on your device. Nothing is uploaded - the whole process happens in your browser.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Are the sounds real piano recordings?</summary>
+        <p>No, they are synthesized with oscillators and harmonic partials, which keeps the page light and the audio instant. The synthesis models key voices: Grand Piano, Piano, E-Piano, Organ, Harpsichord, and Music Box, each with a distinct character.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How does the practice mode score me?</summary>
+        <p>Practice mode plays a song's note list in order. The next expected key is highlighted, and when you press it, the progress bar fills and your correct note count rises. Press the wrong key and it flashes red without advancing, so you can try again.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does this work on mobile?</summary>
+        <p>Yes. The full keyboard fits a phone screen and responds to touch, so you can tap melodies with your fingers. You can also flip the keyboard hints off to see just the note names on a small display.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is my playing private?</summary>
+        <p>Completely. All sound is made in your browser and your recorded notes stay on your device until you choose to download them. There are no accounts, no uploads, and no tracking of what you play.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is the playable range?</summary>
+        <p>The keyboard starts at C3 and reaches up to C6 when you shift octaves - roughly 3 octaves that cover most melodies and two-hand practice. Each octave button moves the whole window up or down by twelve notes.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can the metronome help with practice?</summary>
+        <p>Yes. Switch it on and set a BPM between 40 and 208. The first beat of every four is accented so you can keep a clear pulse while playing scales, songs, or your own improvisations.</p>
+      </details>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <ul>
+          <li><a href="/tools/metronome/">Online Metronome</a></li>
+          <li><a href="/tools/guitar-tuner/">Online Guitar Tuner</a></li>
+          <li><a href="/tools/voice-recorder/">Voice Recorder</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>
+  <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+var audioCtx = null;
+var currentVoice = 1;
+var baseNote = 60;
+var sustainOn = false;
+var volume = 0.7;
+var noteLabelsOn = true;
+var keyHintsOn = true;
+var autoPlayOn = false;
+var pressedSet = {};
+var activeSounds = {};
+var recording = false;
+var recordEvents = [];
+var recStart = 0;
+var songPlaying = false;
+var practiceMode = false;
+var practiceIndex = 0;
+var practiceCorrect = 0;
+var practiceWrong = 0;
+var chordState = '';
+var mtrRunning = false;
+var mtrTimer = null;
+var mtrBeat = 0;
+var mtrBpm = 90;
+var keyToMidi = {};
+var midiToKeyEl = {};
+
+var VOICES = [
+  { name: 'Grand Piano', partials: [[1, 1], [2, 0.5], [3, 0.33], [4, 0.2], [5, 0.12], [6, 0.08]], decay: 2.2 },
+  { name: 'Piano', partials: [[1, 1], [2, 0.4], [3, 0.18], [4, 0.08], [5, 0.04]], decay: 1.4 },
+  { name: 'E-Piano', partials: [[1, 1], [2, 0.7], [3, 0.4], [4, 0.15]], decay: 0.7 },
+  { name: 'Organ', partials: [[1, 1], [0.5, 0.3], [2, 0.5], [3, 0.2], [4, 0.1]], decay: 8 },
+  { name: 'Harpsichord', partials: [[1, 1], [2, 0.3], [3, 0.15], [4, 0.1], [5, 0.05]], decay: 0.35 },
+  { name: 'Music Box', partials: [[1, 1], [2.76, 0.35], [4.07, 0.2], [5.4, 0.1]], decay: 0.9 }
+];
+
+var SONGS = [
+  { name: 'Twinkle Twinkle Little Star', notes: [60,60,67,67,69,69,67,65,65,64,64,62,62,60] },
+  { name: 'Ode to Joy', notes: [64,64,65,67,67,65,64,62,60,60,62,64,64,62,62,64,64,65,67,67,65,64,62,60,60,62,64,62,60,60] },
+  { name: 'Happy Birthday', notes: [67,67,69,67,72,71,67,67,69,67,74,72,67,67,76,72,71,69,77,77,76,72,74,72] },
+  { name: 'Jingle Bells', notes: [64,64,64,64,64,64,64,67,60,62,64,65,65,65,65,65,64,64,64,64,62,62,64,62,67] },
+  { name: 'Mary Had a Little Lamb', notes: [64,62,60,62,64,64,64,62,62,62,64,67,67,64,62,60,62,64,64,64,64,62,62,64,62,60] }
+];
+
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function midiFreq(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
+
+function noteName(midi) {
+  var names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  return names[midi % 12] + (Math.floor(midi / 12) - 1);
+}
+
+function synthNote(ctx, midi, t, dur, voice) {
+  var f = midiFreq(midi);
+  var master = ctx.createGain();
+  var env = ctx.createGain();
+  var end = Math.min(t + dur, t + voice.decay + 0.2);
+  env.gain.setValueAtTime(0.0001, t);
+  env.gain.exponentialRampToValueAtTime(0.5, t + 0.008);
+  env.gain.setTargetAtTime(0.0001, t + 0.02, voice.decay / 4);
+  master.gain.value = volume;
+  env.connect(master);
+  master.connect(ctx.destination);
+  voice.partials.forEach(function (p) {
+    var o = ctx.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = f * p[0];
+    var g = ctx.createGain();
+    g.gain.value = p[1] * 0.6 + 0.4;
+    o.connect(g);
+    g.connect(env);
+    o.start(t);
+    o.stop(end + 0.05);
+  });
+  return { env: env, end: end };
+}
+
+function noteOn(midi) {
+  if (midiToKeyEl[midi]) setKeyVisual(midiToKeyEl[midi], true);
+  if (practiceMode && songPlaying) {
+    practiceKey(midi);
+    return;
+  }
+  if (recording) addRecordEvent(midi);
+  playTone(midi, true);
+  updateChord();
+}
+
+function playTone(midi, holdFlag) {
+  var ctx = initAudio();
+  if (!ctx) return;
+  var voice = VOICES[currentVoice];
+  var now = ctx.currentTime;
+  var dur = voice.decay + 0.3;
+  if (activeSounds[midi]) releaseNote(midi);
+  activeSounds[midi] = synthNote(ctx, midi, now, dur, voice);
+  activeSounds[midi].midi = midi;
+  activeSounds[midi].hold = !!holdFlag;
+  if (recording) {
+    var ev = recordEvents[recordEvents.length - 1];
+    if (ev && ev.midi === midi) activeSounds[midi].recEvent = ev;
+  }
+}
+
+function noteOff(midi) {
+  if (midiToKeyEl[midi]) setKeyVisual(midiToKeyEl[midi], false);
+  if (sustainOn) return;
+  releaseNote(midi);
+  updateChord();
+}
+
+function releaseNote(midi) {
+  var s = activeSounds[midi];
+  if (s && audioCtx) {
+    var now = audioCtx.currentTime;
+    try {
+      s.env.gain.cancelScheduledValues(now);
+      s.env.gain.setTargetAtTime(0.0001, now, 0.06);
+    } catch (e) { }
+  }
+  if (s && s.recEvent && s.recEvent.end === 0) s.recEvent.end = (performance.now() - recStart) / 1000;
+  delete activeSounds[midi];
+}
+
+function addRecordEvent(midi) {
+  recordEvents.push({ midi: midi, start: (performance.now() - recStart) / 1000, end: 0 });
+}
+
+function setKeyVisual(el, isDown) {
+  el.classList.toggle('playing', isDown);
+}
+
+function toggleSustain() {
+  sustainOn = !sustainOn;
+  var b = document.getElementById('sustainBtn');
+  b.classList.toggle('vp-sustain-on', sustainOn);
+  b.textContent = sustainOn ? 'Sustain: On' : 'Sustain';
+  if (!sustainOn) {
+    Object.keys(activeSounds).forEach(function (m) { releaseNote(parseInt(m)); });
+  }
+}
+
+function setVoice(i) {
+  currentVoice = Math.max(0, Math.min(VOICES.length - 1, i));
+  document.getElementById('voiceSel').value = currentVoice;
+  stopSong();
+}
+
+function octaveShift(d) {
+  baseNote = Math.max(48, Math.min(84, baseNote + d));
+  renderKeyboard();
+}
+
+function setBpm(v) { mtrBpm = Math.max(40, Math.min(208, parseInt(v) || 90)); document.getElementById('bpmInput').value = mtrBpm; }
+
+function toggleLabels() {
+  noteLabelsOn = document.getElementById('noteLabels').checked;
+  renderKeyboard();
+}
+
+function toggleHints() {
+  keyHintsOn = document.getElementById('keyHints').checked;
+  renderKeyboard();
+}
+
+function toggleAutoPlay() {
+  autoPlayOn = document.getElementById('autoPlay').checked;
+}
+
+function updateChord() {
+  var mids = [];
+  Object.keys(pressedSet).forEach(function (m) { if (pressedSet[m] && activeSounds[parseInt(m)]) mids.push(parseInt(m)); });
+  Object.keys(activeSounds).forEach(function (m) {
+    if (mids.indexOf(parseInt(m)) === -1) mids.push(parseInt(m));
+  });
+  if (mids.length < 2) {
+    chordState = '';
+    document.getElementById('chordDisplay').innerHTML = 'Hold two or more keys to detect a chord.';
+    return;
+  }
+  var dedup = [];
+  mids.slice().sort(function (a, b) { return a - b; }).forEach(function (n) { if (dedup.indexOf(n) === -1) dedup.push(n); });
+  var root = dedup[0];
+  var set = {};
+  dedup.forEach(function (m) { set[(m - root) % 12] = true; });
+  var name = identifyChord(root, set);
+  chordState = name;
+  var notes = dedup.slice(0, 6).map(noteName).join(' ');
+  document.getElementById('chordDisplay').innerHTML = '<span class="chord-name">' + name + '</span> <span style="color:#777">(' + notes + ')</span>';
+}
+
+function identifyChord(root, set) {
+  var pats = [
+    [[0, 4, 7], ' major'], [[0, 3, 7], ' minor'], [[0, 3, 6], ' dim'], [[0, 4, 8], ' aug'],
+    [[0, 2, 7], ' sus2'], [[0, 5, 7], ' sus4'],
+    [[0, 4, 7, 11], ' maj7'], [[0, 4, 7, 10], '7'], [[0, 3, 7, 10], 'm7'],
+    [[0, 3, 6, 9], 'dim7'], [[0, 3, 6, 10], 'm7b5'], [[0, 3, 7, 11], 'm maj7'],
+    [[0, 4, 7, 9], '6'], [[0, 3, 7, 9], 'm6'], [[0, 4, 7, 2], 'add9']
+  ];
+  var keys = Object.keys(set).map(Number);
+  var rootName = chordRootName(root);
+  for (var i = 0; i < pats.length; i++) {
+    var hit = true;
+    for (var j = 0; j < pats[i][0].length; j++) {
+      if (!set[pats[i][0][j]]) { hit = false; break; }
+    }
+    if (hit && keys.length <= pats[i][0].length + 1) return rootName + pats[i][1];
+  }
+  if (keys.length === 2) {
+    var iv = keys.slice().sort(function (a, b) { return a - b; });
+    if (iv[0] === 7) return rootName + '5';
+  }
+  return rootName + ' (cluster)';
+}
+
+function chordRootName(midi) {
+  var names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  return names[midi % 12];
+}
+
+function renderKeyboard() {
+  var whiteRow = document.getElementById('whiteRow');
+  var blackRow = document.getElementById('blackRow');
+  whiteRow.innerHTML = '';
+  blackRow.innerHTML = '';
+  midiToKeyEl = {};
+  keyToMidi = {};
+  var whites = [];
+  var blacks = [];
+  var b = baseNote;
+  var whiteOffsets = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21, 23, 24];
+  for (var i = 0; i < whiteOffsets.length; i++) whites.push(b + whiteOffsets[i]);
+  var blackPos = [{ w: 0, s: 1 }, { w: 1, s: 3 }, { w: 3, s: 6 }, { w: 4, s: 8 }, { w: 5, s: 10 }, { w: 7, s: 13 }, { w: 8, s: 15 }, { w: 10, s: 18 }, { w: 11, s: 20 }, { w: 12, s: 22 }];
+  var letters = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\''];
+  var blackLetters = { 0: 'w', 1: 'e', 3: 't', 4: 'y', 5: 'u', 7: 'o', 8: 'p' };
+  whites.forEach(function (midi, idx) {
+    var k = document.createElement('button');
+    k.type = 'button';
+    k.className = 'vp-white';
+    k.dataset.midi = midi;
+    var label = noteLabelsOn ? noteName(midi) : '';
+    var hint = (idx < letters.length && keyHintsOn) ? letters[idx].toUpperCase() : '';
+    k.setAttribute('aria-label', (hint ? hint + ' ' : '') + (label || noteName(midi)));
+    k.innerHTML = '<span class="vp-mark">' + (hint ? hint + ' ' : '') + label + '</span>';
+    k.addEventListener('pointerdown', function (e) { e.preventDefault(); noteOn(parseInt(this.dataset.midi)); });
+    k.addEventListener('pointerup', function (e) { e.preventDefault(); noteOff(parseInt(this.dataset.midi)); });
+    k.addEventListener('pointerleave', function (e) { e.preventDefault(); noteOff(parseInt(this.dataset.midi)); });
+    whiteRow.appendChild(k);
+    midiToKeyEl[midi] = k;
+    if (idx < letters.length) keyToMidi[letters[idx]] = midi;
+  });
+  blackPos.forEach(function (bp) {
+    if (bp.w >= whites.length) return;
+    var midi = b + bp.s;
+    var j = ((bp.w + 1) * (100 / whites.length)) - 3.9;
+    var k = document.createElement('button');
+    k.type = 'button';
+    k.className = 'vp-black';
+    k.dataset.midi = midi;
+    k.style.left = j + '%';
+    var label = noteLabelsOn ? noteName(midi) : '';
+    var hint = (keyHintsOn && blackLetters[bp.w]) ? blackLetters[bp.w].toUpperCase() : '';
+    k.setAttribute('aria-label', (hint ? hint + ' ' : '') + (label || noteName(midi)));
+    k.innerHTML = '<span class="vp-mark">' + (hint ? hint + ' ' : '') + label + '</span>';
+    k.addEventListener('pointerdown', function (e) { e.preventDefault(); noteOn(parseInt(this.dataset.midi)); });
+    k.addEventListener('pointerup', function (e) { e.preventDefault(); noteOff(parseInt(this.dataset.midi)); });
+    k.addEventListener('pointerleave', function (e) { e.preventDefault(); noteOff(parseInt(this.dataset.midi)); });
+    blackRow.appendChild(k);
+    midiToKeyEl[midi] = k;
+    if (blackLetters[bp.w]) keyToMidi[blackLetters[bp.w]] = midi;
+  });
+}
+
+function toggleRecord() {
+  var ctx = initAudio();
+  if (!recording) {
+    recording = true;
+    recordEvents = [];
+    recStart = performance.now();
+    document.getElementById('recBtn').textContent = 'Stop';
+    document.getElementById('recBtn').classList.add('btn-primary');
+    showStatus('vp', 'Recording...');
+  } else {
+    recording = false;
+    document.getElementById('recBtn').textContent = 'Record';
+    showStatus('vp', 'Recorded ' + recordEvents.length + ' notes. Press Playback or Download WAV.');
+  }
+}
+
+function playbackRecording() {
+  initAudio();
+  if (recordEvents.length === 0) { showStatus('vp', 'Nothing recorded yet.', 'bad'); return; }
+  showStatus('vp', 'Playing back...', 'good');
+  Object.keys(activeSounds).forEach(function (m) { releaseNote(parseInt(m)); });
+  var now = audioCtx.currentTime + 0.1;
+  recordEvents.forEach(function (ev) {
+    var voice = VOICES[currentVoice];
+    var t = now + ev.start;
+    var dur = Math.max(0.15, ev.end - ev.start);
+    synthNote(audioCtx, ev.midi, t, Math.min(dur, 2), voice);
+  });
+}
+
+function exportWav() {
+  initAudio();
+  if (recordEvents.length === 0) { showStatus('vp', 'Nothing recorded yet.', 'bad'); return; }
+  var total = 2.0;
+  recordEvents.forEach(function (ev) { total = Math.max(total, ev.end + 0.8); });
+  var sr = 22050;
+  var frames = Math.ceil(total * sr);
+  var off = new OfflineAudioContext(1, frames, sr);
+  var voice = VOICES[currentVoice];
+  function roff(applied, midi, t, dur) {
+    var osc = off.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = midiFreq(midi);
+    var g = off.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.5, t + 0.008);
+    g.gain.setTargetAtTime(0.0001, t + 0.02, applied.decay / 4);
+    osc.connect(g); g.connect(off.destination);
+    osc.start(t); osc.stop(Math.min(t + dur, t + applied.decay + 0.2));
+  }
+  recordEvents.forEach(function (ev) {
+    roff(voice, ev.midi, ev.start, Math.max(0.15, ev.end - ev.start));
+  });
+  off.startRendering().then(function (buffer) {
+    var blob = encodeWave(buffer);
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'virtual-piano-recording.wav';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 3000);
+    showStatus('vp', 'WAV exported (' + Math.round(blob.size / 1024) + ' KB).', 'good');
+  }).catch(function () {
+    showStatus('vp', 'WAV export failed.', 'bad');
+  });
+}
+
+function encodeWave(buffer) {
+  var sr = buffer.sampleRate;
+  var ch = buffer.numberOfChannels;
+  var len = buffer.length;
+  var data = buffer.getChannelData(0);
+  var bytes = new Int16Array(len);
+  for (var i = 0; i < len; i++) {
+    var s = Math.max(-1, Math.min(1, data[i]));
+    bytes[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+  }
+  var n = 44 + bytes.length * 2;
+  var out = new ArrayBuffer(n);
+  var view = new DataView(out);
+  function wstr(off, s) { for (var i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); }
+  wstr(0, 'RIFF'); view.setUint32(4, 36 + bytes.length * 2, true); wstr(8, 'WAVE');
+  wstr(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+  view.setUint16(22, ch, true); view.setUint32(24, sr, true); view.setUint32(28, sr * ch * 2, true);
+  view.setUint16(32, ch * 2, true); view.setUint16(34, 16, true);
+  wstr(36, 'data'); view.setUint32(40, bytes.length * 2, true);
+  for (var j = 0; j < bytes.length; j++) view.setInt16(44 + j * 2, bytes[j], true);
+  return new Blob([out], { type: 'audio/wav' });
+}
+
+function getSong() {
+  var i = parseInt(document.getElementById('songSel').value);
+  return SONGS[i];
+}
+
+function demoSong() {
+  stopSong();
+  var song = getSong();
+  songPlaying = true;
+  practiceMode = false;
+  document.getElementById('pracBtn').textContent = 'Practice';
+  scheduleSong(song);
+}
+
+function startPractice() {
+  stopSong();
+  var song = getSong();
+  practiceMode = true;
+  practiceIndex = 0;
+  practiceCorrect = 0;
+  practiceWrong = 0;
+  songPlaying = true;
+  document.getElementById('pracBtn').textContent = 'Practicing...';
+  highlightExpected(song.notes[practiceIndex]);
+  updateProgress(0);
+  document.getElementById('songStatus').textContent = 'Play the highlighted key.';
+}
+
+function scheduleSong(song) {
+  var ctx = initAudio();
+  var now = audioCtx.currentTime + 0.1;
+  var step = Math.max(0.28, 60 / (mtrBpm * 2));
+  song.notes.forEach(function (midi, i) {
+    setTimeout(function () {
+      if (!songPlaying) return;
+      if (midiToKeyEl[midi]) highlightFlash(midiToKeyEl[midi]);
+      playTone(midi, false);
+      setTimeout(function () { releaseNote(midi); }, step * 0.7 * 1000);
+    }, (i * step) * 1000);
+  });
+  setTimeout(function () {
+    if (songPlaying && !practiceMode) stopSong();
+  }, song.notes.length * step * 1000 + 500);
+}
+
+function highlightExpected(midi) {
+  Object.keys(midiToKeyEl).forEach(function (m) {
+    var el = midiToKeyEl[m];
+    el.classList.toggle('next', parseInt(m) === midi);
+  });
+}
+
+function clearExpected() {
+  Object.keys(midiToKeyEl).forEach(function (m) {
+    midiToKeyEl[m].classList.remove('next');
+  });
+}
+
+function highlightFlash(el) {
+  el.classList.add('playing');
+  setTimeout(function () { el.classList.remove('playing'); }, 200);
+}
+
+function stopSong() {
+  songPlaying = false;
+  practiceMode = false;
+  document.getElementById('pracBtn').textContent = 'Practice';
+  clearExpected();
+  updateProgress(0);
+  document.getElementById('songStatus').innerHTML = '&nbsp;';
+}
+
+function practiceKey(midi) {
+  if (!practiceMode || !songPlaying) return;
+  var song = getSong();
+  if (practiceIndex >= song.notes.length) return;
+  var expected = song.notes[practiceIndex];
+  if (midi === expected) {
+    practiceCorrect++;
+    practiceIndex++;
+    if (midiToKeyEl[midi]) {
+      midiToKeyEl[midi].classList.add('playing');
+      setTimeout(function () { midiToKeyEl[midi].classList.remove('playing'); }, 150);
+    }
+    updateProgress(practiceIndex / song.notes.length);
+    document.getElementById('songStatus').textContent = 'OK! ' + practiceIndex + ' / ' + song.notes.length;
+    if (practiceIndex >= song.notes.length) {
+      var pct = Math.round(100 * practiceCorrect / song.notes.length);
+      document.getElementById('songStatus').textContent = 'Song complete! ' + pct + '% correct.';
+      document.getElementById('songStatus').className = 'status good';
+      practiceMode = false;
+      songPlaying = false;
+      setTimeout(stopSong, 2200);
+      return;
+    }
+    notifyPracticeKey(midi, true);
+    highlightExpected(song.notes[practiceIndex]);
+  } else {
+    practiceWrong++;
+    if (midiToKeyEl[midi]) {
+      midiToKeyEl[midi].classList.add('miss');
+      setTimeout(function () { midiToKeyEl[midi].classList.remove('miss'); }, 220);
+    }
+    document.getElementById('songStatus').textContent = 'Wrong key - expected ' + noteName(expected) + '. Try again.';
+    notifyPracticeKey(midi, false);
+  }
+}
+
+function notifyPracticeKey(midi, ok) {
+  var ev = new CustomEvent('practicekey', { detail: { midi: midi, ok: ok } });
+  window.dispatchEvent(ev);
+}
+
+function updateProgress(p) {
+  document.getElementById('progFill').style.width = Math.min(100, Math.max(0, p * 100)) + '%';
+}
+
+function toggleMetronome() {
+  if (mtrRunning) {
+    mtrRunning = false;
+    if (mtrTimer) { clearInterval(mtrTimer); mtrTimer = null; }
+    document.getElementById('mtrBtn').textContent = 'Metronome: Off';
+    return;
+  }
+  mtrRunning = true;
+  document.getElementById('mtrBtn').textContent = 'Metronome: On';
+  mtrBeat = 0;
+  var ctx = initAudio();
+  var interval = 60000 / mtrBpm;
+  function tick() {
+    var t = audioCtx.currentTime + 0.05;
+    var osc = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = mtrBeat === 0 ? 1760 : 880;
+    g.gain.setValueAtTime(0.25, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(t); osc.stop(t + 0.07);
+    mtrBeat = (mtrBeat + 1) % 4;
+  }
+  tick();
+  mtrTimer = setInterval(tick, interval);
+}
+
+document.addEventListener('keydown', function (e) {
+  if (e.repeat) return;
+  var k = e.key.toLowerCase();
+  if (k === ' ') { e.preventDefault(); toggleSustain(); return; }
+  if (k === 'arrowleft') { octaveShift(-12); return; }
+  if (k === 'arrowright') { octaveShift(12); return; }
+  if (keyToMidi[k]) {
+    e.preventDefault();
+    var midi = keyToMidi[k];
+    if (!pressedSet[midi]) {
+      pressedSet[midi] = true;
+      if (practiceMode) practiceKey(midi);
+      else noteOn(midi);
+    }
+  }
+});
+
+document.addEventListener('keyup', function (e) {
+  var k = e.key.toLowerCase();
+  if (keyToMidi[k]) {
+    e.preventDefault();
+    var midi = keyToMidi[k];
+    delete pressedSet[midi];
+    noteOff(midi);
+  }
+});
+
+document.getElementById('volumeSlider').addEventListener('input', function () {
+  volume = parseInt(this.value) / 100;
+});
+
+function showStatus(prefix, msg, type) {
+  var el = document.getElementById('status');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'vp-status ' + (type === 'bad' ? 'bad' : type === 'good' ? 'good' : '');
+  setTimeout(function () { if (el.textContent === msg) el.textContent = ''; }, 4000);
+}
+
+renderKeyboard();
+
+window.vpPlayNote = function (midi) { noteOn(parseInt(midi)); };
+window.vpReleaseNote = function (midi) { noteOff(parseInt(midi)); setTimeout(function(){}, 0); };
+window.vpPlayScale = function () {
+  var notes = [0, 2, 4, 5, 7, 9, 11, 12];
+  for (var i = 0; i < notes.length; i++) {
+    vpSchedule(baseNote + notes[i], i * 0.2);
+  }
+  function vpSchedule(midi, t) {
+    setTimeout(function () {
+      var ctx = initAudio();
+      var voice = VOICES[currentVoice];
+      var now = ctx.currentTime;
+      var s = synthNote(ctx, midi, now, 0.6, voice);
+      setTimeout(function () {
+        s.env.gain.cancelScheduledValues(audioCtx.currentTime);
+        s.env.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.05);
+      }, 400);
+    }, t * 1000);
+  }
+};
+window.vpRecord = function () { toggleRecord(); };
+window.vpStopRec = function () { toggleRecord(); };
+window.vpPlayback = function () { playbackRecording(); };
+window.vpWav = function () { exportWav(); };
+window.vpDemo = function () { demoSong(); };
+window.vpPractice = function () { startPractice(); };
+window.vpOctave = function (d) { octaveShift(d); };
+window.vpSetVoice = function (i) { setVoice(i); };
+window.vpSustain = function () { toggleSustain(); };
+window.vpMetronome = function () { toggleMetronome(); };
+window.vpBpm = function (v) { setBpm(v); };
+window.vpChord = function () { return chordState; };
+window.vpSongPlaying = function () { return songPlaying; };
+window.vpPracticeProgress = function () { return practiceIndex; };
+window.vpRecordCount = function () { return recordEvents.length; };
+window.vpState = function () {
+  return {
+    voice: VOICES[currentVoice].name,
+    baseNote: baseNote,
+    sustain: sustainOn,
+    recording: recording,
+    recordEvents: recordEvents.length,
+    songPlaying: songPlaying,
+    practiceMode: practiceMode,
+    practiceIndex: practiceIndex,
+    song: getSong() ? getSong().name : ''
+  };
+};
+
+window.__vpActive = activeSounds;
+window.__vpCtx = function () { return audioCtx; };
+window.__defineGetter__('__vpBase', function () { return baseNote; });
+window.__defineGetter__('__vpSongNotes', function () { return SONGS[parseInt(document.getElementById('songSel').value)].notes; });
+</script>
+</body>
+</html>

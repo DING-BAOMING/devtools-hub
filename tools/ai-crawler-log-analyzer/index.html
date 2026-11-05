@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Crawler Log Analyzer - GPTBot & ClaudeBot Traffic</title>
+<meta name="description" content="Free AI crawler log analyzer. Drop an Apache, nginx, IIS or Cloudflare log and see GPTBot, ClaudeBot, PerplexityBot traffic, status codes, and reverse-DNS spoof checks.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/ai-crawler-log-analyzer/">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/ai-crawler-log-analyzer/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI Crawler Log Analyzer - GPTBot &amp; ClaudeBot Traffic">
+<meta property="og:description" content="Free AI crawler log analyzer. Drop an Apache, nginx, IIS or Cloudflare log and see GPTBot, ClaudeBot, PerplexityBot traffic, status codes, and reverse-DNS spoof checks.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI Crawler Log Analyzer - GPTBot &amp; ClaudeBot Traffic">
+<meta name="twitter:description" content="Free AI crawler log analyzer. Drop an Apache, nginx, IIS or Cloudflare log and see GPTBot, ClaudeBot, PerplexityBot traffic, status codes, and reverse-DNS spoof checks.">
+<meta name="twitter:image" content="/og-image.png">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "AI Crawler Log Analyzer",
+  "description": "Reads a server access log the way an operator reads it: which AI crawlers arrived, how often, which pages they read, what status each request got, and whether the requests came from the address range the operator claims. Reverse-DNS spoof checks included.",
+  "url": "https://tools.scoreroute.com/tools/ai-crawler-log-analyzer/",
+  "applicationCategory": "NetworkApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript. The log is read in the browser and never uploaded. Reverse DNS is an optional button press.",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@id": "https://tools.scoreroute.com/#author"},
+  "featureList": [
+    "Parses Apache common, Apache combined, nginx, IIS W3C and Cloudflare Logpush NDJSON, and unpacks gzipped logs in the browser",
+    "Counts 55 named crawlers split into AI retrieval, AI training, classic search, social preview and monitoring",
+    "Training crawlers and retrieval crawlers are counted separately, because they are separate decisions",
+    "Per-bot request, unique URL, byte and 2xx/3xx/4xx/5xx breakdown with first and last sighting",
+    "Bot by path matrix showing which pages each engine actually reads",
+    "Optional reverse DNS check on every distinct crawler IP, with a verified or unverified verdict"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Why is my access log the only place this answer exists?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because AI crawlers do not run JavaScript. Google Analytics counts referrals, which are the people who clicked a citation, and never sees the crawl itself. Search Console has no field for GPTBot or ClaudeBot at all. The request is a row in a file on your own disk, and that file is the complete record."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between GPTBot and OAI-SearchBot?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "GPTBot is OpenAI's training crawler. OAI-SearchBot and ChatGPT-User are retrieval agents, called when someone asks ChatGPT a question or pastes your link. A GPTBot fetch is index input. An OAI-SearchBot fetch is a lookup. If you block GPTBot and leave OAI-SearchBot open you stay out of training and keep your citations. If you do the reverse you feed the model and lose the answer."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Google-Extended never appear in my log?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because Google-Extended is not a crawler. It is a token in robots.txt that switches Gemini grounding and training on or off. Google fetches with Googlebot and obeys the token itself, so no separate user agent is ever sent. If you go looking for a Google-Extended line in a log you will never find one, and you may conclude Google is ignoring you when it is not."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does the spoof check work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Every user agent is a claim anyone can make. For each distinct IP behind an AI crawler the tool asks a public DNS-over-HTTPS resolver for the PTR record, that is the name the address points back to, and compares it with the domain the operator documents. A match is a verdict of verified. A mismatch, or no record at all, is unverified. It is a signal and not proof, because a PTR record can be spoofed too, so the raw name is always shown next to the verdict."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my log uploaded anywhere?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The file is read with the browser file reader and parsed on the page. Nothing is sent to us and nothing is written to disk. The one exception is the reverse DNS button, which you press deliberately: it sends only the crawler's public IP address to a public DNS resolver, never your log, never the URLs in it and never your own traffic."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which log formats does it read?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Apache common, Apache combined, nginx in either form, IIS W3C where the Fields header is present, and Cloudflare Logpush in NDJSON. Gzipped files are unpacked in the browser with the platform decompressor, so access.log.1.gz works the same as access.log. The format is detected from the first lines rather than asked for."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "My lines did not parse. What now?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The report counts unparsed lines and prints the first three, which is usually the whole diagnosis. A log in true Apache common format has no user agent column, so no bot can be identified and every line lands in the unknown bucket. That is reported as a finding rather than left as an empty table."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does this tell me whether my robots.txt is right?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. This reads what happened. Your robots.txt says what you meant. Resolving a robots file against 19 AI crawlers with the right precedence is the job of the AI Crawler Access Checker, linked at the bottom of this page, and the two make a pair: one shows intent, this one shows what the server actually did."
+      }
+    }
+  ]
+}
+</script>
+<style>
+.ac-drop { border: 2px dashed #3a3a6a; border-radius: 12px; padding: 28px 18px; text-align: center; cursor: pointer; background: #14142b; margin-bottom: 14px; }
+.ac-drop:hover, .ac-drop.over { border-color: #667eea; background: #181838; }
+.ac-drop .ac-drop-main { color: #fff; font-weight: 600; font-size: 1rem; }
+.ac-drop .ac-drop-sub { color: #a6a6c4; font-size: 0.83rem; margin-top: 6px; }
+.ac-hint { font-size: 0.8rem; color: #a6a6c4; margin: 4px 0 12px; }
+.ac-ta { width: 100%; min-height: 120px; padding: 12px 14px; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; font-family: monospace; font-size: 0.82rem; line-height: 1.5; resize: vertical; }
+.ac-ta:focus { outline: 2px solid transparent; border-color: #667eea; }
+.ac-ta::placeholder { color: #8a8aad; }
+.ac-status { margin: 10px 0; font-size: 0.87rem; min-height: 1.2em; }
+.ac-status.err { color: #f87171; }
+.ac-status.ok { color: #4ade80; }
+.ac-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 14px 0 20px; }
+.ac-tile { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 10px; padding: 10px 13px; }
+.ac-tile b { color: #fff; font-size: 1.25rem; display: block; word-break: break-word; }
+.ac-tile span { font-size: 0.75rem; color: #8b8ba8; text-transform: uppercase; letter-spacing: 0.04em; }
+.ac-sec { margin: 22px 0 0; }
+.ac-sec > h3 { color: #fff; font-size: 1rem; margin: 0 0 8px; }
+.ac-note { background: #0f0f23; border-left: 3px solid #667eea; padding: 10px 14px; border-radius: 6px; color: #bbb; font-size: 0.86rem; line-height: 1.55; margin: 8px 0; }
+.ac-note.warn { border-left-color: #fbbf24; }
+.ac-note.bad { border-left-color: #f87171; }
+.ac-note.good { border-left-color: #4ade80; }
+.ac-note b { color: #fff; }
+.ac-scroll { overflow-x: auto; }
+.ac-t { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.ac-t th { text-align: left; color: #888; font-weight: 600; padding: 8px 9px; border-bottom: 1px solid #2a2a4a; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+.ac-t td { padding: 8px 9px; border-bottom: 1px solid #1f1f3a; color: #ccc; vertical-align: top; }
+.ac-t td.num, .ac-t th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.ac-mono { font-family: monospace; font-size: 0.78rem; word-break: break-all; }
+.ac-pill { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; white-space: nowrap; display: inline-block; }
+.ac-pill.ai-search { background: rgba(168,85,247,0.2); color: #d8b4fe; }
+.ac-pill.ai-train { background: rgba(239,68,68,0.16); color: #fca5a5; }
+.ac-pill.search { background: rgba(102,126,234,0.2); color: #b8c2ff; }
+.ac-pill.social { background: rgba(16,185,129,0.16); color: #6ee7b7; }
+.ac-pill.monitor { background: rgba(251,191,36,0.16); color: #fcd34d; }
+.ac-pill.human { background: rgba(150,150,150,0.16); color: #d0d0d0; }
+.ac-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 4px; }
+.ac-chip { background: #0f0f23; border: 1px solid #2a2a4a; color: #aaa; border-radius: 20px; padding: 5px 13px; font-size: 0.8rem; cursor: pointer; }
+.ac-chip[aria-pressed="true"] { border-color: #667eea; color: #fff; background: #22224a; }
+.ac-bar { height: 7px; background: #2a2a4a; border-radius: 4px; overflow: hidden; min-width: 60px; }
+.ac-bar i { display: block; height: 100%; background: #667eea; }
+.ac-tl { display: flex; align-items: flex-end; gap: 2px; height: 90px; margin: 8px 0 4px; }
+.ac-tl div { flex: 1 1 0; display: flex; flex-direction: column; justify-content: flex-end; min-width: 3px; }
+.ac-tl .ac-tl-ai { background: #667eea; }
+.ac-tl .ac-tl-all { background: #2a2a4a; }
+.ac-tl-legend { font-size: 0.75rem; color: #8b8ba8; }
+.ac-tl-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin: 0 4px 0 12px; vertical-align: -1px; }
+.ac-privacy { margin-top: 16px; font-size: 0.85rem; color: #a6a6c4; text-align: center; }
+@media (max-width: 600px) { .ac-drop { padding: 20px 12px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>AI Crawler Log Analyzer</h1>
+    <p class="subtitle">Drop In the Access Log, Find Out What GPTBot and ClaudeBot Actually Did</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/tools/network/">Network</a> &gt; <span>AI Crawler Log Analyzer</span>
+      <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <h2>Load Your Access Log</h2>
+
+      <div class="ac-drop" id="ac-drop" role="button" tabindex="0">
+        <div class="ac-drop-main">Drop a log file here, or click to choose one</div>
+        <div class="ac-drop-sub">.log &middot; .txt &middot; .gz &middot; .json &nbsp;&mdash;&nbsp; Apache, nginx, IIS W3C, Cloudflare Logpush</div>
+      </div>
+      <input type="file" id="ac-file" class="sr-only" aria-label="Choose a server access log file to analyze" accept=".log,.txt,.gz,.json,.ndjson,text/plain">
+
+      <label class="ac-hint" for="ac-text">Or paste log lines directly</label>
+      <textarea class="ac-ta" id="ac-text" spellcheck="false" placeholder="20.171.206.72 - - [10/Oct/2026:13:55:36 +0000] &#34;GET /pricing HTTP/1.1&#34; 200 5123 &#34;-&#34; &#34;Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.2; +https://openai.com/gptbot&#34;"></textarea>
+
+      <div class="btn-group" style="margin-top:12px;">
+        <button class="btn btn-primary" id="ac-run" onclick="acRun()">Analyze Log</button>
+        <button class="btn" onclick="acSample()">Load Sample Log</button>
+        <button class="btn btn-secondary" onclick="acReset()">Clear</button>
+      </div>
+
+      <div class="ac-status" id="ac-status" role="status" aria-live="polite"></div>
+
+      <div id="ac-out" hidden>
+        <div class="ac-tiles" id="ac-tiles"></div>
+        <div id="ac-insights"></div>
+
+        <div class="ac-sec">
+          <h3>Crawlers</h3>
+          <div class="ac-chips" id="ac-chips"></div>
+          <div class="ac-scroll" tabindex="0" role="group"><table class="ac-t" id="ac-bots"><caption class="sr-only">Crawlers seen in the log</caption><thead><tr><th scope="col">Crawler</th><th scope="col">Operator</th><th scope="col">Type</th><th scope="col" class="num">Hits</th><th scope="col" class="num">URLs</th><th scope="col" class="num">Bytes</th><th scope="col" class="num">2xx</th><th scope="col" class="num">3xx</th><th scope="col" class="num">4xx</th><th scope="col" class="num">5xx</th><th scope="col" class="num">IPs</th><th scope="col">First seen</th><th scope="col">Last seen</th></tr></thead><tbody><tr><td colspan="13">Run the analyzer to see rows here.</td></tr></tbody></table></div>
+        </div>
+
+        <div class="ac-sec">
+          <h3>Which Engine Reads Which Page</h3>
+          <p class="ac-hint">Retrieval and training crawlers side by side, so a page one engine reads and another ignores is visible at a glance.</p>
+          <div class="ac-scroll" tabindex="0" role="group"><table class="ac-t" id="ac-pivot"><caption class="sr-only">Which engine reads which page</caption><thead></thead><tbody><tr><td>Run the analyzer to see rows here.</td></tr></tbody></table></div>
+        </div>
+
+        <div class="ac-sec">
+          <h3>Top Paths</h3>
+          <div class="ac-scroll" tabindex="0" role="group"><table class="ac-t" id="ac-paths"><caption class="sr-only">Top requested paths</caption><thead><tr><th scope="col">Path</th><th scope="col" class="num">Hits</th><th scope="col" class="num">AI hits</th><th scope="col">AI share</th><th scope="col" class="num">%</th></tr></thead><tbody><tr><td colspan="5">Run the analyzer to see rows here.</td></tr></tbody></table></div>
+        </div>
+
+        <div class="ac-sec">
+          <h3>Status Codes</h3>
+          <div class="ac-scroll" tabindex="0" role="group"><table class="ac-t" id="ac-status-t"><caption class="sr-only">Response status codes</caption><thead><tr><th scope="col" class="num">Code</th><th scope="col">Class</th><th scope="col" class="num">Hits</th><th scope="col">Share</th><th scope="col" class="num">%</th></tr></thead><tbody><tr><td colspan="5">Run the analyzer to see rows here.</td></tr></tbody></table></div>
+        </div>
+
+        <div class="ac-sec" id="ac-tl-sec">
+          <h3>By Day</h3>
+          <div class="ac-tl" id="ac-timeline"></div>
+          <p class="ac-tl-legend"><i style="background:#667eea"></i>AI crawlers<i style="background:#2a2a4a"></i>all requests</p>
+        </div>
+
+        <div class="ac-sec">
+          <h3>Spoof Check</h3>
+          <p class="ac-hint" id="ac-spoof-hint">A user agent is a claim anybody can make. Look up the reverse DNS name for each distinct crawler IP and compare it with the operator's own domain.</p>
+          <div class="btn-group" style="margin:6px 0 10px;">
+            <button class="btn" id="ac-verify" onclick="acVerify()">Check IP addresses</button>
+          </div>
+          <div class="ac-scroll" tabindex="0" role="group"><table class="ac-t" id="ac-spoof"><caption class="sr-only">Spoof check: crawler IP versus its reverse DNS name</caption><thead><tr><th scope="col">IP</th><th scope="col">Claims to be</th><th scope="col" class="num">Hits</th><th scope="col">PTR record</th><th scope="col">Verdict</th></tr></thead><tbody><tr><td colspan="5">Run the IP check to see rows here.</td></tr></tbody></table></div>
+          <div id="ac-spoof-out"></div>
+        </div>
+
+        <div class="btn-group" style="margin-top:18px;">
+          <button class="btn" onclick="acDownload()">Download report (JSON)</button>
+        </div>
+        <p class="ac-privacy">The log is read and parsed in this browser tab. Nothing is uploaded and nothing is stored.</p>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>Ask a Chatbot Which AI Crawlers Hit Your Site</h3>
+      <p>A chatbot will tell you. It will also be wrong. It cannot see your access log. It has read a lot about GPTBot and nothing about the 41 lines in last night's nginx log where ClaudeBot got a 403 on every request. A language model cannot count rows, group them by user agent, or tell a real crawler from a scraper wearing its name. What it can do is describe the grep command you should have run.</p>
+      <p>This tool runs that command properly. Drop in the log and you get the numbers a pager would have given you: which AI crawlers arrived, how often, what they asked for, what status each one got, and whether the requests actually came from the operator they claim. Training crawlers and retrieval crawlers are counted separately, because they are separate decisions. A GPTBot hit is index input. A Perplexity-User hit is a citation.</p>
+
+      <h3>What You Get</h3>
+      <ul>
+        <li><strong>Five log formats, detected for you</strong> &mdash; Apache common, Apache combined, nginx, IIS W3C with its Fields header, and Cloudflare Logpush in NDJSON. Gzipped logs are unpacked in the browser with the platform decompressor, so <code>access.log.1.gz</code> works the same as <code>access.log</code>.</li>
+        <li><strong>A per-crawler table</strong> &mdash; requests, unique URLs, bytes, first and last sighting, and a 2xx/3xx/4xx/5xx breakdown for each of 55 named agents.</li>
+        <li><strong>A crawler-by-page matrix</strong> &mdash; the honest answer to "what do these engines actually read on my site", which no summary of totals can give you.</li>
+        <li><strong>Reverse DNS spoof checks</strong> &mdash; every distinct IP behind an AI crawler can be looked up, and the result is a verdict: the address points back at the operator's own domain, or it does not. Between five and eight per cent of requests claiming to be a known AI crawler are spoofed, and a block list built on the user agent string alone is blocking the wrong traffic and reading the wrong numbers.</li>
+        <li><strong>JSON output</strong> &mdash; the whole report as a file, for a ticket, a dashboard or an agent.</li>
+      </ul>
+
+      <h3>What This Will Not Do</h3>
+      <p>It does not crawl your site and it does not fetch anything you did not give it. It cannot tell you whether the pages a crawler read are the pages you wanted read, or whether what it found there was worth citing. It reads one file and counts. The robots.txt side of the same question &mdash; what you <em>meant</em> rather than what happened &mdash; is a different tool.</p>
+
+      <h3>Frequently Asked</h3>
+      <details class="faq-item">
+        <summary>Why is my access log the only place this answer exists?</summary>
+        <p>Because AI crawlers do not run JavaScript. Google Analytics counts referrals, which are the people who clicked a citation, and never sees the crawl itself. Search Console has no field for GPTBot or ClaudeBot at all. The request is a row in a file on your own disk, and that file is the complete record.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is the difference between GPTBot and OAI-SearchBot?</summary>
+        <p>GPTBot is OpenAI's training crawler. OAI-SearchBot and ChatGPT-User are retrieval agents, called when someone asks ChatGPT a question or pastes your link. A GPTBot fetch is index input. An OAI-SearchBot fetch is a lookup. If you block GPTBot and leave OAI-SearchBot open you stay out of training and keep your citations. If you do the reverse you feed the model and lose the answer.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why does Google-Extended never appear in my log?</summary>
+        <p>Because Google-Extended is not a crawler. It is a token in robots.txt that switches Gemini grounding and training on or off. Google fetches with Googlebot and obeys the token itself, so no separate user agent is ever sent. If you go looking for a Google-Extended line in a log you will never find one, and you may conclude Google is ignoring you when it is not.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How does the spoof check work?</summary>
+        <p>Every user agent is a claim anyone can make. For each distinct IP behind an AI crawler the tool asks a public DNS-over-HTTPS resolver for the PTR record, that is the name the address points back to, and compares it with the domain the operator documents. A match is a verdict of verified. A mismatch, or no record at all, is unverified. It is a signal and not proof, because a PTR record can be spoofed too, so the raw name is always shown next to the verdict.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is my log uploaded anywhere?</summary>
+        <p>No. The file is read with the browser file reader and parsed on the page. Nothing is sent to us and nothing is written to disk. The one exception is the reverse DNS button, which you press deliberately: it sends only the crawler's public IP address to a public DNS resolver, never your log, never the URLs in it and never your own traffic.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Which log formats does it read?</summary>
+        <p>Apache common, Apache combined, nginx in either form, IIS W3C where the Fields header is present, and Cloudflare Logpush in NDJSON. Gzipped files are unpacked in the browser with the platform decompressor, so access.log.1.gz works the same as access.log. The format is detected from the first lines rather than asked for.</p>
+      </details>
+      <details class="faq-item">
+        <summary>My lines did not parse. What now?</summary>
+        <p>The report counts unparsed lines and prints the first three, which is usually the whole diagnosis. A log in true Apache common format has no user agent column, so no bot can be identified and every line lands in the unknown bucket. That is reported as a finding rather than left as an empty table.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does this tell me whether my robots.txt is right?</summary>
+        <p>No. This reads what happened. Your robots.txt says what you meant. Resolving a robots file against 19 AI crawlers with the right precedence is the job of the AI Crawler Access Checker, linked at the bottom of this page, and the two make a pair: one shows intent, this one shows what the server actually did.</p>
+      </details>
+
+      <h3>Pairs Well With</h3>
+      <ul>
+        <li><a href="/tools/ai-crawler-checker/">AI Crawler Access Checker</a> &mdash; resolves your robots.txt against 19 AI crawlers, so you know what you intended before you read what happened.</li>
+        <li><a href="/tools/seo-checker/">SEO Checker</a> &mdash; reads one page the way a crawler would, including the structured data and the tags it is indexed by.</li>
+        <li><a href="/tools/sitemap-audit/">Sitemap Audit</a> &mdash; finds the URLs a crawler cannot reach, which is the other half of any crawl gap.</li>
+        <li><a href="/tools/user-agent-parser/">User Agent Parser</a> &mdash; identifies a single user agent string when you only have that and no log.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+
+<script src="/tools.js"></script>
+<script>
+'use strict';
+
+// token, operator, kind, expected PTR suffix (null = no documented convention).
+// 'ai-search' and 'ai-train' are the AI crawlers. 'search' is a classic search engine and must
+// never be counted as AI: Googlebot is not an AI crawler, and a report that says it is, is the
+// exact confusion this tool exists to remove.
+var BOTS = [
+  ['OAI-SearchBot','OpenAI','ai-search'],['ChatGPT-User','OpenAI','ai-search'],['GPTBot','OpenAI','ai-train','.openai.com'],
+  ['Claude-SearchBot','Anthropic','ai-search'],['Claude-User','Anthropic','ai-search'],['ClaudeBot','Anthropic','ai-train','.anthropic.com'],['anthropic-ai','Anthropic','ai-train','.anthropic.com'],
+  ['PerplexityBot','Perplexity','ai-search','.perplexity.ai'],['Perplexity-User','Perplexity','ai-search','.perplexity.ai'],
+  ['MistralAI-User','Mistral','ai-search'],['YouBot','You.com','ai-search'],['Amazonbot','Amazon','ai-search','.amazonaws.com'],
+  ['Diffbot','Diffbot','ai-search'],['cohere-taint','Cohere','ai-search'],
+  ['Applebot-Extended','Apple','ai-train','.apple.com'],['meta-externalagent','Meta','ai-train','.facebook.com'],
+  ['FacebookBot','Meta','ai-train','.facebook.com'],['img2dataset','Meta','ai-train','.facebook.com'],
+  ['CCBot','Common Crawl','ai-train','.commoncrawl.org'],['Bytespider','ByteDance','ai-train','.bytedance.com'],['PanguBot','Huawei','ai-train'],
+  ['cohere-ai','Cohere','ai-train'],['omgili','Webz.io','ai-train'],['omgilibot','Webz.io','ai-train'],['Kangaroo Bot','Webz.io','ai-train'],
+  ['Googlebot','Google','search','.googlebot.com'],['Google-InspectionTool','Google','search','.googlebot.com'],['GoogleOther','Google','search','.google.com'],
+  ['Storebot-Google','Google','search'],['bingbot','Microsoft','search','.search.msn.com'],
+  ['Applebot','Apple','search','.apple.com'],['YandexBot','Yandex','search'],['DuckDuckBot','DuckDuckGo','search'],['Baiduspider','Baidu','search'],
+  ['SeznamBot','Seznam','search'],['Qwantbot','Qwant','search'],['MojeekBot','Mojeek','search'],['PetalBot','Huawei','search'],['Ecosia','Ecosia','search'],
+  ['facebookexternalhit','Meta','social'],['Twitterbot','X','social'],['LinkedInBot','LinkedIn','social'],['Slackbot','Slack','social'],
+  ['TelegramBot','Telegram','social'],['Discordbot','Discord','social'],['WhatsApp','WhatsApp','social'],['Pinterestbot','Pinterest','social'],
+  ['redditbot','Reddit','social'],['Embedly','Embedly','social'],['Iframely','Iframely','social'],['SkypeUriPreview','Skype','social'],['vkShare','VK','social'],
+  ['AhrefsBot','Ahrefs','monitor'],['SemrushBot','Semrush','monitor'],['MJ12bot','Majestic','monitor'],['DotBot','Moz','monitor'],
+  ['BLEXBot','BLEX','monitor'],['rogerbot','Moz','monitor'],['Screaming Frog','Screaming Frog','monitor'],['DataForSeoBot','DataForSeo','monitor'],
+  ['DataForBot','DataForSeo','monitor'],['MegaIndex','MegaIndex','monitor']
+].map(function (r) { return { token: r[0].toLowerCase(), label: r[0], op: r[1], kind: r[2], ptr: r[3] || null }; });
+
+function isAiBot(b) { return !!b && (b.kind === 'ai-search' || b.kind === 'ai-train'); }
+var KIND_LABEL = { 'ai-search': 'AI retrieval', 'ai-train': 'AI training', search: 'Search engine', social: 'Link preview', monitor: 'SEO tool', human: 'Not a bot' };
+var MAX_LINES = 400000;
+var LAST = null;
+
+function el(tag, cls, text) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined && text !== null) e.textContent = String(text);
+  return e;
+}
+function num(n) { return (n || 0).toLocaleString('en-US'); }
+function bytes(n) {
+  if (!n) return '0 B';
+  var u = ['B', 'KB', 'MB', 'GB', 'TB'], i = 0, v = n;
+  while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+  return (i ? v.toFixed(1) : v) + ' ' + u[i];
+}
+function statusOf(s) { s = parseInt(s, 10); if (!s) return 'other'; return Math.floor(s / 100) + 'xx'; }
+function fmtTs(ms) {
+  if (!ms) return '';
+  var d = new Date(ms);
+  return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 16).replace('T', ' ') + 'Z';
+}
+
+// ---------- parsing ----------
+var CLF = /^(\S+)\s+(\S+)\s+(\S+)\s+\[([^\]]+)\]\s+(?:"([^"]*)"|-)\s+(\d{3})\s+(\S+)(?:\s+"([^"]*)"\s+"([^"]*)")?/;
+var MONTHS = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
+
+function parseClfTs(t) {
+  var m = /^(\d{2})\/(\w{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2})\s*([+-]\d{4})?/.exec(t || '');
+  if (!m) return 0;
+  var mo = MONTHS[m[2]];
+  if (mo === undefined) return 0;
+  var ms = Date.UTC(+m[3], mo, +m[1], +m[4], +m[5], +m[6]);
+  // Without the offset every log is local time and the day boundary is wrong; with it, honour it.
+  var off = m[7];
+  if (off) ms -= (off.charAt(0) === '-' ? -1 : 1) * ((+off.slice(1, 3)) * 60 + (+off.slice(3, 5))) * 60000;
+  return ms;
+}
+function pick(obj, names) {
+  for (var i = 0; i < names.length; i++) {
+    var v = obj[names[i]];
+    if (v !== undefined && v !== null && v !== '') return v;
+  }
+  return '';
+}
+
+function detectFormat(lines) {
+  var sawFields = false;
+  for (var i = 0; i < lines.length; i++) {
+    var l = lines[i].trim();
+    if (!l) continue;
+    // IIS writes #Software / #Version / #Date ahead of the real rows, so a comment line is
+    // not a format signal on its own — the #Fields header is the one that names the columns.
+    if (l.charAt(0) === '#') { if (/^#Fields\s*:/i.test(l)) sawFields = true; continue; }
+    return sawFields ? 'w3c' : (l.charAt(0) === '{' ? 'ndjson' : 'clf');
+  }
+  return sawFields ? 'w3c' : 'clf';
+}
+
+// Cloudflare Logpush spells fields ClientIP / UserAgent / EdgeResponseStatus; other exporters
+// use snake_case. Normalise the keys once so the lookup list below is not a case-sensitivity trap.
+function lowerKeys(o) {
+  var r = {};
+  for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) r[k.toLowerCase().replace(/[-.]/g, '_')] = o[k];
+  return r;
+}
+// IIS W3C writes no quoting, so a user agent containing spaces breaks a whitespace split. The
+// columns before cs(User-Agent) are positionally reliable, and so are the ones declared after
+// it, so the user agent is whatever sits between them. Quoted exports are split properly.
+function splitW3C(line, fields) {
+  if (line.indexOf('"') >= 0) {
+    var toks = [], re = /"([^"]*)"|(\S+)/g, m2;
+    while ((m2 = re.exec(line)) !== null) toks.push(m2[1] !== undefined ? m2[1] : m2[2]);
+    return toks;
+  }
+  var uaIdx = fields.indexOf('user-agent');
+  if (uaIdx < 0) return line.trim().split(/\s+/);
+  var t = line.trim().split(/\s+/);
+  var tail = fields.length - uaIdx - 1;
+  var head = t.slice(0, uaIdx);
+  var uaEnd = t.length - tail;
+  var ua = t.slice(uaIdx, Math.max(uaIdx, uaEnd));
+  return head.concat(ua.length ? [ua.join(' ')] : []).concat(t.slice(Math.max(uaIdx, uaEnd)));
+}
+
+function parseLog(text) {
+  var raw = String(text).split(/\r?\n/);
+  var truncated = false;
+  if (raw.length > MAX_LINES) { raw = raw.slice(0, MAX_LINES); truncated = true; }
+
+  var format = detectFormat(raw);
+  var fields = null;
+  var lines = [], unparsed = [], noUa = 0, total = 0;
+
+  for (var i = 0; i < raw.length; i++) {
+    var line = raw[i];
+    if (!line.trim()) continue;
+    if (/^#(Software|Version|Date|Fields)/i.test(line.trim())) {
+      var fm = /^#Fields\s*:\s*(.+)$/i.exec(line.trim());
+      if (fm) fields = fm[1].trim().split(/\s+/).map(function (c) { return c.toLowerCase().replace(/^cs\(|\)$/g, '').replace(/\(.*\)/, ''); });
+      continue;
+    }
+    total++;
+    if (format === 'ndjson') {
+      var o;
+      try { o = lowerKeys(JSON.parse(line)); } catch (e) { unparsed.push(line); continue; }
+      var ua = pick(o, ['useragent', 'user_agent', 'ua', 'http_user_agent']);
+      var uri = pick(o, ['clientrequesturi', 'uripath', 'uri', 'requesturi', 'path', 'url', 'cs_uri_stem', 'csuristem']);
+      var st = pick(o, ['edgeresponsestatus', 'statuscode', 'status', 'sc_status', 'scstatus', 'httpstatus']);
+      var by = pick(o, ['edgeresponsebytes', 'bytesreceived', 'bytes', 'size', 'responsebytes', 'sc_bytes', 'scbytes', 'responselength']);
+      var ip = pick(o, ['clientip', 'client_ip', 'ip', 'c_ip', 'cip', 'remote_addr', 'remoteaddress']);
+      var tm = pick(o, ['clientrequestdatetime', 'edgetimestamp', 'datetime', 'timestamp', 'time', 'ts']);
+      lines.push({ ip: String(ip), uri: String(uri), ua: String(ua), status: +st || 0, bytes: +by || 0, ts: toMs(tm) });
+      if (!ua) noUa++;
+      continue;
+    }
+    if (format === 'w3c') {
+      if (!fields) { unparsed.push(line); continue; }
+      var cols = splitW3C(line.trim(), fields);
+      var row = {};
+      for (var c = 0; c < fields.length; c++) row[fields[c]] = cols[c] === undefined ? '' : cols[c];
+      var wua = row['user-agent'] || row['useragent'] || row['ua'] || '';
+      var wuri = row['cs-uri-stem'] || row['cs-uri-query'] || row['uri'] || row['url'] || row['requesturl'] || '';
+      var wst = row['sc-status'] || row['status'] || row['statuscode'] || 0;
+      var wby = row['sc-bytes'] || row['bytes'] || row['bytesreceived'] || row['responsebytes'] || 0;
+      var wip = row['c-ip'] || row['clientip'] || row['ip'] || row['remoteip'] || '';
+      var wday = row['date'] || '', wtime = row['time'] || '';
+      lines.push({ ip: String(wip), uri: String(wuri), ua: String(wua), status: +wst || 0, bytes: +wby || 0, ts: wday && wtime ? Date.parse(wday.replace(/\//g, '-') + 'T' + wtime + 'Z') || 0 : 0 });
+      if (!wua) noUa++;
+      continue;
+    }
+    var m = CLF.exec(line);
+    if (!m) { unparsed.push(line); continue; }
+    // Group 9 is the user agent: 1 ip, 2 ident, 3 user, 4 timestamp, 5 request, 6 status,
+    // 7 bytes, 8 referer, 9 user-agent.
+    var req = m[5] || '';
+    var parts = req.split(/\s+/);
+    lines.push({ ip: m[1], uri: parts.length > 1 ? parts[1] : (req || '-'), ua: m[9] || '', status: +m[6] || 0, bytes: m[7] === '-' ? 0 : (parseInt(m[7], 10) || 0), ts: parseClfTs(m[4]) });
+    if (!m[9]) noUa++;
+  }
+  return { lines: lines, unparsed: unparsed, noUa: noUa, total: total, format: format, truncated: truncated };
+}
+function toMs(v) {
+  if (v === undefined || v === null || v === '') return 0;
+  if (typeof v === 'number') return v > 1e11 ? v : v * 1000;
+  var n = Number(v);
+  if (!isNaN(n) && String(v).replace(/^-?\d+(\.\d+)?$/, '') === '') return n > 1e11 ? n : n * 1000;
+  return Date.parse(v) || 0;
+}
+
+// ---------- aggregation ----------
+function matchBot(ua) {
+  if (!ua) return null;
+  var l = ua.toLowerCase(), best = null;
+  for (var i = 0; i < BOTS.length; i++) {
+    if (l.indexOf(BOTS[i].token) >= 0 && (!best || BOTS[i].token.length > best.token.length)) best = BOTS[i];
+  }
+  return best;
+}
+function botKey(b) { return b.kind + '|' + b.token; }
+
+function aggregate(parsed) {
+  var bots = {}, paths = {}, days = {}, statuses = {};
+  var aiHits = 0, trainHits = 0, searchHits = 0, totalBytes = 0, aiBytes = 0;
+  var firstTs = 0, lastTs = 0;
+  var ips = {};
+
+  parsed.lines.forEach(function (r) {
+    var b = matchBot(r.ua);
+    var isAi = isAiBot(b);
+    var kind = b ? b.kind : 'human';
+    var key = b ? botKey(b) : 'human|' + ((r.ua || '').slice(0, 60) || '(empty user agent)');
+
+    if (!bots[key]) {
+      bots[key] = { key: key, token: b ? b.token : '', label: b ? b.label : '', op: b ? b.op : '', kind: kind, ptr: b ? b.ptr : null,
+        hits: 0, urls: {}, bytes: 0, s: {}, first: 0, last: 0, ips: {}, top: {}, topN: 0 };
+    }
+    var e = bots[key];
+    e.hits++;
+    e.urls[r.uri] = 1;
+    e.bytes += r.bytes;
+    var sc = statusOf(r.status);
+    e.s[sc] = (e.s[sc] || 0) + 1;
+    if (r.ts) { if (!e.first || r.ts < e.first) e.first = r.ts; if (r.ts > e.last) e.last = r.ts; }
+    if (r.ip) e.ips[r.ip] = 1;
+    e.top[r.uri] = (e.top[r.uri] || 0) + 1;
+
+    if (!paths[r.uri]) paths[r.uri] = { uri: r.uri, hits: 0, ai: 0, bots: {} };
+    paths[r.uri].hits++;
+    if (isAi) paths[r.uri].ai++;
+    if (b) paths[r.uri].bots[key] = (paths[r.uri].bots[key] || 0) + 1;
+
+    statuses[r.status] = (statuses[r.status] || 0) + 1;
+    totalBytes += r.bytes;
+    if (r.ts) { if (!firstTs || r.ts < firstTs) firstTs = r.ts; if (r.ts > lastTs) lastTs = r.ts; }
+    if (r.ts) {
+      var d = new Date(r.ts).toISOString().slice(0, 10);
+      if (!days[d]) days[d] = { ai: 0, all: 0 };
+      days[d].all++;
+      if (isAi) days[d].ai++;
+    }
+    if (isAi) {
+      aiHits++; aiBytes += r.bytes;
+      if (kind === 'ai-train') trainHits++; else searchHits++;
+      if (r.ip) {
+        if (!ips[r.ip]) ips[r.ip] = { hits: 0, bots: {} };
+        ips[r.ip].hits++;
+        ips[r.ip].bots[key] = (ips[r.ip].bots[key] || 0) + 1;
+      }
+    }
+  });
+
+  var botList = Object.keys(bots).map(function (k) {
+    var e = bots[k];
+    e.uniqueUrls = Object.keys(e.urls).length;
+    e.ipCount = Object.keys(e.ips).length;
+    var tp = null;
+    for (var u in e.top) if (!tp || e.top[u] > tp.n) tp = { u: u, n: e.top[u] };
+    e.topPath = tp ? tp.u : '';
+    e.topPathHits = tp ? tp.n : 0;
+    return e;
+  }).sort(function (a, b) { return b.hits - a.hits; });
+
+  return { bots: botList, paths: Object.keys(paths).map(function (k) { return paths[k]; }).sort(function (a, b) { return b.hits - a.hits; }),
+    days: days, statuses: statuses, ips: ips, parsedCount: parsed.lines.length, unparsed: parsed.unparsed,
+    noUa: parsed.noUa, format: parsed.format, truncated: parsed.truncated, scanned: parsed.total,
+    aiHits: aiHits, trainHits: trainHits, searchHits: searchHits, aiBytes: aiBytes, totalBytes: totalBytes,
+    firstTs: firstTs, lastTs: lastTs };
+}
+
+// ---------- rendering ----------
+function head(t, cols) {
+  var tr = el('tr');
+  cols.forEach(function (c) {
+    var th = el('th', c.num ? 'num' : null, c.label);
+    th.scope = 'col';
+    tr.appendChild(th);
+  });
+  t.appendChild(tr);
+}
+function rowHead(text) { var th = el('th', 'ac-mono', text); th.scope = 'row'; return th; }
+function fill(tableId, cols, rows, emptyMsg) {
+  var t = document.getElementById(tableId);
+  t.querySelector('thead').innerHTML = '';
+  t.querySelector('tbody').innerHTML = '';
+  head(t.querySelector('thead'), cols);
+  if (!rows.length) {
+    var tr = el('tr'), td = el('td', null, emptyMsg);
+    td.colSpan = cols.length;
+    tr.appendChild(td); t.querySelector('tbody').appendChild(tr);
+    return;
+  }
+  rows.forEach(function (cells) {
+    var tr = el('tr');
+    cells.forEach(function (c, i) {
+      var td = el('td', cols[i] && cols[i].num ? 'num' : null);
+      if (c instanceof Node) td.appendChild(c); else td.textContent = c === undefined || c === null ? '' : String(c);
+      tr.appendChild(td);
+    });
+    t.querySelector('tbody').appendChild(tr);
+  });
+}
+function pill(kind) { return el('span', 'ac-pill ' + kind, KIND_LABEL[kind] || kind); }
+function shareBar(a, b) {
+  var w = el('div', 'ac-bar'), i = el('i');
+  i.style.width = (b ? Math.round(a / b * 100) : 0) + '%';
+  w.appendChild(i);
+  return w;
+}
+
+var FILTER = 'all';
+function render(agg) {
+  var out = document.getElementById('ac-out');
+  out.hidden = false;
+
+  var tiles = document.getElementById('ac-tiles');
+  tiles.innerHTML = '';
+  var total = agg.parsedCount || 1;
+  [['Requests read', num(agg.parsedCount)],
+   ['AI crawler requests', num(agg.aiHits) + ' (' + (agg.aiHits / total * 100).toFixed(1) + '%)'],
+   ['AI retrieval', num(agg.searchHits)],
+   ['AI training', num(agg.trainHits)],
+   ['Distinct crawlers', num(agg.bots.filter(function (b) { return b.kind !== 'human'; }).length)],
+   ['Distinct AI IPs', num(Object.keys(agg.ips).length)],
+   ['Bytes to AI', bytes(agg.aiBytes)],
+   ['Lines not parsed', num(agg.unparsed.length)]
+  ].forEach(function (p) {
+    var d = el('div', 'ac-tile');
+    d.appendChild(el('b', null, p[1]));
+    d.appendChild(el('span', null, p[0]));
+    tiles.appendChild(d);
+  });
+
+  renderInsights(agg);
+
+  var counts = { all: 0, 'ai-search': 0, 'ai-train': 0, search: 0, social: 0, monitor: 0, human: 0 };
+  agg.bots.forEach(function (b) { counts[b.kind] = (counts[b.kind] || 0) + b.hits; });
+  var chips = document.getElementById('ac-chips');
+  chips.innerHTML = '';
+  [['all', 'Everything'], ['ai-search', 'AI retrieval'], ['ai-train', 'AI training'], ['search', 'Search engines'], ['social', 'Link preview'], ['monitor', 'SEO tools'], ['human', 'Unidentified']]
+    .forEach(function (c) {
+      var b = el('button', 'ac-chip', c[1] + ' (' + num(counts[c[0]] || 0) + ')');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(FILTER === c[0]));
+      b.onclick = function () { FILTER = c[0]; render(LAST.agg); };
+      chips.appendChild(b);
+    });
+
+  var shown = agg.bots.filter(function (b) { return FILTER === 'all' || b.kind === FILTER; });
+  fill('ac-bots', [{ label: 'Crawler' }, { label: 'Operator' }, { label: 'Type' }, { label: 'Hits', num: true },
+      { label: 'URLs', num: true }, { label: 'Bytes', num: true }, { label: '2xx', num: true }, { label: '3xx', num: true },
+      { label: '4xx', num: true }, { label: '5xx', num: true }, { label: 'IPs', num: true }, { label: 'First seen' }, { label: 'Last seen' }],
+    shown.slice(0, 200).map(function (b) {
+      return [b.label ? rowHead(b.label) : el('span', 'ac-mono', '(no user agent)'), b.op || '—', pill(b.kind),
+        num(b.hits), num(b.uniqueUrls), bytes(b.bytes), num(b.s['2xx'] || 0), num(b.s['3xx'] || 0), num(b.s['4xx'] || 0), num(b.s['5xx'] || 0),
+        num(b.ipCount), fmtTs(b.first) || '—', fmtTs(b.last) || '—'];
+    }), 'No requests matched this filter.');
+
+  renderPivot(agg);
+  renderPaths(agg);
+  renderStatuses(agg);
+  renderTimeline(agg);
+  resetSpoofTable(agg);
+}
+
+function renderPivot(agg) {
+  var aiBots = agg.bots.filter(isAiBot).slice(0, 10);
+  var topPaths = agg.paths.slice(0, 12);
+  var cols = [{ label: 'Crawler' }].concat(topPaths.map(function (p) { return { label: p.uri, num: true }; })).concat([{ label: 'Total', num: true }]);
+  var rows = aiBots.map(function (b) {
+    var cells = [rowHead(b.label)];
+    var tot = 0;
+    topPaths.forEach(function (p) {
+      var n = (p.bots[b.key] || 0);
+      tot += n;
+      cells.push(num(n));
+    });
+    cells.push(num(b.hits));
+    return cells;
+  });
+  fill('ac-pivot', cols, rows, 'No AI crawler appears in this log.');
+}
+
+function renderPaths(agg) {
+  var rows = agg.paths.slice(0, 25).map(function (p) {
+    return [el('span', 'ac-mono', p.uri), num(p.hits), num(p.ai),
+      shareBar(p.ai, p.hits), (p.hits ? (p.ai / p.hits * 100).toFixed(1) : '0.0') + '%'];
+  });
+  fill('ac-paths', [{ label: 'Path' }, { label: 'Hits', num: true }, { label: 'AI hits', num: true }, { label: 'AI share' }, { label: '%', num: true }], rows, 'No paths.');
+}
+
+function renderStatuses(agg) {
+  var rows = Object.keys(agg.statuses).sort(function (a, b) { return agg.statuses[b] - agg.statuses[a]; }).slice(0, 20)
+    .map(function (code) { var n = agg.statuses[code]; return [code, statusOf(code), num(n), shareBar(n, agg.parsedCount), (n / (agg.parsedCount || 1) * 100).toFixed(1) + '%']; });
+  fill('ac-status-t', [{ label: 'Code', num: true }, { label: 'Class' }, { label: 'Hits', num: true }, { label: 'Share' }, { label: '%', num: true }], rows, 'No status codes.');
+}
+
+function renderTimeline(agg) {
+  var keys = Object.keys(agg.days).sort();
+  var wrap = document.getElementById('ac-timeline');
+  wrap.innerHTML = '';
+  document.getElementById('ac-tl-sec').hidden = !keys.length;
+  if (!keys.length) return;
+  var max = Math.max.apply(null, keys.map(function (k) { return agg.days[k].all; }));
+  keys.forEach(function (k) {
+    var d = agg.days[k], col = el('div');
+    col.title = k + ': ' + num(d.ai) + ' AI of ' + num(d.all);
+    var a = el('div', 'ac-tl-ai'); a.style.height = Math.max(2, d.ai / max * 100) + '%';
+    var b = el('div', 'ac-tl-all'); b.style.height = Math.max(1, (d.all - d.ai) / max * 100) + '%';
+    col.appendChild(a); col.appendChild(b);
+    wrap.appendChild(col);
+  });
+}
+
+function note(level, title, msg) {
+  var d = el('div', 'ac-note ' + (level || ''));
+  d.appendChild(el('b', null, title + ' '));
+  d.appendChild(document.createTextNode(msg));
+  return d;
+}
+function renderInsights(agg) {
+  var box = document.getElementById('ac-insights');
+  box.innerHTML = '';
+  var n = 0;
+
+  if (!agg.parsedCount) { box.appendChild(note('bad', 'Nothing to read.', 'No request lines matched. Check the format is one of the five supported, or paste the first line as plain text below.')); return; }
+
+  if (agg.format === 'ndjson') box.appendChild(note('', 'Format:', 'Cloudflare Logpush NDJSON.'));
+  else if (agg.format === 'w3c') box.appendChild(note('', 'Format:', 'IIS W3C, with the Fields header read from the file.'));
+  else box.appendChild(note('', 'Format:', 'Apache or nginx ' + (agg.noUa ? 'common' : 'combined') + '.'));
+  if (agg.truncated) box.appendChild(note('warn', 'Truncated:', 'Only the first ' + num(MAX_LINES) + ' lines were read. Rotate the log or paste a window with tail.'));
+
+  if (agg.unparsed.length) box.appendChild(note('warn', num(agg.unparsed.length) + ' lines did not parse.', 'First three: ' + agg.unparsed.slice(0, 3).map(function (l) { return l.slice(0, 90); }).join('  |  ')));
+  if (agg.noUa) box.appendChild(note('warn', num(agg.noUa) + ' lines have no user agent column.', 'This is true Apache common format. Nothing can identify a crawler without one, so every one of those lines is counted as unidentified rather than as a hit. Switch the server to combined format.'));
+  if (agg.firstTs) box.appendChild(note('', 'Window:', fmtTs(agg.firstTs) + ' to ' + fmtTs(agg.lastTs) + '.'));
+
+  if (agg.trainHits && !agg.searchHits) box.appendChild(note('warn', 'Training but no retrieval.', 'AI crawlers read ' + num(agg.trainHits) + ' requests and none came from a retrieval agent. That is index input only. You are feeding models, and the agents that produce answers are not reaching this log.'));
+  if (!agg.trainHits && agg.searchHits) box.appendChild(note('good', 'Retrieval only.', 'Every AI request here is a retrieval agent. Training crawlers never appear, so nothing is being collected for training.'));
+  if (agg.aiHits && !agg.bots.some(function (b) { return b.kind === 'ai-search'; })) box.appendChild(note('warn', 'No retrieval crawler at all.', 'ChatGPT, Claude and Perplexity all cite through separate retrieval tokens. If none of them appear, no answer will cite this site, whatever else is true.'));
+  if (!agg.aiHits && agg.parsedCount > 50) box.appendChild(note('', 'No AI crawler in this log.', 'Not necessarily a problem. It may be a window that predates them, a slice of traffic, or a robots.txt that is working. Note that a bot that is refused at the edge may never reach the log you exported.'));
+
+  agg.bots.filter(isAiBot).forEach(function (b) {
+    var bad = (b.s['4xx'] || 0) + (b.s['5xx'] || 0);
+    if (b.hits >= 3 && bad / b.hits >= 0.25) {
+      box.appendChild(note('bad', b.label + ' is being refused.', num(bad) + ' of ' + num(b.hits) + ' requests returned 4xx or 5xx (' + Math.round(bad / b.hits * 100) + '%).' +
+        (b.kind === 'ai-search' ? ' It is a retrieval crawler, so these are requests you wanted.' : ' It is a training crawler, so this may be deliberate.')));
+      n++;
+    }
+  });
+  if (!n && agg.aiHits) box.appendChild(note('good', 'No crawler is being refused.', 'Every AI crawler with real traffic received 2xx or 3xx on at least three quarters of its requests.'));
+
+  var five = agg.bots.filter(function (b) { return (b.s['5xx'] || 0) > 0; });
+  if (five.length) box.appendChild(note('warn', 'Server errors reached crawlers.', five.map(function (b) { return b.label + ' ' + num(b.s['5xx']); }).join(', ') + '. Crawl budget spent on a 5xx is budget not spent on the page.'));
+  if (Object.keys(agg.ips).length) box.appendChild(note('', 'Spoof check is not run yet.', 'Run it below. It is one DNS lookup per distinct AI crawler address and it is the only check here that can tell a crawler from something pretending to be one.'));
+
+  box.appendChild(note('', 'Remember:', 'Google-Extended is a robots.txt token, not a user agent, so it can never appear in a log. Google fetches with Googlebot and obeys the token itself.'));
+}
+
+function resetSpoofTable(agg) {
+  var ips = Object.keys(agg.ips).sort();
+  fill('ac-spoof', [{ label: 'IP' }, { label: 'Claims to be' }, { label: 'Hits', num: true }, { label: 'PTR record' }, { label: 'Verdict' }],
+    ips.slice(0, 60).map(function (ip) {
+      var e = agg.ips[ip];
+      var names = Object.keys(e.bots).map(function (k) { var b = agg.bots.filter(function (x) { return x.key === k; })[0]; return b ? b.label : k; });
+      var expect = null;
+      agg.bots.forEach(function (b) { if (e.bots[b.key]) expect = expect || b.ptr; });
+      return [el('span', 'ac-mono', ip), el('span', 'ac-mono', names.join(', ')), num(e.hits), el('span', 'ac-mono', 'not looked up'), el('span', null, '—')];
+    }), 'No AI crawler addresses in this log. Nothing to verify.');
+  document.getElementById('ac-spoof-out').innerHTML = '';
+  document.getElementById('ac-verify').disabled = ips.length === 0;
+}
+
+function reverseName(ip) {
+  var p = ip.indexOf(':') >= 0 ? ip.split(':').reverse().join('.') : ip.split('.').reverse().join('.') + '.in-addr.arpa';
+  return 'https://dns.google/resolve?name=' + encodeURIComponent(p) + '&type=PTR';
+}
+var PTR_RE = /^(?:.*[.-])?([a-z0-9-]+)\.[a-z]{2,}$/;
+function acVerify() {
+  var agg = LAST && LAST.agg;
+  if (!agg) return;
+  var btn = document.getElementById('ac-verify');
+  var ips = Object.keys(agg.ips).sort().slice(0, 60);
+  var out = document.getElementById('ac-spoof-out');
+  var rows = [];
+  ips.forEach(function (ip) {
+    // Map the internal key to the label a reader recognises; the raw key is "ai-train|gptbot".
+    var names = Object.keys(agg.ips[ip].bots).map(function (k) {
+      var b = agg.bots.filter(function (x) { return x.key === k; })[0];
+      return b ? b.label : k;
+    });
+    rows.push({ ip: ip, names: names, hits: agg.ips[ip].hits, expect: null });
+    agg.bots.forEach(function (b) { if (agg.ips[ip].bots[b.key]) rows[rows.length - 1].expect = rows[rows.length - 1].expect || b.ptr; });
+  });
+  btn.disabled = true;
+  btn.textContent = 'Looking up ' + rows.length + ' address(es)...';
+  var done = 0, bad = 0;
+  var queue = rows.slice();
+
+  function draw() {
+    fill('ac-spoof', [{ label: 'IP' }, { label: 'Claims to be' }, { label: 'Hits', num: true }, { label: 'PTR record' }, { label: 'Verdict' }],
+      rows.map(function (r) {
+        var verdict, cls;
+        if (r.ptr === undefined) { verdict = 'checking'; }
+        else if (!r.ptr) { verdict = r.expect ? 'no PTR record' : 'no PTR record'; }
+        else if (r.expect && r.ptr.endsWith(r.expect)) { verdict = 'matches operator domain'; }
+        else { verdict = r.expect ? 'does not match ' + r.expect : 'no documented convention'; if (r.expect) bad++; }
+        return [el('span', 'ac-mono', r.ip), el('span', 'ac-mono', r.names.join(', ')), num(r.hits),
+          el('span', 'ac-mono', r.ptr === undefined ? '…' : (r.ptr || '(none)')), verdict];
+      }), 'No AI crawler addresses in this log.');
+  }
+
+  function pump() {
+    if (!queue.length) {
+      btn.textContent = 'Re-check addresses';
+      btn.disabled = false;
+      out.innerHTML = '';
+      if (bad) out.appendChild(note('bad', num(bad) + ' of ' + num(rows.length) + ' addresses do not point back at the operator.', 'A user agent is a string anyone can send. Treat these lines as unverified until you have checked them against the operator\'s own published ranges, and do not build a block list on the string alone.'));
+      else out.appendChild(note('good', 'Every checked address points back at the operator that claims it.', 'Reverse DNS is a signal, not proof, but nothing here contradicts the user agent.'));
+      return;
+    }
+    var batch = queue.splice(0, 6);
+    Promise.all(batch.map(function (r) {
+      return fetch(reverseName(r.ip)).then(function (res) { return res.json(); }).then(function (j) {
+        var a = (j.Answer || []).filter(function (x) { return x.type === 12; }).map(function (x) { return String(x.data).replace(/\.$/, '').toLowerCase(); });
+        r.ptr = a.length ? a[0] : '';
+      }).catch(function () { r.ptr = ''; });
+    })).then(function () { done += batch.length; btn.textContent = 'Looking up ' + done + '/' + rows.length + '...'; draw(); pump(); });
+  }
+  draw();
+  pump();
+}
+
+// ---------- input / actions ----------
+function setStatus(msg, cls) { var s = document.getElementById('ac-status'); s.textContent = msg || ''; s.className = 'ac-status ' + (cls || ''); }
+
+function acRun() {
+  var text = document.getElementById('ac-text').value;
+  if (!text.trim()) { setStatus('Load a file or paste some log lines first.', 'err'); return; }
+  setStatus('Parsing...');
+  window.setTimeout(function () {
+    try {
+      var parsed = parseLog(text);
+      if (!parsed.lines.length && !parsed.unparsed.length) { setStatus('That file has no request lines in it.', 'err'); return; }
+      var agg = aggregate(parsed);
+      LAST = { agg: agg, raw: text };
+      FILTER = 'all';
+      render(agg);
+      setStatus('Read ' + num(agg.parsedCount) + ' request line(s) from ' + num(agg.scanned) + ' non-empty line(s).', 'ok');
+    } catch (err) {
+      setStatus('Could not read that log: ' + err.message, 'err');
+    }
+  }, 10);
+}
+
+function acReset() {
+  document.getElementById('ac-text').value = '';
+  document.getElementById('ac-file').value = '';
+  document.getElementById('ac-out').hidden = true;
+  document.getElementById('ac-status').textContent = '';
+  LAST = null; FILTER = 'all';
+}
+
+// RFC 5737 documentation addresses (192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24). They are
+// reserved for examples, so the spoof check reads "no PTR record" for every one of them. That is
+// the honest outcome for made-up data; the verdicts that matter come from your own log.
+var SAMPLE = [
+  ['192.0.2.11', 'GPTBot/1.2; +https://openai.com/gptbot', 200],
+  ['192.0.2.11', 'GPTBot/1.2; +https://openai.com/gptbot', 200],
+  ['198.51.100.21', 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; OAI-SearchBot/1.0; +https://openai.com/searchbot', 200],
+  ['203.0.113.5', 'Mozilla/5.0 (compatible; ClaudeBot/1.0; +claudebot@anthropic.com)', 403],
+  ['203.0.113.5', 'Mozilla/5.0 (compatible; ClaudeBot/1.0; +claudebot@anthropic.com)', 403],
+  ['203.0.113.6', 'Mozilla/5.0 (compatible; Claude-SearchBot/1.0; +searchbot@anthropic.com)', 403],
+  ['198.51.100.90', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36', 200],
+  ['198.51.100.90', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1', 200],
+  ['192.0.2.66', 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)', 200],
+  ['192.0.2.67', 'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)', 200],
+  ['198.51.100.42', 'Mozilla/5.0 (compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)', 200],
+  ['198.51.100.42', 'Mozilla/5.0 (compatible; Perplexity-User/1.0; +https://perplexity.ai/perplexity-user)', 200],
+  ['198.51.100.200', 'Mozilla/5.0 (compatible; CCBot/2.0; +https://commoncrawl.org/faq/)', 200],
+  ['203.0.113.30', 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)', 200],
+  ['203.0.113.31', 'Twitterbot/1.0', 200],
+  ['192.0.2.77', 'Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)', 200],
+  ['203.0.113.90', 'Mozilla/5.0 (compatible; Bytespider; spider-feedback@bytedance.com)', 200]
+];
+var SAMPLE_PATHS = ['/', '/pricing', '/docs/getting-started', '/blog/why-we-moved-to-edge', '/tools/json-formatter/', '/legal/privacy', '/api/v1/status', '/wp-login.php'];
+function acSample() {
+  var t = document.getElementById('ac-text');
+  var out = [], day = 10;
+  for (var r = 0; r < 7; r++) {
+    for (var i = 0; i < SAMPLE.length; i++) {
+      var s = SAMPLE[i];
+      var p = SAMPLE_PATHS[(i + r) % SAMPLE_PATHS.length];
+      var status = s[2];
+      if (p === '/api/v1/status' && s[0] === '198.51.100.42') status = 500;
+      if (p === '/wp-login.php' && s[0] === '203.0.113.90') status = 404;
+      var hh = String(2 + r).padStart(2, '0') + ':' + String((i * 7) % 60).padStart(2, '0') + ':' + String((i * 13) % 60).padStart(2, '0');
+      out.push(s[0] + ' - - [' + day + '/Oct/2026:' + hh + ' +0000] "GET ' + p + ' HTTP/1.1" ' + status + ' ' + (1200 + i * 37) + ' "-" "' + s[1] + '"');
+    }
+    day++;
+  }
+  t.value = out.join('\n');
+  setStatus('Sample loaded: ' + out.length + ' nginx combined lines over 7 days. The addresses are RFC 5737 documentation ranges, so the spoof check reads "no PTR record" for all of them. Press Analyze Log.', 'ok');
+}
+
+function acDownload() {
+  if (!LAST) return;
+  var agg = LAST.agg;
+  var report = {
+    tool: 'ai-crawler-log-analyzer',
+    generated: new Date().toISOString(),
+    format: agg.format, lines_read: agg.parsedCount, lines_scanned: agg.scanned, lines_unparsed: agg.unparsed.length,
+    lines_without_user_agent: agg.noUa, truncated: agg.truncated,
+    window_start: fmtTs(agg.firstTs) || null, window_end: fmtTs(agg.lastTs) || null,
+    totals: { requests: agg.parsedCount, ai_requests: agg.aiHits, ai_retrieval: agg.searchHits, ai_training: agg.trainHits, bytes_to_ai: agg.aiBytes, bytes_total: agg.totalBytes },
+    crawlers: agg.bots.filter(function (b) { return b.kind !== 'human'; }).map(function (b) {
+      return { token: b.label, operator: b.op, type: KIND_LABEL[b.kind], ai_crawler: isAiBot(b), hits: b.hits, unique_urls: b.uniqueUrls, bytes: b.bytes,
+        status: { '2xx': b.s['2xx'] || 0, '3xx': b.s['3xx'] || 0, '4xx': b.s['4xx'] || 0, '5xx': b.s['5xx'] || 0 },
+        distinct_ips: b.ipCount, first_seen: fmtTs(b.first) || null, last_seen: fmtTs(b.last) || null, top_path: b.topPath };
+    }),
+    top_paths: agg.paths.slice(0, 50).map(function (p) { return { path: p.uri, hits: p.hits, ai_hits: p.ai }; }),
+    distinct_ai_ips: Object.keys(agg.ips).length
+  };
+  var url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }));
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'ai-crawler-report-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  // Remove it now, not on a timer: an anchor left in the body is a nameless link to an
+  // accessibility scanner and a duplicate to the next click. The blob URL outlives it.
+  a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+}
+
+// ---------- wiring ----------
+var drop = document.getElementById('ac-drop'), file = document.getElementById('ac-file');
+drop.onclick = function () { file.click(); };
+drop.onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } };
+['dragenter', 'dragover'].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+['dragleave', 'drop'].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+drop.addEventListener('drop', function (e) { if (e.dataTransfer.files && e.dataTransfer.files[0]) acLoadFile(e.dataTransfer.files[0]); });
+file.addEventListener('change', function () { if (file.files && file.files[0]) acLoadFile(file.files[0]); });
+
+function acLoadFile(f) {
+  setStatus('Reading ' + f.name + '...');
+  var isGz = /\.gz$/i.test(f.name);
+  var reader = new FileReader();
+  reader.onerror = function () { setStatus('Could not read that file.', 'err'); };
+  reader.onload = function () {
+    var text;
+    try {
+      if (isGz) {
+        text = new Response(new Blob([reader.result]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+      } else {
+        text = reader.result;
+      }
+    } catch (e) { setStatus('Could not unpack that file: ' + e.message, 'err'); return; }
+    var finish = function (t) {
+      document.getElementById('ac-text').value = t;
+      acRun();
+    };
+    if (typeof text === 'string') finish(text);
+    else text.then(finish, function (e) { setStatus('Could not unpack the gzip file: ' + e.message, 'err'); });
+  };
+  if (isGz) reader.readAsArrayBuffer(f); else reader.readAsText(f);
+}
+</script>
+</body>
+</html>

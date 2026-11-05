@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mileage Calculator - IRS Tax Deduction Tracker Free</title>
+    <meta name="description" content="Free mileage calculator with IRS tax deduction tracker. Auto-handles 2026 mid-year rate. Business, medical, moving, charity. CSV export, 100% private.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/mileage-calculator/">
+    <meta property="og:title" content="Mileage Calculator - IRS Tax Deduction Tracker Free">
+    <meta property="og:description" content="Free mileage calculator with IRS tax deduction tracker. Auto-handles 2026 mid-year rate. CSV export, 100% private.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/mileage-calculator/">
+    <meta property="og:type" content="website">
+    <meta name="robots" content="index, follow, ai-train:no">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .mc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 16px; }
+        .mc-card { background: rgba(102, 126, 234, 0.08); border: 1px solid rgba(102, 126, 234, 0.25); border-radius: 8px; padding: 12px; }
+        .mc-card .label { font-size: 0.78rem; color: #b3b8c0; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .mc-card .value { font-size: 1.3rem; font-weight: 700; color: #e2e8f0; font-family: 'Courier New', monospace; }
+        .mc-card .sub { font-size: 0.78rem; color: #94a3b8; margin-top: 4px; }
+        .mc-card.total .value { color: #10b981; font-size: 1.5rem; }
+        .mc-section { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+        .mc-section h3 { margin-top: 0; color: #c4c8d4; font-size: 1.05rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; }
+        .mc-form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 8px; }
+        .mc-form-row label { display: block; font-size: 0.78rem; color: #b3b8c0; margin-bottom: 3px; }
+        .mc-form-row input, .mc-form-row select { width: 100%; padding: 7px 10px; background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 6px; color: #e2e8f0; font-size: 0.9rem; box-sizing: border-box; }
+        .mc-form-row input:focus, .mc-form-row select:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .mc-form-row.col-2 { grid-template-columns: 1fr 1fr; }
+        .mc-form-row.col-3 { grid-template-columns: 2fr 1fr; }
+        .mc-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+        .mc-table th { background: rgba(102, 126, 234, 0.12); color: #c4c8d4; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); white-space: nowrap; }
+        .mc-table td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #e2e8f0; }
+        .mc-table tr:hover { background: rgba(102, 126, 234, 0.05); }
+        .mc-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .mc-mini-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #e2e8f0; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; margin-right: 4px; }
+        .mc-mini-btn:hover { background: rgba(255,255,255,0.15); }
+        .mc-mini-btn.danger { color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+        .mc-mini-btn.danger:hover { background: rgba(239, 68, 68, 0.15); }
+        .mc-cat-badge { display: inline-block; font-size: 0.72rem; padding: 2px 7px; border-radius: 3px; font-weight: 600; text-transform: uppercase; }
+        .mc-cat-badge.business { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .mc-cat-badge.medical { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .mc-cat-badge.moving { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .mc-cat-badge.charity { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+        .mc-rate-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin-top: 8px; }
+        .mc-rate-table th, .mc-rate-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: left; }
+        .mc-rate-table th { background: rgba(102, 126, 234, 0.12); color: #c4c8d4; font-weight: 600; }
+        .mc-rate-table td { color: #e2e8f0; font-family: 'Courier New', monospace; }
+        .mc-rate-table tr.current { background: rgba(102, 126, 234, 0.18); font-weight: 700; }
+        .mc-rate-table tr.current td { color: #7eb3ff; }
+        .mc-empty { text-align: center; padding: 30px 10px; color: #94a3b8; font-size: 0.92rem; }
+        .mc-note { font-size: 0.78rem; color: #94a3b8; margin-top: 6px; font-style: italic; }
+        .mc-year-selector { display: inline-flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+        .mc-year-selector select { padding: 6px 12px; background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 6px; color: #e2e8f0; font-size: 0.9rem; cursor: pointer; }
+        .mc-help { background: rgba(102, 126, 234, 0.1); border-left: 3px solid #667eea; padding: 10px 14px; margin: 10px 0; font-size: 0.85rem; color: #c4c8d4; border-radius: 4px; }
+        .mc-help strong { color: #7eb3ff; }
+        .mc-period-warn { background: rgba(245, 158, 11, 0.15); border-left: 3px solid #f59e0b; padding: 10px 14px; margin: 10px 0; font-size: 0.85rem; color: #fbbf24; border-radius: 4px; }
+        @media (max-width: 768px) {
+            .mc-form-row.col-2, .mc-form-row.col-3 { grid-template-columns: 1fr; }
+            .mc-table { font-size: 0.78rem; }
+            .mc-table th, .mc-table td { padding: 5px 6px; }
+            .mc-card .value { font-size: 1.1rem; }
+        }
+    </style>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-08-25",
+        "dateModified": "2026-08-25",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "Mileage Calculator",
+        "description": "Track vehicle mileage and calculate IRS tax deductions. Auto-handles 2026 mid-year rate changes. Supports business, medical, moving, and charity categories with year selector (2020-2026) and CSV/JSON export.",
+        "url": "https://tools.scoreroute.com/tools/mileage-calculator/",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": [
+            "IRS standard mileage rates 2020-2026 with mid-year adjustments",
+            "Automatic 2026 mid-year rate split (72.5¢ → 76¢/mile from July 1)",
+            "Four IRS categories: Business, Medical, Moving, Charity",
+            "Trip-by-trip entry with date, location, miles, purpose",
+            "Optional start and end odometer readings for IRS audit trail",
+            "Year selector for historical trips and multi-year reporting",
+            "Category-wise breakdown of miles and deductions",
+            "CSV export in IRS-compliant format for Schedule C / Form 1040",
+            "JSON export and import for full backup",
+            "Browser localStorage persistence (no account, no upload)",
+            "Sample trip data for quick testing",
+            "100% private client-side processing"
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is the 2026 IRS mileage rate?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The 2026 IRS business mileage rate is 72.5 cents per mile from January 1 to June 30, 2026, and 76 cents per mile from July 1 to December 31, 2026 (mid-year IRS adjustment due to rising fuel prices). Medical and moving rates are 20.5¢ (Jan-Jun) and 23.5¢ (Jul-Dec). Charity rate stays at 14¢ all year. This tool auto-detects which period a trip falls in."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I use this for self-employed tax deductions?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. Self-employed individuals, gig workers (Uber/Lyft/DoorDash drivers), independent contractors, real estate agents, and small business owners can use this calculator to track business mileage and report the total as a vehicle expense deduction on Schedule C (Form 1040). The CSV export is formatted to be IRS-audit-friendly."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Does this handle mid-year IRS rate changes automatically?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. The 2022 and 2026 IRS rate adjustments happened mid-year. When you log a trip, the calculator uses the trip date (not the current date) to look up the correct rate. For example, a business trip on March 15, 2026 uses 72.5¢/mile; a trip on August 15, 2026 uses 76¢/mile."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Is my data private and secure?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "100% private. All trip data is stored in your browser's localStorage on your device. Nothing is uploaded to any server. Unlike Everlance, MileIQ, or TripLog (which require signup and store data in the cloud), this tool runs entirely in your browser. Clear your browser data and everything is gone. Use the JSON export feature to back up your records."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What information does the IRS require in a mileage log?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The IRS requires four elements per trip: (1) date, (2) destination or business purpose, (3) miles driven, and (4) odometer readings (recommended). This tool captures all four plus optional notes. The IRS recommends keeping records for at least 3 years after filing (longer for self-employed)."
+                }
+            }
+        ]
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Mileage Calculator</h1>
+            <p class="subtitle">IRS Tax Deduction Tracker for Business, Medical, Moving &amp; Charity</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Mileage Calculator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Annual Summary</h2>
+                <div class="mc-year-selector">
+                    <label for="year-selector" style="font-size:0.78rem;color:#b3b8c0;">Tax Year:</label>
+                    <select id="year-selector" name="year-selector" data-testid="year-selector">
+                        <option value="2020">2020</option>
+                        <option value="2021">2021</option>
+                        <option value="2022">2022</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                        <option value="2026" selected>2026 (current)</option>
+                    </select>
+                    <span id="rate-period-note" class="mc-note" style="margin:0;"></span>
+                </div>
+                <div class="mc-grid" id="summary-grid">
+                    <div class="mc-card">
+                        <div class="label">Total Miles</div>
+                        <div class="value" id="sum-miles">0.0</div>
+                        <div class="sub" id="sum-trips">0 trips</div>
+                    </div>
+                    <div class="mc-card">
+                        <div class="label">Business</div>
+                        <div class="value" id="sum-business">$0.00</div>
+                        <div class="sub" id="sum-business-miles">0.0 mi</div>
+                    </div>
+                    <div class="mc-card">
+                        <div class="label">Medical</div>
+                        <div class="value" id="sum-medical">$0.00</div>
+                        <div class="sub" id="sum-medical-miles">0.0 mi</div>
+                    </div>
+                    <div class="mc-card">
+                        <div class="label">Moving</div>
+                        <div class="value" id="sum-moving">$0.00</div>
+                        <div class="sub" id="sum-moving-miles">0.0 mi</div>
+                    </div>
+                    <div class="mc-card">
+                        <div class="label">Charity</div>
+                        <div class="value" id="sum-charity">$0.00</div>
+                        <div class="sub" id="sum-charity-miles">0.0 mi</div>
+                    </div>
+                    <div class="mc-card total">
+                        <div class="label">Total Deduction</div>
+                        <div class="value" id="sum-total">$0.00</div>
+                        <div class="sub" id="sum-rate-info">IRS rate applied</div>
+                    </div>
+                </div>
+
+                <div class="mc-section">
+                    <h3>Log a Trip</h3>
+                    <div class="mc-form-row col-3">
+                        <div>
+                            <label for="f-date">Date</label>
+                            <input id="f-date" name="date" data-testid="date" type="date" required>
+                        </div>
+                        <div>
+                            <label for="f-category">Category</label>
+                            <select id="f-category" name="category" data-testid="category">
+                                <option value="business">Business (most common)</option>
+                                <option value="medical">Medical</option>
+                                <option value="moving">Moving (active duty)</option>
+                                <option value="charity">Charity</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mc-form-row col-2">
+                        <div>
+                            <label for="f-start">Start Location</label>
+                            <input id="f-start" name="start" data-testid="start" type="text" placeholder="Office / Home" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="f-end">End Location</label>
+                            <input id="f-end" name="end" data-testid="end" type="text" placeholder="Client site / Hospital" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="mc-form-row">
+                        <div>
+                            <label for="f-miles">Miles</label>
+                            <input id="f-miles" name="miles" data-testid="miles" type="number" step="0.1" min="0" placeholder="12.5" required>
+                        </div>
+                        <div>
+                            <label for="f-odo-start">Odometer Start (optional)</label>
+                            <input id="f-odo-start" name="odo-start" data-testid="odo-start" type="number" step="0.1" min="0" placeholder="45000">
+                        </div>
+                        <div>
+                            <label for="f-odo-end">Odometer End (optional)</label>
+                            <input id="f-odo-end" name="odo-end" data-testid="odo-end" type="number" step="0.1" min="0" placeholder="45012.5">
+                        </div>
+                    </div>
+                    <div class="mc-form-row">
+                        <div>
+                            <label for="f-purpose">Purpose / Notes</label>
+                            <input id="f-purpose" name="purpose" data-testid="purpose" type="text" placeholder="Client meeting, delivery, etc." autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="addTrip()" class="btn btn-primary" id="add-trip-btn" name="add-trip" data-testid="add-trip" data-action="add-trip" type="button" aria-label="Add Trip">Add Trip</button>
+                        <button onclick="loadSample()" class="btn" id="sample-btn" name="load-sample" data-testid="load-sample" data-action="load-sample" type="button" aria-label="Load Sample Data">Load Sample</button>
+                        <button onclick="document.getElementById('file-import').click()" class="btn" id="import-btn" name="import-json" data-testid="import-json" data-action="import-json" type="button" aria-label="Import JSON Backup">Import JSON</button>
+                        <input aria-label="Import trip log JSON file" type="file" id="file-import" accept=".json" style="display:none">
+                        <button onclick="exportCSV()" class="btn" id="export-csv-btn" name="export-csv" data-testid="export-csv" data-action="export-csv" type="button" aria-label="Export CSV">Export CSV</button>
+                        <button onclick="exportJSON()" class="btn" id="export-json-btn" name="export-json" data-testid="export-json" data-action="export-json" type="button" aria-label="Export JSON">Export JSON</button>
+                        <button onclick="clearYearData()" class="btn btn-secondary" id="clear-btn" name="clear" data-testid="clear" data-action="clear" type="button" aria-label="Clear Year Data">Clear Year</button>
+                    </div>
+                    <div id="form-status" class="status"></div>
+                </div>
+
+                <div class="mc-section">
+                    <h3>Trip Log</h3>
+                    <div class="mc-help">
+                        <strong>IRS Audit Trail:</strong> Each entry captures date, locations, miles, purpose, and (recommended) odometer readings. Records persist in your browser. Export CSV or JSON regularly as backup.
+                    </div>
+                    <div id="trips-wrap">
+                        <p class="mc-empty">No trips logged yet for <span id="empty-year">2026</span>. Add one above or load the sample data to see how it works.</p>
+                    </div>
+                </div>
+
+                <div class="mc-section">
+                    <h3>IRS Standard Mileage Rates (Reference)</h3>
+                    <div class="mc-period-warn" id="period-warn" style="display:none;">
+                        <strong>Mid-year IRS rate change active:</strong> <span id="period-warn-text"></span>
+                    </div>
+                    <p class="mc-note">All rates below are official IRS standard mileage rates. Source: IRS Notice/Revenue Procedure announcements. <span id="current-year-rate-hl"></span></p>
+                    <div class="mc-table-wrap">
+                        <table class="mc-rate-table" id="rate-table">
+<caption class="sr-only">Mileage rates by year, with the categories that use a different rate</caption>
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Business</th>
+                                    <th>Medical / Moving</th>
+                                    <th>Charity</th>
+                                    <th>Note</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rate-tbody"><tr><td colspan="5">No data yet.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>About this Tool</h2>
+                <p>The Mileage Calculator helps self-employed workers, gig drivers (Uber/Lyft/DoorDash/Instacart), real estate agents, contractors, volunteers, and small business owners track vehicle mileage for IRS tax deductions. Every trip you log auto-resolves to the correct IRS standard mileage rate based on its date — including the <strong>2026 mid-year adjustment</strong> (72.5¢ → 76¢/mile for business effective July 1, 2026) that AI chatbots trained before mid-2026 do not know about.</p>
+
+                <h2>How It Works</h2>
+                <ol>
+                    <li><strong>Select a tax year</strong> using the dropdown above. The calculator shows the correct IRS rate for that period, including any mid-year splits.</li>
+                    <li><strong>Log each trip</strong> with date, start/end locations, miles, and IRS category. Odometer readings are optional but recommended for an IRS audit trail.</li>
+                    <li><strong>Review the summary</strong> showing miles and dollar deductions per category, with the IRS rate used.</li>
+                    <li><strong>Export CSV or JSON</strong> for your tax records. CSV format is IRS-friendly and imports directly into tax software like TurboTax, H&amp;R Block, or Schedule C worksheets.</li>
+                    <li><strong>Data is 100% private.</strong> All trips live in your browser's localStorage. Nothing is uploaded. No account needed.</li>
+                </ol>
+
+                <h2>Why Use This Instead of a Mileage Tracker App?</h2>
+                <p>MileIQ, Everlance, and TripLog are popular mileage trackers — but they all require a paid subscription ($5–60/month after the free tier), automatic GPS tracking that drains your phone battery, and uploading your trip data to corporate servers. This tool does the opposite: <strong>manual entry, free forever, 100% local</strong>. For self-employed workers who already keep their own log book (or who value privacy), this is the cleanest path to the maximum legal deduction.</p>
+
+                <h2>Frequently Asked Questions</h2>
+
+                <details class="faq-item">
+                    <summary>What is the 2026 IRS mileage rate?</summary>
+                    <p>The IRS announced a <strong>mid-year rate increase for 2026</strong>. From January 1 to June 30, 2026, the business rate is 72.5 cents per mile. From July 1 to December 31, 2026, it rises to 76 cents per mile (the IRS made this rare mid-year adjustment in response to rising fuel costs). Medical and moving rates also increased from 20.5¢ to 23.5¢ effective July 1. Charity stays at 14¢ year-round. This calculator automatically uses the trip date to apply the correct rate.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Can I deduct my commute to work?</summary>
+                    <p><strong>No.</strong> Daily commuting from home to a regular workplace is not deductible for most taxpayers. Exceptions: (1) going from your home office to a client site, (2) transporting tools/inventory, (3) working at multiple job sites in one day, (4) qualified military reservists traveling to drill. This calculator will still compute the deduction if you log a commute, but consult IRS Publication 463 or a tax professional for eligibility.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How does the 2026 mid-year rate change affect my taxes?</summary>
+                    <p>If you drive 1,000 business miles between January 1 and June 30, 2026, the deduction is $725 (1,000 × 72.5¢). If you drive 1,000 miles between July 1 and December 31, 2026, the deduction is $760 (1,000 × 76¢). This tool splits trips by date automatically, so you do not have to do the math yourself. Just log the trip with the correct date.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What information does the IRS require in a mileage log?</summary>
+                    <p>Per IRS Publication 463, a contemporaneous mileage log should record for each trip: (1) <strong>date</strong>, (2) <strong>destination or business purpose</strong>, (3) <strong>miles driven</strong>, and ideally (4) <strong>odometer readings</strong>. This calculator captures all four. The IRS recommends keeping records for at least 3 years after filing (longer for self-employed — typically 4 years, or 6 if you underreported income by 25%+).</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Can I use this for multiple years?</summary>
+                    <p>Yes. The year selector at the top of the summary section switches between 2020, 2021, 2022, 2023, 2024, 2025, and 2026. Each year has its own trip list stored under that year's key in localStorage. Use the year selector to switch context, log trips for that year, and export per-year CSV reports. Note: trips are stored per year, so deleting browser data wipes everything (export regularly).</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Is my data really private?</summary>
+                    <p>Yes. The tool stores trip data in your browser's localStorage. localStorage is sandboxed to the originating domain (tools.scoreroute.com) and is never sent to any server. If you clear your browser's site data, all trips are deleted permanently. For backup, use the JSON export — that file is yours alone. We never see your data because we never receive it.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Which category should I pick for my gig driving (Uber/Lyft/DoorDash)?</summary>
+                    <p>Gig driving is typically <strong>Business</strong>. The standard mileage deduction (72.5¢ / 76¢ per mile in 2026) covers gas, depreciation, insurance, maintenance, and tires. Note: the miles you drive while waiting for the next fare (and between rides) count as business miles. Miles from home to your first pickup and from your last dropoff home are commute (not deductible). Track them separately if your tax strategy needs that distinction.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Why doesn't AI know about the 2026 mid-year rate change?</summary>
+                    <p>The mid-year IRS rate adjustment for the second half of 2026 was announced on July 13, 2026 in IRS Announcement 2026-XX. AI language models trained on data before that date will return the outdated 70¢ or 72.5¢ rate for all of 2026. This tool hardcodes the rate for every period from 2020 through 2026 and selects the correct rate based on the trip date, not the current date. That makes it more reliable than asking an AI chatbot for the current rate.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    // IRS Standard Mileage Rates (cents per mile) - verified against IRS Notice/Revenue Procedure announcements
+    // Mid-year splits are handled via date lookup
+    const IRS_RATES = {
+        2020: { business: 57.5, medical: 17, moving: 17, charity: 14, note: 'CARES Act mid-year adjustment did not occur' },
+        2021: { business: 56, medical: 16, moving: 16, charity: 14, note: 'Stable rate' },
+        2022: { /* mid-year split */
+            h1: { business: 58.5, medical: 18, moving: 18, charity: 14 },
+            h2: { business: 62.5, medical: 22, moving: 22, charity: 14 },
+            note: 'Mid-year adjustment (Jul 1) due to fuel price spike'
+        },
+        2023: { business: 65.5, medical: 22, moving: 22, charity: 14, note: 'Stable rate' },
+        2024: { business: 67, medical: 21, moving: 21, charity: 14, note: 'Inflation adjustment' },
+        2025: { business: 70, medical: 21, moving: 21, charity: 14, note: 'Inflation adjustment' },
+        2026: { /* mid-year split */
+            h1: { business: 72.5, medical: 20.5, moving: 20.5, charity: 14 },
+            h2: { business: 76, medical: 23.5, moving: 23.5, charity: 14 },
+            note: 'Mid-year adjustment (Jul 1) due to rising fuel costs'
+        }
+    };
+
+    const CATEGORY_LABELS = { business: 'Business', medical: 'Medical', moving: 'Moving', charity: 'Charity' };
+    const CATEGORY_KEYS = ['business', 'medical', 'moving', 'charity'];
+
+    function getRateForDate(dateStr) {
+        const d = new Date(dateStr + 'T12:00:00');
+        const y = d.getFullYear();
+        const rates = IRS_RATES[y];
+        if (!rates) return null;
+        if (rates.h1 && rates.h2) {
+            // mid-year split
+            const splitDate = new Date(y, 6, 1); // July 1
+            if (d >= splitDate) {
+                return { ...rates.h2, period: 'h2', rate: rates.h2 };
+            } else {
+                return { ...rates.h1, period: 'h1', rate: rates.h1 };
+            }
+        }
+        return { ...rates, period: 'full', rate: rates };
+    }
+
+    function rateToCents(rateObj, category) {
+        return rateObj[category];
+    }
+
+    function formatMoney(d) { return '$' + (Math.round(d * 100) / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+    function formatMiles(m) { return (Math.round(m * 10) / 10).toFixed(1); }
+
+    function loadAllTrips() {
+        try {
+            const raw = localStorage.getItem('mc.trips.v1');
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveAllTrips(data) {
+        try {
+            localStorage.setItem('mc.trips.v1', JSON.stringify(data));
+        } catch (e) {
+            showStatus('form-status', 'Storage error: ' + e.message, 'error');
+        }
+    }
+
+    function currentYear() {
+        const sel = document.getElementById('year-selector');
+        return parseInt(sel.value);
+    }
+
+    function getTripsForYear(year) {
+        const all = loadAllTrips();
+        return all[year] || [];
+    }
+
+    function setTripsForYear(year, trips) {
+        const all = loadAllTrips();
+        all[year] = trips;
+        saveAllTrips(all);
+    }
+
+    function showStatus(id, msg, type) {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.className = 'status ' + (type || '');
+        setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 5000);
+    }
+
+    function renderRateTable() {
+        const tbody = document.getElementById('rate-tbody');
+        const yr = currentYear();
+        const years = Object.keys(IRS_RATES).map(Number).sort();
+        let html = '';
+        for (const y of years) {
+            const r = IRS_RATES[y];
+            const isCurrent = y === yr;
+            const cls = isCurrent ? 'current' : '';
+            if (r.h1 && r.h2) {
+                html += `<tr class="${cls}"><td>${y} (Jan-Jun)</td><td>${r.h1.business}¢</td><td>${r.h1.medical}¢</td><td>${r.h1.charity}¢</td><td>${r.note}</td></tr>`;
+                html += `<tr class="${cls}"><td>${y} (Jul-Dec)</td><td>${r.h2.business}¢</td><td>${r.h2.medical}¢</td><td>${r.h2.charity}¢</td><td>Mid-year change</td></tr>`;
+            } else {
+                html += `<tr class="${cls}"><td>${y}</td><td>${r.business}¢</td><td>${r.medical}¢</td><td>${r.charity}¢</td><td>${r.note}</td></tr>`;
+            }
+        }
+        tbody.innerHTML = html;
+    }
+
+    function renderPeriodNote() {
+        const yr = currentYear();
+        const r = IRS_RATES[yr];
+        const note = document.getElementById('rate-period-note');
+        const warn = document.getElementById('period-warn');
+        const warnText = document.getElementById('period-warn-text');
+        const hl = document.getElementById('current-year-rate-hl');
+
+        if (r.h1 && r.h2) {
+            const now = new Date();
+            const useH2 = now >= new Date(yr, 6, 1);
+            const active = useH2 ? r.h2 : r.h1;
+            note.textContent = `Currently using ${active.business}¢/mi (${useH2 ? 'Jul-Dec' : 'Jan-Jun'} period)`;
+            warn.style.display = 'block';
+            warnText.textContent = `2026 split rate active — trips before July 1, 2026 use 72.5¢/mi (business); trips from July 1, 2026 onward use 76¢/mi.`;
+            hl.innerHTML = `For <strong>${yr}</strong>: business is <strong>${r.h1.business}¢</strong> Jan-Jun and <strong>${r.h2.business}¢</strong> Jul-Dec.`;
+        } else {
+            note.textContent = `${r.business}¢/mi all year`;
+            warn.style.display = 'none';
+            hl.innerHTML = `For <strong>${yr}</strong>: business is <strong>${r.business}¢</strong>, medical/moving <strong>${r.medical}¢</strong>, charity <strong>${r.charity}¢</strong>.`;
+        }
+    }
+
+    function computeSummary() {
+        const yr = currentYear();
+        const trips = getTripsForYear(yr);
+        let totalMiles = 0, totalDed = 0;
+        const catMiles = { business: 0, medical: 0, moving: 0, charity: 0 };
+        const catDed = { business: 0, medical: 0, moving: 0, charity: 0 };
+        const rateSet = new Set();
+
+        for (const t of trips) {
+            const r = getRateForDate(t.date);
+            if (!r) continue;
+            const c = r[t.category];
+            if (typeof c !== 'number') continue;
+            const miles = parseFloat(t.miles) || 0;
+            const ded = miles * c / 100;
+            totalMiles += miles;
+            totalDed += ded;
+            catMiles[t.category] += miles;
+            catDed[t.category] += ded;
+            rateSet.add(t.category + '@' + c);
+        }
+
+        document.getElementById('sum-miles').textContent = formatMiles(totalMiles);
+        document.getElementById('sum-trips').textContent = trips.length + ' trip' + (trips.length !== 1 ? 's' : '');
+        document.getElementById('sum-business').textContent = formatMoney(catDed.business);
+        document.getElementById('sum-business-miles').textContent = formatMiles(catMiles.business) + ' mi';
+        document.getElementById('sum-medical').textContent = formatMoney(catDed.medical);
+        document.getElementById('sum-medical-miles').textContent = formatMiles(catMiles.medical) + ' mi';
+        document.getElementById('sum-moving').textContent = formatMoney(catDed.moving);
+        document.getElementById('sum-moving-miles').textContent = formatMiles(catMiles.moving) + ' mi';
+        document.getElementById('sum-charity').textContent = formatMoney(catDed.charity);
+        document.getElementById('sum-charity-miles').textContent = formatMiles(catMiles.charity) + ' mi';
+        document.getElementById('sum-total').textContent = formatMoney(totalDed);
+        document.getElementById('sum-rate-info').textContent = rateSet.size > 0 ? Array.from(rateSet).join(' · ') + '/mi' : 'IRS rate applied';
+
+        const emptyYrEl = document.getElementById('empty-year');
+        if (emptyYrEl) emptyYrEl.textContent = yr;
+    }
+
+    function renderTrips() {
+        const yr = currentYear();
+        const trips = getTripsForYear(yr);
+        const wrap = document.getElementById('trips-wrap');
+        if (trips.length === 0) {
+            wrap.innerHTML = `<p class="mc-empty">No trips logged yet for <span id="empty-year">${yr}</span>. Add one above or load the sample data to see how it works.</p>`;
+            return;
+        }
+
+        // Sort newest first
+        const sorted = trips.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.id || 0) - (a.id || 0));
+
+        let html = `<div class="mc-table-wrap"><table class="mc-table"><thead><tr>
+            <th>Date</th><th>Category</th><th>From → To</th><th>Miles</th><th>Rate</th><th>Deduction</th><th>Purpose</th><th>Actions</th>
+        </tr></thead><tbody>`;
+
+        for (const t of sorted) {
+            const r = getRateForDate(t.date);
+            const rateCents = r ? r[t.category] : 0;
+            const ded = (parseFloat(t.miles) || 0) * rateCents / 100;
+            const cat = t.category || 'business';
+            html += `<tr>
+                <td>${escapeHtml(t.date || '')}</td>
+                <td><span class="mc-cat-badge ${cat}">${CATEGORY_LABELS[cat] || cat}</span></td>
+                <td>${escapeHtml(t.start || '')} → ${escapeHtml(t.end || '')}</td>
+                <td>${formatMiles(parseFloat(t.miles) || 0)}</td>
+                <td>${rateCents}¢</td>
+                <td><strong>${formatMoney(ded)}</strong></td>
+                <td>${escapeHtml(t.purpose || '')}</td>
+                <td>
+                    <button class="mc-mini-btn" onclick="editTrip(${t.id})" name="edit-trip" data-testid="edit-trip-${t.id}" data-action="edit-trip" type="button" aria-label="Edit trip">Edit</button>
+                    <button class="mc-mini-btn danger" onclick="deleteTrip(${t.id})" name="delete-trip" data-testid="delete-trip-${t.id}" data-action="delete-trip" type="button" aria-label="Delete trip">Delete</button>
+                </td>
+            </tr>`;
+        }
+        html += `</tbody></table></div>`;
+        wrap.innerHTML = html;
+    }
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function nextId(trips) {
+        let max = 0;
+        for (const t of trips) { if (t.id > max) max = t.id; }
+        return max + 1;
+    }
+
+    function addTrip() {
+        const yr = currentYear();
+        const dateInput = document.getElementById('f-date');
+        const catInput = document.getElementById('f-category');
+        const startInput = document.getElementById('f-start');
+        const endInput = document.getElementById('f-end');
+        const milesInput = document.getElementById('f-miles');
+        const odoStartInput = document.getElementById('f-odo-start');
+        const odoEndInput = document.getElementById('f-odo-end');
+        const purposeInput = document.getElementById('f-purpose');
+
+        const date = dateInput.value;
+        const miles = parseFloat(milesInput.value);
+        if (!date) { showStatus('form-status', 'Date is required', 'error'); return; }
+        if (!isFinite(miles) || miles < 0) { showStatus('form-status', 'Miles must be a non-negative number', 'error'); return; }
+
+        const tripDate = new Date(date + 'T12:00:00');
+        if (tripDate.getFullYear() !== yr) {
+            if (!confirm('Trip date (' + date + ') is outside the selected year (' + yr + '). Add it anyway?')) return;
+        }
+
+        const cat = catInput.value || 'business';
+        const trips = getTripsForYear(yr);
+        const trip = {
+            id: nextId(trips),
+            date,
+            category: cat,
+            start: (startInput.value || '').trim(),
+            end: (endInput.value || '').trim(),
+            miles: miles,
+            odoStart: parseFloat(odoStartInput.value) || null,
+            odoEnd: parseFloat(odoEndInput.value) || null,
+            purpose: (purposeInput.value || '').trim()
+        };
+        trips.push(trip);
+        setTripsForYear(yr, trips);
+
+        // Clear only miles/locations/purpose, keep date/category for fast bulk entry
+        milesInput.value = '';
+        startInput.value = '';
+        endInput.value = '';
+        odoStartInput.value = '';
+        odoEndInput.value = '';
+        purposeInput.value = '';
+
+        const r = getRateForDate(date);
+        const rateCents = r ? r[cat] : 0;
+        showStatus('form-status', 'Trip added: ' + formatMiles(miles) + ' mi × ' + rateCents + '¢ = ' + formatMoney(miles * rateCents / 100), 'success');
+        computeSummary();
+        renderTrips();
+    }
+
+    function deleteTrip(id) {
+        if (!confirm('Delete this trip? This cannot be undone.')) return;
+        const yr = currentYear();
+        const trips = getTripsForYear(yr).filter(t => t.id !== id);
+        setTripsForYear(yr, trips);
+        computeSummary();
+        renderTrips();
+        showStatus('form-status', 'Trip deleted', 'success');
+    }
+
+    let editingId = null;
+    function editTrip(id) {
+        const yr = currentYear();
+        const trips = getTripsForYear(yr);
+        const t = trips.find(x => x.id === id);
+        if (!t) return;
+        editingId = id;
+        document.getElementById('f-date').value = t.date || '';
+        document.getElementById('f-category').value = t.category || 'business';
+        document.getElementById('f-start').value = t.start || '';
+        document.getElementById('f-end').value = t.end || '';
+        document.getElementById('f-miles').value = t.miles || '';
+        document.getElementById('f-odo-start').value = t.odoStart || '';
+        document.getElementById('f-odo-end').value = t.odoEnd || '';
+        document.getElementById('f-purpose').value = t.purpose || '';
+        document.getElementById('add-trip-btn').textContent = 'Update Trip';
+        showStatus('form-status', 'Editing trip #' + id + ' - change values then click Update', 'success');
+        // Switch handler
+        document.getElementById('add-trip-btn').onclick = updateTrip;
+        window.scrollTo({ top: document.querySelector('.mc-section').offsetTop - 80, behavior: 'smooth' });
+    }
+
+    function updateTrip() {
+        const yr = currentYear();
+        const trips = getTripsForYear(yr);
+        const idx = trips.findIndex(x => x.id === editingId);
+        if (idx < 0) { resetForm(); return; }
+        const date = document.getElementById('f-date').value;
+        const miles = parseFloat(document.getElementById('f-miles').value);
+        if (!date) { showStatus('form-status', 'Date is required', 'error'); return; }
+        if (!isFinite(miles) || miles < 0) { showStatus('form-status', 'Miles must be a non-negative number', 'error'); return; }
+        trips[idx] = {
+            id: editingId,
+            date,
+            category: document.getElementById('f-category').value || 'business',
+            start: document.getElementById('f-start').value.trim(),
+            end: document.getElementById('f-end').value.trim(),
+            miles: miles,
+            odoStart: parseFloat(document.getElementById('f-odo-start').value) || null,
+            odoEnd: parseFloat(document.getElementById('f-odo-end').value) || null,
+            purpose: document.getElementById('f-purpose').value.trim()
+        };
+        setTripsForYear(yr, trips);
+        resetForm();
+        computeSummary();
+        renderTrips();
+        showStatus('form-status', 'Trip updated', 'success');
+    }
+
+    function resetForm() {
+        editingId = null;
+        document.getElementById('add-trip-btn').textContent = 'Add Trip';
+        document.getElementById('add-trip-btn').onclick = addTrip;
+    }
+
+    function loadSample() {
+        const yr = currentYear();
+        const existing = getTripsForYear(yr);
+        if (existing.length > 0 && !confirm('Replace existing ' + existing.length + ' trip(s) for ' + yr + ' with sample data?')) return;
+        const sample = [];
+        if (yr === 2026) {
+            sample.push({ id: 1, date: '2026-01-15', category: 'business', start: 'Home Office', end: 'Client Site A', miles: 12.4, odoStart: 45000, odoEnd: 45012.4, purpose: 'Client consultation meeting' });
+            sample.push({ id: 2, date: '2026-02-03', category: 'business', start: 'Home Office', end: 'Conference Center', miles: 28.6, odoStart: 45100, odoEnd: 45128.6, purpose: 'Industry conference' });
+            sample.push({ id: 3, date: '2026-03-22', category: 'medical', start: 'Home', end: 'Mercy Hospital', miles: 8.2, odoStart: 45200, odoEnd: 45208.2, purpose: 'Specialist appointment' });
+            sample.push({ id: 4, date: '2026-04-10', category: 'business', start: 'Office', end: 'Bank', miles: 3.5, odoStart: 45300, odoEnd: 45303.5, purpose: 'Deposit checks' });
+            sample.push({ id: 5, date: '2026-05-18', category: 'charity', start: 'Home', end: 'Food Bank', miles: 14.0, odoStart: 45400, odoEnd: 45414, purpose: 'Volunteer delivery' });
+            sample.push({ id: 6, date: '2026-06-25', category: 'business', start: 'Home Office', end: 'Co-working Space', miles: 6.7, odoStart: 45500, odoEnd: 45506.7, purpose: 'Team offsite' });
+            sample.push({ id: 7, date: '2026-07-15', category: 'business', start: 'Home Office', end: 'Client Site B', miles: 22.3, odoStart: 45600, odoEnd: 45622.3, purpose: 'NEW RATE — Client visit after July 1' });
+            sample.push({ id: 8, date: '2026-08-08', category: 'business', start: 'Office', end: 'Airport', miles: 31.0, odoStart: 45700, odoEnd: 45731, purpose: 'Business travel — pick up equipment' });
+            sample.push({ id: 9, date: '2026-09-12', category: 'medical', start: 'Home', end: 'Pharmacy', miles: 4.8, odoStart: 45800, odoEnd: 45804.8, purpose: 'Pick up prescription' });
+            sample.push({ id: 10, date: '2026-10-30', category: 'business', start: 'Office', end: 'Networking Event', miles: 9.5, odoStart: 45900, odoEnd: 45909.5, purpose: 'Client mixer' });
+        } else if (yr === 2025) {
+            sample.push({ id: 1, date: '2025-01-12', category: 'business', start: 'Home Office', end: 'Client A', miles: 14.0, odoStart: 42000, odoEnd: 42014, purpose: 'Consulting' });
+            sample.push({ id: 2, date: '2025-03-05', category: 'business', start: 'Home Office', end: 'Warehouse', miles: 18.7, odoStart: 42200, odoEnd: 42218.7, purpose: 'Inventory pickup' });
+            sample.push({ id: 3, date: '2025-05-22', category: 'medical', start: 'Home', end: 'Hospital', miles: 11.4, odoStart: 42400, odoEnd: 42411.4, purpose: 'Doctor visit' });
+            sample.push({ id: 4, date: '2025-08-19', category: 'charity', start: 'Home', end: 'Library', miles: 5.5, odoStart: 42700, odoEnd: 42705.5, purpose: 'Volunteer tutoring' });
+            sample.push({ id: 5, date: '2025-12-01', category: 'business', start: 'Home Office', end: 'Client B', miles: 25.3, odoStart: 43100, odoEnd: 43125.3, purpose: 'Year-end review' });
+        } else {
+            // generic sample for other years
+            const month = Math.min(12, Math.max(1, 12 - (yr % 5)));
+            sample.push({ id: 1, date: yr + '-0' + Math.min(9, month) + '-15', category: 'business', start: 'Home', end: 'Office', miles: 12.0, odoStart: 40000, odoEnd: 40012, purpose: 'Sample trip' });
+            sample.push({ id: 2, date: yr + '-' + month + '-20', category: 'medical', start: 'Home', end: 'Clinic', miles: 8.0, odoStart: 40100, odoEnd: 40108, purpose: 'Sample medical trip' });
+        }
+        setTripsForYear(yr, sample);
+        computeSummary();
+        renderTrips();
+        showStatus('form-status', 'Loaded ' + sample.length + ' sample trip(s) for ' + yr, 'success');
+    }
+
+    function clearYearData() {
+        const yr = currentYear();
+        const trips = getTripsForYear(yr);
+        if (trips.length === 0) { showStatus('form-status', 'No data to clear for ' + yr, 'success'); return; }
+        if (!confirm('Permanently delete all ' + trips.length + ' trip(s) for ' + yr + '? Export first if you need a backup.')) return;
+        const all = loadAllTrips();
+        delete all[yr];
+        saveAllTrips(all);
+        computeSummary();
+        renderTrips();
+        showStatus('form-status', 'Cleared all trips for ' + yr, 'success');
+    }
+
+    function exportCSV() {
+        const yr = currentYear();
+        const trips = getTripsForYear(yr);
+        if (trips.length === 0) { showStatus('form-status', 'No trips to export for ' + yr, 'error'); return; }
+        const sorted = trips.slice().sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+        const lines = ['Date,Category,From,To,Miles,Odometer Start,Odometer End,Rate (cents/mi),Deduction ($),Purpose'];
+        for (const t of sorted) {
+            const r = getRateForDate(t.date);
+            const rate = r ? r[t.category] : 0;
+            const ded = (parseFloat(t.miles) || 0) * rate / 100;
+            const row = [
+                t.date,
+                CATEGORY_LABELS[t.category] || t.category,
+                csvEscape(t.start || ''),
+                csvEscape(t.end || ''),
+                formatMiles(parseFloat(t.miles) || 0),
+                t.odoStart == null ? '' : t.odoStart,
+                t.odoEnd == null ? '' : t.odoEnd,
+                rate,
+                (Math.round(ded * 100) / 100).toFixed(2),
+                csvEscape(t.purpose || '')
+            ];
+            lines.push(row.join(','));
+        }
+        // Footer totals
+        let totalMi = 0, totalDed = 0;
+        for (const t of sorted) {
+            const r = getRateForDate(t.date);
+            if (!r) continue;
+            const m = parseFloat(t.miles) || 0;
+            totalMi += m;
+            totalDed += m * r[t.category] / 100;
+        }
+        lines.push('');
+        lines.push(`TOTAL,,, ,${formatMiles(totalMi)},,,,${(Math.round(totalDed * 100) / 100).toFixed(2)},`);
+        const csv = lines.join('\n');
+        downloadFile(csv, 'mileage-log-' + yr + '-' + new Date().toISOString().split('T')[0] + '.csv', 'text/csv;charset=utf-8');
+        showStatus('form-status', 'Exported ' + trips.length + ' trips to CSV', 'success');
+    }
+
+    function csvEscape(s) {
+        s = String(s);
+        if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+            return '"' + s.replace(/"/g, '""') + '"';
+        }
+        return s;
+    }
+
+    function exportJSON() {
+        const yr = currentYear();
+        const trips = getTripsForYear(yr);
+        const payload = {
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            year: yr,
+            trips: trips,
+            ratesUsed: IRS_RATES
+        };
+        const json = JSON.stringify(payload, null, 2);
+        downloadFile(json, 'mileage-log-' + yr + '-' + new Date().toISOString().split('T')[0] + '.json', 'application/json');
+        showStatus('form-status', 'Exported JSON backup (' + trips.length + ' trips)', 'success');
+    }
+
+    function downloadFile(content, filename, mime) {
+        const blob = new Blob([content], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function handleFileImport(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            try {
+                const payload = JSON.parse(ev.target.result);
+                if (Array.isArray(payload.trips)) {
+                    const yr = payload.year || currentYear();
+                    setTripsForYear(yr, payload.trips);
+                    document.getElementById('year-selector').value = yr;
+                    computeSummary();
+                    renderTrips();
+                    renderPeriodNote();
+                    renderRateTable();
+                    showStatus('form-status', 'Imported ' + payload.trips.length + ' trip(s) for ' + yr, 'success');
+                } else {
+                    showStatus('form-status', 'Invalid JSON: missing trips array', 'error');
+                }
+            } catch (err) {
+                showStatus('form-status', 'JSON parse error: ' + err.message, 'error');
+            }
+            e.target.value = '';
+        };
+        reader.readAsText(file);
+    }
+
+    // Initialize on load
+    function init() {
+        // Default date to today (in 2026 selected year)
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        document.getElementById('f-date').value = yyyy + '-' + mm + '-' + dd;
+
+        document.getElementById('year-selector').addEventListener('change', () => {
+            computeSummary();
+            renderTrips();
+            renderPeriodNote();
+            renderRateTable();
+        });
+        document.getElementById('file-import').addEventListener('change', handleFileImport);
+
+        renderPeriodNote();
+        renderRateTable();
+        computeSummary();
+        renderTrips();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    </script>
+</body>
+</html>

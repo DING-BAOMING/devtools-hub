@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Time Is It? - World Clock & Current Time | DevTools Hub</title>
+    <meta name="description" content="What time is it? Free online world clock shows current time anywhere. Live analog & digital clocks with multiple timezones. No signup, no ads.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/world-clock/">
+    <meta property="og:title" content="What Time Is It? - World Clock &amp; Current Time | DevTools Hub">
+    <meta property="og:description" content="What time is it? Free online world clock shows current time anywhere. Live analog &amp; digital clocks with multiple timezones. No signup, no ads.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/world-clock/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-06-01","dateModified":"2026-06-01","author":{"@type":"Person","name":"BAOMING"},"name":"What Time Is It - World Clock","description":"Free online world clock showing current time anywhere. Live analog and digital clocks with multiple timezones.","url":"https://tools.scoreroute.com/tools/world-clock/","applicationCategory":"UtilityApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        .wc-container { max-width: 1000px; margin: 0 auto; }
+        .wc-hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px; padding: 40px 30px; text-align: center;
+            margin-bottom: 30px; position: relative; overflow: hidden;
+        }
+        .wc-hero::before {
+            content: ''; position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(102,126,234,0.08) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .wc-hero-clock { position: relative; z-index: 1; }
+        .wc-question {
+            color: rgba(255,255,255,0.5); font-size: 0.9rem;
+            margin-bottom: 5px; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .wc-hero-digital {
+            font-size: 5rem; font-weight: 700; color: #fff;
+            font-family: 'Courier New', monospace; letter-spacing: 4px;
+            line-height: 1.1; text-shadow: 0 0 40px rgba(102,126,234,0.3);
+        }
+        .wc-hero-seconds {
+            font-size: 2rem; color: #667eea; font-family: monospace;
+            vertical-align: super; opacity: 0.8;
+        }
+        .wc-hero-date {
+            font-size: 1.2rem; color: rgba(255,255,255,0.6);
+            margin-top: 10px;
+            /* BUG-426: the date goes from the one-word placeholder to a full
+               "Wednesday, November 4, 2026", which wraps to two lines on a phone. Reserving
+               the two lines keeps the hero (and everything under it) from growing after the
+               first paint. 3.2em = 2 x 1.6 line-height at this font-size. */
+            min-height: 3.2em;
+        }
+        .wc-hero-tz {
+            font-size: 1rem; color: #667eea;
+            margin-top: 5px; font-weight: 600;
+        }
+        .wc-hero-label { font-size: 0.85rem; color: rgba(255,255,255,0.4); margin-top: 3px; }
+
+        .wc-controls {
+            display: flex; gap: 10px; justify-content: center;
+            flex-wrap: wrap; margin-top: 20px;
+        }
+
+        .wc-analog-section {
+            background: #1a1a2e; border-radius: 16px; padding: 30px;
+            margin-bottom: 30px; text-align: center;
+        }
+        .wc-analog-section h3 { color: #fff; margin-bottom: 20px; font-size: 1.1rem; }
+        .wc-analog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px; margin-top: 20px;
+        }
+        .wc-analog-card {
+            background: #0f0f23; border-radius: 12px; padding: 20px 15px;
+            text-align: center; transition: transform 0.2s;
+        }
+        .wc-analog-card:hover { transform: translateY(-2px); }
+        .wc-city-name { color: #fff; font-weight: 600; margin-bottom: 5px; }
+        .wc-city-offset { color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-bottom: 10px; }
+        .wc-city-digital {
+            font-size: 1.4rem; font-weight: 700; color: #667eea;
+            font-family: monospace; margin-top: 8px;
+        }
+        .wc-city-date { color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 3px; }
+
+        canvas.analog-canvas {
+            width: 120px; height: 120px;
+        }
+
+        .wc-add-section {
+            background: #1a1a2e; border-radius: 16px; padding: 25px 30px;
+            margin-bottom: 30px;
+        }
+        .wc-add-section h3 { color: #fff; margin-bottom: 15px; }
+        .wc-add-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .wc-add-row select {
+            flex: 1; min-width: 200px; padding: 12px;
+            background: #0f0f23; border: 1px solid #333;
+            color: #fff; border-radius: 8px; font-size: 0.95rem;
+        }
+        .wc-analog-card .remove-btn {
+            background: none; border: none; color: #ff4444; cursor: pointer;
+            font-size: 0.8rem; margin-top: 8px; opacity: 0; transition: opacity 0.2s;
+        }
+        .wc-analog-card:hover .remove-btn { opacity: 0.6; }
+        .wc-analog-card .remove-btn:hover { opacity: 1; }
+
+        @media (max-width: 600px) {
+            .wc-hero-digital { font-size: 3rem; }
+            .wc-hero-seconds { font-size: 1.4rem; }
+            .wc-analog-grid { grid-template-columns: repeat(2, 1fr); }
+            .wc-analog-card { padding: 12px; }
+            canvas.analog-canvas { width: 80px; height: 80px; }
+            .wc-city-digital { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>What Time Is It?</h1>
+            <p class="subtitle">Current Time Anywhere in the World</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>World Clock</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container wc-container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="wc-hero">
+                    <div class="wc-hero-clock">
+                        <div class="wc-question">What time is it right now?</div>
+                        <div class="wc-hero-digital" id="hero-digital">
+                            <span id="hero-hours">00</span>:<span id="hero-mins">00</span><span class="wc-hero-seconds" id="hero-seconds">:00</span>
+                        </div>
+                        <div class="wc-hero-date" id="hero-date">Loading...</div>
+                        <div class="wc-hero-tz" id="hero-tz">Detecting...</div>
+                        <div class="wc-hero-label" id="hero-label">Your local time</div>
+                    </div>
+                    <div class="wc-controls">
+                        <button onclick="toggleFormat()" class="btn" id="format-toggle">Switch to 12h</button>
+                        <button onclick="toggleFullscreen()" class="btn" id="fs-toggle">Fullscreen</button>
+                    </div>
+                </div>
+
+                <div class="wc-analog-section">
+                    <h2>World Clock</h2>
+                    <p style="color:rgba(255,255,255,0.5);margin-bottom:5px;font-size:0.9rem;">Current time in major cities — analog &amp; digital</p>
+                    <!-- BUG-426: the 8 default clocks are in the STATIC HTML, not built by JS.
+                         Building them from JS put them after the browser's first paint, and they
+                         then pushed the rest of the page down (CLS 0.62 on a slow phone — the
+                         bug413 gate). Here they are placeholders: the JS only fills in the
+                         values, in place, so the layout is final before the first paint. The
+                         placeholder strings have the same shape as the real ones, so filling
+                         them in does not change any height either. -->
+                    <div class="wc-analog-grid" id="analog-grid">
+                        <div class="wc-analog-card" data-city="America/New_York"><div class="wc-city-name">New York</div><div class="wc-city-offset">UTC+0:00</div><canvas class="analog-canvas" width="120" height="120"></canvas><div class="wc-city-digital">00:00:00</div><div class="wc-city-date">Mon, Jan 1</div></div>
+                        <div class="wc-analog-card" data-city="Europe/London"><div class="wc-city-name">London</div><div class="wc-city-offset">UTC+0:00</div><canvas class="analog-canvas" width="120" height="120"></canvas><div class="wc-city-digital">00:00:00</div><div class="wc-city-date">Mon, Jan 1</div></div>
+                        <div class="wc-analog-card" data-city="Europe/Paris"><div class="wc-city-name">Paris</div><div class="wc-city-offset">UTC+0:00</div><canvas class="analog-canvas" width="120" height="120"></canvas><div class="wc-city-digital">00:00:00</div><div class="wc-city-date">Mon, Jan 1</div></div>
+                        <div class="wc-analog-card" data-city="Asia/Dubai"><div class="wc-city-name">Dubai</div><div class="wc-city-offset">UTC+0:00</div><canvas class="analog-canvas" width="120" height="120"></canvas><div class="wc-city-digital">00:00:00</div><div class="wc-city-date">Mon, Jan 1</div></div>
+                        <div class="wc-analog-card" data-city="Asia/Kolkata"><div class="wc-city-name">Mumbai</div><div class="wc-city-offset">UTC+0:00</div><canvas class="analog-canvas" width="120" height="120"></canvas><div class="wc-city-digital">00:00:00</div><div class="wc-city-date">Mon, Jan 1</div></div>
+                        <div class="wc-analog-card" data-city="Asia/Tokyo"><div class="wc-city-name">Tokyo</div><div class="wc-city-offset">UTC+0:00</div><canvas class="analog-canvas" width="120" height="120"></canvas><div class="wc-city-digital">00:00:00</div><div class="wc-city-date">Mon, Jan 1</div></div>
+                        <div class="wc-analog-card" data-city="Australia/Sydney"><div class="wc-city-name">Sydney</div><div class="wc-city-offset">UTC+0:00</div><canvas class="analog-canvas" width="120" height="120"></canvas><div class="wc-city-digital">00:00:00</div><div class="wc-city-date">Mon, Jan 1</div></div>
+                        <div class="wc-analog-card" data-city="America/Los_Angeles"><div class="wc-city-name">Los Angeles</div><div class="wc-city-offset">UTC+0:00</div><canvas class="analog-canvas" width="120" height="120"></canvas><div class="wc-city-digital">00:00:00</div><div class="wc-city-date">Mon, Jan 1</div></div>
+                    </div>
+                </div>
+
+                <div class="wc-add-section">
+                    <h3>Add Another City</h3>
+                    <div class="wc-add-row">
+                        <label class="sr-only" for="city-select">City Select</label><select id="city-select">
+                            <option value="">Select a city...</option>
+                            <option value="America/New_York">New York</option>
+                            <option value="America/Los_Angeles">Los Angeles</option>
+                            <option value="America/Chicago">Chicago</option>
+                            <option value="America/Denver">Denver</option>
+                            <option value="America/Toronto">Toronto</option>
+                            <option value="America/Vancouver">Vancouver</option>
+                            <option value="America/Sao_Paulo">São Paulo</option>
+                            <option value="America/Mexico_City">Mexico City</option>
+                            <option value="America/Argentina/Buenos_Aires">Buenos Aires</option>
+                            <option value="Europe/London">London</option>
+                            <option value="Europe/Paris">Paris</option>
+                            <option value="Europe/Berlin">Berlin</option>
+                            <option value="Europe/Madrid">Madrid</option>
+                            <option value="Europe/Rome">Rome</option>
+                            <option value="Europe/Amsterdam">Amsterdam</option>
+                            <option value="Europe/Moscow">Moscow</option>
+                            <option value="Europe/Istanbul">Istanbul</option>
+                            <option value="Asia/Dubai">Dubai</option>
+                            <option value="Asia/Kolkata">Mumbai / Delhi</option>
+                            <option value="Asia/Singapore">Singapore</option>
+                            <option value="Asia/Hong_Kong">Hong Kong</option>
+                            <option value="Asia/Shanghai">Shanghai</option>
+                            <option value="Asia/Tokyo">Tokyo</option>
+                            <option value="Asia/Seoul">Seoul</option>
+                            <option value="Asia/Bangkok">Bangkok</option>
+                            <option value="Australia/Sydney">Sydney</option>
+                            <option value="Australia/Melbourne">Melbourne</option>
+                            <option value="Pacific/Auckland">Auckland</option>
+                            <option value="Pacific/Honolulu">Honolulu</option>
+                            <option value="Africa/Cairo">Cairo</option>
+                            <option value="Africa/Johannesburg">Johannesburg</option>
+                            <option value="Africa/Lagos">Lagos</option>
+                            <option value="America/Anchorage">Anchorage</option>
+                            <option value="Pacific/Fiji">Fiji</option>
+                        </select>
+                        <button onclick="addCity()" class="btn btn-primary">Add City</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What Time Is It Right Now?</h2>
+                <p>This page answers the simple question: <strong>"what time is it?"</strong> Whether you need to know the current time in your city or check what time it is in Tokyo, London, or Dubai, our live world clock gives you instant answers with beautiful analog and digital displays.</p>
+
+                <h3>How It Works</h3>
+                <p><strong>Your local time</strong> is displayed at the top using your device's system clock. Below that, you'll see the current time in major cities around the world. Each city shows both an <strong>analog clock</strong> (with hour, minute, and second hands) and a <strong>digital time</strong> readout.</p>
+                <p>All time calculations use the <strong>IANA time zone database</strong> via your browser's <code>Intl.DateTimeFormat</code> API. Daylight saving time transitions are handled automatically — no manual adjustments needed.</p>
+
+                <h3>When You Need to Know "What Time Is It"</h3>
+                <p><strong>Remote Work:</strong> "What time is it in London?" before scheduling a call.</p>
+                <p><strong>Travel Planning:</strong> "What time is it in Tokyo?" to plan your arrival.</p>
+                <p><strong>Global Teams:</strong> Check if colleagues in New York, Berlin, and Singapore are online.</p>
+                <p><strong>Family & Friends:</strong> "What time is it in Mumbai?" before calling relatives.</p>
+
+                <h3>Accuracy & Reliability</h3>
+                <p>The clock uses your <strong>device's system time</strong>, which is typically synchronized with NTP servers to within milliseconds of true UTC. For maximum accuracy, ensure your device's "Set time automatically" setting is enabled.</p>
+                <p>All time zone conversions use the official <strong>IANA time zone database</strong> (tzdata), which is the same source used by operating systems worldwide. DST transitions happen automatically at the correct local time.</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>What time is it right now?</summary>
+                    The current time is displayed at the top of this page, updated every second. You can also check the time in 30+ cities worldwide below.
+                </details>
+                <details class="faq-item">
+                    <summary>How accurate is this clock?</summary>
+                    The clock uses your device's system time, which is synchronized with NTP servers. Most modern devices are accurate to within ±50 milliseconds of true UTC time.
+                </details>
+                <details class="faq-item">
+                    <summary>Does it handle daylight saving time?</summary>
+                    Yes, the IANA time zone database automatically handles all DST transitions for every supported city. No manual adjustments needed.
+                </details>
+                <details class="faq-item">
+                    <summary>Can I see multiple timezones at once?</summary>
+                    Yes! The world clock section shows analog and digital times for 8 major cities by default. You can add any city from the dropdown to create your custom dashboard.
+                </details>
+                <details class="faq-item">
+                    <summary>What time is it in [city]?</summary>
+                    Select any city from the "Add Another City" dropdown to instantly see its current time with both analog and digital displays.
+                </details>
+                <details class="faq-item">
+                    <summary>Does this work on mobile?</summary>
+                    Yes, the world clock is fully responsive and works on all devices including smartphones and tablets.
+                </details>
+
+                <div class="related-section">
+                    <h4>Related Tools</h4>
+                    <ul>
+                        <li><a href="/tools/time-zone-converter/">Time Zone Converter</a></li>
+                        <li><a href="/tools/timestamp-converter/">Timestamp Converter</a></li>
+                        <li><a href="/tools/calculator/">Calculator</a></li>
+                        <li><a href="/tools/online-timer/">Online Timer</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        const DEFAULT_CITIES = [
+            { id: 'America/New_York', name: 'New York' },
+            { id: 'Europe/London', name: 'London' },
+            { id: 'Europe/Paris', name: 'Paris' },
+            { id: 'Asia/Dubai', name: 'Dubai' },
+            { id: 'Asia/Kolkata', name: 'Mumbai' },
+            { id: 'Asia/Tokyo', name: 'Tokyo' },
+            { id: 'Australia/Sydney', name: 'Sydney' },
+            { id: 'America/Los_Angeles', name: 'Los Angeles' }
+        ];
+
+        let activeCities = [...DEFAULT_CITIES];
+        let is24h = true;
+
+        function getTimeInZone(zone) {
+            const now = new Date();
+            return {
+                hours: parseInt(now.toLocaleString('en-US', { timeZone: zone, hour: '2-digit', hour12: false })),
+                minutes: parseInt(now.toLocaleString('en-US', { timeZone: zone, minute: '2-digit' })),
+                seconds: parseInt(now.toLocaleString('en-US', { timeZone: zone, second: '2-digit' })),
+                dateStr: now.toLocaleDateString('en-US', { timeZone: zone, weekday: 'short', month: 'short', day: 'numeric' }),
+                offset: now.toLocaleString('en-US', { timeZone: zone, timeZoneName: 'short' }).split(' ').pop(),
+                fullName: zone
+            };
+        }
+
+        function getLocalTimeInfo() {
+            const now = new Date();
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            return {
+                hours: now.getHours(),
+                minutes: now.getMinutes(),
+                seconds: now.getSeconds(),
+                dateStr: now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+                tz: tz
+            };
+        }
+
+        function formatTime(hours, mins, secs, use24h) {
+            if (use24h) {
+                return { h: String(hours).padStart(2, '0'), m: String(mins).padStart(2, '0'), s: String(secs).padStart(2, '0'), suffix: '' };
+            }
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const h12 = hours % 12 || 12;
+            return { h: String(h12).padStart(2, '0'), m: String(mins).padStart(2, '0'), s: String(secs).padStart(2, '0'), suffix: period };
+        }
+
+        function updateHero() {
+            const local = getLocalTimeInfo();
+            const fmt = formatTime(local.hours, local.minutes, local.seconds, is24h);
+            let display = fmt.h + ':' + fmt.m;
+            if (is24h) {
+                display += '<span class="wc-hero-seconds">:' + fmt.s + '</span>';
+            } else {
+                display += ' <span style="font-size:1.5rem;color:#667eea;">' + fmt.suffix + '</span>';
+            }
+            document.getElementById('hero-digital').innerHTML = '<span id="hero-hours">' + fmt.h + '</span>:<span id="hero-mins">' + fmt.m + '</span><span class="wc-hero-seconds" id="hero-seconds">:' + fmt.s + '</span>';
+            document.getElementById('hero-date').textContent = local.dateStr;
+            document.getElementById('hero-tz').textContent = local.tz;
+            document.getElementById('format-toggle').textContent = is24h ? 'Switch to 12h' : 'Switch to 24h';
+        }
+
+        function drawAnalogClock(canvas, hours, minutes, seconds) {
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            const size = rect.width || 120;
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            ctx.scale(dpr, dpr);
+
+            const cx = size / 2;
+            const cy = size / 2;
+            const r = size / 2 - 8;
+
+            ctx.clearRect(0, 0, size, size);
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = '#0f0f23';
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            for (let i = 0; i < 12; i++) {
+                const a = (i * 30 - 90) * Math.PI / 180;
+                const inner = r * 0.85;
+                const outer = i % 3 === 0 ? r * 0.92 : r * 0.88;
+                ctx.beginPath();
+                ctx.moveTo(cx + inner * Math.cos(a), cy + inner * Math.sin(a));
+                ctx.lineTo(cx + outer * Math.cos(a), cy + outer * Math.sin(a));
+                ctx.strokeStyle = i % 3 === 0 ? '#667eea' : '#555';
+                ctx.lineWidth = i % 3 === 0 ? 2.5 : 1.5;
+                ctx.stroke();
+            }
+
+            const centerDotR = 3;
+
+            const hourAngle = ((hours % 12) * 30 + minutes * 0.5 - 90) * Math.PI / 180;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + r * 0.5 * Math.cos(hourAngle), cy + r * 0.5 * Math.sin(hourAngle));
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            const minAngle = (minutes * 6 - 90) * Math.PI / 180;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + r * 0.7 * Math.cos(minAngle), cy + r * 0.7 * Math.sin(minAngle));
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const secAngle = (seconds * 6 - 90) * Math.PI / 180;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + r * 0.75 * Math.cos(secAngle), cy + r * 0.75 * Math.sin(secAngle));
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 1.2;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, centerDotR, 0, Math.PI * 2);
+            ctx.fillStyle = '#667eea';
+            ctx.fill();
+        }
+
+        function renderClocks() {
+            const grid = document.getElementById('analog-grid');
+            // BUG-426: the 8 default cards are in the STATIC HTML (see the markup) — building
+            // them here put them after the first paint, and they pushed the page down (CLS 0.62
+            // on a slow phone, bug413 gate). Now the cards are only FILLED IN, in place: the
+            // layout does not change. Only a city the visitor adds is created here.
+            activeCities.forEach((city, idx) => {
+                const t = getTimeInZone(city.id);
+                const fmt = formatTime(t.hours, t.minutes, t.seconds, is24h);
+                const display = fmt.h + ':' + fmt.m + ':' + fmt.s;
+                const isDefault = idx < DEFAULT_CITIES.length;
+
+                let card = grid.querySelector('.wc-analog-card[data-city="' + city.id + '"]');
+                if (!card) {
+                    card = document.createElement('div');
+                    card.className = 'wc-analog-card';
+                    card.dataset.city = city.id;
+                    card.innerHTML = '<div class="wc-city-name"></div>' +
+                        '<div class="wc-city-offset"></div>' +
+                        '<canvas class="analog-canvas" width="120" height="120"></canvas>' +
+                        '<div class="wc-city-digital"></div>' +
+                        '<div class="wc-city-date"></div>' +
+                        '<button class="remove-btn" type="button">Remove</button>';
+                    grid.appendChild(card);
+                }
+                card.querySelector('.wc-city-name').textContent = city.name;
+                card.querySelector('.wc-city-offset').textContent = t.offset;
+                card.querySelector('.wc-city-digital').textContent = display;
+                card.querySelector('.wc-city-date').textContent = t.dateStr;
+                const btn = card.querySelector('.remove-btn');
+                if (btn) {
+                    btn.style.display = isDefault ? 'none' : '';
+                    btn.onclick = function () { removeCity(city.id); };
+                }
+                drawAnalogClock(card.querySelector('canvas'), t.hours, t.minutes, t.seconds);
+            });
+            // drop the cards of cities that were removed
+            grid.querySelectorAll('.wc-analog-card').forEach(function (c) {
+                if (!activeCities.some(city => city.id === c.dataset.city)) c.remove();
+            });
+        }
+
+        function addCity() {
+            const sel = document.getElementById('city-select');
+            const val = sel.value;
+            if (!val) return showStatus('clock-status', 'Please select a city', 'error');
+            if (activeCities.some(c => c.id === val)) return showStatus('clock-status', 'City already added', 'error');
+            const name = sel.options[sel.selectedIndex].text;
+            activeCities.push({ id: val, name: name });
+            sel.value = '';
+            showStatus('clock-status', name + ' added!', 'success');
+            renderClocks();
+        }
+
+        function removeCity(zoneId) {
+            const i = activeCities.findIndex(c => c.id === zoneId);
+            if (i < 0) return;
+            activeCities.splice(i, 1);
+            renderClocks();
+        }
+
+        function toggleFormat() {
+            is24h = !is24h;
+            updateHero();
+            renderClocks();
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.querySelector('.wc-hero').requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function showStatus(id, msg, type) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = msg;
+            el.className = 'status ' + type;
+            setTimeout(function() { el.textContent = ''; el.className = 'status'; }, 3000);
+        }
+
+        let tickInterval;
+
+        function tick() {
+            updateHero();
+            renderClocks();
+        }
+
+        // BUG-426: render the clocks NOW, not on DOMContentLoaded. This script sits at the end
+        // of <body>, so everything it writes into already exists — waiting for DOMContentLoaded
+        // put the 8 clock cards (and the real date instead of "Loading...") AFTER the browser's
+        // first paint, and they then pushed the rest of the page down: CLS 0.62 on a slow phone
+        // (the bug413 gate, mobile 390 px). Rendering during parsing puts them in the first
+        // paint, so there is nothing left to shift.
+        tick();
+        tickInterval = setInterval(tick, 1000);
+    </script>
+    <div id="clock-status" class="status" style="text-align:center;margin-top:15px;"></div>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

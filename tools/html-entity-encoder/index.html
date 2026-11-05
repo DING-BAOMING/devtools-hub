@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Entity Encoder/Decoder - Encode & Decode Special Characters</title>
+    <meta name="description" content="Free online HTML entity encoder and decoder. Encode special characters like &amp;, &lt;, &gt; and quotes to HTML entities, and decode them back. 100% private, no signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/html-entity-encoder/">
+    <meta property="og:title" content="HTML Entity Encoder/Decoder - Encode & Decode Special Characters">
+    <meta property="og:description" content="Free online HTML entity encoder and decoder. Encode special characters like &amp;, &lt;, &gt; and quotes to HTML entities, and decode them back. 100% private, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/html-entity-encoder/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="HTML Entity Encoder/Decoder - Encode & Decode Special Characters">
+    <meta name="twitter:description" content="Free online HTML entity encoder and decoder. Encode special characters like &amp;, &lt;, &gt; and quotes to HTML entities, and decode them back. 100% private, no signup.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/html-entity-encoder/">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-07-16",
+        "dateModified": "2026-07-16",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "HTML Entity Encoder/Decoder - Encode & Decode Special Characters",
+        "description": "Encode special HTML characters to entities and decode entities back to text. Supports named, decimal numeric, and hexadecimal entities with 4 encoding modes. 100% client-side - no upload, no signup, no limits. AI hallucinates entity encoding for edge cases - this tool gives deterministic results.",
+        "url": "https://tools.scoreroute.com/tools/html-entity-encoder/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": [
+            "Bidirectional encode/decode between text and HTML entities",
+            "4 encoding modes: minimal, named, numeric, and all non-ASCII",
+            "Supports named entities, decimal numeric (&#38;), and hex numeric (&#x26;)",
+            "Decodes all standard HTML5 entities including surrogate pairs",
+            "HTML entity reference lookup table for common characters",
+            "100% client-side - no server upload, no signup, no limits",
+            "AI cannot reliably encode/decode edge-case HTML entities - this tool delivers deterministic results"
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+        {"@type":"Question","name":"What is HTML entity encoding?","acceptedAnswer":{"@type":"Answer","text":"HTML entity encoding replaces characters that have special meaning in HTML (like <, >, &, \", ') with safe text representations called entities. For example, < becomes &lt; so the browser displays it as text instead of interpreting it as a tag. This prevents broken markup and XSS attacks when inserting user content into HTML pages."}},
+        {"@type":"Question","name":"What are the 4 encoding modes?","acceptedAnswer":{"@type":"Answer","text":"Minimal: Only encodes the 5 HTML-special characters (& < > \" ') - the safest default for most use cases. Named: Uses readable named entities like &copy; and &euro; where available. Numeric: Encodes all non-ASCII characters as decimal numeric entities like &#169;. All non-ASCII: Encodes every character outside printable ASCII range for legacy/ASCII-only pipelines."}},
+        {"@type":"Question","name":"What entity formats does the decoder support?","acceptedAnswer":{"@type":"Answer","text":"The decoder handles all three HTML entity formats: named entities (&amp;, &lt;, &gt;, &quot;, &apos;, &copy;, &euro; etc.), decimal numeric entities (&#38;, &#60;, &#62;, &#169;), and hexadecimal numeric entities (&#x26;, &#x3C;, &#x3E;, &#xA9;). It correctly decodes surrogate pairs including emoji characters."}},
+        {"@type":"Question","name":"Is my data uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. The entire encode/decode process runs locally in your browser using JavaScript. Your text never leaves your device. You can verify this by opening your browser's Developer Tools (F12), going to the Network tab, and observing that no outbound requests are made when you encode or decode text."}},
+        {"@type":"Question","name":"Why can't AI chatbots reliably encode HTML entities?","acceptedAnswer":{"@type":"Answer","text":"AI assistants like ChatGPT and Claude hallucinate entity encoding on edge cases - they may forget to encode the ampersand first (causing double-encoding), mishandle surrogate pairs, produce inconsistent output for the same input across sessions, or incorrectly decode hex entities. This tool uses deterministic JavaScript with the correct WHATWG HTML serialization rules for bit-perfect, repeatable results."}},
+        {"@type":"Question","name":"When should I use minimal vs numeric vs named encoding?","acceptedAnswer":{"@type":"Answer","text":"Use Minimal when inserting content into HTML body or attributes - it encodes only the 5 dangerous characters while keeping text readable. Use Named when you want human-readable entities for common symbols (copyright, trademark, currency). Use Numeric when passing HTML through pipelines that may not understand named entities. Use All non-ASCII when targeting strict ASCII-only systems like legacy email servers or older APIs."}}
+    ]}
+    </script>
+    <style>
+        .hee-header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+        .hee-mode-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .hee-mode-btn { background: #0f0f23; border: 1px solid #2a2a4a; color: #888; padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .hee-mode-btn:hover { border-color: #667eea; color: #ccc; }
+        .hee-mode-btn.active { background: #252545; border-color: #667eea; color: #667eea; }
+        .hee-textareas { display: flex; flex-direction: column; gap: 10px; }
+        .hee-textarea-wrap { position: relative; }
+        .hee-textarea-wrap textarea { width: 100%; min-height: 160px; resize: vertical; background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 10px; color: #e6edf3; padding: 14px; font-family: 'Courier New',monospace; font-size: 0.9rem; line-height: 1.5; box-sizing: border-box; }
+        .hee-textarea-wrap textarea:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .hee-stats { display: flex; justify-content: space-between; padding: 8px 4px; font-size: 0.8rem; color: #8b949e; }
+        .hee-controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 8px 0; }
+        .hee-ref-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 12px; }
+        .hee-ref-table th { background: #252545; color: #667eea; padding: 8px 12px; text-align: left; border: 1px solid #2a2a4a; }
+        .hee-ref-table td { padding: 6px 12px; border: 1px solid #2a2a4a; color: #ccc; }
+        .hee-ref-table tr:nth-child(even) { background: #0f0f23; }
+        .hee-ref-table tr:hover { background: #1a1a3e; }
+        .hee-ref-filter { width: 100%; padding: 10px 14px; background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 8px; color: #e6edf3; font-size: 0.9rem; margin-bottom: 10px; box-sizing: border-box; }
+        .hee-ref-filter:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .hee-dir-btn { font-weight: 600; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 500; opacity: 0; transition: opacity 0.3s; z-index: 2000; font-size: 0.9rem; pointer-events: none; }
+        .toast.show { opacity: 1; }
+        @media (max-width: 480px) {
+            .hee-textarea-wrap textarea { min-height: 120px; font-size: 0.8rem; }
+            .hee-mode-btn { font-size: 0.8rem; padding: 5px 12px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>HTML Entity Encoder/Decoder</h1>
+            <p class="subtitle">Encode special characters to HTML entities or decode entities back to plain text. 100% free and private.</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>HTML Entity Encoder/Decoder</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Encode or Decode HTML Entities</h2>
+
+                <div class="hee-header">
+                    <div class="hee-dir-btn btn-group" style="margin:0">
+                        <button onclick="setDirection('encode')" class="btn btn-primary" id="hee-dir-encode">Encode</button>
+                        <button onclick="setDirection('decode')" class="btn" id="hee-dir-decode">Decode</button>
+                    </div>
+                    <div class="hee-mode-row" id="hee-mode-row">
+                        <button onclick="setMode('minimal')" class="hee-mode-btn active" data-mode="minimal">Minimal</button>
+                        <button onclick="setMode('named')" class="hee-mode-btn" data-mode="named">Named</button>
+                        <button onclick="setMode('numeric')" class="hee-mode-btn" data-mode="numeric">Numeric</button>
+                        <button onclick="setMode('all')" class="hee-mode-btn" data-mode="all">All non-ASCII</button>
+                    </div>
+                </div>
+
+                <div class="hee-textareas">
+                    <div class="hee-textarea-wrap">
+                        <textarea aria-label="Text to encode or decode" id="hee-input" placeholder="Paste or type text here to encode or decode..." spellcheck="false"></textarea>
+                        <div class="hee-stats"><span id="hee-input-stats">0 chars</span><span id="hee-input-hint">Type or paste text, or try a sample</span></div>
+                    </div>
+                    <div class="hee-controls">
+                        <button onclick="processText()" class="btn btn-primary" id="hee-convert-btn">Convert</button>
+                        <button onclick="swapText()" class="btn" title="Swap input and output">Swap ↑↓</button>
+                        <button onclick="clearAll()" class="btn btn-secondary">Clear</button>
+                        <button onclick="copyOutput()" class="btn">Copy</button>
+                    </div>
+                    <div class="hee-textarea-wrap">
+                        <textarea aria-label="Encoded or decoded output" id="hee-output" readonly placeholder="Output will appear here..." spellcheck="false"></textarea>
+                        <div class="hee-stats"><span id="hee-output-stats">0 chars</span><span id="hee-output-entities">0 entities</span></div>
+                    </div>
+                </div>
+
+                <div class="btn-group" style="margin-top:8px">
+                    <button onclick="loadSample('encode')" class="btn">Sample: Encode</button>
+                    <button onclick="loadSample('decode')" class="btn">Sample: Decode</button>
+                </div>
+
+                <div id="hee-error" class="status" style="margin-top:10px"></div>
+            </div>
+
+            <div class="info-section">
+                <h2>About HTML Entity Encoder/Decoder</h2>
+                <p>This free online tool converts text to HTML entities and decodes HTML entities back to text, all in your browser. HTML entity encoding replaces characters with special meaning in HTML (&, &lt;, &gt;, &quot;, &apos;) with safe text representations called entity references. This is essential for preventing broken markup and XSS attacks when inserting user-generated content into web pages.</p>
+
+                <h3>How to Use</h3>
+                <ol>
+                    <li><strong>Select direction</strong> - Choose Encode (text to entities) or Decode (entities to text)</li>
+                    <li><strong>Choose encoding mode</strong> - Minimal (5 special chars), Named (readable entities), Numeric (decimal &#NN;), or All non-ASCII</li>
+                    <li><strong>Enter text</strong> - Type or paste your content into the input area</li>
+                    <li><strong>Convert</strong> - Click Convert or press Ctrl+Enter to process</li>
+                    <li><strong>Copy or swap</strong> - Copy the output, or use Swap to reverse the direction</li>
+                </ol>
+
+                <h3>Encoding Modes</h3>
+                <ul>
+                    <li><strong>Minimal</strong> - Encodes only the 5 HTML-special characters (&amp; &lt; &gt; &quot; &apos;). Safe default for inserting content into HTML body or attributes.</li>
+                    <li><strong>Named</strong> - Uses readable named entities like &amp;copy; and &amp;euro; where a named entity exists. More readable but only covers characters that have predefined names.</li>
+                    <li><strong>Numeric</strong> - Encodes every non-ASCII character as a decimal numeric entity (like &amp;#169;). Safe for any Unicode character.</li>
+                    <li><strong>All non-ASCII</strong> - Encodes everything outside printable ASCII (codepoints 32-126) as entities. Use for strict ASCII-only pipelines.</li>
+                </ul>
+
+                <h3>Common Use Cases</h3>
+                <ul>
+                    <li><strong>XSS prevention</strong> - Escape user input before inserting it into HTML to prevent cross-site scripting attacks</li>
+                    <li><strong>Email templates</strong> - Encode special characters in HTML email bodies for reliable rendering</li>
+                    <li><strong>CMS content</strong> - Clean up entity-encoded content exported from WordPress, Drupal, or other CMS platforms</li>
+                    <li><strong>API debugging</strong> - Decode HTML entities in API responses and scraped web content for readability</li>
+                    <li><strong>Legacy system compatibility</strong> - Encode non-ASCII characters for systems that only support ASCII</li>
+                </ul>
+
+                <h3>HTML Entity Reference</h3>
+                <input type="text" id="hee-ref-filter" class="hee-ref-filter" aria-label="Search HTML entities" placeholder="Search entities (e.g. copy, amp, 169)..." oninput="filterRefTable()">
+                <div style="overflow-x:auto">
+                <table class="hee-ref-table" id="hee-ref-table">
+<caption class="sr-only">The characters this tool encodes, with each entity's decimal and hex code</caption>
+                    <thead><tr><th>Character</th><th>Named Entity</th><th>Decimal</th><th>Hex</th><th>Description</th></tr></thead>
+                    <tbody id="hee-ref-tbody"><tr><td colspan="5">No data yet.</td></tr></tbody>
+                </table>
+                </div>
+
+                <h3>Why AI Cannot Reliably Encode HTML Entities</h3>
+                <p>AI assistants like ChatGPT and Claude make systematic errors on HTML entity encoding: they may forget to encode the ampersand first (causing double-encoding), produce different results for the same input across sessions, mishandle surrogate pairs (emoji and CJK characters), incorrectly decode hex entities, or omit encoding entirely on edge cases. This tool uses deterministic JavaScript with the correct WHATWG HTML serialization rules - it produces bit-perfect, repeatable results every time, with zero hallucination.</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>What is HTML entity encoding?</summary>
+                    <p>HTML entity encoding replaces characters that have special meaning in HTML (like &lt;, &gt;, &amp;, &quot;, &apos;) with safe text representations called entities. For example, &lt; becomes &amp;lt; so the browser displays it as text instead of interpreting it as a tag. This prevents broken markup and XSS attacks when inserting user content into HTML pages.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What are the 4 encoding modes?</summary>
+                    <p><strong>Minimal</strong>: Only encodes the 5 HTML-special characters (&amp; &lt; &gt; &quot; &apos;) - the safest default. <strong>Named</strong>: Uses readable named entities like &amp;copy; and &amp;euro; where available. <strong>Numeric</strong>: Encodes all non-ASCII characters as decimal numeric entities like &amp;#169;. <strong>All non-ASCII</strong>: Encodes every character outside printable ASCII range for legacy/ASCII-only pipelines.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What entity formats does the decoder support?</summary>
+                    <p>The decoder handles all three HTML entity formats: named entities (&amp;amp;, &amp;lt;, &amp;gt;, &amp;quot;, &amp;apos;, &amp;copy;, &amp;euro;), decimal numeric entities (&amp;#38;, &amp;#60;, &amp;#62;, &amp;#169;), and hexadecimal numeric entities (&amp;#x26;, &amp;#x3C;, &amp;#x3E;, &amp;#xA9;). It correctly decodes surrogate pairs including emoji characters.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is my data uploaded to a server?</summary>
+                    <p>No. The entire encode/decode process runs locally in your browser using JavaScript. Your text never leaves your device. You can verify this by opening your browser's Developer Tools (F12), going to the Network tab, and observing that no outbound requests are made when you encode or decode text. No signup, no tracking, no data storage.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>When should I use minimal vs numeric vs named encoding?</summary>
+                    <p>Use <strong>Minimal</strong> when inserting content into HTML body or attributes - it encodes only the 5 dangerous characters while keeping text readable. Use <strong>Named</strong> when you want human-readable entities for common symbols (copyright, trademark, currency). Use <strong>Numeric</strong> when passing HTML through pipelines that may not understand named entities. Use <strong>All non-ASCII</strong> when targeting strict ASCII-only systems like legacy email servers or older APIs.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why can't AI chatbots reliably encode HTML entities?</summary>
+                    <p>AI assistants hallucinate entity encoding on edge cases - they may forget to encode the ampersand first (causing double-encoding), mishandle surrogate pairs, produce inconsistent output for the same input across sessions, or incorrectly decode hex entities. This tool uses deterministic JavaScript with the correct WHATWG HTML serialization rules for bit-perfect, repeatable results every time.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+    <div id="toast" class="toast"></div>
+    <script src="/tools.js"></script>
+    <script>
+    var inputEl = document.getElementById('hee-input');
+    var outputEl = document.getElementById('hee-output');
+    var inputStats = document.getElementById('hee-input-stats');
+    var outputStats = document.getElementById('hee-output-stats');
+    var outputEntities = document.getElementById('hee-output-entities');
+    var inputHint = document.getElementById('hee-input-hint');
+    var errorEl = document.getElementById('hee-error');
+    var toastEl = document.getElementById('hee-toast') || document.getElementById('toast');
+    var refTbody = document.getElementById('hee-ref-tbody');
+    var refFilter = document.getElementById('hee-ref-filter');
+
+    var direction = 'encode';
+    var mode = 'minimal';
+
+    var namedEntities = {
+        '&amp;':'&','&lt;':'<','&gt':'>','&gt;':'>','&quot;':'"',"&apos;":"'",
+        '&nbsp;':'\u00A0','&iexcl;':'\u00A1','&cent;':'\u00A2','&pound;':'\u00A3','&curren;':'\u00A4','&yen;':'\u00A5','&brvbar;':'\u00A6','&sect;':'\u00A7','&uml;':'\u00A8','&copy;':'\u00A9','&ordf;':'\u00AA','&laquo;':'\u00AB','&not;':'\u00AC','&shy;':'\u00AD','&reg;':'\u00AE','&macr;':'\u00AF','&deg;':'\u00B0','&plusmn;':'\u00B1','&sup2;':'\u00B2','&sup3;':'\u00B3','&acute;':'\u00B4','&micro;':'\u00B5','&para;':'\u00B6','&middot;':'\u00B7','&cedil;':'\u00B8','&sup1;':'\u00B9','&ordm;':'\u00BA','&raquo;':'\u00BB','&frac14;':'\u00BC','&frac12;':'\u00BD','&frac34;':'\u00BE','&iquest;':'\u00BF','&times;':'\u00D7','&divide;':'\u00F7',
+        '&Agrave;':'\u00C0','&Aacute;':'\u00C1','&Acirc;':'\u00C2','&Atilde;':'\u00C3','&Auml;':'\u00C4','&Aring;':'\u00C5','&AElig;':'\u00C6','&Ccedil;':'\u00C7','&Egrave;':'\u00C8','&Eacute;':'\u00C9','&Ecirc;':'\u00CA','&Euml;':'\u00CB','&Igrave;':'\u00CC','&Iacute;':'\u00CD','&Icirc;':'\u00CE','&Iuml;':'\u00CF','&ETH;':'\u00D0','&Ntilde;':'\u00D1','&Ograve;':'\u00D2','&Oacute;':'\u00D3','&Ocirc;':'\u00D4','&Otilde;':'\u00D5','&Ouml;':'\u00D6','&Oslash;':'\u00D8','&Ugrave;':'\u00D9','&Uacute;':'\u00DA','&Ucirc;':'\u00DB','&Uuml;':'\u00DC','&Yacute;':'\u00DD','&THORN;':'\u00DE','&szlig;':'\u00DF','&agrave;':'\u00E0','&aacute;':'\u00E1','&acirc;':'\u00E2','&atilde;':'\u00E3','&auml;':'\u00E4','&aring;':'\u00E5','&aelig;':'\u00E6','&ccedil;':'\u00E7','&egrave;':'\u00E8','&eacute;':'\u00E9','&ecirc;':'\u00EA','&euml;':'\u00EB','&igrave;':'\u00EC','&iacute;':'\u00ED','&icirc;':'\u00EE','&iuml;':'\u00EF','&eth;':'\u00F0','&ntilde;':'\u00F1','&ograve;':'\u00F2','&oacute;':'\u00F3','&ocirc;':'\u00F4','&otilde;':'\u00F5','&ouml;':'\u00F6','&oslash;':'\u00F8','&ugrave;':'\u00F9','&uacute;':'\u00FA','&ucirc;':'\u00FB','&uuml;':'\u00FC','&yacute;':'\u00FD','&thorn;':'\u00FE','&yuml;':'\u00FF',
+        '&OElig;':'\u0152','&oelig;':'\u0153','&Scaron;':'\u0160','&scaron;':'\u0161','&Yuml;':'\u0178','&fnof;':'\u0192','&circ;':'\u02C6','&tilde;':'\u02DC','&Alpha;':'\u0391','&Beta;':'\u0392','&Gamma;':'\u0393','&Delta;':'\u0394','&Epsilon;':'\u0395','&Zeta;':'\u0396','&Eta;':'\u0397','&Theta;':'\u0398','&Iota;':'\u0399','&Kappa;':'\u039A','&Lambda;':'\u039B','&Mu;':'\u039C','&Nu;':'\u039D','&Xi;':'\u039E','&Omicron;':'\u039F','&Pi;':'\u03A0','&Rho;':'\u03A1','&Sigma;':'\u03A3','&Tau;':'\u03A4','&Upsilon;':'\u03A5','&Phi;':'\u03A6','&Chi;':'\u03A7','&Psi;':'\u03A8','&Omega;':'\u03A9','&alpha;':'\u03B1','&beta;':'\u03B2','&gamma;':'\u03B3','&delta;':'\u03B4','&epsilon;':'\u03B5','&zeta;':'\u03B6','&eta;':'\u03B7','&theta;':'\u03B8','&iota;':'\u03B9','&kappa;':'\u03BA','&lambda;':'\u03BB','&mu;':'\u03BC','&nu;':'\u03BD','&xi;':'\u03BE','&omicron;':'\u03BF','&pi;':'\u03C0','&rho;':'\u03C1','&sigmaf;':'\u03C2','&sigma;':'\u03C3','&tau;':'\u03C4','&upsilon;':'\u03C5','&phi;':'\u03C6','&chi;':'\u03C7','&psi;':'\u03C8','&omega;':'\u03C9','&thetasym;':'\u03D1','&upsih;':'\u03D2','&piv;':'\u03D6',
+        '&ensp;':'\u2002','&emsp;':'\u2003','&thinsp;':'\u2009','&zwnj;':'\u200C','&zwj;':'\u200D','&lrm;':'\u200E','&rlm;':'\u200F','&ndash;':'\u2013','&mdash;':'\u2014','&lsquo;':'\u2018','&rsquo;':'\u2019','&sbquo;':'\u201A','&ldquo;':'\u201C','&rdquo;':'\u201D','&bdquo;':'\u201E','&dagger;':'\u2020','&Dagger;':'\u2021','&bull;':'\u2022','&hellip;':'\u2026','&permil;':'\u2030','&prime;':'\u2032','&Prime;':'\u2033','&lsaquo;':'\u2039','&rsaquo;':'\u203A','&oline;':'\u203E','&frasl;':'\u2044','&euro;':'\u20AC',
+        '&image;':'\u2111','&weierp;':'\u2118','&real;':'\u211C','&trade;':'\u2122','&alefsym;':'\u2135','&larr;':'\u2190','&uarr;':'\u2191','&rarr;':'\u2192','&darr;':'\u2193','&harr;':'\u2194','&crarr;':'\u21B5','&lArr;':'\u21D0','&uArr;':'\u21D1','&rArr;':'\u21D2','&dArr;':'\u21D3','&hArr;':'\u21D4','&forall;':'\u2200','&part;':'\u2202','&exist;':'\u2203','&empty;':'\u2205','&nabla;':'\u2207','&isin;':'\u2208','&notin;':'\u2209','&ni;':'\u220B','&prod;':'\u220F','&sum;':'\u2211','&minus;':'\u2212','&lowast;':'\u2217','&radic;':'\u221A','&prop;':'\u221D','&infin;':'\u221E','&ang;':'\u2220','&and;':'\u2227','&or;':'\u2228','&cap;':'\u2229','&cup;':'\u222A','&int;':'\u222B','&there4;':'\u2234','&sim;':'\u223C','&cong;':'\u2245','&asymp;':'\u2248','&ne;':'\u2260','&equiv;':'\u2261','&le;':'\u2264','&ge;':'\u2265','&sub;':'\u2282','&sup;':'\u2283','&nsub;':'\u2284','&sube;':'\u2286','&supe;':'\u2287','&oplus;':'\u2295','&otimes;':'\u2297','&perp;':'\u22A5','&sdot;':'\u22C5','&lceil;':'\u2308','&rceil;':'\u2309','&lfloor;':'\u230A','&rfloor;':'\u230B','&lang;':'\u2329','&rang;':'\u232A','&loz;':'\u25CA','&spades;':'\u2660','&clubs;':'\u2663','&hearts;':'\u2665','&diams;':'\u2666'
+    };
+
+    var refEntities = [
+        {char:'&', name:'&amp;', dec:'&#38;', hex:'&#x26;', desc:'Ampersand'},
+        {char:'<', name:'&lt;', dec:'&#60;', hex:'&#x3C;', desc:'Less than'},
+        {char:'>', name:'&gt;', dec:'&#62;', hex:'&#x3E;', desc:'Greater than'},
+        {char:'"', name:'&quot;', dec:'&#34;', hex:'&#x22;', desc:'Double quote'},
+        {char:"'", name:'&apos;', dec:'&#39;', hex:'&#x27;', desc:'Apostrophe'},
+        {char:' ', name:'&nbsp;', dec:'&#160;', hex:'&#xA0;', desc:'Non-breaking space'},
+        {char:'¡', name:'&iexcl;', dec:'&#161;', hex:'&#xA1;', desc:'Inverted exclamation'},
+        {char:'¢', name:'&cent;', dec:'&#162;', hex:'&#xA2;', desc:'Cent'},
+        {char:'£', name:'&pound;', dec:'&#163;', hex:'&#xA3;', desc:'Pound'},
+        {char:'¤', name:'&curren;', dec:'&#164;', hex:'&#xA4;', desc:'Currency'},
+        {char:'¥', name:'&yen;', dec:'&#165;', hex:'&#xA5;', desc:'Yen'},
+        {char:'©', name:'&copy;', dec:'&#169;', hex:'&#xA9;', desc:'Copyright'},
+        {char:'®', name:'&reg;', dec:'&#174;', hex:'&#xAE;', desc:'Registered'},
+        {char:'°', name:'&deg;', dec:'&#176;', hex:'&#xB0;', desc:'Degree'},
+        {char:'±', name:'&plusmn;', dec:'&#177;', hex:'&#xB1;', desc:'Plus-minus'},
+        {char:'²', name:'&sup2;', dec:'&#178;', hex:'&#xB2;', desc:'Superscript 2'},
+        {char:'³', name:'&sup3;', dec:'&#179;', hex:'&#xB3;', desc:'Superscript 3'},
+        {char:'µ', name:'&micro;', dec:'&#181;', hex:'&#xB5;', desc:'Micro'},
+        {char:'¶', name:'&para;', dec:'&#182;', hex:'&#xB6;', desc:'Pilcrow'},
+        {char:'·', name:'&middot;', dec:'&#183;', hex:'&#xB7;', desc:'Middle dot'},
+        {char:'×', name:'&times;', dec:'&#215;', hex:'&#xD7;', desc:'Multiply'},
+        {char:'÷', name:'&divide;', dec:'&#247;', hex:'&#xF7;', desc:'Divide'},
+        {char:'€', name:'&euro;', dec:'&#8364;', hex:'&#x20AC;', desc:'Euro'},
+        {char:'™', name:'&trade;', dec:'&#8482;', hex:'&#x2122;', desc:'Trademark'},
+        {char:'—', name:'&mdash;', dec:'&#8212;', hex:'&#x2014;', desc:'Em dash'},
+        {char:'–', name:'&ndash;', dec:'&#8211;', hex:'&#x2013;', desc:'En dash'},
+        {char:'…', name:'&hellip;', dec:'&#8230;', hex:'&#x2026;', desc:'Horizontal ellipsis'},
+        {char:'«', name:'&laquo;', dec:'&#171;', hex:'&#xAB;', desc:'Left angle quote'},
+        {char:'»', name:'&raquo;', dec:'&#187;', hex:'&#xBB;', desc:'Right angle quote'},
+        {char:'“', name:'&ldquo;', dec:'&#8220;', hex:'&#x201C;', desc:'Left double quote'},
+        {char:'”', name:'&rdquo;', dec:'&#8221;', hex:'&#x201D;', desc:'Right double quote'},
+        {char:'‘', name:'&lsquo;', dec:'&#8216;', hex:'&#x2018;', desc:'Left single quote'},
+        {char:'’', name:'&rsquo;', dec:'&#8217;', hex:'&#x2019;', desc:'Right single quote'},
+        {char:'•', name:'&bull;', dec:'&#8226;', hex:'&#x2022;', desc:'Bullet'},
+        {char:'†', name:'&dagger;', dec:'&#8224;', hex:'&#x2020;', desc:'Dagger'},
+        {char:'‡', name:'&Dagger;', dec:'&#8225;', hex:'&#x2021;', desc:'Double dagger'},
+        {char:'‰', name:'&permil;', dec:'&#8240;', hex:'&#x2030;', desc:'Per mille'},
+        {char:'′', name:'&prime;', dec:'&#8242;', hex:'&#x2032;', desc:'Prime'},
+        {char:'″', name:'&Prime;', dec:'&#8243;', hex:'&#x2033;', desc:'Double prime'},
+        {char:'←', name:'&larr;', dec:'&#8592;', hex:'&#x2190;', desc:'Left arrow'},
+        {char:'↑', name:'&uarr;', dec:'&#8593;', hex:'&#x2191;', desc:'Up arrow'},
+        {char:'→', name:'&rarr;', dec:'&#8594;', hex:'&#x2192;', desc:'Right arrow'},
+        {char:'↓', name:'&darr;', dec:'&#8595;', hex:'&#x2193;', desc:'Down arrow'},
+        {char:'↔', name:'&harr;', dec:'&#8596;', hex:'&#x2194;', desc:'Left-right arrow'},
+        {char:'α', name:'&alpha;', dec:'&#945;', hex:'&#x3B1;', desc:'Alpha'},
+        {char:'β', name:'&beta;', dec:'&#946;', hex:'&#x3B2;', desc:'Beta'},
+        {char:'γ', name:'&gamma;', dec:'&#947;', hex:'&#x3B3;', desc:'Gamma'},
+        {char:'δ', name:'&delta;', dec:'&#948;', hex:'&#x3B4;', desc:'Delta'},
+        {char:'ε', name:'&epsilon;', dec:'&#949;', hex:'&#x3B5;', desc:'Epsilon'},
+        {char:'θ', name:'&theta;', dec:'&#952;', hex:'&#x3B8;', desc:'Theta'},
+        {char:'λ', name:'&lambda;', dec:'&#955;', hex:'&#x3BB;', desc:'Lambda'},
+        {char:'μ', name:'&mu;', dec:'&#956;', hex:'&#x3BC;', desc:'Mu'},
+        {char:'π', name:'&pi;', dec:'&#960;', hex:'&#x3C0;', desc:'Pi'},
+        {char:'σ', name:'&sigma;', dec:'&#963;', hex:'&#x3C3;', desc:'Sigma'},
+        {char:'τ', name:'&tau;', dec:'&#964;', hex:'&#x3C4;', desc:'Tau'},
+        {char:'φ', name:'&phi;', dec:'&#966;', hex:'&#x3C6;', desc:'Phi'},
+        {char:'ω', name:'&omega;', dec:'&#969;', hex:'&#x3C9;', desc:'Omega'},
+        {char:'√', name:'&radic;', dec:'&#8730;', hex:'&#x221A;', desc:'Square root'},
+        {char:'∞', name:'&infin;', dec:'&#8734;', hex:'&#x221E;', desc:'Infinity'},
+        {char:'∫', name:'&int;', dec:'&#8747;', hex:'&#x222B;', desc:'Integral'},
+        {char:'≈', name:'&asymp;', dec:'&#8776;', hex:'&#x2248;', desc:'Approximately'},
+        {char:'≠', name:'&ne;', dec:'&#8800;', hex:'&#x2260;', desc:'Not equal'},
+        {char:'≡', name:'&equiv;', dec:'&#8801;', hex:'&#x2261;', desc:'Equivalent'},
+        {char:'≤', name:'&le;', dec:'&#8804;', hex:'&#x2264;', desc:'Less or equal'},
+        {char:'≥', name:'&ge;', dec:'&#8805;', hex:'&#x2265;', desc:'Greater or equal'},
+        {char:'♥', name:'&hearts;', dec:'&#9829;', hex:'&#x2665;', desc:'Heart'},
+        {char:'♦', name:'&diams;', dec:'&#9830;', hex:'&#x2666;', desc:'Diamond'},
+        {char:'♣', name:'&clubs;', dec:'&#9827;', hex:'&#x2663;', desc:'Club'},
+        {char:'♠', name:'&spades;', dec:'&#9824;', hex:'&#x2660;', desc:'Spade'}
+    ];
+
+    function setDirection(dir) {
+        direction = dir;
+        document.getElementById('hee-dir-encode').className = dir === 'encode' ? 'btn btn-primary' : 'btn';
+        document.getElementById('hee-dir-decode').className = dir === 'decode' ? 'btn btn-primary' : 'btn';
+        var modeRow = document.getElementById('hee-mode-row');
+        modeRow.style.display = dir === 'encode' ? '' : 'none';
+        inputHint.textContent = dir === 'encode' ? 'Text to encode into HTML entities' : 'HTML entities to decode back to text';
+        processText();
+    }
+
+    function setMode(m) {
+        mode = m;
+        document.querySelectorAll('.hee-mode-btn').forEach(function(b) {
+            b.className = 'hee-mode-btn' + (b.getAttribute('data-mode') === m ? ' active' : '');
+        });
+        processText();
+    }
+
+    function encodeEntities(text, mode) {
+        var entityMap = {};
+        entityMap['&'] = '&amp;';
+        entityMap['<'] = '&lt;';
+        entityMap['>'] = '&gt;';
+        entityMap['"'] = '&quot;';
+        entityMap["'"] = '&apos;';
+
+        var result = '';
+        for (var i = 0; i < text.length; i++) {
+            var ch = text.charAt(i);
+            var code = text.charCodeAt(i);
+
+            if (entityMap[ch]) {
+                result += entityMap[ch];
+                continue;
+            }
+
+            if (mode === 'minimal') {
+                result += ch;
+                continue;
+            }
+
+            var isAscii = code >= 32 && code <= 126;
+
+            if (mode === 'all') {
+                if (isAscii && ch !== '&' && ch !== '<' && ch !== '>' && ch !== '"' && ch !== "'") {
+                    result += ch;
+                } else if (!entityMap[ch]) {
+                    result += '&#' + code + ';';
+                }
+                continue;
+            }
+
+            if (mode === 'named') {
+                var found = false;
+                for (var name in namedEntities) {
+                    if (namedEntities[name] === ch) {
+                        result += name;
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) continue;
+                if (isAscii) { result += ch; continue; }
+                result += '&#' + code + ';';
+                continue;
+            }
+
+            if (mode === 'numeric') {
+                if (isAscii && ch !== '&' && ch !== '<' && ch !== '>' && ch !== '"' && ch !== "'") {
+                    result += ch;
+                } else if (!entityMap[ch]) {
+                    result += '&#' + code + ';';
+                }
+                continue;
+            }
+
+            result += ch;
+        }
+        return result;
+    }
+
+    function decodeEntities(text) {
+        text = text.replace(/&#x([0-9A-Fa-f]+);/g, function(m, hex) {
+            var cp = parseInt(hex, 16);
+            if (isNaN(cp) || cp > 0x10FFFF) return m;
+            return String.fromCodePoint(cp);
+        });
+        text = text.replace(/&#(\d+);/g, function(m, dec) {
+            var cp = parseInt(dec, 10);
+            if (isNaN(cp) || cp > 0x10FFFF) return m;
+            return String.fromCodePoint(cp);
+        });
+        text = text.replace(/&([a-zA-Z]+);/g, function(m, name) {
+            var entity = '&' + name + ';';
+            if (namedEntities[entity] !== undefined) return namedEntities[entity];
+            return m;
+        });
+        return text;
+    }
+
+    function processText() {
+        var text = inputEl.value;
+        if (!text) {
+            outputEl.value = '';
+            updateStats();
+            return;
+        }
+        try {
+            var result;
+            if (direction === 'encode') {
+                result = encodeEntities(text, mode);
+            } else {
+                result = decodeEntities(text);
+            }
+            outputEl.value = result;
+            errorEl.textContent = '';
+            errorEl.className = 'status';
+        } catch (e) {
+            errorEl.textContent = 'Error: ' + e.message;
+            errorEl.className = 'status error';
+        }
+        updateStats();
+    }
+
+    function updateStats() {
+        var inputLen = inputEl.value.length;
+        inputStats.textContent = inputLen + ' char' + (inputLen !== 1 ? 's' : '');
+        var outputLen = outputEl.value.length;
+        outputStats.textContent = outputLen + ' char' + (outputLen !== 1 ? 's' : '');
+        var entityCount = (outputEl.value.match(/&[a-zA-Z#]+;/g) || []).length;
+        outputEntities.textContent = entityCount + ' entit' + (entityCount !== 1 ? 'ies' : 'y');
+    }
+
+    function swapText() {
+        var temp = inputEl.value;
+        inputEl.value = outputEl.value;
+        outputEl.value = '';
+        if (direction === 'encode') {
+            direction = 'decode';
+            setDirection('decode');
+        } else {
+            direction = 'encode';
+            setDirection('encode');
+        }
+        processText();
+    }
+
+    function clearAll() {
+        inputEl.value = '';
+        outputEl.value = '';
+        errorEl.textContent = '';
+        errorEl.className = 'status';
+        updateStats();
+    }
+
+    function copyOutput() {
+        var text = outputEl.value;
+        if (!text) { showToast('Nothing to copy'); return; }
+        navigator.clipboard.writeText(text).then(function() {
+            showToast('Copied to clipboard');
+        }).catch(function() {
+            outputEl.select();
+            document.execCommand('copy');
+            showToast('Copied to clipboard');
+        });
+    }
+
+    function loadSample(type) {
+        if (type === 'encode') {
+            inputEl.value = 'Hello <world> & "friends" from O\'Brien\'s café & bakery © 2026';
+            if (direction !== 'encode') setDirection('encode');
+        } else {
+            inputEl.value = 'Hello &lt;world&gt; &amp; &quot;friends&quot; from O&apos;Brien&apos;s caf&eacute; &amp; bakery &copy; 2026';
+            if (direction !== 'decode') setDirection('decode');
+        }
+        processText();
+    }
+
+    function filterRefTable() {
+        var query = refFilter.value.toLowerCase();
+        var rows = refTbody.querySelectorAll('tr');
+        rows.forEach(function(row) {
+            var text = row.textContent.toLowerCase();
+            row.style.display = text.indexOf(query) >= 0 ? '' : 'none';
+        });
+    }
+
+    function buildRefTable() {
+        refTbody.innerHTML = '';
+        refEntities.forEach(function(e) {
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td style="font-size:1.3rem;text-align:center">' + e.char + '</td><td><code>' + e.name + '</code></td><td><code>' + e.dec + '</code></td><td><code>' + e.hex + '</code></td><td>' + e.desc + '</td>';
+            refTbody.appendChild(tr);
+        });
+    }
+
+    inputEl.addEventListener('input', processText);
+    inputEl.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') processText();
+    });
+
+    buildRefTable();
+    updateStats();
+    setDirection('encode');
+
+    function showToast(msg) {
+        if (!toastEl) toastEl = document.getElementById('toast');
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        setTimeout(function() { toastEl.classList.remove('show'); }, 2500);
+    }
+    </script>
+</body>
+</html>

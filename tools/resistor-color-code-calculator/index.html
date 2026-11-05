@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resistor Color Code Calculator - 4 &amp; 5 Band</title>
+<meta name="description" content="Free resistor color code calculator. Read 3, 4, 5 and 6 band resistors to value, tolerance and TCR. Reverse a value into bands, nearest E24 or E96 and wattage.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/resistor-color-code-calculator/">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/resistor-color-code-calculator/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Resistor Color Code Calculator - 4 &amp; 5 Band">
+<meta property="og:description" content="Free resistor color code calculator. Read 3, 4, 5 and 6 band resistors to value, tolerance and TCR. Reverse a value into bands, nearest E24 or E96 and wattage.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Resistor Color Code Calculator - 4 &amp; 5 Band">
+<meta name="twitter:description" content="Free resistor color code calculator. Read 3, 4, 5 and 6 band resistors to value, tolerance and TCR. Reverse a value into bands, nearest E24 or E96 and wattage.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:url" content="https://tools.scoreroute.com/tools/resistor-color-code-calculator/">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Resistor Color Code Calculator - 4 &amp; 5 Band",
+  "description": "Free resistor color code calculator that decodes 3, 4, 5 and 6 band resistors to resistance, tolerance band and temperature coefficient under IEC 60062, and runs the calculation backwards: enter a target value and get the nearest E24 and E96 preferred value, the band colours to buy, the tolerance in ohms, the power dissipated and the next standard power rating to fit.",
+  "url": "https://tools.scoreroute.com/tools/resistor-color-code-calculator/",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript. No signup, no upload, nothing stored.",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@id": "https://tools.scoreroute.com/#author"},
+  "datePublished": "2026-10-03",
+  "dateModified": "2026-10-03",
+  "featureList": [
+    "Decodes 3, 4, 5 and 6 band resistors to resistance, tolerance and temperature coefficient per IEC 60062:2016",
+    "Shows the tolerance as a real ohm range, not only a percentage",
+    "Works out how far the value drifts with temperature from the TCR band",
+    "Reverses any value into the bands to buy, in both 4 band and 5 band form",
+    "Snaps a target to the nearest E24 and nearest E96 preferred value and reports the error",
+    "Computes power dissipated from the voltage across the part and recommends the next standard power rating with headroom",
+    "LED current limiting resistor mode: supply voltage, LED forward voltage and target current to one resistor",
+    "Reports IEC 60062:2016 tolerance bands that older published charts still get wrong"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I read a 4 band resistor color code?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Read left to right. The first band is the first significant digit and the second is the second significant digit, so brown then black means 10. The third band is the multiplier, a power of ten: black is times 1, brown times 10, red times 100, up through grey times 100 million, with gold times 0.1 and silver times 0.01 for values below 10 ohms. The fourth band is the tolerance, the percentage the real resistance may differ by. Red violet yellow gold is 2, 7, then times 10000, so 270000 ohms, or 270 kilohms, at plus or minus 5 percent. The digits and the multiplier are separate jobs and mixing them up is the single most common way to read a resistor wrong by a factor of ten."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between a 4 band and a 5 band resistor?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "One extra significant digit. A 4 band resistor gives two significant digits, so 47 followed by the multiplier can only express 47 times something, and 4.7 kOhm is the closest a 4 band part can get. A 5 band resistor gives three significant digits, so 4.70 kOhm is exact. That is why 1 percent and 0.1 percent parts are almost always 5 band, and why a 4 band resistor can never be more accurate than about 1 percent no matter which tolerance colour is on it. The multiplier moves one place to the right when you add the third digit, because the significant digits and the multiplier are a fixed number of characters."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the last band on a 6 band resistor?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The temperature coefficient of resistance, written as ppm per degree Celsius, which is how much the resistance changes per degree away from the reference temperature of 25 C. A black sixth band is 250 ppm per K, brown is 100, red is 50, yellow is 25, green is 20, orange is 15, blue is 10, violet is 5 and grey is 1. A 100 ppm per K part sitting 55 degrees above 25 C is about 0.55 percent off its marked value, which is less than its own 1 percent tolerance band and therefore usually irrelevant. Precision parts are the exception: 15 or 5 ppm per K over the same 55 degrees is 0.08 or 0.03 percent, and that is often the whole reason the part was specified."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What resistor do I use as an LED current limiting resistor?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Take the supply voltage minus the LED forward voltage, divide by the current you want, and that is the resistance. A red LED with a 2 V forward voltage on a 5 V supply running at 10 mA needs 3 divided by 0.01, which is 300 ohms. Then snap it to a value you can actually buy, because 300 ohms is not a standard value, and check the power. 300 ohms at 3 V dissipates 0.03 W, so the smallest part that fits with headroom is a one eighth watt 0.125 W resistor. The mistake that kills LEDs is skipping the power step and picking a part too small for the voltage, or ignoring that a 9 V alkaline falls to about 6 V and a 5 V USB supply can sit at 5.25 V, both of which push more current through the LED than the calculation at the nominal voltage suggests."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does the tolerance colour chart on this page differ from older ones?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "IEC 60062:2016 added two tolerance bands that most charts published before 2016 do not have: yellow is plus or minus 0.02 percent and grey is plus or minus 0.01 percent. Before that revision, yellow and grey rings were not assigned these meanings, and grey was sometimes used informally for plus or minus 0.05 percent. A separate long standing practice is that some high voltage resistor makers use yellow and grey where gold and silver would go, to keep metal pigment out of the lacquer, so a yellow band on an old high voltage part can mean plus or minus 5 percent. The charts that still say grey is 0.05 percent are not wrong for the parts they were written for, they are just older than the current standard."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does a 0 ohm jumper resistor do?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It is a single black band and it is nominally zero ohms, used to bridge a footprint so a board assembles the same way whether or not that circuit is populated. It is not exactly zero. A typical 0 ohm jumper is rated 1 percent with a 250 ppm per K temperature coefficient, so it can be a few milliohms and it drifts with temperature exactly like any other resistor. That is why you never treat a jumper as a dead short in a design, and why it cannot substitute for a real resistance in a current setting network."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my data uploaded or stored anywhere?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nothing leaves your browser. The decoding, the E series search and the power arithmetic all run as JavaScript on your own machine, there is no request to a server, no account, and nothing written to disk or to any database. Reload the page and it is all gone."
+      }
+    }
+  ]
+}
+</script>
+<style>
+.rc-tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.rc-tab { background: #1a1a2e; border: 1px solid #2a2a4a; color: #b3b8c0; border-radius: 10px; padding: 10px 18px; font-size: 0.92rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+.rc-tab[aria-selected="true"] { background: #667eea; border-color: #667eea; color: #fff; }
+.rc-panel { display: none; }
+.rc-panel.on { display: block; }
+.rc-bandrow { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.rc-band { flex: 1 1 110px; min-width: 100px; }
+.rc-label { display: block; color: #888; font-size: 0.82rem; margin-bottom: 5px; }
+.rc-sel, .rc-in { width: 100%; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 9px; padding: 10px 11px; font-family: monospace; font-size: 0.9rem; }
+.rc-sel:focus, .rc-in:focus { outline: 2px solid transparent; border-color: #667eea; }
+.rc-body { background: #0f0f23; border: 2px solid #2a2a4a; border-radius: 12px; padding: 14px; margin-top: 6px; }
+.rc-body .rcc { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #1f1f3a; }
+.rc-body .rcc:last-child { border-bottom: none; }
+.rcc-sw { width: 40px; height: 26px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.22); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: monospace; font-size: 0.7rem; font-weight: 700; }
+.rcc-nm { width: 52px; color: #b3b8c0; font-size: 0.82rem; }
+.rcc-vl { flex: 1; text-align: right; color: #fff; font-family: monospace; font-size: 0.88rem; }
+.rc-hero { background: rgba(102,126,234,0.1); border: 2px solid rgba(102,126,234,0.4); border-radius: 14px; padding: 18px 20px; margin-top: 16px; }
+.rc-val { font-size: 2.1rem; font-weight: 800; font-family: monospace; line-height: 1.1; color: #fff; word-break: break-all; }
+.rc-tol { color: #9ae6b4; font-size: 1rem; margin-top: 6px; font-family: monospace; }
+.rc-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 14px; }
+.rc-cell { background: rgba(0,0,0,0.3); border-radius: 9px; padding: 10px 12px; }
+.rc-cell .k { color: #888; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.rc-cell .v { color: #fff; font-family: monospace; font-size: 0.94rem; margin-top: 4px; }
+.rc-strip { background: #0f0f23; border: 2px solid #2a2a4a; border-radius: 10px; padding: 20px 10px; margin: 16px 0 4px; display: flex; justify-content: center; align-items: stretch; gap: 5px; }
+.rc-b { width: 34px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-family: monospace; font-size: 0.66rem; font-weight: 700; }
+.rc-b.lead { width: 16px; background: linear-gradient(180deg,#d8d8d8,#8a8a8a); }
+.rc-ends { display: flex; justify-content: space-between; color: #666; font-size: 0.7rem; margin: 0 4px 4px; }
+.rc-rows { margin-top: 16px; }
+.rc-pick { display: flex; gap: 10px; align-items: center; padding: 13px 0; border-bottom: 1px solid #1f1f3a; flex-wrap: wrap; }
+.rc-pick:last-child { border-bottom: none; }
+.rc-pick .pi { width: 92px; flex-shrink: 0; }
+.rc-pick .pv { width: 120px; font-family: monospace; font-size: 0.96rem; color: #fff; }
+.rc-pick .pe { flex: 1; color: #b3b8c0; font-size: 0.82rem; text-align: right; }
+.rc-note { background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.3); border-radius: 9px; padding: 11px 14px; color: #fbbf24; font-size: 0.84rem; line-height: 1.6; margin-top: 14px; }
+.rc-ok { background: rgba(16,185,129,0.09); border: 1px solid rgba(16,185,129,0.3); border-radius: 9px; padding: 11px 14px; color: #4ade80; font-size: 0.84rem; line-height: 1.6; margin-top: 14px; }
+.rc-err { background: rgba(239,68,68,0.09); border: 1px solid rgba(239,68,68,0.32); border-radius: 9px; padding: 11px 14px; color: #f87171; font-size: 0.86rem; line-height: 1.6; margin-top: 14px; }
+.rc-scroll { overflow-x: auto; max-width: 100%; margin-top: 10px; }
+.rc-chart { width: 100%; min-width: 340px; border-collapse: collapse; font-size: 0.8rem; }
+.rc-chart th, .rc-chart td { padding: 6px 8px; text-align: left; border-bottom: 1px solid #1f1f3a; }
+.rc-chart th { color: #888; font-weight: 600; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.04em; }
+.rc-chart td { font-family: monospace; color: #fff; }
+.rc-chart td.nm { font-family: inherit; color: #b3b8c0; }
+.rc-hint { color: #777; font-size: 0.8rem; margin-top: 6px; }
+@media (max-width: 640px) {
+  .rc-pick .pi { width: 100%; }
+  .rc-pick .pe { text-align: left; width: 100%; }
+  .rc-val { font-size: 1.6rem; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Resistor Color Code Calculator</h1>
+    <p class="subtitle">Read the Bands, or Start From the Value You Need</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/tools/converters/">Converters</a> &gt; <span>Resistor Color Code Calculator</span>
+      <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <h2>What Do You Know?</h2>
+
+      <div class="rc-tabs" role="tablist" aria-label="Calculator mode">
+        <button class="rc-tab" id="rc-tab-read" role="tab" aria-selected="true" aria-controls="rc-panel-read" onclick="rcTab('read')">I have a resistor</button>
+        <button class="rc-tab" id="rc-tab-pick" role="tab" aria-selected="false" aria-controls="rc-panel-pick" onclick="rcTab('pick')">I need a resistor</button>
+      </div>
+
+      <!-- ============ READ ============ -->
+      <div class="rc-panel on" id="rc-panel-read" role="tabpanel" aria-labelledby="rc-tab-read">
+        <div style="max-width:220px;">
+          <label class="rc-label" for="rc-bandcount">Number of bands</label>
+          <select class="rc-sel" id="rc-bandcount" onchange="rcBuildBands()">
+            <option value="3">3 bands</option>
+            <option value="4" selected>4 bands</option>
+            <option value="5">5 bands</option>
+            <option value="6">6 bands</option>
+          </select>
+        </div>
+        <p class="rc-hint" style="margin-top:8px;">3 band: two digits, no tolerance, so 20 percent. 4 band: two digits plus tolerance. 5 band: three digits plus tolerance. 6 band: three digits plus tolerance plus temperature coefficient.</p>
+
+        <div class="rc-bandrow" id="rc-bandrow" style="margin-top:14px;"></div>
+
+        <div class="rc-strip" id="rc-strip" role="img" aria-label="Resistor colour bands"></div>
+        <div class="rc-ends"><span>band 1</span><span>read left to right</span></div>
+
+        <div style="max-width:220px;margin-top:16px;">
+          <label class="rc-label" for="rc-read-volts">Volts across it, optional</label>
+          <input class="rc-in" type="number" id="rc-read-volts" value="5" min="0" step="any" inputmode="decimal" aria-label="Voltage in volts across this resistor, used for the power figure" oninput="rcRead()">
+        </div>
+
+        <div id="rc-read-out"></div>
+      </div>
+
+      <!-- ============ PICK ============ -->
+      <div class="rc-panel" id="rc-panel-pick" role="tabpanel" aria-labelledby="rc-tab-pick">
+        <div class="rc-bandrow">
+          <div class="rc-band" style="flex:2 1 190px;">
+            <label class="rc-label" for="rc-target">Value you need</label>
+            <input class="rc-in" type="text" id="rc-target" value="4.7k" spellcheck="false" autocomplete="off" aria-label="Target resistance value, accepts 4k7, 4.7k, 4700 or 4700 ohm" oninput="rcPick()">
+          </div>
+          <div class="rc-band">
+            <label class="rc-label" for="rc-tol">Tolerance</label>
+            <select class="rc-sel" id="rc-tol" onchange="rcPick()">
+              <option value="20">20 percent (no band)</option>
+              <option value="10">10 percent (silver)</option>
+              <option value="5" selected>5 percent (gold)</option>
+              <option value="2">2 percent (red)</option>
+              <option value="1">1 percent (brown)</option>
+              <option value="0.5">0.5 percent (green)</option>
+              <option value="0.25">0.25 percent (blue)</option>
+              <option value="0.1">0.1 percent (violet)</option>
+              <option value="0.05">0.05 percent (orange)</option>
+              <option value="0.02">0.02 percent (yellow)</option>
+              <option value="0.01">0.01 percent (grey)</option>
+            </select>
+          </div>
+          <div class="rc-band">
+            <label class="rc-label" for="rc-volts">Volts across it</label>
+            <input class="rc-in" type="number" id="rc-volts" value="5" min="0" step="any" inputmode="decimal" aria-label="Voltage in volts across the resistor" oninput="rcPick()">
+          </div>
+        </div>
+        <p class="rc-hint" id="rc-target-hint">Value accepts 4k7, 4.7k, 4700, 4.7 kOhm, 4.7K or 4.7M. Leave the voltage at 0 to skip the power figures.</p>
+
+        <div id="rc-pick-out"></div>
+
+        <h3 style="margin-top:30px;">Or size an LED resistor directly</h3>
+        <div class="rc-bandrow">
+          <div class="rc-band">
+            <label class="rc-label" for="rc-vsup">Supply</label>
+            <input class="rc-in" type="number" id="rc-vsup" value="5" min="0" step="any" inputmode="decimal" aria-label="Supply voltage in volts" oninput="rcLed()">
+          </div>
+          <div class="rc-band">
+            <label class="rc-label" for="rc-vled">LED forward V</label>
+            <input class="rc-in" type="number" id="rc-vled" value="2" min="0" step="any" inputmode="decimal" aria-label="LED forward voltage in volts" oninput="rcLed()">
+          </div>
+          <div class="rc-band">
+            <label class="rc-label" for="rc-il">Target mA</label>
+            <input class="rc-in" type="number" id="rc-il" value="10" min="0" step="any" inputmode="decimal" aria-label="Target LED current in milliamps" oninput="rcLed()">
+          </div>
+        </div>
+        <div id="rc-led-out"></div>
+
+        <div class="btn-group" style="margin-top:18px;">
+          <button class="btn" onclick="rcCopy()">Copy Result</button>
+          <button class="btn btn-secondary" onclick="rcReset()">Reset</button>
+        </div>
+        <p class="rc-hint" style="margin-top:10px;">Everything is computed in your browser. Nothing is uploaded or stored.</p>
+      </div>
+
+      <div id="rc-feedback" class="status" role="status" aria-live="polite" style="margin-top:20px;"></div>
+    </div>
+
+    <div class="info-section">
+      <h3>Why a Chatbot Gets This Wrong More Often Than It Should</h3>
+      <p>Ask a language model to read a resistor and it will usually give you a number. The number is often right. The reason it is often right is the same reason it is sometimes wrong by a factor of ten: the model has memorised thousands of worked examples, and the mapping from bands to value is not one rule but three rules read in sequence, plus a handful of exceptions nobody mentions in a training paragraph.</p>
+      <p>The three rules are: the digit bands form a number, the multiplier band is a separate power of ten, and the tolerance band is a percentage of the result. The failure mode is collapsing the first two. A band order of violet, green, yellow, gold is 7, 5, times 10000, 5 percent, so 750 kOhm. Read the multiplier one place to the left and you get 75 kOhm, which is a real resistor, the right shape, the right tolerance, and the wrong part. Nothing in the answer looks wrong.</p>
+      <p>The second thing a language model will not volunteer is the size of the error. A 5 percent part is not 5 percent accurate in a way that is easy to ignore: 1 kOhm at 5 percent is 950 to 1050 ohms, a 100 ohm window. For a resistor setting an op-amp gain that is a design change. For a current limit it is fine. The same marking means opposite things in those two circuits, and a tool that prints the ohm range tells you which one you are in.</p>
+      <p>The third is power. The arithmetic is one line, P equals V squared over R, and the consequence is the part that matters. 5 V across 1 kOhm is 0.025 W, so the calculation says any resistor will do, and a quarter watt part is on the shelf. But 12 V across the same 1 kOhm is 0.144 W, which is over half of a quarter watt part, and running a resistor continuously above its rating does not fail cleanly. It drifts out of tolerance, discolours, and eventually opens. A 5 V rail that measures 5.25 V, or a 9 V alkaline that has dropped to 6 V, is enough to move you into that band without changing a single component.</p>
+
+      <h3>What You Get</h3>
+      <ul>
+        <li><strong>3, 4, 5 and 6 bands, all four layouts</strong> — the right bands get the right jobs, including the 6 band temperature coefficient, and each band is labelled with what it contributed rather than just being coloured.</li>
+        <li><strong>The tolerance as a real ohm range</strong> — 950 to 1050 ohms, not just the number 5.</li>
+        <li><strong>Temperature drift from the TCR band</strong> — what the resistance actually becomes at a temperature you choose, which is usually the reason a 6 band part was specified at all.</li>
+        <li><strong>The reverse direction</strong> — enter the value you need and get the bands to buy, in both 4 band and 5 band form, so you are not forced into a precision part you do not need.</li>
+        <li><strong>Nearest E24 and nearest E96</strong> — the two series that cover almost all real purchases, with the error each one leaves you.</li>
+        <li><strong>Power and a recommended rating</strong> — dissipation at the voltage you entered, and the next standard size to fit, with the headroom spelled out.</li>
+        <li><strong>LED mode</strong> — supply voltage, forward voltage and target current in milliamps to one resistor, snapped to something buyable.</li>
+        <li><strong>The current IEC tolerance table</strong> — including the yellow 0.02 percent and grey 0.01 percent bands added in IEC 60062:2016, which most published charts still predate.</li>
+      </ul>
+
+      <h3>Reading It Backwards, Which Is the Part Nobody Does</h3>
+      <p>Decoding a resistor is only half the job, and it is the half that is already everywhere. The question you actually have in front of you is usually the other direction: the circuit wants 4.7 kOhm, and now what do you put on the board. That has three answers, not one, and they do not agree.</p>
+      <p>The first is whether 4.7 kOhm is even a value you can buy. 4.7 is in E12 and E24, so a 4.7 kOhm 5 percent part is a 1 percent part in a brown, violet, red, gold body: 47 times 100. If you need something closer, 4.70 kOhm and 4.65 kOhm are E96, and a 4.65 kOhm 1 percent part is a five band part: 4, 6, 5, times 10, brown. The two are physically different parts with different prices, and nothing in a chatbot answer tells you which one you are holding.</p>
+      <p>The second is power, and the rule of thumb worth knowing is that you want at least twice the calculated dissipation. Doubling is not superstition and it is not conservative either, it is what keeps ambient temperature, supply tolerance and part ageing from combining to push you past the rating. Read that as a ceiling on what each size may dissipate: a 0.125 W part covers 62.5 mW, a 0.25 W part covers 125 mW, a 0.5 W part covers 250 mW. So 0.03 W and 0.06 W both land on 0.125 W, 0.07 W pushes to 0.25 W, 0.12 W is still 0.25 W, and 0.13 W needs 0.5 W. The steps are where the money is.</p>
+      <p>The third is the error the chosen value leaves you, which is not the same as the tolerance band on the part. A 4.65 kOhm part against a 4.700 kOhm target is 1.06 percent low from the choice of value alone, before the part's own 1 percent tolerance is applied at all. Snapping to a preferred value and specifying a tolerance are two separate decisions and they stack.</p>
+
+      <h3>What This Tool Will Not Tell You</h3>
+      <p>It reads what the bands say. It cannot tell you what is actually on the part, which is what a multimeter is for. Colour bands fade, dirt gets into the gap between bands, and on a cheap part the paint is not always where the standard says it is. A reading that disagrees with the bands is information about the part, not about the calculator.</p>
+      <p>It also cannot tell you the reading direction from the bands alone, because the code is not self-describing in that respect. Gold and silver always sit at the tail end, since neither can be a significant digit, and a tolerance band is often printed wider or with a bigger gap before it. A 4 band resistor whose multiplier is gold or silver is one of the two cases where orientation is obvious, and outside that you are looking for the wider tolerance band or the bigger gap. If a decode gives you a value that is absurd, read it from the other end before you trust it.</p>
+      <p>Standard 0.1 percent and 0.01 percent parts are usually E192 and surface mount, not colour banded, so the band scheme itself is a 5 percent era format being asked to express precision it was not built for. When a design needs more than E96, the answer is a precision part with a printed code, not a cleverer colour reading.</p>
+
+      <h3>The Full Colour Table</h3>
+      <p>Every figure below is IEC 60062:2016. Tolerance in percent, the letter that goes with it, and the temperature coefficient in ppm per K are each band specific, and a colour is not the same number in all three columns. Green is 5 as a digit, 0.5 percent as a tolerance and 20 ppm per K as a temperature coefficient.</p>
+      <div class="rc-scroll">
+        <table class="rc-chart">
+<caption class="sr-only">How each colour band contributes to the resistance and the tolerance</caption>
+          <thead><tr><th>Colour</th><th>Digit</th><th>Multiplier</th><th>Tolerance</th><th>Letter</th><th>ppm/K</th></tr></thead>
+          <tbody id="rc-chart-body"><tr><td colspan="6">No data yet.</td></tr></tbody>
+        </table>
+      </div>
+      <p class="rc-hint">The table scrolls sideways on a narrow screen rather than pushing the page wider than the screen.</p>
+
+      <h3>Frequently Asked</h3>
+      <details class="faq-item">
+        <summary>How do I read a 4 band resistor color code?</summary>
+        <p>Read left to right. The first band is the first significant digit and the second is the second significant digit, so brown then black means 10. The third band is the multiplier, a power of ten: black is times 1, brown times 10, red times 100, up through grey times 100 million, with gold times 0.1 and silver times 0.01 for values below 10 ohms. The fourth band is the tolerance, the percentage the real resistance may differ by. Red violet yellow gold is 2, 7, then times 10000, so 270000 ohms, or 270 kilohms, at plus or minus 5 percent. The digits and the multiplier are separate jobs and mixing them up is the single most common way to read a resistor wrong by a factor of ten.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is the difference between a 4 band and a 5 band resistor?</summary>
+        <p>One extra significant digit. A 4 band resistor gives two significant digits, so 47 followed by the multiplier can only express 47 times something, and 4.7 kOhm is the closest a 4 band part can get. A 5 band resistor gives three significant digits, so 4.70 kOhm is exact. That is why 1 percent and 0.1 percent parts are almost always 5 band, and why a 4 band resistor can never be more accurate than about 1 percent no matter which tolerance colour is on it. The multiplier moves one place to the right when you add the third digit, because the significant digits and the multiplier are a fixed number of characters.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is the last band on a 6 band resistor?</summary>
+        <p>The temperature coefficient of resistance, written as ppm per degree Celsius, which is how much the resistance changes per degree away from the reference temperature of 25 C. A black sixth band is 250 ppm per K, brown is 100, red is 50, yellow is 25, green is 20, orange is 15, blue is 10, violet is 5 and grey is 1. A 100 ppm per K part sitting 55 degrees above 25 C is about 0.55 percent off its marked value, which is less than its own 1 percent tolerance band and therefore usually irrelevant. Precision parts are the exception: 15 or 5 ppm per K over the same 55 degrees is 0.08 or 0.03 percent, and that is often the whole reason the part was specified.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What resistor do I use as an LED current limiting resistor?</summary>
+        <p>Take the supply voltage minus the LED forward voltage, divide by the current you want, and that is the resistance. A red LED with a 2 V forward voltage on a 5 V supply running at 10 mA needs 3 divided by 0.01, which is 300 ohms. Then snap it to a value you can actually buy, because 300 ohms is not a standard value, and check the power. 300 ohms at 3 V dissipates 0.03 W, so the smallest part that fits with headroom is a one eighth watt 0.125 W resistor. The mistake that kills LEDs is skipping the power step and picking a part too small for the voltage, or ignoring that a 9 V alkaline falls to about 6 V and a 5 V USB supply can sit at 5.25 V, both of which push more current through the LED than the calculation at the nominal voltage suggests.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why does the tolerance colour chart on this page differ from older ones?</summary>
+        <p>IEC 60062:2016 added two tolerance bands that most charts published before 2016 do not have: yellow is plus or minus 0.02 percent and grey is plus or minus 0.01 percent. Before that revision, yellow and grey rings were not assigned these meanings, and grey was sometimes used informally for plus or minus 0.05 percent. A separate long standing practice is that some high voltage resistor makers use yellow and grey where gold and silver would go, to keep metal pigment out of the lacquer, so a yellow band on an old high voltage part can mean plus or minus 5 percent. The charts that still say grey is 0.05 percent are not wrong for the parts they were written for, they are just older than the current standard.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What does a 0 ohm jumper resistor do?</summary>
+        <p>It is a single black band and it is nominally zero ohms, used to bridge a footprint so a board assembles the same way whether or not that circuit is populated. It is not exactly zero. A typical 0 ohm jumper is rated 1 percent with a 250 ppm per K temperature coefficient, so it can be a few milliohms and it drifts with temperature exactly like any other resistor. That is why you never treat a jumper as a dead short in a design, and why it cannot substitute for a real resistance in a current setting network.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is my data uploaded or stored anywhere?</summary>
+        <p>Nothing leaves your browser. The decoding, the E series search and the power arithmetic all run as JavaScript on your own machine, there is no request to a server, no account, and nothing written to disk or to any database. Reload the page and it is all gone.</p>
+      </details>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <ul>
+          <li><a href="/tools/unit-converter/">Unit Converter</a></li>
+          <li><a href="/tools/size-converter/">Size Converter</a></li>
+          <li><a href="/tools/barcode-generator/">Barcode Generator</a></li>
+          <li><a href="/tools/color-palette-generator/">Color Palette Generator</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+
+<script src="/tools.js"></script>
+<script>
+/* IEC 60062:2016 colour code. Values transcribed from the standard, not from memory. */
+var RC_COLORS = ['black','brown','red','orange','yellow','green','blue','violet','grey','white','gold','silver'];
+var RC_HEX = { black:'#0e0e10', brown:'#7e4b26', red:'#d60000', orange:'#fd9822', yellow:'#dddd00',
+  green:'#11b053', blue:'#1050ce', violet:'#9911fc', grey:'#696969', white:'#ffffff',
+  gold:'#d0c050', silver:'#a0a0a0', none:'#3a3a4a' };
+var RC_DIGIT = { black:0, brown:1, red:2, orange:3, yellow:4, green:5, blue:6, violet:7, grey:8, white:9 };
+var RC_MULT = { black:0, brown:1, red:2, orange:3, yellow:4, green:5, blue:6, violet:7, grey:8, white:9, gold:-1, silver:-2 };
+var RC_TOL = { none:20, silver:10, gold:5, brown:1, red:2, orange:0.05, yellow:0.02, green:0.5, blue:0.25, violet:0.1, grey:0.01 };
+var RC_TOL_LETTER = { 20:'M', 10:'K', 5:'J', 2:'G', 1:'F', 0.5:'D', 0.25:'C', 0.1:'B', 0.05:'W', 0.02:'P', 0.01:'L' };
+var RC_TCR = { black:250, brown:100, red:50, yellow:25, green:20, orange:15, blue:10, violet:5, grey:1 };
+var RC_TCR_LETTER = { 250:'U', 100:'S', 50:'R', 25:'Q', 20:'Z', 15:'P', 10:'Z', 5:'M', 1:'K' };
+var RC_ROLE = ['digit 1', 'digit 2', 'digit 3', 'multiplier', 'tolerance', 'ppm/K'];
+var RC_MULT_LABEL = { black:'x1', brown:'x10', red:'x100', orange:'x1k', yellow:'x10k', green:'x100k',
+  blue:'x1M', violet:'x10M', grey:'x100M', white:'x1G', gold:'x0.1', silver:'x0.01' };
+var RC_NEG_MULT = { '-1': 10, '-2': 11 };
+
+/* E24 is the 2-significant-digit series and cannot be derived by rounding, so it is
+   transcribed. E96 is defined as 10^(n/96) to three significant figures, so it is computed. */
+var RC_E24 = [1.0,1.1,1.2,1.3,1.5,1.6,1.8,2.0,2.2,2.4,2.7,3.0,3.3,3.6,3.9,4.3,4.7,5.1,5.6,6.2,6.8,7.5,8.2,9.1];
+var RC_E96 = (function () { var a = [], n; for (n = 0; n < 96; n++) a.push(Number(Math.pow(10, n / 96).toPrecision(3))); return a; })();
+var RC_WATTS = [0.125, 0.25, 0.5, 1, 2, 3, 5, 10, 20, 25, 50, 100];
+
+function rcEsc(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/* black #0e0e10 and violet #9911fc are too dark for dark ink, everything else takes it */
+function rcInk(hex) {
+  var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  var l = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return l < 0.45 ? '#fff' : '#111';
+}
+
+function rcFmt(v, sig) {
+  if (!isFinite(v) || v <= 0) return '-';
+  var units = [[1e9, 'G'], [1e6, 'M'], [1e3, 'k']], i, u, m;
+  for (i = 0; i < units.length; i++) {
+    if (v >= units[i][0]) { u = units[i][1]; m = v / units[i][0]; break; }
+  }
+  if (u === undefined) {
+    if (v >= 1) return (Math.round(v * 1000) / 1000) + ' ' + '\u03a9';
+    return (Math.round(v * 1e6) / 1e6) + ' ' + '\u03a9';
+  }
+  var s = sig ? Number(m.toPrecision(sig)) : m;
+  return s + ' ' + u + '\u03a9';
+}
+
+function rcNum(v, dp) {
+  if (!isFinite(v)) return '-';
+  return String(Math.round(v * Math.pow(10, dp)) / Math.pow(10, dp));
+}
+
+/* "4k7", "4.7k", "4700", "4.7 kOhm", "4.7M", "0.47", "47R".
+   In "4k7" the digits after the letter are decimals, not another factor: 4k7 is 4.7 kOhm. */
+function rcParseValue(raw) {
+  var s = String(raw || '').toLowerCase().replace(/ohm(s)?/g, '').replace(/[\u03a9,]|\s/g, '');
+  if (!s) return NaN;
+  var m = s.match(/^([0-9]*\.?[0-9]+)([kmr])?([0-9]+)?$/);
+  if (!m) return NaN;
+  var n = parseFloat(m[1]);
+  if (!isFinite(n) || n <= 0) return NaN;
+  if (m[3] && m[1].indexOf('.') === -1) n += parseFloat('0.' + m[3]);
+  if (m[2] === 'k') n *= 1e3;
+  else if (m[2] === 'm') n *= 1e6;
+  return n;
+}
+
+function rcNearest(target, series) {
+  var e = Math.floor(Math.log10(target));
+  var m = target / Math.pow(10, e), best = series[0], bd = Infinity, i, d;
+  for (i = 0; i < series.length; i++) { d = Math.abs(series[i] - m); if (d < bd) { bd = d; best = series[i]; } }
+  /* toPrecision(12) drops the binary artefact, so 4.7 * 10^-1 is 0.47 and not
+     0.47000000000000003, which would otherwise leak into the error percentage */
+  var v = Number((best * Math.pow(10, e)).toPrecision(12));
+  return { value: v, errPct: (v - target) / target * 100 };
+}
+
+/* ohms -> {sig, mult} where sig is 2 or 3 digits and mult is the power-of-ten band index */
+function rcSplit(ohms, digits) {
+  var exp = Math.floor(Math.log10(ohms)) - (digits - 1);
+  var sig = Math.round(ohms / Math.pow(10, exp));
+  if (sig >= Math.pow(10, digits)) { sig = Math.round(sig / 10); exp++; }
+  while (sig < Math.pow(10, digits - 1)) { sig = sig * 10; exp--; }
+  return { sig: sig, mult: exp };
+}
+
+function rcBandsFor(ohms, digits) {
+  var d = digits, s = rcSplit(ohms, d);
+  while (s.mult < -2 && d > 2) { d--; s = rcSplit(ohms, d); }
+  while (s.mult > 8 && d < 3) { d++; s = rcSplit(ohms, d); }
+  if (s.mult < -2 || s.mult > 8) return null;
+  /* RC_COLORS is black..white (x1 to x1G) then gold, silver, so a negative
+     exponent is an index lookup, not an offset. Getting this wrong silently
+     drops the multiplier band and turns 0.1 ohm into 10. */
+  var out = [], mi = s.mult < 0 ? RC_NEG_MULT[s.mult] : s.mult;
+  if (mi === undefined) return null;
+  var i;
+  for (i = 0; i < d; i++) out.push(RC_COLORS[Math.floor(s.sig / Math.pow(10, d - 1 - i)) % 10]);
+  out.push(RC_COLORS[mi]);
+  return out;
+}
+
+/* the value a band array actually says, so a caller can tell a fallback apart */
+function rcEncoded(bands) {
+  var dg = bands.length - 1, i, n = 0;
+  for (i = 0; i < dg; i++) n = n * 10 + RC_DIGIT[bands[i]];
+  return n * Math.pow(10, RC_MULT[bands[dg]]);
+}
+
+function rcTolColor(pct) {
+  var keys = Object.keys(RC_TOL), best = 'none', bd = Infinity, i, d;
+  for (i = 0; i < keys.length; i++) { d = Math.abs(RC_TOL[keys[i]] - pct); if (d < bd) { bd = d; best = keys[i]; } }
+  return { color: best, pct: RC_TOL[best] };
+}
+
+function rcWatts(p) {
+  var i, w;
+  for (i = 0; i < RC_WATTS.length; i++) { w = RC_WATTS[i]; if (w >= p * 2) return w; }
+  return RC_WATTS[RC_WATTS.length - 1];
+}
+
+function rcBandsHtml(bands) {
+  var h = '<div class="rc-b lead"></div>', i, c;
+  for (i = 0; i < bands.length; i++) {
+    c = bands[i] || 'none';
+    h += '<div class="rc-b" style="background:' + RC_HEX[c] + ';color:' + rcInk(RC_HEX[c]) + '">' + rcEsc(c.charAt(0).toUpperCase()) + '</div>';
+  }
+  return h + '<div class="rc-b lead"></div>';
+}
+
+/* the same chips inline, for a result row that already has text next to them */
+function rcChips(bands) {
+  return '<span style="display:inline-flex;align-items:stretch;gap:3px;padding:0 8px;margin:0 10px;vertical-align:middle;">'
+    + rcBandsHtml(bands).replace(/class="rc-b lead"/g, 'class="rc-b lead" style="width:9px"') + '</span>';
+}
+
+function rcWattsLabel(w) {
+  return w >= 1 ? String(w) + ' W' : String(w * 1000) + ' mW';
+}
+
+/* ---------- READ ---------- */
+
+var RC_STATE = { read: '', pick: '', led: '' };
+
+function rcTab(which) {
+  ['read', 'pick'].forEach(function (w) {
+    var on = (w === which);
+    document.getElementById('rc-panel-' + w).className = 'rc-panel' + (on ? ' on' : '');
+    document.getElementById('rc-tab-' + w).setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+}
+
+function rcBuildBands() {
+  var n = parseInt(document.getElementById('rc-bandcount').value, 10);
+  var have = {};
+  Array.prototype.forEach.call(document.getElementById('rc-bandrow').getElementsByTagName('select'), function (s) {
+    have[s.getAttribute('data-role')] = s.value;
+  });
+  var d = (n === 5 || n === 6) ? 3 : 2;
+  var wrap = document.getElementById('rc-bandrow'), html = '', i, role, val;
+  for (i = 0; i < n; i++) {
+    if (i < d) { role = 'digit' + (i + 1); val = have[role] || (i === 0 ? 'brown' : 'black'); }
+    else if (i === d) { role = 'multiplier'; val = have.multiplier || 'red'; }
+    else if (i === 5 && n === 6) { role = 'ppm'; val = have.ppm || 'brown'; }
+    else { role = 'tolerance'; val = have.tolerance || 'gold'; }
+    html += '<div class="rc-band"><label class="rc-label" for="rc-b' + i + '">' + rcEsc(RC_ROLE[i]) + '</label>'
+      + '<select class="rc-sel" id="rc-b' + i + '" data-role="' + role + '" onchange="rcRead()">';
+    RC_COLORS.concat(['none']).forEach(function (c) {
+      html += '<option value="' + c + '"' + (c === val ? ' selected' : '') + '>' + rcEsc(c) + '</option>';
+    });
+    html += '</select></div>';
+  }
+  wrap.innerHTML = html;
+  rcRead();
+}
+
+function rcRead() {
+  var n = parseInt(document.getElementById('rc-bandcount').value, 10);
+  var sels = document.getElementById('rc-bandrow').getElementsByTagName('select');
+  var bands = [], roles = [], i, bad = [];
+  for (i = 0; i < sels.length; i++) { bands.push(sels[i].value); roles.push(sels[i].getAttribute('data-role')); }
+
+  var d = (n === 5 || n === 6) ? 3 : 2;
+  var multIdx = d, tolIdx = n - (n === 6 ? 2 : 1), tcrIdx = 5;
+  for (i = 0; i < d; i++) if (RC_DIGIT[bands[i]] === undefined) bad.push('band ' + (i + 1) + ' is ' + bands[i] + ', which is not a digit colour');
+  if (RC_MULT[bands[multIdx]] === undefined) bad.push('band ' + (multIdx + 1) + ' is ' + bands[multIdx] + ', which is not a multiplier colour');
+  if (n >= 4 && RC_TOL[bands[tolIdx]] === undefined) bad.push('band ' + (tolIdx + 1) + ' is ' + bands[tolIdx] + ', which is not a tolerance colour');
+  if (n === 6 && RC_TCR[bands[tcrIdx]] === undefined) bad.push('band 6 is ' + bands[tcrIdx] + ', which is not a temperature coefficient colour');
+
+  var out = document.getElementById('rc-read-out'), body = '', i2, c, txt, nm;
+  for (i2 = 0; i2 < bands.length; i2++) {
+    c = bands[i2];
+    if (roles[i2].charAt(0) === 'd') { nm = 'digit'; txt = String(RC_DIGIT[c]); }
+    else if (roles[i2] === 'multiplier') { nm = 'multiplier'; txt = RC_MULT_LABEL[c]; }
+    else if (roles[i2] === 'tolerance') { nm = 'tolerance'; txt = (RC_TOL[c] === 20 ? '20%' : RC_TOL[c] + '%') + ' (' + RC_TOL_LETTER[RC_TOL[c]] + ')'; }
+    else { nm = 'TCR'; txt = RC_TCR[c] + ' ppm/K (' + RC_TCR_LETTER[RC_TCR[c]] + ')'; }
+    if (txt === undefined || txt === null) txt = '-';
+    body += '<div class="rcc"><span class="rcc-sw" style="background:' + RC_HEX[c] + ';color:' + rcInk(RC_HEX[c]) + '">'
+      + rcEsc(c.charAt(0).toUpperCase()) + '</span><span class="rcc-nm">' + rcEsc(RC_ROLE[i2]) + '</span>'
+      + '<span class="rcc-vl">' + rcEsc(nm + ' = ' + txt) + '</span></div>';
+  }
+  document.getElementById('rc-strip').innerHTML = rcBandsHtml(bands);
+
+  if (bad.length) {
+    out.innerHTML = '<div class="rc-err"><strong>That is not a valid ' + n + ' band code.</strong> '
+      + rcEsc(bad.join('. ')) + '. Gold and silver can only ever be a multiplier, and the tolerance and TCR bands sit at the tail end.</div>';
+    RC_STATE.read = '';
+    return;
+  }
+
+  var sig = 0;
+  for (i = 0; i < d; i++) sig = sig * 10 + RC_DIGIT[bands[i]];
+  var R = sig * Math.pow(10, RC_MULT[bands[multIdx]]);
+  /* A 3 band resistor has no tolerance band at all, so tolIdx points at the
+     multiplier here. Reading RC_TOL off it reported a grey multiplier as a
+     0.01% tolerance. No band means 20%, letter M. */
+  var tol = n >= 4 ? RC_TOL[bands[tolIdx]] : RC_TOL.none;
+  var tcr = n === 6 ? RC_TCR[bands[tcrIdx]] : null;
+  var lo = R * (1 - tol / 100), hi = R * (1 + tol / 100);
+  var e24 = rcNearest(R, RC_E24), e96 = rcNearest(R, RC_E96);
+  var volts = parseFloat(document.getElementById('rc-read-volts').value);
+
+  var cells = '<div class="rc-cell"><div class="k">Resistance</div><div class="v">' + rcEsc(rcFmt(R, 3)) + '</div></div>'
+    + '<div class="rc-cell"><div class="k">Tolerance</div><div class="v">+/-' + tol + '% (' + rcEsc(RC_TOL_LETTER[tol]) + ')</div></div>'
+    + '<div class="rc-cell"><div class="k">Measured range</div><div class="v">' + rcEsc(rcFmt(lo, 4)) + ' to ' + rcEsc(rcFmt(hi, 4)) + '</div></div>'
+    + '<div class="rc-cell"><div class="k">Nearest E24</div><div class="v">' + rcEsc(rcFmt(e24.value, 3)) + '</div></div>'
+    + '<div class="rc-cell"><div class="k">Nearest E96</div><div class="v">' + rcEsc(rcFmt(e96.value, 3)) + '</div></div>';
+  if (tcr !== null) {
+    var drift = tcr * 55 / 1e6 * 100;
+    cells += '<div class="rc-cell"><div class="k">At 80 C (25 C + 55)</div><div class="v">' + rcNum(drift, 3) + '% = ' + rcEsc(rcFmt(R * (1 + drift / 100), 4)) + '</div></div>';
+  }
+  if (isFinite(volts) && volts > 0 && R > 0) {
+    var p = volts * volts / R;
+    cells += '<div class="rc-cell"><div class="k">Power at ' + rcNum(volts, 3) + ' V</div><div class="v">'
+      + rcNum(p * 1000, 1) + ' mW, fit ' + rcWattsLabel(rcWatts(p)) + '</div></div>';
+  }
+
+  out.innerHTML = '<div class="rc-hero"><div class="rc-val">' + rcEsc(rcFmt(R, 3)) + '</div>'
+    + '<div class="rc-tol">+/-' + tol + '% &nbsp;(' + rcEsc(rcFmt(lo, 4)) + ' to ' + rcEsc(rcFmt(hi, 4)) + ')</div>'
+    + '<div class="rc-meta">' + cells + '</div></div>'
+    + '<div class="rc-body" style="margin-top:14px;">' + body + '</div>'
+    + '<p class="rc-hint">Nearest preferred value: E24 gives ' + rcEsc(rcFmt(e24.value, 3)) + ' (' + rcNum(e24.errPct, 2) + '%), '
+    + 'E96 gives ' + rcEsc(rcFmt(e96.value, 3)) + ' (' + rcNum(e96.errPct, 2) + '%). Snapping to a preferred value and the part tolerance are two separate errors and they add up.</p>';
+  RC_STATE.read = rcFmt(R, 3) + ' +/-' + tol + '% (' + rcFmt(lo, 4) + ' to ' + rcFmt(hi, 4) + ')';
+}
+
+/* ---------- PICK ---------- */
+
+/* the three answers that do not agree, which is the whole point of this direction */
+function rcOptions(target, wantTol) {
+  var e24 = rcNearest(target, RC_E24).value;
+  var e96 = rcNearest(target, RC_E96).value;
+  return [
+    { label: 'E24 value, 4 band', value: e24, digits: 2, tol: wantTol },
+    { label: 'E24 value, 5 band', value: e24, digits: 3, tol: Math.min(wantTol, 1) },
+    { label: 'E96 value, 5 band', value: e96, digits: 3, tol: 1 }
+  ];
+}
+
+function rcPick() {
+  var target = rcParseValue(document.getElementById('rc-target').value);
+  var out = document.getElementById('rc-pick-out');
+  var hint = document.getElementById('rc-target-hint');
+  if (!isFinite(target)) {
+    out.innerHTML = '<div class="rc-err">That is not a resistance. Type it as 4k7, 4.7k, 4700 or 4.7k Ohm.</div>';
+    hint.textContent = 'Value accepts 4k7, 4.7k, 4700, 4.7 kOhm, 4.7K or 4.7M. Leave the voltage at 0 to skip the power figures.';
+    return;
+  }
+  hint.innerHTML = 'Read as ' + rcEsc(rcFmt(target, 6)) + '. Value accepts 4k7, 4.7k, 4700, 4.7 kOhm, 4.7K or 4.7M. Leave the voltage at 0 to skip the power figures.';
+
+  var wantTol = parseFloat(document.getElementById('rc-tol').value);
+  var volts = parseFloat(document.getElementById('rc-volts').value);
+  var opts = rcOptions(target, wantTol);
+  var rows = '', o, bands, tc, err, errText, enc;
+  for (var i = 0; i < opts.length; i++) {
+    o = opts[i];
+    err = (o.value - target) / target * 100;
+    bands = rcBandsFor(o.value, o.digits);
+    if (!bands) {
+      rows += '<div class="rc-pick"><span class="pi">' + rcEsc(o.label) + '</span>'
+        + '<span class="pe">out of the range colour bands can express</span></div>';
+      continue;
+    }
+    tc = rcTolColor(o.tol);
+    errText = (Math.abs(err) < 0.005 ? 'exact' : rcNum(err, 2) + '% off target')
+      + ', part tolerance ' + String(tc.pct) + '%';
+    /* A 5 band code bottoms out at 100 x 0.01 = 1 ohm and a 4 band one at
+       99 x 100M, so above and below that the fallback digit count changes what
+       the bands actually say. Print that rather than showing chips for a value
+       the row is not labelling. */
+    enc = rcEncoded(bands);
+    if (Math.abs(enc - o.value) > Math.max(1e-9, o.value * 1e-6)) errText += ', these bands express ' + rcFmt(enc, 3);
+    rows += '<div class="rc-pick"><span class="pi">' + rcEsc(o.label) + '</span>'
+      + '<span class="pv">' + rcEsc(rcFmt(o.value, 3)) + '</span>'
+      + rcChips(bands.concat([tc.color]))
+      + '<span class="pe">' + rcEsc(errText) + '</span></div>';
+  }
+
+  var pw = '';
+  if (isFinite(volts) && volts > 0) {
+    var p = volts * volts / opts[0].value, w = rcWatts(p);
+    pw = '<div class="rc-cell"><div class="k">Power at ' + rcNum(volts, 3) + ' V</div><div class="v">' + rcNum(p * 1000, 2) + ' mW</div></div>'
+      + '<div class="rc-cell"><div class="k">Fit at least twice that</div><div class="v">' + rcWattsLabel(w) + ' part</div></div>';
+  }
+
+  out.innerHTML = '<div class="rc-body" style="margin-top:16px;">' + rows + '</div>'
+    + (pw ? '<div class="rc-meta">' + pw + '</div>' : '')
+    + '<p class="rc-hint">The first two rows are the same value; the 4 band body is the cheap part and the 5 band body is the one that can hold a tighter tolerance. The third row is the closest 1 percent preferred value, which is normally what you want when the target was itself approximate. The error from snapping to a preferred value stacks with the part tolerance, it does not replace it.</p>';
+  RC_STATE.pick = 'Target ' + rcFmt(target, 6) + ': E24 ' + rcFmt(opts[0].value, 3) + ', E96 ' + rcFmt(opts[2].value, 3)
+    + (pw ? ', ' + rcNum(p * 1000, 2) + ' mW at ' + rcNum(volts, 3) + ' V, use ' + rcWattsLabel(w) : '');
+}
+
+function rcLed() {
+  var vs = parseFloat(document.getElementById('rc-vsup').value);
+  var vf = parseFloat(document.getElementById('rc-vled').value);
+  var ma = parseFloat(document.getElementById('rc-il').value);
+  var out = document.getElementById('rc-led-out');
+  if (!(isFinite(vs) && isFinite(vf) && isFinite(ma)) || ma <= 0) { out.innerHTML = ''; RC_STATE.led = ''; return; }
+  var drop = vs - vf;
+  if (drop <= 0) {
+    out.innerHTML = '<div class="rc-err">The supply is not above the LED forward voltage, so nothing is left for the resistor to drop and no current will flow. Raise the supply above ' + rcNum(vf, 2) + ' V.</div>';
+    RC_STATE.led = '';
+    return;
+  }
+  var want = drop / (ma / 1000);
+  var e24 = rcNearest(want, RC_E24).value, e96 = rcNearest(want, RC_E96).value;
+  var i24 = drop / e24.value * 1000;
+  var p = drop * drop / e24.value, w = rcWatts(p);
+  var b4 = rcBandsFor(e24, 2), b5 = rcBandsFor(e96, 3);
+  out.innerHTML = '<div class="rc-hero" style="margin-top:16px;"><div class="rc-val">' + rcEsc(rcFmt(e24, 3)) + '</div>'
+    + '<div class="rc-tol">sets the LED to ' + rcNum(i24, 2) + ' mA instead of ' + rcNum(ma, 2) + ' mA</div>'
+    + '<div class="rc-meta">'
+    + '<div class="rc-cell"><div class="k">Voltage on the resistor</div><div class="v">' + rcNum(drop, 3) + ' V</div></div>'
+    + '<div class="rc-cell"><div class="k">Exact resistance wanted</div><div class="v">' + rcEsc(rcFmt(want, 3)) + '</div></div>'
+    + '<div class="rc-cell"><div class="k">Nearest E96, 5 band</div><div class="v">' + rcEsc(rcFmt(e96, 3)) + '</div></div>'
+    + '<div class="rc-cell"><div class="k">Power dissipated</div><div class="v">' + rcNum(p * 1000, 2) + ' mW, fit ' + rcWattsLabel(w) + '</div></div>'
+    + '</div></div>'
+    + (b4 ? rcChips(b4.concat([rcTolColor(5).color])) : '')
+    + '<p class="rc-hint">The exact resistance and the nearest E24 are different numbers because the exact one is usually not a value you can buy. Size for the end of a battery life rather than the label: a 9 V alkaline at 6 V drives an LED considerably harder than a 9 V cell at 9 V.</p>';
+  RC_STATE.led = 'LED resistor ' + rcFmt(e24, 3) + ' gives ' + rcNum(i24, 2) + ' mA, ' + rcNum(p * 1000, 2) + ' mW, use a ' + rcWattsLabel(w) + ' part';
+}
+
+/* copyToClipboard(id) in tools.js copies that element's own value or textContent
+   and takes no text argument, so the summary has to be in the element first. */
+function rcCopy() {
+  var t = [RC_STATE.read, RC_STATE.pick, RC_STATE.led].filter(Boolean).join('\n');
+  var el = document.getElementById('rc-feedback');
+  if (!t) { showStatus('rc-feedback', 'Nothing to copy yet', 'info'); return; }
+  el.textContent = t;
+  el.style.whiteSpace = 'pre-wrap';
+  el.className = 'status success';
+  copyToClipboard('rc-feedback');
+}
+
+function rcReset() {
+  document.getElementById('rc-target').value = '4.7k';
+  document.getElementById('rc-tol').value = '5';
+  document.getElementById('rc-volts').value = '5';
+  document.getElementById('rc-vsup').value = '5';
+  document.getElementById('rc-vled').value = '2';
+  document.getElementById('rc-il').value = '10';
+  rcPick(); rcLed();
+}
+
+function rcBuildChart() {
+  var h = '', i, c, mult, tol, tcr;
+  for (i = 0; i < RC_COLORS.length; i++) {
+    c = RC_COLORS[i];
+    mult = RC_MULT[c]; tol = RC_TOL[c]; tcr = RC_TCR[c];
+    h += '<tr><td><span class="rcc-sw" style="display:inline-flex;vertical-align:middle;margin-right:7px;background:' + RC_HEX[c] + ';color:' + rcInk(RC_HEX[c]) + '">'
+      + rcEsc(c.charAt(0).toUpperCase()) + '</span>' + rcEsc(c) + '</td>'
+      + '<td>' + (RC_DIGIT[c] === undefined ? '-' : RC_DIGIT[c]) + '</td>'
+      + '<td>' + (mult === undefined ? '-' : rcEsc(RC_MULT_LABEL[c])) + '</td>'
+      + '<td>' + (tol === undefined ? '-' : (tol === 20 ? '20 (no band)' : String(tol))) + '</td>'
+      + '<td>' + (tol === undefined ? '-' : rcEsc(RC_TOL_LETTER[tol])) + '</td>'
+      + '<td>' + (tcr === undefined ? '-' : tcr) + '</td></tr>';
+  }
+  h += '<tr><td><span class="rcc-sw" style="display:inline-flex;vertical-align:middle;margin-right:7px;background:' + RC_HEX.none + ';color:#fff">-</span>no band</td>'
+    + '<td>-</td><td>-</td><td>20</td><td>M</td><td>-</td></tr>';
+  document.getElementById('rc-chart-body').innerHTML = h;
+}
+
+document.addEventListener('DOMContentLoaded', function () { rcBuildBands(); rcBuildChart(); rcPick(); rcLed(); });
+</script>
+</body>
+</html>

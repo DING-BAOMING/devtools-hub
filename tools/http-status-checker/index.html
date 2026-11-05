@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Status & Header Checker Online | DevTools Hub</title>
+    <meta name="description" content="Free HTTP status checker. Check response codes, security headers, redirect chain, and response time for any URL. AI cannot check real HTTP headers - we do.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/http-status-checker/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/http-status-checker/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="HTTP Status & Header Checker | DevTools Hub">
+    <meta name="twitter:description" content="Free HTTP status and header checker. Analyze response codes, security headers, and redirects for any URL.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/http-status-checker/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="HTTP Status & Header Checker | DevTools Hub">
+    <meta property="og:description" content="Free HTTP status and header checker. Analyze response codes, security headers, and redirects for any URL.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "HTTP Status & Header Checker",
+      "description": "Check HTTP response status codes, headers, redirect chains, and security analysis for any URL. Real-time server response inspection.",
+      "url": "https://tools.scoreroute.com/tools/http-status-checker/",
+      "applicationCategory": "DeveloperApplication",
+      "datePublished": "2026-06-19",
+      "dateModified": "2026-06-19",
+      "author": {"@type": "Person", "name": "BAOMING"},
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+      "featureList": ["HTTP status code check", "Response header inspection", "Redirect chain tracking", "Response time measurement", "Security header analysis", "CORS header detection"]
+    }
+    </script>
+    <style>
+        .hsc-input-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .hsc-input-row input[type="text"] { flex: 1; min-width: 250px; padding: 14px 18px; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; font-size: 1rem; font-family: monospace; transition: border-color 0.2s; }
+        .hsc-input-row input[type="text"]:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .hsc-input-row input[type="text"]::placeholder { color: #555; }
+        .hsc-method-select { padding: 14px 18px; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; font-size: 1rem; cursor: pointer; }
+        .hsc-method-select:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; font-size: 1.3rem; font-weight: 700; margin-bottom: 16px; }
+        .status-2xx { background: rgba(16,185,129,0.15); color: #4ade80; border: 1px solid rgba(16,185,129,0.3); }
+        .status-3xx { background: rgba(234,179,8,0.15); color: #fbbf24; border: 1px solid rgba(234,179,8,0.3); }
+        .status-4xx { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+        .status-5xx { background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid rgba(239,68,68,0.4); }
+        .status-error-display { background: rgba(107,114,128,0.15); color: #9ca3af; border: 1px solid rgba(107,114,128,0.3); }
+        .hsc-results { display: none; }
+        .hsc-results.visible { display: block; }
+        .hsc-summary { background: #1a1a2e; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #2a2a4a; }
+        .hsc-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 16px; }
+        .hsc-metric { text-align: center; padding: 16px; background: #0f0f23; border-radius: 8px; border: 1px solid #2a2a4a; }
+        .hsc-metric .hsc-metric-value { font-size: 1.5rem; font-weight: 700; color: #667eea; }
+        .hsc-metric .hsc-metric-label { font-size: 0.8rem; color: #888; margin-top: 4px; }
+        .hsc-section-title { color: #667eea; font-size: 1.1rem; margin-bottom: 12px; margin-top: 24px; }
+        .hsc-redirect-chain { background: #1a1a2e; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #2a2a4a; }
+        .hsc-redirect-step { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #2a2a4a; }
+        .hsc-redirect-step:last-child { border-bottom: none; }
+        .hsc-redirect-step .hsc-step-num { width: 28px; height: 28px; background: #2a2a4a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: #888; flex-shrink: 0; }
+        .hsc-redirect-step .hsc-step-url { flex: 1; word-break: break-all; font-family: monospace; font-size: 0.9rem; color: #fff; }
+        .hsc-redirect-step .hsc-step-status { min-width: 60px; text-align: center; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
+        .hsc-headers-section { background: #1a1a2e; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #2a2a4a; }
+        .hsc-header-group { margin-bottom: 20px; }
+        .hsc-header-group:last-child { margin-bottom: 0; }
+        .hsc-header-group h4 { color: #888; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .hsc-header-row { display: flex; padding: 6px 0; border-bottom: 1px solid #0f0f23; font-family: monospace; font-size: 0.85rem; }
+        .hsc-header-row .hsc-header-key { color: #667eea; min-width: 200px; word-break: break-all; }
+        .hsc-header-row .hsc-header-val { color: #ccc; word-break: break-all; }
+        .hsc-header-row.missing { opacity: 0.4; }
+        .hsc-security-warning { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
+        .hsc-security-warning h4 { color: #ef4444; margin-bottom: 6px; }
+        .hsc-security-warning ul { color: #fca5a5; margin-left: 20px; }
+        .hsc-security-warning li { margin-bottom: 4px; font-size: 0.9rem; }
+        .hsc-security-good { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
+        .hsc-security-good h4 { color: #4ade80; margin-bottom: 6px; }
+        .hsc-security-good ul { color: #6ee7b7; margin-left: 20px; }
+        .hsc-security-good li { margin-bottom: 4px; font-size: 0.9rem; }
+        .hsc-btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+        .hsc-quick-check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 12px; margin-bottom: 20px; }
+        .hsc-quick-item { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 8px; padding: 10px 14px; cursor: pointer; transition: border-color 0.2s; }
+        .hsc-quick-item:hover { border-color: #667eea; }
+        .hsc-quick-item .hsc-qc-domain { color: #667eea; font-weight: 600; font-size: 0.9rem; }
+        .hsc-quick-item .hsc-qc-desc { color: #666; font-size: 0.8rem; margin-top: 2px; }
+        .hsc-loading { text-align: center; padding: 40px 20px; }
+        .hsc-loading .hsc-spinner { display: inline-block; width: 36px; height: 36px; border: 4px solid #2a2a4a; border-top: 4px solid #667eea; border-radius: 50%; animation: hsc-spin 0.8s linear infinite; margin-bottom: 12px; }
+        @keyframes hsc-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hsc-loading p { color: #888; font-size: 0.95rem; }
+        .hsc-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 16px 20px; color: #f87171; margin-bottom: 20px; display: none; }
+        .hsc-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #2a2a4a; }
+        .hsc-tab-btn { padding: 10px 20px; background: transparent; border: none; color: #888; font-size: 0.95rem; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+        .hsc-tab-btn:hover { color: #fff; }
+        .hsc-tab-btn.active { color: #667eea; border-bottom-color: #667eea; }
+        .hsc-tab-content { display: none; }
+        .hsc-tab-content.active { display: block; }
+        .hsc-redirect-arrow { color: #555; font-size: 0.8rem; margin: 0 8px; }
+        @media (max-width: 600px) {
+            .hsc-input-row { flex-direction: column; }
+            .hsc-input-row input[type="text"] { min-width: unset; }
+            .hsc-summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .hsc-header-row { flex-direction: column; gap: 2px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>HTTP Status & Header Checker</h1>
+            <p class="subtitle">Check Response Codes, Headers & Security for Any URL</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>HTTP Status Checker</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Check URL Response</h2>
+                <div class="hsc-input-row">
+                    <input type="text" id="hsc-url" placeholder="https://example.com" autocomplete="url" spellcheck="false" aria-label="Enter a URL">
+                    <button class="btn btn-primary" onclick="checkURL()" id="hsc-check-btn">Check</button>
+                </div>
+
+                <div id="hsc-quick-section">
+                    <p style="color:#888;font-size:0.85rem;margin-bottom:4px;">Quick check popular sites:</p>
+                    <div class="hsc-quick-check-grid">
+                        <div class="hsc-quick-item" onclick="quickCheck('https://google.com')">
+                            <div class="hsc-qc-domain">google.com</div>
+                            <div class="hsc-qc-desc">World's most visited site</div>
+                        </div>
+                        <div class="hsc-quick-item" onclick="quickCheck('https://github.com')">
+                            <div class="hsc-qc-domain">github.com</div>
+                            <div class="hsc-qc-desc">Code hosting platform</div>
+                        </div>
+                        <div class="hsc-quick-item" onclick="quickCheck('https://cloudflare.com')">
+                            <div class="hsc-qc-domain">cloudflare.com</div>
+                            <div class="hsc-qc-desc">CDN & security provider</div>
+                        </div>
+                        <div class="hsc-quick-item" onclick="quickCheck('https://tools.scoreroute.com')">
+                            <div class="hsc-qc-domain">tools.scoreroute.com</div>
+                            <div class="hsc-qc-desc">This website (DevTools Hub)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="hsc-loading" class="hsc-loading" style="display:none;">
+                    <div class="hsc-spinner"></div>
+                    <p id="hsc-loading-text">Checking URL...</p>
+                </div>
+
+                <div id="hsc-error" class="hsc-error"></div>
+
+                <div id="hsc-results" class="hsc-results">
+                    <div id="hsc-status-badge"></div>
+
+                    <div id="hsc-summary" class="hsc-summary">
+                        <div class="hsc-summary-grid" id="hsc-summary-grid"></div>
+                    </div>
+
+                    <div class="hsc-tabs">
+                        <button class="hsc-tab-btn active" data-tab="hsc-headers">Headers</button>
+                        <button class="hsc-tab-btn" data-tab="hsc-security">Security</button>
+                        <button class="hsc-tab-btn" data-tab="hsc-redirects">Redirects</button>
+                        <button class="hsc-tab-btn" data-tab="hsc-raw">Raw</button>
+                    </div>
+
+                    <div id="hsc-headers" class="hsc-tab-content active">
+                        <div id="hsc-headers-content"></div>
+                    </div>
+                    <div id="hsc-security" class="hsc-tab-content">
+                        <div id="hsc-security-content"></div>
+                    </div>
+                    <div id="hsc-redirects" class="hsc-tab-content">
+                        <div id="hsc-redirects-content"></div>
+                    </div>
+                    <div id="hsc-raw" class="hsc-tab-content">
+                        <div id="hsc-raw-content"></div>
+                    </div>
+
+                    <div class="hsc-btn-group">
+                        <button class="btn" onclick="copyHeaders()">Copy Headers</button>
+                        <button class="btn btn-secondary" onclick="resetTool()">Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Problem: You Need to Debug HTTP Responses</h3>
+                <p>When a website redirects unexpectedly, security headers are missing, or an API returns the wrong status code, you need to inspect the actual HTTP response. Browser developer tools only work for your own requests, and <strong>AI chatbots cannot make real HTTP requests</strong> — they can only describe what headers generally look like.</p>
+
+                <h3>How This Tool Solves It</h3>
+                <ul>
+                    <li><strong>Real HTTP check via server proxy</strong> — No CORS, no browser limitations. We fetch the URL server-side and return every detail.</li>
+                    <li><strong>Full redirect chain</strong> — See every hop from initial request to final destination with status codes.</li>
+                    <li><strong>Security header audit</strong> — Automatically flags missing CSP, HSTS, X-Frame-Options, and other critical security headers.</li>
+                    <li><strong>Response time measurement</strong> — Know exactly how fast the server responds.</li>
+                    <li><strong>AI Cannot Do This</strong> — AI has no ability to connect to your server and read real-time HTTP headers.</li>
+                </ul>
+
+                <h3>What This Tool Checks</h3>
+                <details class="faq-item">
+                    <summary>What are HTTP status codes?</summary>
+                    <p>HTTP status codes are three-digit numbers returned by a server in response to a request. 2xx means success (200 OK), 3xx means redirect (301 moved, 302 found, 304 not modified), 4xx means client error (403 forbidden, 404 not found), and 5xx means server error (500 internal, 502 bad gateway, 503 service unavailable).</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why should I check HTTP headers?</summary>
+                    <p>HTTP headers control everything from caching behavior to security. Missing security headers like Content-Security-Policy or Strict-Transport-Security can leave your site vulnerable to attacks. Incorrect cache headers can slow down your site. Wrong CORS headers can break API integrations.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What security headers are checked?</summary>
+                    <p>This tool checks for: Content-Security-Policy (CSP), Strict-Transport-Security (HSTS), X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, and Cache-Control. Missing or misconfigured headers are flagged with specific recommendations.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why does this tool use a server proxy?</summary>
+                    <p>Browser security (CORS) prevents JavaScript from reading HTTP response headers from external domains. Our Cloudflare Function proxy makes the request server-side and returns all headers without browser restrictions.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I check internal/local URLs?</summary>
+                    <p>No. The proxy only checks public internet URLs. The URL must be reachable from Cloudflare's edge network. Localhost, 127.0.0.1, and private IP ranges (10.x.x.x, 192.168.x.x, 172.16-31.x.x) are not accessible.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How is response time measured?</summary>
+                    <p>Response time is measured by the Cloudflare Function that proxies the request. It records the time from initiating the connection to receiving the complete response headers, excluding the response body download time.</p>
+                </details>
+
+                <h3>Why AI Cannot Replace This Tool</h3>
+                <p>AI chatbots (ChatGPT, Claude, Gemini) can explain HTTP concepts, but they <strong>cannot</strong>:</p>
+                <ul>
+                    <li>Connect to your actual server and read real-time response headers</li>
+                    <li>Detect the actual HTTP status code your server is returning right now</li>
+                    <li>Follow a redirect chain to the final destination and report each hop</li>
+                    <li>Measure actual server response time</li>
+                    <li>Verify whether security headers are actually present and configured correctly</li>
+                </ul>
+                <p>This tool <strong>does all of this</strong> by making real HTTP requests through our Cloudflare proxy.</p>
+
+                <div class="related-section">
+                    <h4>Related Tools</h4>
+                    <ul>
+                        <li><a href="/tools/ssl-checker/">SSL Certificate Checker</a></li>
+                        <li><a href="/tools/dns-lookup/">DNS Lookup & WHOIS</a></li>
+                        <li><a href="/tools/cors-header-generator/">CORS Header Generator</a></li>
+                        <li><a href="/tools/proxy-checker/">Proxy Checker</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+        <script>
+    var lastResult = null;
+
+    function getStatusClass(code) {
+        if (!code) return 'status-error-display';
+        var c = parseInt(code);
+        if (c >= 200 && c < 300) return 'status-2xx';
+        if (c >= 300 && c < 400) return 'status-3xx';
+        if (c >= 400 && c < 500) return 'status-4xx';
+        if (c >= 500 && c < 600) return 'status-5xx';
+        return 'status-error-display';
+    }
+
+    function getStatusEmoji(code) {
+        var c = parseInt(code);
+        if (c >= 200 && c < 300) return '\u2705';
+        if (c >= 300 && c < 400) return '\uD83D\uDD04';
+        if (c >= 400 && c < 500) return '\u274C';
+        if (c >= 500 && c < 600) return '\uD83D\uDCA5';
+        return '\u2753';
+    }
+
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function quickCheck(url) {
+        document.getElementById('hsc-url').value = url;
+        checkURL();
+    }
+
+    async function checkURL() {
+        var urlInput = document.getElementById('hsc-url').value.trim();
+        if (!urlInput) {
+            showError('Please enter a URL');
+            return;
+        }
+
+        var url = urlInput;
+        if (!/^https?:\/\//i.test(url)) {
+            url = 'https://' + url;
+        }
+
+        document.getElementById('hsc-url').value = url;
+        document.getElementById('hsc-check-btn').disabled = true;
+        document.getElementById('hsc-check-btn').textContent = 'Checking...';
+        document.getElementById('hsc-quick-section').style.display = 'none';
+        document.getElementById('hsc-error').style.display = 'none';
+        document.getElementById('hsc-results').className = 'hsc-results';
+        document.getElementById('hsc-loading').style.display = 'block';
+        document.getElementById('hsc-loading-text').textContent = 'Checking ' + url + '...';
+
+        try {
+            var response = await fetch('/api/http-status-checker?url=' + encodeURIComponent(url));
+            var data = await response.json();
+
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+
+            lastResult = data;
+            showResults(data);
+        } catch (err) {
+            showError('Network error: ' + err.message);
+        } finally {
+            document.getElementById('hsc-check-btn').disabled = false;
+            document.getElementById('hsc-check-btn').textContent = 'Check';
+            document.getElementById('hsc-loading').style.display = 'none';
+        }
+    }
+
+    function showError(msg) {
+        document.getElementById('hsc-loading').style.display = 'none';
+        document.getElementById('hsc-results').className = 'hsc-results';
+        var el = document.getElementById('hsc-error');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('hsc-quick-section').style.display = 'block';
+        document.getElementById('hsc-check-btn').disabled = false;
+        document.getElementById('hsc-check-btn').textContent = 'Check';
+    }
+
+    function showResults(data) {
+        var url = data.finalUrl || data.url || '';
+        var statusCode = data.statusCode || 0;
+        var statusText = data.statusText || '';
+
+        // Status badge
+        var badgeHtml = '<div class="status-badge ' + getStatusClass(statusCode) + '">' +
+            getStatusEmoji(statusCode) + ' <span>' + statusCode + ' ' + escHtml(statusText) + '</span></div>';
+        document.getElementById('hsc-status-badge').innerHTML = badgeHtml;
+
+        // Summary metrics
+        var metricsHtml = '';
+        var metrics = [
+            { label: 'Status Code', value: statusCode },
+            { label: 'Response Time', value: data.responseTime ? data.responseTime + 'ms' : 'N/A' },
+            { label: 'Redirects', value: data.redirectCount || 0 },
+            { label: 'Content Length', value: data.contentLength ? formatBytes(data.contentLength) : 'N/A' }
+        ];
+        for (var m = 0; m < metrics.length; m++) {
+            metricsHtml += '<div class="hsc-metric"><div class="hsc-metric-value">' + escHtml(String(metrics[m].value)) + '</div><div class="hsc-metric-label">' + escHtml(metrics[m].label) + '</div></div>';
+        }
+        document.getElementById('hsc-summary-grid').innerHTML = metricsHtml;
+
+        // Headers tab
+        var headersHtml = '';
+        if (data.headers && Object.keys(data.headers).length > 0) {
+            var groups = {
+                'Security Headers': ['strict-transport-security', 'content-security-policy', 'x-frame-options', 'x-content-type-options', 'x-xss-protection', 'referrer-policy', 'permissions-policy', 'cross-origin-opener-policy', 'cross-origin-embedder-policy'],
+                'CORS Headers': ['access-control-allow-origin', 'access-control-allow-methods', 'access-control-allow-headers', 'access-control-expose-headers', 'access-control-max-age', 'access-control-allow-credentials'],
+                'Cache & Performance': ['cache-control', 'expires', 'pragma', 'age', 'etag', 'last-modified', 'vary'],
+                'Content & Connection': ['content-type', 'content-length', 'content-encoding', 'connection', 'transfer-encoding', 'keep-alive'],
+                'Server & Identity': ['server', 'x-powered-by', 'x-server', 'via', 'x-cache', 'cf-ray', 'cf-cache-status'],
+                'Other Headers': []
+            };
+
+            var allKeys = Object.keys(data.headers).sort();
+            for (var i = 0; i < allKeys.length; i++) {
+                var k = allKeys[i].toLowerCase();
+                var found = false;
+                for (var g in groups) {
+                    if (g !== 'Other Headers' && groups[g].indexOf(k) !== -1) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) groups['Other Headers'].push(k);
+            }
+
+            for (var g in groups) {
+                var groupKeys = groups[g].filter(function(k) { return data.headers[k] !== undefined || data.headers[k.toLowerCase()] !== undefined; });
+                if (g === 'Other Headers') groupKeys = groups[g];
+                if (groupKeys.length === 0) continue;
+
+                headersHtml += '<div class="hsc-header-group"><h4>' + g + '</h4>';
+                for (var i = 0; i < groupKeys.length; i++) {
+                    var key = groupKeys[i];
+                    var val = data.headers[key.toLowerCase()] || data.headers[key] || '';
+                    headersHtml += '<div class="hsc-header-row"><span class="hsc-header-key">' + escHtml(key) + ':</span><span class="hsc-header-val">' + escHtml(String(val)) + '</span></div>';
+                }
+                headersHtml += '</div>';
+            }
+        } else {
+            headersHtml = '<p style="color:#888;">No headers returned.</p>';
+        }
+        document.getElementById('hsc-headers-content').innerHTML = headersHtml;
+
+        // Security tab
+        var securityHtml = renderSecurity(data);
+        document.getElementById('hsc-security-content').innerHTML = securityHtml;
+
+        // Redirects tab
+        var redirectsHtml = '';
+        if (data.redirectChain && data.redirectChain.length > 0) {
+            redirectsHtml = '<div class="hsc-redirect-chain">';
+            for (var r = 0; r < data.redirectChain.length; r++) {
+                var step = data.redirectChain[r];
+                var isLast = r === data.redirectChain.length - 1;
+                redirectsHtml += '<div class="hsc-redirect-step">' +
+                    '<span class="hsc-step-num">' + (r + 1) + '</span>' +
+                    '<span class="hsc-step-url">' + escHtml(step.url) + '</span>';
+                if (step.statusCode) {
+                    var sc = getStatusClass(step.statusCode);
+                    redirectsHtml += '<span class="hsc-step-status ' + sc + '" style="border-radius:4px;padding:2px 8px;">' + step.statusCode + '</span>';
+                }
+                redirectsHtml += '</div>';
+                if (!isLast) {
+                    redirectsHtml += '<div style="text-align:center;color:#555;font-size:0.8rem;">\u2193 redirects to</div>';
+                }
+            }
+            redirectsHtml += '</div>';
+        } else {
+            redirectsHtml = '<p style="color:#888;">No redirects detected. The URL responded directly.</p>';
+        }
+        document.getElementById('hsc-redirects-content').innerHTML = redirectsHtml;
+
+        // Raw tab
+        var rawHtml = '';
+        if (data.rawHeaders) {
+            rawHtml = '<div class="hsc-headers-section"><pre style="background:#0f0f23;padding:16px;border-radius:8px;overflow-x:auto;color:#ccc;font-size:0.85rem;line-height:1.6;">' + escHtml(data.rawHeaders) + '</pre></div>';
+        } else {
+            rawHtml = '<p style="color:#888;">No raw headers available.</p>';
+        }
+        document.getElementById('hsc-raw-content').innerHTML = rawHtml;
+
+        document.getElementById('hsc-results').className = 'hsc-results visible';
+    }
+
+    function renderSecurity(data) {
+        var warnings = [];
+        var passing = [];
+        var headers = data.headers || {};
+        var h = {};
+
+        for (var key in headers) {
+            h[key.toLowerCase()] = headers[key];
+        }
+
+        // CSP
+        if (!h['content-security-policy']) {
+            warnings.push({ header: 'Content-Security-Policy', desc: 'Missing CSP header. This header prevents XSS attacks by controlling which resources can load.' });
+        } else {
+            passing.push({ header: 'Content-Security-Policy', value: h['content-security-policy'] });
+        }
+
+        // HSTS
+        if (!h['strict-transport-security']) {
+            warnings.push({ header: 'Strict-Transport-Security', desc: 'Missing HSTS header. Browsers will not enforce HTTPS connections.' });
+        } else {
+            passing.push({ header: 'Strict-Transport-Security', value: h['strict-transport-security'] });
+        }
+
+        // X-Frame-Options
+        if (!h['x-frame-options']) {
+            warnings.push({ header: 'X-Frame-Options', desc: 'Missing X-Frame-Options header. Site could be vulnerable to clickjacking attacks.' });
+        } else {
+            passing.push({ header: 'X-Frame-Options', value: h['x-frame-options'] });
+        }
+
+        // X-Content-Type-Options
+        if (!h['x-content-type-options']) {
+            warnings.push({ header: 'X-Content-Type-Options', desc: 'Missing X-Content-Type-Options header. Browsers may MIME-sniff, increasing XSS risk.' });
+        } else {
+            passing.push({ header: 'X-Content-Type-Options', value: h['x-content-type-options'] });
+        }
+
+        // Referrer-Policy
+        if (!h['referrer-policy']) {
+            warnings.push({ header: 'Referrer-Policy', desc: 'Missing Referrer-Policy header. Referrer information is uncontrolled.' });
+        } else {
+            passing.push({ header: 'Referrer-Policy', value: h['referrer-policy'] });
+        }
+
+        // Permissions-Policy
+        if (!h['permissions-policy']) {
+            warnings.push({ header: 'Permissions-Policy', desc: 'Missing Permissions-Policy header. All browser APIs (camera, mic, etc.) are available by default.' });
+        } else {
+            passing.push({ header: 'Permissions-Policy', value: h['permissions-policy'] });
+        }
+
+        var html = '';
+
+        if (warnings.length > 0) {
+            html += '<div class="hsc-security-warning"><h4>' + warnings.length + ' Security Issues Found</h4><ul>';
+            for (var w = 0; w < warnings.length; w++) {
+                html += '<li><strong>' + escHtml(warnings[w].header) + '</strong> &mdash; ' + escHtml(warnings[w].desc) + '</li>';
+            }
+            html += '</ul></div>';
+        }
+
+        if (passing.length > 0) {
+            html += '<div class="hsc-security-good"><h4>' + passing.length + ' Security Headers Present</h4><ul>';
+            for (var p = 0; p < passing.length; p++) {
+                html += '<li><strong>' + escHtml(passing[p].header) + '</strong>: ' + escHtml(String(passing[p].value).substring(0, 100)) + '</li>';
+            }
+            html += '</ul></div>';
+        }
+
+        if (warnings.length === 0 && passing.length === 0) {
+            html = '<p style="color:#888;">No security analysis available for this URL.</p>';
+        }
+
+        return html;
+    }
+
+    function formatBytes(bytes) {
+        if (!bytes && bytes !== 0) return 'N/A';
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    function copyHeaders() {
+        if (!lastResult || !lastResult.headers) {
+            showError('No headers to copy. Check a URL first.');
+            return;
+        }
+        var text = JSON.stringify(lastResult.headers, null, 2);
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand('copy');
+            var statusDiv = document.querySelector('#hsc-summary');
+            if (statusDiv) {
+                var notice = document.createElement('div');
+                notice.style.cssText = 'background:rgba(16,185,129,0.15);color:#4ade80;padding:8px 12px;border-radius:8px;margin-top:12px;font-size:0.85rem;';
+                notice.textContent = 'Headers copied to clipboard!';
+                statusDiv.appendChild(notice);
+                setTimeout(function() { notice.remove(); }, 3000);
+            }
+        } catch (e) {}
+        document.body.removeChild(ta);
+    }
+
+    function resetTool() {
+        document.getElementById('hsc-url').value = '';
+        document.getElementById('hsc-results').className = 'hsc-results';
+        document.getElementById('hsc-error').style.display = 'none';
+        document.getElementById('hsc-quick-section').style.display = 'block';
+        document.getElementById('hsc-check-btn').disabled = false;
+        document.getElementById('hsc-check-btn').textContent = 'Check';
+        lastResult = null;
+    }
+
+    document.getElementById('hsc-url').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') checkURL();
+    });
+
+    // Tab switching
+    var tabBtns = document.querySelectorAll('.hsc-tab-btn');
+    tabBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            tabBtns.forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            var tabContents = document.querySelectorAll('.hsc-tab-content');
+            tabContents.forEach(function(tc) { tc.classList.remove('active'); });
+            document.getElementById(btn.dataset.tab).classList.add('active');
+        });
+    });
+    </script>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tone Generator - Play Audio Frequency Notes | DevTools Hub</title>
+<meta name="description" content="Free online tone generator. Play any audio frequency from 1 Hz to 20,000 Hz as pure waves, see the note name, or download a WAV. No signup.">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/tone-generator/">
+<meta property="og:title" content="Tone Generator - Play Audio Frequency Notes">
+<meta property="og:description" content="Free online tone generator. Play any audio frequency from 1 Hz to 20,000 Hz, see the musical note, or download a WAV. No signup.">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/tone-generator/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Tone Generator",
+  "url": "https://tools.scoreroute.com/tools/tone-generator/",
+  "description": "Free online tone generator that plays any audio frequency from 1 Hz to 20,000 Hz as sine, square, sawtooth, or triangle waves, shows the musical note, sweeps frequencies, and exports WAV files.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "All",
+  "browserRequirement": "Requires JavaScript and Web Audio API",
+  "featureList": [
+    "Play any frequency from 1 Hz to 20,000 Hz",
+    "Sine, square, sawtooth and triangle waveforms",
+    "Musical note name display with cents offset",
+    "Frequency sweep mode",
+    "WAV file export"
+  ],
+  "author": {
+    "@type": "Organization",
+    "name": "DevTools Hub"
+  },
+  "datePublished": "2026-08-15",
+  "dateModified": "2026-08-15",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.tg-container { max-width: 760px; }
+.tg-display { text-align: center; padding: 26px 0 10px; }
+.tg-freq-display {
+  font-size: 3.6rem; font-weight: 800; color: #fff;
+  font-family: monospace; line-height: 1; letter-spacing: -2px;
+}
+.tg-freq-unit { font-size: 1.2rem; color: #667eea; }
+.tg-note-display {
+  font-size: 1.15rem; color: #667eea; margin-top: 8px; font-weight: 700;
+  min-height: 1.5em; letter-spacing: 1px;
+}
+.tg-wave-canvas {
+  display: block; margin: 14px auto 0; width: 100%; max-width: 660px;
+  height: 120px; background: #0a0a1c; border: 1px solid #2a2a4a; border-radius: 10px;
+}
+.tg-controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 14px 0; }
+.tg-btn {
+  background: #252545; color: #fff; border: 1px solid #3a3a5a; padding: 12px 26px;
+  border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600;
+  transition: all 0.2s; min-width: 100px;
+}
+.tg-btn:hover { background: #2d2d55; border-color: #667eea; }
+.tg-btn-primary { background: #667eea; color: #fff; border: none; }
+.tg-btn-primary:hover { background: #7b93ff; transform: translateY(-1px); }
+.tg-btn-primary.running { background: #ef4444; }
+.tg-btn-primary.running:hover { background: #f87171; }
+.tg-btn-small { padding: 6px 12px; font-size: 0.8rem; min-width: auto; }
+.tg-row { display: flex; align-items: center; gap: 12px; justify-content: center; padding: 8px 0; flex-wrap: wrap; }
+.tg-row label { color: #888; font-size: 0.85rem; min-width: 80px; }
+.tg-slider {
+  flex: 1; max-width: 420px; -webkit-appearance: none; appearance: none; height: 6px;
+  background: #2a2a4a; border-radius: 3px; outline: none; cursor: pointer;
+}
+.tg-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #667eea; cursor: pointer; }
+.tg-slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #667eea; cursor: pointer; border: none; }
+.tg-row input[type="number"] {
+  width: 96px; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; padding: 8px 12px;
+  border-radius: 8px; font-size: 1rem; font-weight: 600; text-align: center; font-family: monospace;
+}
+.tg-row input[type="number"]:focus { outline: 2px solid transparent; border-color: #667eea; }
+.tg-presets { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; padding: 10px 0; }
+.tg-preset-btn { background: #1a1a2e; border: 1px solid #2a2a4a; color: #aaa; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s; }
+.tg-preset-btn:hover, .tg-preset-btn.active { border-color: #667eea; color: #fff; }
+.tg-settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; padding: 14px 0; max-width: 620px; margin: 0 auto; }
+.tg-setting-group { text-align: center; }
+.tg-setting-group label { display: block; color: #888; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.tg-setting-group select { width: 100%; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; padding: 8px 10px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; }
+.tg-setting-group select:focus { outline: 2px solid transparent; border-color: #667eea; }
+.tg-status { text-align: center; font-size: 0.85rem; color: #888; min-height: 1.5em; padding: 6px 0; }
+.tg-freq-labels { display: flex; justify-content: space-between; max-width: 420px; margin: 0 auto; color: #555; font-size: 0.7rem; padding: 0 6px; }
+@media (max-width: 600px) {
+  .tg-freq-display { font-size: 2.6rem; }
+  .tg-btn { padding: 10px 18px; font-size: 0.9rem; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Tone Generator</h1>
+    <p class="subtitle">Play Any Audio Frequency With Musical Note Names</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/tools/media/">Media</a> &gt; <span>Tone Generator</span>
+      <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+    </nav>
+  </div>
+</header>
+<main class="container tg-container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <div class="tg-display">
+        <div class="tg-freq-display"><span id="freqDisplay">440</span><span class="tg-freq-unit"> Hz</span></div>
+        <div class="tg-note-display" id="noteDisplay">A4</div>
+        <canvas id="waveCanvas" class="tg-wave-canvas" width="660" height="120"></canvas>
+      </div>
+      <div class="tg-controls">
+        <button class="tg-btn tg-btn-primary" id="playBtn" onclick="tgTogglePlay()">Play</button>
+        <button class="tg-btn tg-btn-small" id="sweepBtn" onclick="tgToggleSweep()">Sweep</button>
+        <button class="tg-btn tg-btn-small" id="saveBtn" onclick="tgSaveWav()">Download WAV</button>
+      </div>
+      <div class="tg-row">
+        <label for="freqSlider">Frequency</label>
+        <input type="range" id="freqSlider" class="tg-slider" min="1" max="20000" value="440" step="1">
+        <input aria-label="Frequency in Hz" type="number" id="freqInput" value="440" min="1" max="20000" step="1">
+        <input aria-label="Volume" type="range" id="volSlider" class="tg-slider" style="max-width:120px" min="0" max="100" value="50">
+      </div>
+      <p class="tg-freq-labels"><span>20 Hz</span><span>100</span><span>1 kHz</span><span>10 kHz</span><span>20 kHz</span></p>
+      <div class="tg-presets" id="tgPresets">
+        <button class="tg-preset-btn" onclick="tgSetFreq(20)">20</button>
+        <button class="tg-preset-btn" onclick="tgSetFreq(100)">100</button>
+        <button class="tg-preset-btn" onclick="tgSetFreq(200)">200</button>
+        <button class="tg-preset-btn" onclick="tgSetFreq(432)">432</button>
+        <button class="tg-preset-btn" onclick="tgSetFreq(440)">440</button>
+        <button class="tg-preset-btn" onclick="tgSetFreq(528)">528</button>
+        <button class="tg-preset-btn" onclick="tgSetFreq(1000)">1 kHz</button>
+        <button class="tg-preset-btn" onclick="tgSetFreq(3000)">3 kHz</button>
+        <button class="tg-preset-btn" onclick="tgSetFreq(8000)">8 kHz</button>
+        <button class="tg-preset-btn" onclick="tgSetFreq(15000)">15 kHz</button>
+      </div>
+      <div class="tg-settings">
+        <div class="tg-setting-group">
+          <label for="waveSelect">Waveform</label>
+          <select id="waveSelect" onchange="tgSetWave()">
+            <option value="sine" selected>Sine</option>
+            <option value="square">Square</option>
+            <option value="sawtooth">Sawtooth</option>
+            <option value="triangle">Triangle</option>
+          </select>
+        </div>
+        <div class="tg-setting-group">
+          <label for="noteSelect">Note Presets</label>
+          <select id="noteSelect" onchange="tgNoteSelect()">
+            <option value="">Select a note...</option>
+            <option value="16.35">C0</option>
+            <option value="32.70">C1</option>
+            <option value="65.41">C2</option>
+            <option value="130.81">C3</option>
+            <option value="261.63">C4 (Middle C)</option>
+            <option value="329.63">E4</option>
+            <option value="392.00">G4</option>
+            <option value="440.00">A4 (Concert)</option>
+            <option value="523.25">C5</option>
+            <option value="783.99">G5</option>
+            <option value="1046.50">C6</option>
+            <option value="2093.00">C7</option>
+          </select>
+        </div>
+      </div>
+      <div class="tg-status" id="tgStatus"></div>
+      <div class="tg-settings" id="sweepPanel">
+        <div class="tg-setting-group">
+          <label for="sweepFrom">Sweep From (Hz)</label>
+          <input aria-label="Sweep start frequency" type="number" id="sweepFrom" value="100" min="1" max="20000" step="1" style="width:100%;background:#0f0f23;border:1px solid #2a2a4a;color:#fff;padding:8px 10px;border-radius:8px;text-align:center">
+        </div>
+        <div class="tg-setting-group">
+          <label for="sweepTo">Sweep To (Hz)</label>
+          <input aria-label="Sweep end frequency" type="number" id="sweepTo" value="1000" min="1" max="20000" step="1" style="width:100%;background:#0f0f23;border:1px solid #2a2a4a;color:#fff;padding:8px 10px;border-radius:8px;text-align:center">
+        </div>
+        <div class="tg-setting-group">
+          <label for="sweepDur">Duration (s)</label>
+          <input aria-label="Sweep duration in seconds" type="number" id="sweepDur" value="2" min="1" max="60" step="1" style="width:100%;background:#0f0f23;border:1px solid #2a2a4a;color:#fff;padding:8px 10px;border-radius:8px;text-align:center">
+        </div>
+      </div>
+      <div class="tg-status" style="display:none" id="sweepStatus"></div>
+    </div>
+    <div class="info-section">
+      <h2>Free Online Tone Generator With WAV Export</h2>
+      <p>This free online tone generator creates pure audio tones at frequencies between 1&nbsp;Hz and 20,000&nbsp;Hz. You can choose from sine, square, sawtooth, or triangle waveforms. The tool also displays the matching musical note name. You can run a frequency sweep or download a WAV file. All of this happens in your browser, so you don't need to sign up or download anything. Your audio never leaves your device.</p>
+
+      <h3>Why AI Cannot Replace This Tool</h3>
+      <p>The reason this tool is useful is that it can generate actual audible tones in real time. This is something that AI chatbots can't do. They can explain what a tone is or recite the A=440 Hz standard, but they can't produce a continuous wave at a specific frequency. This tool solves the problem of needing a specific pitch to tune, test, or calibrate to.</p>
+
+      <h3>How to Use</h3>
+      <p>To use the tool, press Play to start the tone or press the Spacebar. Press again or press Escape to stop. You can drag the frequency slider or type a value from 1 to 20,000 Hz in the number box. The musical note updates automatically. You can choose from different waveforms, including Sine, Square, Sawtooth, and Triangle. There are also note presets that let you jump straight to C4, A4, G5, and more.</p>
+      <p>The tool has several features that make it useful. You can run a frequency sweep from a start to an end frequency to test speakers or find your hearing range. You can download a 5-second WAV sample of the current tone. This is perfect for test tones, calibrations, or sound effects. It's always a good idea to start with a low volume to protect your hearing, especially at very high or very low frequencies.</p>
+
+      <h3>Common Test Frequencies</h3>
+      <p>There are several common test frequencies that you can use with the tool. For example, 20 Hz is extreme sub-bass, while 32 Hz is deep bass. 100 Hz is used to check bass response, and 440 Hz is the standard concert pitch. 1,000 Hz is used as a standard audio calibration reference, and 3,000 Hz is used to check speech clarity. 8,000 Hz is used to check high-frequency hearing, and 15,000 Hz is used to check tweeter sensitivity.</p>
+      <table class="info-table">
+<caption class="sr-only">Which tone to use for what</caption>
+        <tr><th>Frequency</th><th>Note</th><th>Typical Use</th></tr>
+        <tr><td>20 Hz</td><td>E0</td><td>Extreme sub-bass, subwoofer limit</td></tr>
+        <tr><td>32 Hz</td><td>C1</td><td>Deep bass / organ pedals</td></tr>
+        <tr><td>100 Hz</td><td>G2</td><td>Bass response check</td></tr>
+        <tr><td>440 Hz</td><td>A4</td><td>Standard concert pitch, tuning reference</td></tr>
+        <tr><td>1,000 Hz</td><td>B5</td><td>Standard audio calibration reference</td></tr>
+        <tr><td>3,000 Hz</td><td>F7</td><td>Speech clarity band</td></tr>
+        <tr><td>8,000 Hz</td><td>B8</td><td>High-frequency hearing check</td></tr>
+        <tr><td>15,000 Hz</td><td>F10</td><td>Tweeter / high-hearing sensitivity</td></tr>
+      </table>
+
+      <h3>Use Cases</h3>
+      <p>The tool has several use cases. For example, you can use it to tune instruments. Just play A4 or any other note as a pure reference to tune guitars, violins, or brasses by ear. You can also use the tool to test speakers and headphones. Just sweep frequencies to find rattles, dead spots, or buzz. The tool can also be used to test your hearing range. Just ramp the frequency upward to find the top of your personal audible range.</p>
+      <p>The tool can also be used for audio calibration. Just generate a 1 kHz reference tone at 0 dBFS to calibrate mixers and interfaces. You can also use the tool for ear training. Just memorize how specific pitches sound to develop relative and absolute pitch. The tool can also be used for sound design. Just download WAV test tones for foley, UI feedback, or synthesis experiments.</p>
+
+      <h3>Frequently Asked Questions</h3>
+      <details class="faq-item">
+        <summary>What is a tone generator used for?</summary>
+        <p>It's used to produce a specific audio frequency for tuning instruments, testing speakers and headphones, checking hearing range, calibrating audio equipment, and ear training practice.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How accurate is an online tone generator?</summary>
+        <p>The Web Audio API synthesizes waveforms at your device's sample rate, which is typically 44,100 or 48,000 Hz. This means that frequencies are rendered with sample-level accuracy, which is precise enough for professional tuning and calibration.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I download the tone as an audio file?</summary>
+        <p>Yes. You can download the tone as an audio file by clicking "Download WAV". The file is generated entirely in your browser, so nothing is uploaded.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why do I need to start at a low volume?</summary>
+        <p>It's a good idea to start with a low volume because high frequencies can sound quieter than they are, and very low frequencies can be physically felt. If a frequency is hard to hear, don't raise the volume to extremes, as this can damage your hearing.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What does the note mean next to the frequency?</summary>
+        <p>The note that appears next to the frequency is the nearest musical note in the equal-tempered scale. For example, 261.63 Hz is Middle C, so singers and players can tune to a named pitch directly.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why does the tone stop when I switch tabs?</summary>
+        <p>The tone will stop if you switch tabs because browsers pause audio in background tabs to save resources. To keep the tone playing, just keep the tone-generator tab active, or use a desktop audio app for true background playback.</p>
+      </details>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <p>There are several related tools that you can use. These include an online metronome, speaker test, guitar tuner, and virtual piano.</p>
+        <ul>
+          <li><a href="/tools/metronome/">Online Metronome</a></li>
+          <li><a href="/tools/speaker-test/">Speaker Test</a></li>
+          <li><a href="/tools/guitar-tuner/">Guitar Tuner</a></li>
+          <li><a href="/tools/virtual-piano/">Virtual Piano</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>
+  <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+let tgCtx = null;
+let tgOsc = null;
+let tgGain = null;
+let tgPlaying = false;
+let tgSweeping = false;
+let tgSweepOsc = null;
+let tgSweepGain = null;
+let tgSweepStart = 0;
+let tgSweepDur = 0;
+let tgSweepFrom = 0;
+let tgSweepTo = 0;
+let tgRaf = null;
+const tgNoteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+function tgGetFreq() {
+  return parseFloat(document.getElementById('freqInput').value) || 440;
+}
+
+function tgNoteName(freq) {
+  if (!freq || freq <= 0) return '';
+  const midi = 69 + 12 * Math.log2(freq / 440);
+  const nearest = Math.round(midi);
+  const cents = Math.round((midi - nearest) * 100);
+  const octave = Math.floor(nearest / 12) - 1;
+  const name = tgNoteNames[((nearest % 12) + 12) % 12] + octave;
+  if (cents === 0) return name;
+  return name + (cents > 0 ? ' +' : ' ') + cents + ' cents';
+}
+
+function tgSetFreq(f) {
+  f = Math.max(1, Math.min(20000, f));
+  document.getElementById('freqSlider').value = f;
+  document.getElementById('freqInput').value = f;
+  document.getElementById('freqDisplay').textContent = Math.round(f * 100) / 100;
+  document.getElementById('noteDisplay').textContent = tgNoteName(f);
+  document.getElementById('tgStatus').textContent = '';
+  if (tgOsc) { try { tgOsc.frequency.setValueAtTime(f, tgCtx.currentTime); } catch (e) {} }
+}
+
+function tgNoteSelect() {
+  const v = document.getElementById('noteSelect').value;
+  if (v) tgSetFreq(parseFloat(v));
+}
+
+function tgSetWave() {
+  if (tgOsc) { try { tgOsc.type = document.getElementById('waveSelect').value; } catch (e) {} }
+}
+
+function tgDrawWave() {
+  const canvas = document.getElementById('waveCanvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = '#2a2a4a';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, h / 2);
+  ctx.lineTo(w, h / 2);
+  ctx.stroke();
+  const f = tgGetFreq();
+  const type = tgPlaying ? document.getElementById('waveSelect').value : 'sine';
+  const cycles = Math.max(1, Math.min(8, f / 60));
+  const samples = 200;
+  ctx.strokeStyle = '#667eea';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i <= samples; i++) {
+    const x = (i / samples) * w;
+    const phase = (i / samples) * cycles * 2 * Math.PI;
+    let y;
+    if (type === 'square') { y = Math.sin(phase) >= 0 ? 1 : -1; }
+    else if (type === 'sawtooth') { y = 2 * ((phase / (2 * Math.PI)) % 1) - 1; }
+    else if (type === 'triangle') { y = (2 / Math.PI) * Math.asin(Math.sin(phase)); }
+    else { y = Math.sin(phase); }
+    y = h / 2 - y * (h / 2 - 6);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  tgRaf = requestAnimationFrame(tgDrawWave);
+}
+
+document.getElementById('freqSlider').addEventListener('input', function() { tgSetFreq(parseFloat(this.value)); });
+document.getElementById('freqInput').addEventListener('change', function() { tgSetFreq(parseFloat(this.value)); });
+document.getElementById('volSlider').addEventListener('input', function() {
+  if (tgGain) { try { tgGain.gain.setValueAtTime(this.value / 100, tgCtx.currentTime); } catch (e) {} }
+  if (tgSweepGain) { try { tgSweepGain.gain.setValueAtTime(this.value / 100, tgCtx.currentTime); } catch (e) {} }
+  document.getElementById('volSlider').title = this.value + '%';
+});
+
+function tgInit() {
+  if (!tgCtx) {
+    tgCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (tgCtx.state === 'suspended') tgCtx.resume();
+  return tgCtx;
+}
+
+function tgTogglePlay() {
+  const btn = document.getElementById('playBtn');
+  if (!tgPlaying) {
+    if (tgSweeping) tgStopSweep();
+    tgInit();
+    if (!tgCtx) return;
+    tgOsc = tgCtx.createOscillator();
+    tgGain = tgCtx.createGain();
+    tgOsc.type = document.getElementById('waveSelect').value;
+    tgOsc.frequency.setValueAtTime(tgGetFreq(), tgCtx.currentTime);
+    const vol = parseInt(document.getElementById('volSlider').value) / 100;
+    tgGain.gain.setValueAtTime(vol > 0 ? vol : 0.001, tgCtx.currentTime);
+    tgOsc.connect(tgGain);
+    tgGain.connect(tgCtx.destination);
+    tgOsc.start();
+    tgPlaying = true;
+    btn.textContent = 'Stop';
+    btn.classList.add('running');
+    document.getElementById('tgStatus').textContent = 'Playing ' + tgGetFreq() + ' Hz';
+  } else {
+    tgStopPlay();
+  }
+}
+
+function tgStopPlay() {
+  const btn = document.getElementById('playBtn');
+  if (tgOsc) { try { tgOsc.stop(); } catch (e) {} tgOsc.disconnect(); tgOsc = null; }
+  if (tgGain) { tgGain.disconnect(); tgGain = null; }
+  tgPlaying = false;
+  btn.textContent = 'Play';
+  btn.classList.remove('running');
+  document.getElementById('tgStatus').textContent = '';
+}
+
+function tgToggleSweep() {
+  if (tgSweeping) { tgStopSweep(); return; }
+  const from = parseFloat(document.getElementById('sweepFrom').value) || 20;
+  const to = parseFloat(document.getElementById('sweepTo').value) || 20000;
+  const dur = parseFloat(document.getElementById('sweepDur').value) || 5;
+  if (from < 1 || to > 20000 || from >= to) {
+    document.getElementById('tgStatus').textContent = 'Sweep: from must be lower than to (1-20000 Hz).';
+    return;
+  }
+  document.getElementById('sweepPanel').style.display = 'grid';
+  if (tgPlaying) tgStopPlay();
+  tgInit();
+  if (!tgCtx) return;
+  tgSweepOsc = tgCtx.createOscillator();
+  tgSweepGain = tgCtx.createGain();
+  tgSweepOsc.type = document.getElementById('waveSelect').value;
+  const vol = parseInt(document.getElementById('volSlider').value) / 100;
+  tgSweepGain.gain.setValueAtTime(vol > 0 ? vol : 0.001, tgCtx.currentTime);
+  const now = tgCtx.currentTime;
+  tgSweepOsc.frequency.setValueAtTime(from, now);
+  tgSweepOsc.frequency.exponentialRampToValueAtTime(to, now + dur);
+  tgSweepOsc.connect(tgSweepGain);
+  tgSweepGain.connect(tgCtx.destination);
+  tgSweepOsc.start();
+  tgSweeping = true;
+  tgSweepStart = now;
+  tgSweepDur = dur;
+  tgSweepFrom = from;
+  tgSweepTo = to;
+  const btn = document.getElementById('sweepBtn');
+  btn.textContent = 'Stop Sweep';
+  btn.classList.add('running');
+  document.getElementById('tgStatus').textContent = 'Sweeping from ' + from + ' to ' + to + ' Hz over ' + dur + 's';
+  const timer = setTimeout(function() {
+    tgStopSweep();
+    document.getElementById('tgStatus').textContent = 'Sweep complete.';
+  }, (dur + 0.2) * 1000);
+  tgSweepOsc.timer = timer;
+}
+
+function tgStopSweep() {
+  if (tgSweepOsc) {
+    try { tgSweepOsc.stop(); } catch (e) {}
+    if (tgSweepOsc.timer) clearTimeout(tgSweepOsc.timer);
+    tgSweepOsc.disconnect();
+    tgSweepOsc = null;
+  }
+  if (tgSweepGain) { tgSweepGain.disconnect(); tgSweepGain = null; }
+  tgSweeping = false;
+  const btn = document.getElementById('sweepBtn');
+  btn.textContent = 'Sweep';
+  btn.classList.remove('running');
+}
+
+function tgSaveWav() {
+  const f = tgGetFreq();
+  const type = document.getElementById('waveSelect').value;
+  const dur = 5;
+  const sampleRate = 44100;
+  const n = Math.floor(sampleRate * dur);
+  const data = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const t = i / sampleRate;
+    const phase = 2 * Math.PI * f * t;
+    let v;
+    if (type === 'square') { v = Math.sin(phase) >= 0 ? 1 : -1; }
+    else if (type === 'sawtooth') { v = 2 * ((phase / (2 * Math.PI)) % 1) - 1; }
+    else if (type === 'triangle') { v = (2 / Math.PI) * Math.asin(Math.sin(phase)); }
+    else { v = Math.sin(phase); }
+    data[i] = v * 0.8;
+  }
+  const buffer = new ArrayBuffer(44 + n * 2);
+  const dv = new DataView(buffer);
+  function writeStr(offset, s) { for (let i = 0; i < s.length; i++) dv.setUint8(offset + i, s.charCodeAt(i)); }
+  writeStr(0, 'RIFF');
+  dv.setUint32(4, 36 + n * 2, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  dv.setUint32(16, 16, true);
+  dv.setUint16(20, 1, true);
+  dv.setUint16(22, 1, true);
+  dv.setUint32(24, sampleRate, true);
+  dv.setUint32(28, sampleRate * 2, true);
+  dv.setUint16(32, 2, true);
+  dv.setUint16(34, 16, true);
+  writeStr(36, 'data');
+  dv.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) {
+    let s = Math.max(-1, Math.min(1, data[i]));
+    dv.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+  const blob = new Blob([buffer], { type: 'audio/wav' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tone-' + f + 'Hz-' + type + '.wav';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function() { URL.revokeObjectURL(url); a.remove(); }, 3000);
+  document.getElementById('tgStatus').textContent = 'Saved tone-' + f + 'Hz-' + type + '.wav';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.code === 'Space') { e.preventDefault(); tgTogglePlay(); }
+  else if (e.key === 'Escape') {
+    if (tgPlaying) tgStopPlay();
+    if (tgSweeping) tgStopSweep();
+  }
+});
+
+tgSetFreq(440);
+tgDrawWave();
+window.tgGetState = function() {
+  return {
+    playing: tgPlaying,
+    oscFreq: tgOsc ? tgOsc.frequency.value : null,
+    sweeping: tgSweeping,
+    sweepFreq: tgSweepOsc ? tgSweepOsc.frequency.value : null,
+    freq: tgGetFreq()
+  };
+};
+</script>
+</body>
+</html>

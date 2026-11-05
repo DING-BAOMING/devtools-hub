@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>LLM API Cost Calculator - Live Model Prices | DevTools Hub</title>
+    <meta name="description" content="Live LLM API cost calculator. Rank 400+ models by what your workload really costs, with prompt caching, batch discounts and long-context tiers.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/llm-cost-calculator/">
+    <meta property="og:title" content="LLM API Cost Calculator - Live Model Prices | DevTools Hub">
+    <meta property="og:description" content="Live LLM API cost calculator. Rank 400+ models by what your workload really costs, with prompt caching, batch discounts and long-context tiers.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/llm-cost-calculator/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="LLM API Cost Calculator - Live Model Prices | DevTools Hub">
+    <meta name="twitter:description" content="Live LLM API cost calculator. Rank 400+ models by what your workload really costs, with prompt caching, batch discounts and long-context tiers.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebApplication",
+                "datePublished": "2026-09-30",
+                "dateModified": "2026-09-30",
+                "author": {"@type": "Person", "name": "BAOMING"},
+                "name": "LLM API Cost Calculator - Live Model Prices",
+                "description": "Live LLM API cost calculator. Rank 400+ models by what your workload really costs, with prompt caching, batch discounts and long-context tiers.",
+                "url": "https://tools.scoreroute.com/tools/llm-cost-calculator/",
+                "applicationCategory": "DeveloperApplication",
+                "operatingSystem": "Any",
+                "isAccessibleForFree": true,
+                "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+            },
+            {
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {"@type": "Question", "name": "How do I calculate LLM API cost?", "acceptedAnswer": {"@text": "Multiply input tokens by the model's input rate, multiply output tokens by its output rate, and add the two. Both rates are USD per token, so divide by one million to get the headline figure providers publish. Reasoning tokens are billed as output. That is the floor. On top of it sit prompt caching, which discounts repeat input at a much lower rate, batch mode, which OpenAI, Anthropic and Google each discount by half, and long-context tiers, where providers charge more per token once a single request crosses a threshold such as 200,000 tokens."}},
+                    {"@type": "Question", "name": "Why is my bill higher than the pricing page says?", "acceptedAnswer": {"@text": "Three things move the number. Reasoning tokens bill at the output rate and are easy to forget. Cached input that misses the cache, usually caused by a timestamp or a random ID near the top of the prompt, bills at the full input rate. And a request that crosses a provider's long-context threshold, commonly 200,000 or 272,000 input tokens, jumps to a higher tier for the whole request rather than only for the tokens above the line. This calculator applies all three, and shows the gap between the list price and the effective price for your workload."}},
+                    {"@type": "Question", "name": "What is the cheapest LLM API right now?", "acceptedAnswer": {"@text": "It depends on your workload rather than on the model alone, which is why a single answer is rarely correct. Several models are effectively free, and among the paid ones the cheapest input rate is usually a small or fast model from a Chinese or open-weights lab, while the cheapest output rate and the best quality per dollar sit with different vendors. Enter your own token counts and monthly volume above and the table ranks every live model for your specific mix."}},
+                    {"@type": "Question", "name": "How much does prompt caching save?", "acceptedAnswer": {"@text": "On a workload with heavy prefix reuse, a great deal. Cache reads are commonly priced at a tenth of the input rate, and on some models at a hundredth, so a 90 percent cache hit rate on a repeated system prompt can cut the input side of the bill by around 90 percent. It only applies to a stable prefix. Anything that changes on every call near the top of the prompt, such as a current timestamp or a request ID, invalidates the prefix and the whole prompt bills at the full rate."}},
+                    {"@type": "Question", "name": "Are these prices live or do they go stale?", "acceptedAnswer": {"@text": "Live. Every page load pulls the current rate card from a public model index rather than from a table typed into this page, and the exact fetch time is shown above the results. That matters because the spread across the live table runs from about ten cents to a hundred and fifty dollars per million input tokens, a factor of more than fifteen thousand, and a rate card is the kind of thing that gets revised rather than deprecated. Any calculator carrying hardcoded numbers drifts out of date within weeks. Nothing is written to disk on the server."}},
+                    {"@type": "Question", "name": "Why not just ask an AI chatbot what a model costs?", "acceptedAnswer": {"@text": "Because language models answer pricing questions from memory, and provider prices are some of the fastest-moving numbers on the internet. A chatbot will state a confident per-million-token figure that was true eight months ago, and it will not mention cache tiers, batch discounts or long-context thresholds. It also cannot do the arithmetic across hundreds of models for your exact token mix. Everything here is computed from the live rate card in your browser, so the same inputs always give the same answer."}},
+                    {"@type": "Question", "name": "Is the token estimate from pasted text exact?", "acceptedAnswer": {"@text": "No, and no browser tool can make it exact without shipping each provider's tokenizer. The estimate uses the standard four-characters-per-token approximation, and the same text can tokenize 20 to 30 percent heavier on one model than another. Use it to get in the right range, then replace it with a real count from your provider's usage field before you sign a contract. Once you have measured counts on your own corpus, this tool becomes exact because it stops guessing."}}
+                ]
+            }
+        ]
+    }
+    </script>
+    <style>
+        .ll-shell { display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start }
+        /* min(290px, 100%) — a fixed 290px floor is wider than the panel a
+           320px phone gives this column. */
+        .ll-col { flex:1; min-width:min(290px, 100%) }
+        .ll-card { background:#0f0f23; border:1px solid #2a2a4a; border-radius:12px; padding:18px; margin-bottom:16px }
+        .ll-label { display:block; color:#aaa; font-size:0.85rem; margin-bottom:6px; font-weight:500 }
+        .ll-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); gap:12px }
+        .ll-in { width:100%; box-sizing:border-box; background:#0f0f23; border:1px solid #333; color:#fff; padding:10px 12px; border-radius:8px; font-family:monospace; font-size:0.95rem }
+        .ll-in:focus-visible { outline:3px solid #667eea; outline-offset:1px }
+        .ll-in.bad { border-color:#ff6b6b }
+        .ll-chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px }
+        .ll-chip { background:#1a1a2e; border:1px solid #2a2a4a; color:#ccc; border-radius:999px; padding:5px 12px; font-size:0.78rem; cursor:pointer; font-family:inherit }
+        .ll-chip:hover { border-color:#667eea; color:#fff }
+        .ll-chip:focus-visible { outline:3px solid #667eea; outline-offset:2px }
+        .ll-range { width:100%; accent-color:#667eea }
+        .ll-range:focus-visible { outline:3px solid #667eea; outline-offset:2px }
+        .ll-head { border-radius:12px; padding:18px; margin-bottom:16px; border:1px solid #2a2a4a; background:#0f0f23 }
+        .ll-head.win { border-color:#2f9e5f; background:rgba(47,158,95,0.12) }
+        .ll-head.over { border-color:#e6a23c }
+        .ll-big { font-size:2.4rem; font-weight:800; line-height:1.15; font-family:monospace; color:#5fd08a }
+        .ll-sub { color:#b3b8c0; font-size:0.9rem; margin-top:6px }
+        .ll-cells { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px }
+        .ll-cell { background:#0f0f23; border:1px solid #2a2a4a; border-radius:10px; padding:12px }
+        .ll-cell .k { color:#7eb3ff; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; display:block }
+        .ll-cell .v { font-size:1.15rem; font-weight:700; margin-top:4px; display:block; font-family:monospace }
+        .ll-note { border-left:3px solid #667eea; background:#1a1a2e; padding:12px 14px; border-radius:0 8px 8px 0; font-size:0.9rem; color:#ccc; margin-top:12px }
+        .ll-note.warn { border-left-color:#e6a23c }
+        .ll-tablewrap { overflow-x:auto }
+        .ll-table { width:100%; border-collapse:collapse; font-size:0.83rem; min-width:760px }
+        .ll-table th, .ll-table td { border-bottom:1px solid #2a2a4a; padding:8px 9px; text-align:right; white-space:nowrap }
+        .ll-table th { background:#1a1a2e; color:#7eb3ff; font-weight:600; position:sticky; top:0 }
+        .ll-table th:first-child, .ll-table td:first-child, .ll-table th:nth-child(2), .ll-table td:nth-child(2) { text-align:left }
+        .ll-table tbody tr.best { background:rgba(47,158,95,0.16) }
+        .ll-table tbody tr.over td { opacity:0.45 }
+        .ll-name { max-width:280px; overflow:hidden; text-overflow:ellipsis }
+        .ll-prov { color:#b3b8c0; font-size:0.78rem }
+        .ll-free { color:#5fd08a; font-weight:700 }
+        .ll-err { color:#ff8080; font-size:0.88rem; min-height:20px; margin:8px 0 }
+        .ll-filters { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:12px }
+        .ll-filters > div { flex:1; min-width:132px }
+        .ll-sel { width:100%; background:#0f0f23; border:1px solid #2a2a4a; color:#fff; padding:9px 11px; border-radius:8px; font-family:inherit; font-size:0.9rem }
+        .ll-sel:focus-visible { outline:3px solid #667eea; outline-offset:1px }
+        .ll-status { color:#b3b8c0; font-size:0.88rem; margin-top:10px }
+        .ll-ta { width:100%; box-sizing:border-box; min-height:88px; background:#0f0f23; border:1px solid #333; color:#fff; padding:11px 13px; border-radius:8px; font-family:monospace; font-size:0.9rem; resize:vertical }
+        .ll-ta:focus-visible { outline:3px solid #667eea; outline-offset:1px }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>LLM API Cost Calculator</h1>
+            <p class="subtitle">Rank live model prices by what your workload actually costs, with cache hits, batch discounts and long-context tiers included</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>LLM API Cost Calculator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Cost your workload across every live model</h2>
+
+                <div class="ll-shell">
+                    <div class="ll-col">
+                        <div class="ll-card">
+                            <span class="ll-label">Start from a workload</span>
+                            <div class="ll-chips" id="ll-presets">
+                                <button type="button" class="ll-chip" data-preset="chat">Chatbot turn</button>
+                                <button type="button" class="ll-chip" data-preset="rag">RAG answer</button>
+                                <button type="button" class="ll-chip" data-preset="code">Code agent step</button>
+                                <button type="button" class="ll-chip" data-preset="doc">Summarise a document</button>
+                                <button type="button" class="ll-chip" data-preset="batch">Nightly batch job</button>
+                            </div>
+
+                            <div class="ll-grid" style="margin-top:14px">
+                                <div>
+                                    <label class="ll-label" for="ll-in-tok">Input tokens / call</label>
+                                    <input type="number" id="ll-in-tok" class="ll-in" value="2000" min="0" step="100">
+                                </div>
+                                <div>
+                                    <label class="ll-label" for="ll-out-tok">Output tokens / call</label>
+                                    <input type="number" id="ll-out-tok" class="ll-in" value="500" min="0" step="50">
+                                </div>
+                                <div>
+                                    <label class="ll-label" for="ll-reason-tok">Reasoning tokens / call</label>
+                                    <input type="number" id="ll-reason-tok" class="ll-in" value="0" min="0" step="100">
+                                </div>
+                                <div>
+                                    <label class="ll-label" for="ll-calls">Calls / month</label>
+                                    <input type="number" id="ll-calls" class="ll-in" value="100000" min="0" step="1000">
+                                </div>
+                            </div>
+
+                            <div style="margin-top:16px">
+                                <label class="ll-label" for="ll-cache">Prompt cache hit rate: <span id="ll-cache-out" style="color:#7eb3ff;font-family:monospace">0%</span></label>
+                                <input type="range" id="ll-cache" class="ll-range" min="0" max="100" step="5" value="0">
+                                <div class="ll-sub">Share of input tokens served from cache, such as a system prompt or few-shot block reused on every call.</div>
+                            </div>
+
+                            <div style="margin-top:14px">
+                                <label class="ll-label" for="ll-budget">Monthly budget (optional, USD)</label>
+                                <input type="number" id="ll-budget" class="ll-in" value="0" min="0" step="10" placeholder="0">
+                            </div>
+
+                            <div style="margin-top:14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap">
+                                <input type="checkbox" id="ll-batch" style="width:18px;height:18px;accent-color:#667eea">
+                                <label for="ll-batch" style="color:#ccc;font-size:0.9rem">Apply the 50% batch discount</label>
+                            </div>
+                            <div class="ll-sub" id="ll-batch-note">OpenAI, Anthropic and Google each publish a 50% batch discount. Off by default, because most interactive workloads cannot wait for the asynchronous window. Treat the discounted figures as exact for those three providers and as optimistic for everyone else.</div>
+                        </div>
+
+                        <div class="ll-card">
+                            <label class="ll-label" for="ll-paste">Or paste a real prompt to estimate its tokens</label>
+                            <textarea id="ll-paste" class="ll-ta" spellcheck="false" placeholder="Paste a system prompt, a code file or a user question..."></textarea>
+                            <div class="ll-status" id="ll-tok-estimate">0 characters, about 0 input tokens.</div>
+                            <div class="btn-group" style="margin-top:10px">
+                                <button type="button" id="ll-use-estimate" class="btn btn-secondary">Use as input tokens</button>
+                                <button type="button" id="ll-clear-paste" class="btn btn-secondary">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ll-col">
+                        <div class="ll-head" id="ll-verdict">
+                            <div class="ll-big" id="ll-best-cost">$0.00</div>
+                            <div class="ll-sub" id="ll-best-name">Loading live prices...</div>
+                        </div>
+
+                        <div class="ll-card">
+                            <div class="ll-cells">
+                                <div class="ll-cell"><span class="k">Cheapest / month</span><span class="v" id="ll-out-cheapest">&ndash;</span></div>
+                                <div class="ll-cell"><span class="k">List price</span><span class="v" id="ll-out-list">&ndash;</span></div>
+                                <div class="ll-cell"><span class="k">You save</span><span class="v" id="ll-out-save">&ndash;</span></div>
+                                <div class="ll-cell"><span class="k">Cost / call</span><span class="v" id="ll-out-percall">&ndash;</span></div>
+                            </div>
+                            <div class="ll-note" id="ll-budget-note">Enter a monthly budget to see which models fit and which do not.</div>
+                            <div class="ll-sub" id="ll-asof" style="margin-top:10px">Waiting for the live rate card.</div>
+                        </div>
+
+                        <div class="ll-card">
+                            <span class="ll-label">How the price for that model is built</span>
+                            <div class="ll-cells">
+                                <div class="ll-cell"><span class="k">Input rate</span><span class="v" id="ll-out-ratein">&ndash;</span></div>
+                                <div class="ll-cell"><span class="k">Output rate</span><span class="v" id="ll-out-rateout">&ndash;</span></div>
+                                <div class="ll-cell"><span class="k">Cache read rate</span><span class="v" id="ll-out-ratecache">&ndash;</span></div>
+                                <div class="ll-cell"><span class="k">Context window</span><span class="v" id="ll-out-ctx">&ndash;</span></div>
+                            </div>
+                            <div class="ll-note" id="ll-tier-note">No long-context tier applies at this input size.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ll-card">
+                    <h3 style="margin-top:0">Every live model, ranked for your workload</h3>
+                    <div class="ll-filters">
+                        <div>
+                            <label class="ll-label" for="ll-filter-prov">Provider</label>
+                            <select id="ll-filter-prov" class="ll-sel"><option value="">All providers</option></select>
+                        </div>
+                        <div>
+                            <label class="ll-label" for="ll-filter-ctx">Needs at least</label>
+                            <select id="ll-filter-ctx" class="ll-sel">
+                                <option value="0">Any context window</option>
+                                <option value="32000">32k context</option>
+                                <option value="128000">128k context</option>
+                                <option value="200000">200k context</option>
+                                <option value="1000000">1M context</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="ll-label" for="ll-filter-sort">Sort by</label>
+                            <select id="ll-filter-sort" class="ll-sel">
+                                <option value="cost">Your monthly cost</option>
+                                <option value="in">Input rate</option>
+                                <option value="out">Output rate</option>
+                                <option value="ctx">Context window</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="ll-label" for="ll-filter-mod">Modalities</label>
+                            <select id="ll-filter-mod" class="ll-sel">
+                                <option value="">Text and vision</option>
+                                <option value="text">Text only</option>
+                                <option value="vision">Accepts images</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="ll-tablewrap">
+                        <table class="ll-table" id="ll-table" aria-label="LLM models ranked by monthly cost for the entered workload">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Model</th>
+                                    <th scope="col">Context</th>
+                                    <th scope="col">$ / 1M in</th>
+                                    <th scope="col">$ / 1M out</th>
+                                    <th scope="col">List / month</th>
+                                    <th scope="col">Your cost / month</th>
+                                    <th scope="col">Saved</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ll-rows">
+                                <tr><td colspan="8" style="text-align:center;padding:22px">Loading live prices...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="btn-group" style="margin-top:12px">
+                        <button type="button" id="ll-showall" class="btn btn-secondary">Show all</button>
+                        <button type="button" id="ll-copy" class="btn btn-secondary">Copy result</button>
+                        <button type="button" id="ll-reset" class="btn btn-secondary">Reset</button>
+                    </div>
+                    <div class="ll-err" id="ll-msg" role="status" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What this tool does</h2>
+                <p>Almost every LLM cost calculator on the internet multiplies your token count by a list price. That is the number on the pricing page, and it is very close to the number nobody pays. A production workload sits on top of four adjustments, and each one moves the bill in a direction you cannot predict from the sticker alone.</p>
+                <p>The first is prompt caching. When the same prefix is sent on every call, providers charge a cache read at a small fraction of the input rate, commonly a tenth and on some models a hundredth. The second is cache misses, and this is the trap. A single current timestamp or request ID near the top of the prompt invalidates the whole prefix, so an application that looks heavily cached on paper bills almost entirely at the full input rate. The third is reasoning tokens, which bill at the output rate and are easy to leave out of a spreadsheet. The fourth is the long-context tier, where a provider charges more per token once a single request crosses a threshold, often 200,000 or 272,000 tokens, and applies the higher rate to the entire request rather than only to the part above the line.</p>
+                <p>This calculator applies all four and then ranks every live model by the result for your specific token mix. Change the input size, the cache hit rate or the call volume and the order changes, because there is no single cheapest model. A model with a mediocre input rate and an excellent output rate wins on generation-heavy work. A model with a tiny input rate and a long context window wins on retrieval work with a large fixed prefix. A free model wins everything, right up until the point where its rate limits, availability or terms stop you shipping it.</p>
+
+                <h2>How to use it</h2>
+                <ol>
+                    <li>Pick a workload preset, or type your own token counts. The presets are honest starting points: a chatbot turn is roughly 2,000 input and 500 output tokens, a retrieval answer with a document chunk is closer to 6,000 in, and a summarisation job over a long document can be 200,000 in on a single call.</li>
+                    <li>Set the cache hit rate to the share of your input tokens that genuinely repeat. A fixed system prompt on every call in an agent loop is often 80 to 95 percent. If you are not sure, measure it, because this single number has more leverage on the bill than the model choice.</li>
+                    <li>Turn on the batch discount only if the work can tolerate the provider's asynchronous window. Half the price is worth nothing if your user is waiting on a response.</li>
+                    <li>Set a monthly budget to see which models clear it. Rows dim when they do not, and the summary names the cheapest one that fits.</li>
+                    <li>Replace your estimates with real counts from the provider's usage field before you commit. Once you have measured numbers from your own corpus, the arithmetic here is exact.</li>
+                </ol>
+
+                <h2>Where the number comes from</h2>
+                <p>Rates are pulled live from a public model index that aggregates what providers publish, and the exact fetch time is printed above the results. That is the whole point of the page. Read the two rate columns in the table and you can see why a stored table is worthless: the cheapest input rate is roughly a tenth of a dollar per million tokens and the most expensive is a hundred and fifty, a spread of more than fifteen thousand times across the models live today. A hardcoded rate card is not a little out of date, it is wrong, and it is usually wrong in the direction that makes your architecture look more expensive than it is. Nothing here is written to disk on the server, and the arithmetic runs in your browser, so the same inputs always produce the same answer.</p>
+
+                <div class="ll-note">
+                    <strong>Why not just ask a chatbot.</strong> Pricing is exactly the kind of question a language model answers from memory with total confidence, and provider rates are not what models memorise well. You will get a plausible per-million-token figure that was true months ago, with no mention of cache tiers, batch discounts or long-context thresholds, and no arithmetic across several hundred models for your exact mix. This page reads the rate card at request time instead of recalling it.
+                </div>
+
+                <h3>Frequently asked questions</h3>
+                <details class="faq-item"><summary>How do I calculate LLM API cost?</summary><p>Multiply input tokens by the model's input rate, multiply output tokens by its output rate, and add the two. Both rates are USD per token, so divide by one million to get the headline figure providers publish. Reasoning tokens are billed as output. That is the floor. On top of it sit prompt caching, which discounts repeat input at a much lower rate, batch mode, which OpenAI, Anthropic and Google each discount by half, and long-context tiers, where providers charge more per token once a single request crosses a threshold such as 200,000 tokens.</p></details>
+                <details class="faq-item"><summary>Why is my bill higher than the pricing page says?</summary><p>Three things move the number. Reasoning tokens bill at the output rate and are easy to forget. Cached input that misses the cache, usually caused by a timestamp or a random ID near the top of the prompt, bills at the full input rate. And a request that crosses a provider's long-context threshold, commonly 200,000 or 272,000 input tokens, jumps to a higher tier for the whole request rather than only for the tokens above the line. This calculator applies all three, and shows the gap between the list price and the effective price for your workload.</p></details>
+                <details class="faq-item"><summary>What is the cheapest LLM API right now?</summary><p>It depends on your workload rather than on the model alone, which is why a single answer is rarely correct. Several models are effectively free, and among the paid ones the cheapest input rate is usually a small or fast model from a Chinese or open-weights lab, while the cheapest output rate and the best quality per dollar sit with different vendors. Enter your own token counts and monthly volume above and the table ranks every live model for your specific mix.</p></details>
+                <details class="faq-item"><summary>How much does prompt caching save?</summary><p>On a workload with heavy prefix reuse, a great deal. Cache reads are commonly priced at a tenth of the input rate, and on some models at a hundredth, so a 90 percent cache hit rate on a repeated system prompt can cut the input side of the bill by around 90 percent. It only applies to a stable prefix. Anything that changes on every call near the top of the prompt, such as a current timestamp or a request ID, invalidates the prefix and the whole prompt bills at the full rate.</p></details>
+                <details class="faq-item"><summary>Are these prices live or do they go stale?</summary><p>Live. Every page load pulls the current rate card from a public model index rather than from a table typed into this page, and the exact fetch time is shown above the results. That matters because the spread across the live table runs from about ten cents to a hundred and fifty dollars per million input tokens, a factor of more than fifteen thousand, and a rate card is the kind of thing that gets revised rather than deprecated. Any calculator carrying hardcoded numbers drifts out of date within weeks. Nothing is written to disk on the server.</p></details>
+                <details class="faq-item"><summary>Why not just ask an AI chatbot what a model costs?</summary><p>Because language models answer pricing questions from memory, and provider prices are some of the fastest-moving numbers on the internet. A chatbot will state a confident per-million-token figure that was true eight months ago, and it will not mention cache tiers, batch discounts or long-context thresholds. It also cannot do the arithmetic across hundreds of models for your exact token mix. Everything here is computed from the live rate card in your browser, so the same inputs always give the same answer.</p></details>
+                <details class="faq-item"><summary>Is the token estimate from pasted text exact?</summary><p>No, and no browser tool can make it exact without shipping each provider's tokenizer. The estimate uses the standard four-characters-per-token approximation, and the same text can tokenize 20 to 30 percent heavier on one model than another. Use it to get in the right range, then replace it with a real count from your provider's usage field before you sign a contract. Once you have measured counts on your own corpus, this tool becomes exact because it stops guessing.</p></details>
+
+                <h3>Related tools</h3>
+                <p><a href="/tools/ai-prompt-engineer/">AI Prompt Engineer</a> to cut the input side before you cut the price, <a href="/tools/calculator/">Online Calculator</a> for the general arithmetic, and <a href="/tools/compound-interest-calculator/">Compound Interest Calculator</a> if you are projecting what the saved budget compounds into.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+        </div>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        var ROW_LIMIT = 50;
+        var PER = 1e6;            // upstream rates are USD per token
+        var BATCH_DISCOUNT = 0.5; // OpenAI, Anthropic and Google each publish 50%
+
+        function $(id) { return document.getElementById(id); }
+
+        var els = {
+            inTok: $('ll-in-tok'), outTok: $('ll-out-tok'), reasonTok: $('ll-reason-tok'),
+            calls: $('ll-calls'), cache: $('ll-cache'), cacheOut: $('ll-cache-out'),
+            budget: $('ll-budget'), batch: $('ll-batch'),
+            paste: $('ll-paste'), estimate: $('ll-tok-estimate'),
+            verdict: $('ll-verdict'), bestCost: $('ll-best-cost'), bestName: $('ll-best-name'),
+            cheapest: $('ll-out-cheapest'), list: $('ll-out-list'), save: $('ll-out-save'),
+            perCall: $('ll-out-percall'), budgetNote: $('ll-budget-note'), asOf: $('ll-asof'),
+            rateIn: $('ll-out-ratein'), rateOut: $('ll-out-rateout'),
+            rateCache: $('ll-out-ratecache'), ctx: $('ll-out-ctx'), tierNote: $('ll-tier-note'),
+            prov: $('ll-filter-prov'), ctxMin: $('ll-filter-ctx'),
+            sort: $('ll-filter-sort'), mod: $('ll-filter-mod'),
+            rows: $('ll-rows'), msg: $('ll-msg'), showAll: $('ll-showall')
+        };
+
+        var models = null;
+        var fetchedAt = '';
+        var showAll = false;
+        var lastTop = null;
+
+        // ===== workload =====
+        // Clamped: a per-call token count above 10M exceeds every published context
+        // window, and a monthly call count above a billion is not a real workload.
+        // Clamping here also stops absurd input producing scientific notation in usd().
+        var MAX_TOK = 1e7, MAX_CALLS = 1e9;
+        function cap(v, max) { var n = parseFloat(v); return isNaN(n) || n < 0 ? 0 : Math.min(n, max); }
+        function workload() {
+            return {
+                in: cap(els.inTok.value, MAX_TOK),
+                out: cap(els.outTok.value, MAX_TOK),
+                reason: cap(els.reasonTok.value, MAX_TOK),
+                calls: cap(els.calls.value, MAX_CALLS),
+                hit: Math.max(0, Math.min(1, (parseFloat(els.cache.value) || 0) / 100)),
+                budget: cap(els.budget.value, MAX_CALLS * 1e6),
+                batch: els.batch.checked ? BATCH_DISCOUNT : 1
+            };
+        }
+
+        // Providers publish a second, higher rate for long single requests. Pick the
+        // highest tier whose threshold the input size actually clears.
+        function tierFor(m, inputTokens) {
+            var t = { min: 0, in: m.in, out: m.out, cacheRead: m.cacheRead };
+            for (var i = 0; i < m.tiers.length; i++) {
+                if (inputTokens >= m.tiers[i].min) t = m.tiers[i];
+            }
+            return t;
+        }
+
+        function costOf(m, w) {
+            var t = tierFor(m, w.in);
+            var cached = w.in * w.hit;
+            var fresh = w.in - cached;
+            // A model with no published cache rate bills cache reads at the full input rate.
+            var cacheRate = t.cacheRead > 0 ? t.cacheRead : t.in;
+            var reasonRate = m.reason > 0 ? m.reason : t.out;
+            var inCost = fresh * t.in + cached * cacheRate;
+            var outCost = w.out * t.out + w.reason * reasonRate;
+            var list = w.in * t.in + w.out * t.out + w.reason * reasonRate + m.request;
+            return {
+                perCall: (inCost + outCost + m.request) * w.batch,
+                listPerCall: list,
+                tier: t
+            };
+        }
+
+        // ===== formatting =====
+        function usd(v) {
+            if (v === 0) return '$0.00';
+            if (v < 0.01) return '$' + v.toFixed(5);
+            if (v < 1) return '$' + v.toFixed(4);
+            if (v < 100) return '$' + v.toFixed(2);
+            if (v < 100000) return '$' + Math.round(v).toLocaleString('en-US');
+            return '$' + (v / 1000).toFixed(1) + 'k';
+        }
+        function rate(v) {
+            if (!v) return 'n/a';
+            var p = v * PER;
+            if (p >= 100) return '$' + p.toFixed(0);
+            if (p >= 1) return '$' + p.toFixed(2);
+            if (p >= 0.01) return '$' + p.toFixed(3);
+            return '$' + p.toFixed(4);
+        }
+        function ctx(n) {
+            if (!n) return 'n/a';
+            // 1048576 tokens is 1.05M, not 1.048576M
+            if (n >= 1e6) return (Math.round(n / 1e5) / 10) + 'M';
+            if (n >= 1000) return Math.round(n / 1000) + 'k';
+            return String(n);
+        }
+        function esc(s) {
+            return String(s).replace(/[&<>"]/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+            });
+        }
+
+        // ===== render =====
+        function render() {
+            if (!models) return;
+            var w = workload();
+            els.cacheOut.textContent = Math.round(w.hit * 100) + '%';
+
+            var rows = models.map(function (m) {
+                var c = costOf(m, w);
+                return { m: m, tier: c.tier, perCall: c.perCall, monthly: c.perCall * w.calls, listMonthly: c.listPerCall * w.calls };
+            });
+
+            var mode = els.mod.value;
+            if (mode === 'text') rows = rows.filter(function (r) { return !r.m.vision; });
+            if (mode === 'vision') rows = rows.filter(function (r) { return r.m.vision; });
+            var minCtx = parseInt(els.ctxMin.value, 10) || 0;
+            if (minCtx) rows = rows.filter(function (r) { return r.m.ctx >= minCtx; });
+            if (els.prov.value) rows = rows.filter(function (r) { return r.m.provider === els.prov.value; });
+
+            var sort = els.sort.value;
+            rows.sort(function (a, b) {
+                if (sort === 'in') return (a.tier.in - b.tier.in) || (a.monthly - b.monthly);
+                if (sort === 'out') return (a.tier.out - b.tier.out) || (a.monthly - b.monthly);
+                if (sort === 'ctx') return b.m.ctx - a.m.ctx;
+                return a.monthly - b.monthly;
+            });
+
+            if (!rows.length) {
+                els.rows.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:22px">No model matches those filters. Widen the context floor or clear the provider filter.</td></tr>';
+                els.verdict.className = 'll-head over';
+                els.bestCost.textContent = 'n/a';
+                els.bestName.textContent = 'No model matches the current filters.';
+                lastTop = null;
+                return;
+            }
+
+            var top = rows[0];
+            lastTop = { w: w, top: top, rows: rows };
+
+            els.verdict.className = w.budget > 0 && top.monthly > w.budget ? 'll-head over' : 'll-head win';
+            els.bestCost.textContent = usd(top.monthly);
+            els.bestName.textContent = 'cheapest for this workload: ' + top.m.name +
+                ' (' + top.m.provider + ', ' + ctx(top.m.ctx) + ' context)';
+            els.cheapest.textContent = usd(top.monthly);
+            els.list.textContent = usd(top.listMonthly);
+            els.save.textContent = top.listMonthly > 0 ? Math.max(0, Math.round((1 - top.monthly / top.listMonthly) * 100)) + '%' : '0%';
+            els.perCall.textContent = usd(top.perCall);
+            els.rateIn.textContent = rate(top.tier.in);
+            els.rateOut.textContent = rate(top.tier.out);
+            els.rateCache.textContent = top.tier.cacheRead > 0 ? rate(top.tier.cacheRead) + ' (cached)' : 'not published';
+            els.ctx.textContent = ctx(top.m.ctx);
+
+            if (top.tier.min > 0) {
+                els.tierNote.className = 'll-note warn';
+                els.tierNote.textContent = 'Long-context tier applied. ' + top.m.name + ' charges its higher rate above ' +
+                    ctx(top.tier.min) + ' input tokens on a single request, and your ' + ctx(w.in) + ' token request clears that. ' +
+                    'The list rate would have been ' + rate(top.tier.min > 0 ? (function () {
+                        var base = null;
+                        for (var i = 0; i < top.m.tiers.length; i++) if (top.m.tiers[i].min === top.tier.min) base = top.m.tiers[i];
+                        return base ? base.in : 0;
+                    })() : 0) + ' per 1M at that threshold.';
+            } else {
+                els.tierNote.className = 'll-note';
+                els.tierNote.textContent = 'No long-context tier applies at ' + ctx(w.in) + ' input tokens for this model.' +
+                    (top.m.tiers.length ? ' It steps up above ' + ctx(top.m.tiers[0].min) + ' tokens on a single request.' : '');
+            }
+
+            if (w.budget > 0) {
+                var fit = rows.filter(function (r) { return r.monthly <= w.budget; }).length;
+                var callsAtBudget = top.perCall > 0 ? Math.floor(w.budget / top.perCall) : 0;
+                els.budgetNote.className = fit ? 'll-note' : 'll-note warn';
+                els.budgetNote.textContent = fit
+                    ? fit + ' of ' + rows.length + ' matching models fit a $' + w.budget.toLocaleString('en-US') +
+                      ' monthly budget. The cheapest, ' + top.m.name + ', covers about ' + callsAtBudget.toLocaleString('en-US') +
+                      ' calls a month inside it.'
+                    : 'No matching model fits a $' + w.budget.toLocaleString('en-US') + ' monthly budget at this volume. ' +
+                      'Cut the call count, raise the cache hit rate, or move the work to batch.';
+            } else {
+                els.budgetNote.className = 'll-note';
+                els.budgetNote.textContent = 'Enter a monthly budget to see which models fit and which do not.';
+            }
+
+            var shown = showAll ? rows : rows.slice(0, ROW_LIMIT);
+            var html = '';
+            for (var i = 0; i < shown.length; i++) {
+                var r = shown[i];
+                var over = w.budget > 0 && r.monthly > w.budget;
+                var saved = r.listMonthly > 0 ? Math.max(0, Math.round((1 - r.monthly / r.listMonthly) * 100)) : 0;
+                html += '<tr class="' + (i === 0 ? 'best ' : '') + (over ? 'over' : '') + '">' +
+                    '<td>' + (i + 1) + '</td>' +
+                    '<td class="ll-name" title="' + esc(r.m.name) + '">' + esc(r.m.name) +
+                        '<div class="ll-prov">' + esc(r.m.provider) + (r.m.reasoning ? ' &middot; reasoning' : '') + '</div></td>' +
+                    '<td>' + ctx(r.m.ctx) + '</td>' +
+                    '<td>' + rate(r.tier.in) + '</td>' +
+                    '<td>' + rate(r.tier.out) + '</td>' +
+                    '<td>' + usd(r.listMonthly) + '</td>' +
+                    '<td' + (r.monthly === 0 ? ' class="ll-free"' : '') + '>' + usd(r.monthly) + '</td>' +
+                    '<td>' + (saved > 0 ? saved + '%' : '&ndash;') + '</td>' +
+                '</tr>';
+            }
+            els.rows.innerHTML = html;
+            els.showAll.textContent = showAll ? 'Show top ' + ROW_LIMIT : 'Show all ' + rows.length;
+        }
+
+        // ===== data =====
+        function load() {
+            els.rows.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:22px">Loading live prices...</td></tr>';
+            fetch('/api/llm-pricing')
+                .then(function (r) {
+                    if (!r.ok) return r.json().then(function (e) { throw new Error(e.error || ('HTTP ' + r.status)); });
+                    return r.json();
+                })
+                .then(function (data) {
+                    models = data.models || [];
+                    fetchedAt = data.fetchedAt;
+                    if (!models.length) throw new Error('No models returned');
+                    var seen = {}, opts = '';
+                    for (var i = 0; i < models.length; i++) {
+                        if (!seen[models[i].provider]) { seen[models[i].provider] = 1; opts += '<option value="' + esc(models[i].provider) + '">' + esc(models[i].provider) + '</option>'; }
+                    }
+                    els.prov.insertAdjacentHTML('beforeend', opts);
+                    els.asOf.textContent = models.length + ' models, prices as of ' + new Date(fetchedAt).toUTCString() +
+                        '. Source: ' + data.source + '. Nothing is stored on the server.';
+                    els.msg.textContent = '';
+                    render();
+                })
+                .catch(function (e) {
+                    els.rows.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:22px">Could not load the live rate card. ' + esc(e.message) + '</td></tr>';
+                    els.bestCost.textContent = 'offline';
+                    els.bestName.textContent = 'The live pricing feed did not respond.';
+                    els.asOf.textContent = 'Last attempt failed. Retry in a minute.';
+                });
+        }
+
+        // ===== presets =====
+        var PRESETS = {
+            chat:  { i: 2000,  o: 500,   r: 0,    c: 100000, hit: 70,  batch: false },
+            rag:   { i: 6000,  o: 400,   r: 0,    c: 300000, hit: 85,  batch: false },
+            code:  { i: 25000, o: 2000,  r: 4000, c: 20000,  hit: 90,  batch: false },
+            doc:   { i: 200000, o: 3000, r: 0,    c: 3000,   hit: 0,   batch: false },
+            batch: { i: 8000,  o: 1500,  r: 0,    c: 200000, hit: 20,  batch: true }
+        };
+
+        function applyPreset(name) {
+            var p = PRESETS[name];
+            if (!p) return;
+            els.inTok.value = p.i;
+            els.outTok.value = p.o;
+            els.reasonTok.value = p.r;
+            els.calls.value = p.c;
+            els.cache.value = p.hit;
+            els.batch.checked = p.batch;
+            render();
+        }
+
+        // ===== token estimate =====
+        // Standard 4-characters-per-token approximation. Not exact, and the page says so.
+        function estimateTokens(text) {
+            return Math.ceil((text || '').length / 4);
+        }
+        function updateEstimate() {
+            var n = els.paste.value.length;
+            els.estimate.textContent = n
+                ? n.toLocaleString('en-US') + ' characters, about ' + estimateTokens(els.paste.value).toLocaleString('en-US') +
+                  ' input tokens. Real tokenizers land within 20 to 30 percent of this, and not always the same direction.'
+                : '0 characters, about 0 input tokens.';
+        }
+
+        function copyText(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () { els.msg.textContent = 'Result copied to clipboard.'; },
+                    function () { fallbackCopy(text); });
+            } else { fallbackCopy(text); }
+        }
+        function fallbackCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); els.msg.textContent = 'Result copied to clipboard.'; }
+            catch (e) { els.msg.textContent = 'Copy failed, select the text manually.'; }
+            document.body.removeChild(ta);
+        }
+
+        // ===== wiring =====
+        [els.inTok, els.outTok, els.reasonTok, els.calls, els.budget].forEach(function (el) {
+            el.addEventListener('input', render);
+        });
+        els.cache.addEventListener('input', render);
+        els.batch.addEventListener('change', render);
+        [els.prov, els.ctxMin, els.sort, els.mod].forEach(function (el) { el.addEventListener('change', render); });
+        els.paste.addEventListener('input', updateEstimate);
+        $('ll-presets').addEventListener('click', function (e) {
+            var chip = e.target.closest('.ll-chip');
+            if (chip) applyPreset(chip.getAttribute('data-preset'));
+        });
+        $('ll-use-estimate').addEventListener('click', function () {
+            var t = estimateTokens(els.paste.value);
+            if (!t) { els.msg.textContent = 'Paste some text first.'; return; }
+            els.inTok.value = t;
+            render();
+            els.msg.textContent = 'Input tokens set to ' + t.toLocaleString('en-US') + ' from the pasted text.';
+        });
+        $('ll-clear-paste').addEventListener('click', function () { els.paste.value = ''; updateEstimate(); });
+        els.showAll.addEventListener('click', function () { showAll = !showAll; render(); });
+        $('ll-copy').addEventListener('click', function () {
+            if (!lastTop) { els.msg.textContent = 'Nothing to copy yet.'; return; }
+            var w = lastTop.w, t = lastTop.top;
+            copyText([
+                'LLM API cost estimate',
+                'Workload: ' + w.in.toLocaleString('en-US') + ' in + ' + w.out.toLocaleString('en-US') + ' out' +
+                    (w.reason ? ' + ' + w.reason.toLocaleString('en-US') + ' reasoning' : '') +
+                    ' per call, ' + w.calls.toLocaleString('en-US') + ' calls/month',
+                'Cache hit rate: ' + Math.round(w.hit * 100) + '%' + (w.batch < 1 ? ', batch mode' : ''),
+                'Cheapest model: ' + t.m.name + ' (' + t.m.provider + ')',
+                'Your cost: ' + usd(t.monthly) + '/month (' + usd(t.perCall) + ' per call)',
+                'List price for the same tokens: ' + usd(t.listMonthly) + '/month',
+                'Rates: ' + rate(t.tier.in) + ' in, ' + rate(t.tier.out) + ' out per 1M tokens',
+                'Prices as of ' + fetchedAt
+            ].join('\n'));
+        });
+        $('ll-reset').addEventListener('click', function () {
+            els.inTok.value = 2000; els.outTok.value = 500; els.reasonTok.value = 0;
+            els.calls.value = 100000; els.cache.value = 0; els.budget.value = ''; els.batch.checked = false;
+            els.prov.value = ''; els.ctxMin.value = '0'; els.sort.value = 'cost'; els.mod.value = '';
+            showAll = false;
+            render();
+        });
+
+        load();
+    })();
+    </script>
+</body>
+</html>

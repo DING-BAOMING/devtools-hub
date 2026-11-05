@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Speech - Free Online Voice Generator</title>
+    <meta name="description" content="Free online text to speech with 8 AI voices. Convert text to natural-sounding audio in English and Chinese. No signup required. Browser TTS and AI-powered.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/text-to-speech/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:title" content="Text to Speech - Free Online Voice Generator">
+    <meta property="og:description" content="Free online text to speech with 8 AI voices. Convert text to natural-sounding audio in English and Chinese. No signup required.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Free Text to Speech Online",
+      "description": "Free text to speech with browser voices and 8 AI voices. Supports English and Chinese. No signup required. Instant browser TTS or high-quality AI generation.",
+      "url": "https://tools.scoreroute.com/tools/text-to-speech/",
+      "applicationCategory": "UtilityApplication",
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+    }
+    </script>
+    <style>
+        .tts-mode-selector { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+        .tts-mode-btn { padding: 10px 20px; border: 2px solid #2a2a4a; border-radius: 10px; background: #1a1a2e; color: #888; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; flex: 1; min-width: 160px; text-align: center; }
+        .tts-mode-btn:hover { border-color: #667eea; color: #fff; }
+        .tts-mode-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-color: transparent; }
+        .tts-mode-btn .mode-label { font-weight: 600; display: block; }
+        .tts-mode-btn .mode-desc { font-size: 0.75rem; opacity: 0.8; margin-top: 4px; }
+        .voice-selector { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 20px; }
+        .voice-card { padding: 10px; border: 2px solid #2a2a4a; border-radius: 8px; background: #0f0f23; color: #aaa; cursor: pointer; text-align: center; transition: all 0.2s; font-size: 0.85rem; }
+        .voice-card:hover { border-color: #667eea; color: #fff; }
+        .voice-card.active { border-color: #667eea; background: rgba(102, 126, 234, 0.15); color: #fff; }
+        .voice-card .voice-name { font-weight: 600; }
+        .voice-card .voice-gender { font-size: 0.75rem; opacity: 0.7; }
+        .tts-textarea {
+            width: 100%; min-height: 180px; max-height: 400px; background: #0f0f23; border: 1px solid #2a2a4a;
+            color: #fff; padding: 16px; border-radius: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 16px; line-height: 1.6; resize: vertical; margin-bottom: 16px; transition: border-color 0.2s;
+        }
+        .tts-textarea:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .tts-textarea::placeholder { color: #555; }
+        .char-count { text-align: right; color: #666; font-size: 0.8rem; margin-top: -10px; margin-bottom: 16px; }
+        .tts-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+        .speed-control { display: flex; align-items: center; gap: 8px; }
+        .speed-control label { color: #aaa; font-size: 0.85rem; white-space: nowrap; }
+        .speed-control input[type="range"] { width: 120px; accent-color: #667eea; }
+        .speed-control .speed-value { color: #667eea; font-size: 0.85rem; min-width: 40px; }
+        .audio-player { width: 100%; margin-top: 16px; }
+        .audio-player audio { width: 100%; border-radius: 8px; outline: none; }
+        .download-btn { display: none; margin-top: 10px; }
+        .tts-status { display: none; padding: 12px 16px; border-radius: 8px; margin-top: 12px; font-size: 0.9rem; }
+        .tts-status.loading { display: block; background: rgba(102, 126, 234, 0.15); color: #667eea; }
+        .tts-status.error { display: block; background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .tts-status.success { display: block; background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .browser-voices { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 20px; }
+        .browser-voice-select { width: 100%; padding: 8px 12px; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; border-radius: 8px; font-size: 0.9rem; margin-bottom: 20px; }
+        .browser-voice-select:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .browser-range { width: 100%; accent-color: #667eea; }
+        .tip-box { background: rgba(102, 126, 234, 0.08); border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 10px; padding: 16px; margin-top: 16px; }
+        .tip-box h4 { color: #667eea; margin-bottom: 8px; }
+        .tip-box p { color: #aaa; font-size: 0.85rem; line-height: 1.6; }
+        .tip-box ul { color: #aaa; font-size: 0.85rem; margin-top: 8px; padding-left: 20px; }
+        .tip-box li { margin-bottom: 4px; }
+        @media (max-width: 600px) {
+            .tts-mode-selector { flex-direction: column; }
+            .tts-mode-btn { min-width: unset; }
+            .voice-selector { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Text to Speech</h1>
+            <p class="subtitle">Free Browser TTS + AI Voices &bull; 200+ Voices &bull; English & Chinese</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Text to Speech</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="tts-mode-selector">
+                    <button class="tts-mode-btn active" onclick="setTTSMode('browser')" id="mode-browser" data-testid="mode-browser">
+                        <span class="mode-label">Browser TTS</span>
+                        <span class="mode-desc">Instant, free, 200+ voices</span>
+                    </button>
+                    <button class="tts-mode-btn" onclick="setTTSMode('ai')" id="mode-ai" data-testid="mode-ai">
+                        <span class="mode-label">AI Voices</span>
+                        <span class="mode-desc">8 natural AI voices, download MP3</span>
+                    </button>
+                </div>
+
+                <textarea id="tts-text" class="tts-textarea" data-testid="tts-text" placeholder="Type or paste your text here... Supports English and Chinese. Max 5000 characters." maxlength="5000" aria-label="Text to convert to speech"></textarea>
+                <div class="char-count"><span id="char-count" data-testid="char-count">0</span> / 5000</div>
+
+                <div id="ai-mode" style="display:none;">
+                    <div class="voice-selector" id="voice-selector"></div>
+                    <div class="tts-controls">
+                        <button class="btn btn-primary" onclick="generateAI()" id="generate-btn" data-testid="generate-btn">Generate Speech</button>
+                        <div class="speed-control">
+                            <label for="ai-speed">Speed:</label>
+                            <input type="range" id="ai-speed" min="0.5" max="2" step="0.25" value="1" onchange="updateSpeedLabel('ai')" aria-label="8 natural AI voices, download MP3">
+                            <span class="speed-value" id="ai-speed-label">1x</span>
+                        </div>
+                        <label class="sr-only" for="ai-format">Audio format</label><select id="ai-format" style="background:#0f0f23;border:1px solid #2a2a4a;color:#fff;padding:8px 12px;border-radius:8px;font-size:0.85rem;">
+                            <option value="mp3">MP3</option>
+                            <option value="wav">WAV</option>
+                        </select>
+                    </div>
+                    <div id="ai-status" class="tts-status" data-testid="ai-status"></div>
+                    <div id="audio-container" class="audio-player" style="display:none;" data-testid="audio-container">
+                        <audio id="ai-audio" controls data-testid="ai-audio"></audio>
+                        <a id="download-link" class="btn btn-secondary download-btn" download data-testid="download-link">Download Audio</a>
+                    </div>
+                </div>
+
+                <div id="browser-mode">
+                    <label class="sr-only" for="browser-voice">Browser voice</label><select id="browser-voice" class="browser-voice-select" data-testid="browser-voice">
+                        <option value="">Loading voices...</option>
+                    </select>
+                    <div class="tts-controls">
+                        <button class="btn btn-primary" onclick="speakBrowser()" id="speak-btn" data-testid="speak-btn">Speak</button>
+                        <button class="btn btn-secondary" onclick="pauseBrowser()" id="pause-btn" style="display:none;" data-testid="pause-btn">Pause</button>
+                        <button class="btn btn-secondary" onclick="resumeBrowser()" id="resume-btn" style="display:none;" data-testid="resume-btn">Resume</button>
+                        <button class="btn btn-secondary" onclick="stopBrowser()" id="stop-btn" style="display:none;" data-testid="stop-btn">Stop</button>
+                        <div class="speed-control">
+                            <label for="browser-speed">Speed:</label>
+                            <input type="range" id="browser-speed" min="0.5" max="2" step="0.1" value="1" onchange="updateSpeedLabel('browser')" aria-label="Browser Speed">
+                            <span class="speed-value" id="browser-speed-label">1x</span>
+                        </div>
+                        <div class="speed-control">
+                            <label for="browser-pitch">Pitch:</label>
+                            <input type="range" id="browser-pitch" min="0.5" max="2" step="0.1" value="1" onchange="document.getElementById('browser-pitch-label').textContent=this.value+'x'" aria-label="1x">
+                            <span class="speed-value" id="browser-pitch-label">1x</span>
+                        </div>
+                    </div>
+                    <div id="browser-status" class="tts-status"></div>
+                    <div class="tip-box">
+                        <h2>Browser TTS Notes</h2>
+                        <p>Browser text-to-speech uses your device's built-in voices. Available voices vary by browser and operating system.</p>
+                        <ul>
+                            <li>Chrome: Most voices available (200+ voices)</li>
+                            <li>Edge: Microsoft voices + online voices</li>
+                            <li>Firefox: Limited voices, may not work on all systems</li>
+                            <li>Safari: macOS voices only</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Why Use Text to Speech?</h3>
+                <p>Text to speech (TTS) converts written text into natural-sounding audio. Our tool offers two modes:</p>
+                <ul>
+                    <li><strong>AI Voices</strong> &mdash; High-quality neural voices from SiliconFlow CosyVoice2. 8 distinct voices (4 male, 4 female) with natural intonation. Supports English and Chinese. Download as MP3 or WAV.</li>
+                    <li><strong>Browser TTS</strong> &mdash; Instant playback using your device's built-in speech synthesis. No server processing, works offline with downloaded voices. Great for quick reads.</li>
+                </ul>
+
+                <h3>Common Uses</h3>
+                <ul>
+                    <li>Proofread essays and articles by listening</li>
+                    <li>Create voice-overs for videos and presentations</li>
+                    <li>Learn pronunciation in English or Chinese</li>
+                    <li>Accessibility: hear text for users with visual impairments</li>
+                    <li>Convert blog posts to audio for podcasts</li>
+                    <li>Practice listening comprehension for language learning</li>
+                </ul>
+
+                <h3>AI Voice List</h3>
+                <p>Our AI mode uses SiliconFlow CosyVoice2 with 8 voices:</p>
+                <ul>
+                    <li><strong>Female:</strong> Anna (natural), Bella (warm), Claire (clear), Diana (elegant)</li>
+                    <li><strong>Male:</strong> Alex (friendly), Benjamin (deep), Charles (professional), David (youthful)</li>
+                </ul>
+                <p>All 8 voices support English and Chinese text. Speed can be adjusted from 0.5x to 2x.</p>
+
+                <h3>Text to Speech vs AI Chatbots</h3>
+                <p>While AI chatbots can describe how words sound, they cannot <em>produce audio</em>. TTS tools solve a fundamentally different problem &mdash; turning text into listenable audio. This is something no text-based AI can do.</p>
+
+                <h3>Privacy</h3>
+                <p>Browser TTS mode processes everything locally on your device. AI voice mode sends your text to our server for audio generation &mdash; the text is not stored or logged.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | Free Developer Tools | <a href="/sitemap.xml">Sitemap</a></p>
+    </footer>
+
+    <script>
+    var AI_VOICES = [
+        { id: 'FunAudioLLM/CosyVoice2-0.5B:alex', name: 'Alex', gender: 'Male', desc: 'Friendly' },
+        { id: 'FunAudioLLM/CosyVoice2-0.5B:anna', name: 'Anna', gender: 'Female', desc: 'Natural' },
+        { id: 'FunAudioLLM/CosyVoice2-0.5B:bella', name: 'Bella', gender: 'Female', desc: 'Warm' },
+        { id: 'FunAudioLLM/CosyVoice2-0.5B:benjamin', name: 'Benjamin', gender: 'Male', desc: 'Deep' },
+        { id: 'FunAudioLLM/CosyVoice2-0.5B:charles', name: 'Charles', gender: 'Male', desc: 'Professional' },
+        { id: 'FunAudioLLM/CosyVoice2-0.5B:claire', name: 'Claire', gender: 'Female', desc: 'Clear' },
+        { id: 'FunAudioLLM/CosyVoice2-0.5B:david', name: 'David', gender: 'Male', desc: 'Youthful' },
+        { id: 'FunAudioLLM/CosyVoice2-0.5B:diana', name: 'Diana', gender: 'Female', desc: 'Elegant' }
+    ];
+
+    var selectedVoice = 'FunAudioLLM/CosyVoice2-0.5B:anna';
+    var currentUtterance = null;
+    var isPaused = false;
+
+    function initVoiceSelector() {
+        var container = document.getElementById('voice-selector');
+        container.innerHTML = AI_VOICES.map(function(v) {
+            return '<div class="voice-card' + (v.id === selectedVoice ? ' active' : '') + '" onclick="selectVoice(\'' + v.id + '\', this)" data-voice="' + v.id + '">' +
+                '<div class="voice-name">' + v.name + '</div>' +
+                '<div class="voice-gender">' + v.gender + ' &bull; ' + v.desc + '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    function selectVoice(voiceId, el) {
+        selectedVoice = voiceId;
+        document.querySelectorAll('.voice-card').forEach(function(c) { c.classList.remove('active'); });
+        el.classList.add('active');
+    }
+
+    function setTTSMode(mode) {
+        document.getElementById('ai-mode').style.display = mode === 'ai' ? 'block' : 'none';
+        document.getElementById('browser-mode').style.display = mode === 'browser' ? 'block' : 'none';
+        document.getElementById('mode-ai').classList.toggle('active', mode === 'ai');
+        document.getElementById('mode-browser').classList.toggle('active', mode === 'browser');
+        var textarea = document.getElementById('tts-text');
+        textarea.placeholder = mode === 'ai' ? 'Type or paste your text here... Supports English and Chinese. Max 5000 characters.' : 'Type or paste your text here for browser TTS...';
+        if (mode === 'browser') loadBrowserVoices();
+    }
+
+    function updateSpeedLabel(mode) {
+        var val = document.getElementById(mode === 'ai' ? 'ai-speed' : 'browser-speed').value;
+        document.getElementById(mode === 'ai' ? 'ai-speed-label' : 'browser-speed-label').textContent = val + 'x';
+    }
+
+    document.getElementById('tts-text').addEventListener('input', function() {
+        document.getElementById('char-count').textContent = this.value.length;
+    });
+
+    async function generateAI() {
+        var text = document.getElementById('tts-text').value.trim();
+        if (!text) {
+            showStatus('ai-status', 'Please enter some text to convert to speech.', 'error');
+            return;
+        }
+
+        var speed = parseFloat(document.getElementById('ai-speed').value);
+        var format = document.getElementById('ai-format').value;
+        var btn = document.getElementById('generate-btn');
+        var statusEl = document.getElementById('ai-status');
+
+        btn.disabled = true;
+        btn.textContent = 'Generating...';
+        showStatus('ai-status', 'Converting text to speech... This may take a few seconds.', 'loading');
+        document.getElementById('audio-container').style.display = 'none';
+
+        try {
+            var response = await fetch('/api/text-to-speech', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: text,
+                    voice: selectedVoice,
+                    format: format,
+                    speed: speed
+                })
+            });
+
+            if (response.status === 429) {
+                showStatus('ai-status', 'AI voices temporarily unavailable. Try Browser TTS mode instead.', 'error');
+                return;
+            }
+
+            if (response.status === 403) {
+                showStatus('ai-status', 'AI voices unavailable (API error). Please use Browser TTS mode or try again later.', 'error');
+                return;
+            }
+
+            if (!response.ok) {
+                var errData = await response.json().catch(function() { return { error: 'Unknown error' }; });
+                showStatus('ai-status', errData.error || 'Failed to generate speech. Please try again.', 'error');
+                return;
+            }
+
+            var blob = await response.blob();
+            var url = URL.createObjectURL(blob);
+            var audio = document.getElementById('ai-audio');
+            audio.src = url;
+
+            var downloadLink = document.getElementById('download-link');
+            downloadLink.href = url;
+            downloadLink.download = 'tts-' + selectedVoice.split(':')[1] + '.' + format;
+            downloadLink.style.display = 'inline-block';
+
+            document.getElementById('audio-container').style.display = 'block';
+            showStatus('ai-status', 'Speech generated successfully! Click play to listen, or download the file.', 'success');
+            audio.play();
+        } catch (error) {
+            showStatus('ai-status', 'Network error: ' + error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Generate Speech';
+        }
+    }
+
+    function showStatus(elementId, message, type) {
+        var el = document.getElementById(elementId);
+        el.className = 'tts-status ' + type;
+        el.textContent = message;
+        el.style.display = 'block';
+        if (type === 'success') {
+            setTimeout(function() { el.style.display = 'none'; }, 5000);
+        }
+    }
+
+    function loadBrowserVoices() {
+        var select = document.getElementById('browser-voice');
+        if (!window.speechSynthesis) {
+            select.innerHTML = '<option value="">Speech synthesis not available</option>';
+            return;
+        }
+        var voices = speechSynthesis.getVoices();
+        if (voices.length === 0) {
+            select.innerHTML = '<option value="">Loading voices...</option>';
+            if (!window.voicesLoadAttempted) {
+                window.voicesLoadAttempted = true;
+                setTimeout(loadBrowserVoices, 500);
+            } else {
+                select.innerHTML = '<option value="">No voices available (try Chrome or Edge)</option>';
+            }
+            return;
+        }
+        window.voicesLoadAttempted = false;
+        var englishVoices = voices.filter(function(v) { return v.lang.startsWith('en'); });
+        var otherVoices = voices.filter(function(v) { return !v.lang.startsWith('en'); });
+        var html = '<option value="">Select a voice</option>';
+        html += '<optgroup label="English">';
+        englishVoices.forEach(function(v, i) {
+            html += '<option value="' + (voices.indexOf(v)) + '">' + v.name + ' (' + v.lang + ')</option>';
+        });
+        html += '</optgroup>';
+        if (otherVoices.length > 0) {
+            html += '<optgroup label="Other Languages">';
+            otherVoices.forEach(function(v) {
+                html += '<option value="' + (voices.indexOf(v)) + '">' + v.name + ' (' + v.lang + ')</option>';
+            });
+            html += '</optgroup>';
+        }
+        select.innerHTML = html;
+    }
+
+    function isSpeechAvailable() {
+        return window.speechSynthesis && speechSynthesis.getVoices().length > 0;
+    }
+
+    function speakBrowser() {
+        var text = document.getElementById('tts-text').value.trim();
+        if (!text) {
+            showStatus('browser-status', 'Please enter some text.', 'error');
+            return;
+        }
+        if (!isSpeechAvailable()) {
+            showStatus('browser-status', 'Speech synthesis not available in this browser. Try Chrome or Edge.', 'error');
+            return;
+        }
+
+        speechSynthesis.cancel();
+        currentUtterance = new SpeechSynthesisUtterance(text);
+
+        var voices = speechSynthesis.getVoices();
+        var voiceIndex = document.getElementById('browser-voice').value;
+        if (voiceIndex !== '' && voices[parseInt(voiceIndex)]) {
+            currentUtterance.voice = voices[parseInt(voiceIndex)];
+        }
+        currentUtterance.rate = parseFloat(document.getElementById('browser-speed').value);
+        currentUtterance.pitch = parseFloat(document.getElementById('browser-pitch').value);
+
+        currentUtterance.onstart = function() {
+            document.getElementById('speak-btn').style.display = 'none';
+            document.getElementById('pause-btn').style.display = 'inline-block';
+            document.getElementById('stop-btn').style.display = 'inline-block';
+            document.getElementById('resume-btn').style.display = 'none';
+            showStatus('browser-status', 'Speaking...', 'loading');
+        };
+        currentUtterance.onend = function() {
+            resetBrowserControls();
+            showStatus('browser-status', 'Finished speaking.', 'success');
+        };
+        currentUtterance.onerror = function(e) {
+            resetBrowserControls();
+            if (e.error === 'synthesis-failed' || e.error === 'not-allowed') {
+                showStatus('browser-status', 'Speech not available in headless/restricted mode. Try a regular browser.', 'error');
+            } else {
+                showStatus('browser-status', 'Speech error: ' + e.error, 'error');
+            }
+        };
+
+        try {
+            speechSynthesis.speak(currentUtterance);
+        } catch (e) {
+            resetBrowserControls();
+            showStatus('browser-status', 'Speech synthesis error. Try a different browser.', 'error');
+        }
+    }
+
+    function pauseBrowser() {
+        speechSynthesis.pause();
+        isPaused = true;
+        document.getElementById('pause-btn').style.display = 'none';
+        document.getElementById('resume-btn').style.display = 'inline-block';
+    }
+
+    function resumeBrowser() {
+        speechSynthesis.resume();
+        isPaused = false;
+        document.getElementById('resume-btn').style.display = 'none';
+        document.getElementById('pause-btn').style.display = 'inline-block';
+    }
+
+    function stopBrowser() {
+        speechSynthesis.cancel();
+        resetBrowserControls();
+    }
+
+    function resetBrowserControls() {
+        document.getElementById('speak-btn').style.display = 'inline-block';
+        document.getElementById('pause-btn').style.display = 'none';
+        document.getElementById('resume-btn').style.display = 'none';
+        document.getElementById('stop-btn').style.display = 'none';
+        isPaused = false;
+    }
+
+    if (speechSynthesis) {
+        speechSynthesis.onvoiceschanged = loadBrowserVoices;
+    }
+
+    initVoiceSelector();
+    </script>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReDoS Checker - Regex Denial of Service | DevTools Hub</title>
+    <meta name="description" content="Find catastrophic backtracking in any regex. Static shape analysis plus a measured growth curve in a Web Worker, and the attack string that triggers it.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/redos-checker/">
+    <meta property="og:title" content="ReDoS Checker - Regex Denial of Service | DevTools Hub">
+    <meta property="og:description" content="Find catastrophic backtracking in any regex. Static shape analysis plus a measured growth curve in a Web Worker, and the attack string that triggers it.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/redos-checker/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-10-08","dateModified":"2026-10-08","author":{"@type":"Person","name":"BAOMING"},"name":"ReDoS Checker","description":"Find catastrophic backtracking in any regular expression","url":"https://tools.scoreroute.com/tools/redos-checker/","applicationCategory":"DeveloperApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Static analysis of nested quantifiers, overlapping alternation and adjacent overlapping quantifiers","Measured match-time growth curve run inside a Web Worker","Generated attack string that triggers the backtracking","Engine selector distinguishing backtracking engines from RE2","Suggested rewrites for the shapes it can prove mechanically"]}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>ReDoS Checker</h1>
+            <p class="subtitle">Find catastrophic backtracking, then prove it by measurement</p>
+            <nav class="breadcrumb"><a href="/">Home</a> &gt; <a href="/tools/code-testing/">Code Testing</a> &gt; <span>ReDoS Checker</span>  <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Analyze a Pattern</h2>
+
+                <label for="pattern" style="display:block;margin-bottom:5px;font-weight:600;">Regular expression</label>
+                <input type="text" id="pattern" value="^(a+)+$" spellcheck="false" autocomplete="off"
+                       placeholder="e.g. ^(a+)+$"
+                       style="width:100%;padding:12px;background:#0f0f23;border:1px solid #333;color:#fff;border-radius:8px;font-family:monospace;margin-bottom:10px;"
+                       aria-describedby="pattern-hint" data-testid="rd-pattern">
+                <p id="pattern-hint" style="font-size:0.85rem;color:#9aa4b2;margin:0 0 10px;">Type the pattern exactly as your engine sees it. Delimiters such as <code>/</code> are not part of the pattern.</p>
+
+                <div style="display:flex;gap:15px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">
+                    <span style="font-weight:600;">Flags</span>
+                    <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" id="flag-i" data-testid="rd-flag-i"> <span>i</span></label>
+                    <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" id="flag-m" data-testid="rd-flag-m"> <span>m</span></label>
+                    <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" id="flag-s" data-testid="rd-flag-s"> <span>s</span></label>
+                    <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" id="flag-u" data-testid="rd-flag-u"> <span>u</span></label>
+                </div>
+
+                <div style="margin-bottom:10px;">
+                    <label for="engine" style="display:block;margin-bottom:5px;font-weight:600;">Target engine</label>
+                    <select id="engine" data-testid="rd-engine"
+                            style="width:100%;padding:10px;background:#0f0f23;border:1px solid #333;color:#fff;border-radius:8px;">
+                        <option value="backtrack">Backtracking engine (JS / V8, PCRE, Python re, Java, .NET, PHP)</option>
+                        <option value="re2">Non-backtracking engine (RE2, Go regexp, Rust regex, grep -P no, POSIX)</option>
+                    </select>
+                </div>
+
+                <div class="btn-group">
+                    <button onclick="analyze()" class="btn btn-primary" data-testid="rd-analyze">Analyze Pattern</button>
+                    <button onclick="clearAll()" class="btn btn-secondary" data-testid="rd-clear">Clear</button>
+                    <button onclick="loadExample()" class="btn" data-testid="rd-example">Load an Example</button>
+                </div>
+
+                <div id="status" class="status" role="status" aria-live="polite" style="margin-top:12px;"></div>
+                <div id="results" style="margin-top:15px;" data-testid="rd-results"></div>
+
+                <div class="info-section" style="margin-top:30px;">
+                    <h3>What this measures</h3>
+                    <p>Static analysis flags pattern <em>shapes</em> that are known to backtrack badly. It cannot prove a pattern is safe. So this tool also <strong>measures</strong>: it feeds the pattern strings of growing length into a real <code>RegExp</code> and records the wall-clock time at each size.</p>
+                    <p>It then fits the cost factor k, where time is proportional to length raised to k. Linear matching gives k near 1, a quadratic gives k near 2, and an exponential pattern has no fixed k at all: k climbs at every rung because each extra character multiplies the work. The table below is the evidence; the static findings are the explanation.</p>
+
+                    <h3>The measurement runs in a Web Worker</h3>
+                    <p>A catastrophic pattern freezes the thread that runs it. This page runs every timing loop inside a <code>Worker</code> built from a Blob URL, and terminates the worker when a single trial exceeds the budget. The interface therefore stays responsive while a hostile pattern is being measured, which is the whole reason this is not just a pattern-matching exercise.</p>
+
+                    <h3>Which engines can actually be attacked</h3>
+                    <table style="width:100%;border-collapse:collapse;">
+<caption class="sr-only">How the same pattern costs differ between regular expression engines</caption>
+                        <tr><th style="text-align:left;padding:5px;">Engine</th><th style="text-align:left;padding:5px;">Runtime cost</th></tr>
+                        <tr><td style="padding:5px;"><code>RegExp</code> (V8, JavaScriptCore, SpiderMonkey)</td><td style="padding:5px;">Backtracking, vulnerable</td></tr>
+                        <tr><td style="padding:5px;">PCRE / PCRE2 (PHP, many proxies)</td><td style="padding:5px;">Backtracking, vulnerable</td></tr>
+                        <tr><td style="padding:5px;">Python <code>re</code></td><td style="padding:5px;">Backtracking, vulnerable</td></tr>
+                        <tr><td style="padding:5px;">Java <code>java.util.regex</code>, .NET, PHP <code>preg_*</code></td><td style="padding:5px;">Backtracking, vulnerable</td></tr>
+                        <tr><td style="padding:5px;">RE2 / Go <code>regexp</code> / Rust <code>regex</code></td><td style="padding:5px;">Linear time, not vulnerable</td></tr>
+                    </table>
+                    <p>Switch the target engine to <em>Non-backtracking</em> and the page stops claiming a pattern is dangerous, because on RE2 the same pattern has a guaranteed linear time bound. It still reports that backreferences and lookarounds are unsupported there, since those are the constructs that make people reach for a backtracking engine in the first place.</p>
+
+                    <h3>The four shapes this looks for</h3>
+                    <ul>
+                        <li><strong>Nested quantifiers</strong> &mdash; a quantified group whose body is itself quantified, such as <code>(a+)+</code> or <code>(\w+\s?)*</code>. The inner and outer repetition can divide the same input in exponentially many ways.</li>
+                        <li><strong>Quantified alternation with overlapping branches</strong> &mdash; <code>(a|a?)+</code> or <code>(a|aa)+</code>, where more than one branch can consume the same character.</li>
+                        <li><strong>Adjacent quantifiers over overlapping character sets</strong> &mdash; <code>.*.*</code>, <code>\w+\w*</code>, <code>[a-z]+[a-z]+</code>. This is the shape behind the 2 July 2019 Cloudflare outage, where <code>.*.*=.*</code> in a WAF rule exhausted CPU.</li>
+                        <li><strong>Quantifier over a group that can match empty</strong> &mdash; <code>(a?)+</code>. The group succeeds without consuming anything, so the engine can retry the outer loop forever on the same position.</li>
+                    </ul>
+
+                    <h3>What it will not tell you</h3>
+                    <p>A clean report means no known-vulnerable shape was found and no blow-up was measured up to the tested length. It is not a proof of safety. Engines differ in which constructs backtrack and in how they optimise, a pattern can be linear on short inputs and exponential on inputs longer than anything tested here, and the attack string is generated from the pattern's own character set rather than solved for, so it is a demonstration rather than a minimal payload.</p>
+
+                    <h3>Frequently Asked Questions</h3>
+                    <details class="faq-item"><summary>What is ReDoS?</summary>Regular expression denial of service: an attacker sends a short, crafted string that forces a backtracking engine to explore an enormous number of ways to match it, pinning a CPU core for far longer than the request should take. Tracked as CWE-1333, Inefficient Regular Expression Complexity.</details>
+                    <details class="faq-item"><summary>How long is an attack string?</summary>Usually far shorter than people expect. For a pattern like <code>^(a+)+$</code> the number of ways to split the input into groups roughly doubles per character, so a few dozen characters are enough to make matching take minutes.</details>
+                    <details class="faq-item"><summary>Does my data leave the browser?</summary>No. Parsing, static analysis and the timing loop all run on this page. The worker is created from a Blob URL held in memory and is never uploaded anywhere.</details>
+                    <details class="faq-item"><summary>Why does it say a RE2 pattern is safe?</summary>RE2, Go's <code>regexp</code> and Rust's <code>regex</code> simulate all possible states at once instead of retrying alternatives, which gives a guaranteed linear time bound. ReDoS is a property of the engine, not only of the pattern.</details>
+                    <details class="faq-item"><summary>How do I fix a vulnerable pattern?</summary>Start from the suggested rewrite in the report, then re-run the checker. The checker cannot verify that a rewrite is semantically equivalent, so confirm the rewrite against your own test cases.</details>
+                    <details class="faq-item"><summary>Is this the same as regex testing?</summary>No. Use the <a href="/tools/regex-tester/">Regex Tester</a> to see what a pattern matches. Use this page to find out what a pattern costs when a match fails.</details>
+
+                    <div class="related-section">
+                        <h4>Related Tools</h4>
+                        <ul>
+                            <li><a href="/tools/regex-tester/">Regex Tester</a></li>
+                            <li><a href="/tools/online-code-runner/">Online Code Runner</a></li>
+                            <li><a href="/tools/json-schema-validator/">JSON Schema Validator</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="last-updated">Created: 2026-10-08</div>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+<script>
+/* =====================================================================
+   ReDoS Checker.
+
+   Two independent instruments, deliberately kept separate:
+     1. staticAnalyze() - walks the AST for four known-bad shapes.
+     2. runMeasurement() - runs the real pattern over growing inputs
+                          inside a Worker and returns timings.
+
+   The static pass alone cannot prove anything, and the measured pass
+   alone cannot explain anything. Reporting both is the point.
+
+   ponytail: single file, no build step, no dependency. The character
+   sets are approximated to ASCII intervals; a negated class is treated
+   as "any", which over-reports rather than under-reports. That is the
+   correct direction to be wrong in for a security check.
+   ===================================================================== */
+
+/* ---------- character sets ---------------------------------------- */
+
+function catRanges(c) {
+  if (c === 'd') return [[48, 57]];
+  if (c === 'w') return [[48, 57], [65, 90], [95, 95], [97, 122]];
+  if (c === 's') return [[9, 13], [32, 32]];
+  return [];
+}
+
+function csFromRanges(rs) { return { any: false, r: rs }; }
+var CS_ANY = { any: true, r: [] };
+var CS_EMPTY = { any: false, r: [] };
+
+function csUnion(a, b) {
+  if (a.any || b.any) return CS_ANY;
+  return csFromRanges(a.r.concat(b.r));
+}
+
+function csOverlap(a, b) {
+  if (a.any || b.any) return true;
+  if (!a.r.length || !b.r.length) return false;
+  for (var i = 0; i < a.r.length; i++) {
+    for (var j = 0; j < b.r.length; j++) {
+      if (a.r[i][0] <= b.r[j][1] && b.r[j][0] <= a.r[i][1]) return true;
+    }
+  }
+  return false;
+}
+
+/* A representative single character from a set, and one outside it.
+   Used to build the attack string. */
+function csSample(cs) {
+  if (cs.any) return 'a';
+  if (!cs.r.length) return 'a';
+  var lo = cs.r[0][0];
+  return String.fromCharCode(Math.max(lo, 32));
+}
+function csBlocker(cs) {
+  if (!cs.any && cs.r.length) {
+    var lo = cs.r[0][0];
+    for (var c = 0x21; c < 0x7f; c++) {
+      if (c < lo) return String.fromCharCode(c);
+    }
+  }
+  if (cs.any) return '\n';
+  /* try a plain lowercase letter, then a digit, then a control char */
+  var tries = 'abzAZ09_-!#~ ';
+  for (var i = 0; i < tries.length; i++) {
+    if (!inCS(cs, tries.charCodeAt(i))) return tries.charAt(i);
+  }
+  return '!';
+}
+function inCS(cs, code) {
+  if (cs.any) return true;
+  for (var i = 0; i < cs.r.length; i++) {
+    if (code >= cs.r[i][0] && code <= cs.r[i][1]) return true;
+  }
+  return false;
+}
+
+/* ---------- parser ------------------------------------------------- */
+
+function ParseError(msg, pos) {
+  this.msg = msg; this.pos = pos;
+}
+
+function Parser(src) {
+  this.s = src;
+  this.i = 0;
+  this.inlineFlags = '';
+}
+
+Parser.prototype.fail = function (msg) {
+  throw new ParseError(msg, this.i);
+};
+
+Parser.prototype.eof = function () { return this.i >= this.s.length; };
+Parser.prototype.peek = function () { return this.s.charAt(this.i); };
+Parser.prototype.next = function () { return this.s.charAt(this.i++); };
+
+Parser.prototype.parse = function () {
+  var branches = this.parseAlt();
+  if (!this.eof()) this.fail('Unexpected "' + this.peek() + '"');
+  return { t: 'root', branches: branches };
+};
+
+Parser.prototype.parseAlt = function () {
+  var branches = [];
+  branches.push(this.parseSeq());
+  while (!this.eof() && this.peek() === '|') {
+    this.next();
+    branches.push(this.parseSeq());
+  }
+  return branches;
+};
+
+Parser.prototype.parseSeq = function () {
+  var seq = [];
+  while (!this.eof() && this.peek() !== '|' && this.peek() !== ')') {
+    seq.push(this.parseAtom());
+  }
+  return seq;
+};
+
+Parser.prototype.parseAtom = function () {
+  var start = this.i;
+  var c = this.next();
+
+  if (c === '(') return this.parseGroup(start);
+  if (c === '[') return this.parseSet(start);
+  if (c === '.') return { t: 'char', cs: CS_ANY, start: start, end: this.i, raw: '.' };
+  if (c === '^' || c === '$') return { t: 'anchor', kind: c, start: start, end: this.i };
+  if (c === '\\') return this.parseEscape(start);
+  if (c === '*' || c === '+' || c === '?') this.fail('Nothing to repeat at position ' + start);
+  if (c === ')') this.fail('Unmatched ")" at position ' + start);
+  return { t: 'char', cs: csFromRanges([[c.charCodeAt(0), c.charCodeAt(0)]]), start: start, end: this.i, raw: c };
+};
+
+Parser.prototype.parseGroup = function (start) {
+  var kind = 'capture';
+  var look = null;
+  var atomic = false;
+  var branchReset = false;
+  var flags = null;
+
+  if (this.peek() === '?') {
+    this.next();
+    var c = this.next();
+    if (c === ':') kind = 'noncapture';
+    else if (c === '=') { kind = 'look'; look = 'ahead'; }
+    else if (c === '!') { kind = 'look'; look = 'negahead'; }
+    else if (c === '>') { atomic = true; kind = 'atomic'; }
+    else if (c === '#') {
+      while (!this.eof() && this.peek() !== ')') this.next();
+      if (this.eof()) this.fail('Unterminated comment group');
+      this.next();
+      return { t: 'group', kind: 'comment', branches: [[]], start: start, end: this.i, raw: this.slice(start, this.i) };
+    } else if (c === '<') {
+      var n = this.next();
+      if (n === '=') { kind = 'look'; look = 'behind'; }
+      else if (n === '!') { kind = 'look'; look = 'negbehind'; }
+      else {
+        while (!this.eof() && this.peek() !== '>') this.next();
+        if (this.eof()) this.fail('Unterminated group name');
+        this.next();
+        kind = 'capture';
+      }
+    } else if (c === '|' || c === ')') {
+      /* (?flags) inline flag setting, or (?-x) style */
+      branchReset = (c === '|');
+      var fs = c === ')' ? c : '';
+      while (!this.eof() && this.peek() !== ')' && this.peek() !== ':') fs += this.next();
+      if (this.eof()) this.fail('Unterminated flag group');
+      var sep = this.next();
+      flags = parseFlags(fs);
+      if (sep === ')') {
+        return { t: 'inline', flags: flags, start: start, end: this.i, raw: this.slice(start, this.i) };
+      }
+      kind = branchReset ? 'branchreset' : 'noncapture';
+    } else {
+      /* character-class style inline flags: (?i:...) */
+      var fs2 = c;
+      while (!this.eof() && this.peek() !== ':' && this.peek() !== ')') fs2 += this.next();
+      if (this.eof()) this.fail('Unterminated flag group');
+      var sep2 = this.next();
+      if (sep2 !== ':') {
+        return { t: 'inline', flags: parseFlags(fs2), start: start, end: this.i, raw: this.slice(start, this.i) };
+      }
+      kind = 'noncapture';
+      flags = parseFlags(fs2);
+    }
+  }
+
+  var branches = this.parseAlt();
+  if (this.eof() || this.peek() !== ')') this.fail('Unterminated group "(" at position ' + start);
+  this.next();
+  return {
+    t: 'group', kind: kind, look: look, atomic: atomic, flags: flags,
+    branches: branches, start: start, end: this.i, raw: this.slice(start, this.i)
+  };
+};
+
+Parser.prototype.parseSet = function (start) {
+  var negated = false;
+  if (this.peek() === '^') { this.next(); negated = true; }
+  var rs = [];
+  var first = true;
+  while (true) {
+    if (this.eof()) this.fail('Unterminated character class');
+    var c = this.peek();
+    if (c === ']' && !first) { this.next(); break; }
+    first = false;
+    var lo = this.readClassAtom(negated);
+    if (lo === null) continue;
+    if (this.peek() === '-' && this.s.charAt(this.i + 1) !== ']' && this.i + 1 < this.s.length) {
+      this.next();
+      var hi = this.readClassAtom(negated);
+      if (hi === null) {
+        rs = rs.concat([[lo, lo], [45, 45]]);
+        continue;
+      }
+      if (hi < lo) this.fail('Range out of order in character class');
+      rs.push([lo, hi]);
+    } else {
+      rs.push([lo, lo]);
+    }
+  }
+  var cs = negated ? CS_ANY : csFromRanges(rs);
+  return { t: 'char', cs: cs, negated: negated, start: start, end: this.i, raw: this.slice(start, this.i) };
+};
+
+Parser.prototype.readClassAtom = function () {
+  var c = this.next();
+  if (c !== '\\') return c.charCodeAt(0);
+  if (this.eof()) this.fail('Trailing backslash in character class');
+  var e = this.next();
+  var low = e.toLowerCase();
+  if (low === 'd' || low === 'w' || low === 's') {
+    var rs = catRanges(low);
+    return rs.length ? rs[0][0] : 0x61;
+  }
+  return this.escapeCode(e);
+};
+
+Parser.prototype.escapeCode = function (e) {
+  switch (e) {
+    case 'n': return 10;
+    case 'r': return 13;
+    case 't': return 9;
+    case 'f': return 12;
+    case 'v': return 11;
+    case '0': return 0;
+    case 'b': return 8;
+    default: return e.charCodeAt(0);
+  }
+};
+
+Parser.prototype.parseEscape = function (start) {
+  if (this.eof()) this.fail('Pattern ends with a backslash');
+  var e = this.next();
+
+  if (e === 'b' || e === 'B') return { t: 'anchor', kind: '\\' + e, start: start, end: this.i };
+  if (e === 'k' && this.peek() === '<') {
+    this.next();
+    while (!this.eof() && this.peek() !== '>') this.next();
+    if (this.eof()) this.fail('Unterminated named backreference');
+    this.next();
+    return { t: 'backref', start: start, end: this.i };
+  }
+  /* \1 .. \9 are numeric backreferences; \0 is NUL and \0 followed by
+     digits is an octal escape, per ECMA-262. */
+  if (e >= '1' && e <= '9') {
+    return { t: 'backref', start: start, end: this.i };
+  }
+  if (e === 'p' || e === 'P') {
+    if (this.peek() === '{') {
+      while (!this.eof() && this.peek() !== '}') this.next();
+      if (this.eof()) this.fail('Unterminated unicode property');
+      this.next();
+    }
+    /* Unicode properties are treated as "any": conservative, never under-reports. */
+    return { t: 'char', cs: CS_ANY, start: start, end: this.i, raw: this.slice(start, this.i) };
+  }
+  var low = e.toLowerCase();
+  if (low === 'd' || low === 'w' || low === 's') {
+    var rs = catRanges(low);
+    var body = '\\' + e;
+    return {
+      t: 'char', cs: (low === e) ? csFromRanges(rs) : CS_ANY,
+      negatedCat: low !== e, start: start, end: this.i, raw: body
+    };
+  }
+  if (e === 'x') {
+    var hx = this.s.substr(this.i, 2);
+    if (/^[0-9a-fA-F]{2}$/.test(hx)) {
+      this.i += 2;
+      return { t: 'char', cs: csFromRanges([[parseInt(hx, 16), parseInt(hx, 16)]]), start: start, end: this.i, raw: '\\x' + hx };
+    }
+  }
+  if (e === 'u') {
+    var hu = this.s.substr(this.i, 4);
+    if (/^[0-9a-fA-F]{4}$/.test(hu)) {
+      this.i += 4;
+      return { t: 'char', cs: csFromRanges([[parseInt(hu, 16), parseInt(hu, 16)]]), start: start, end: this.i, raw: '\\u' + hu };
+    }
+  }
+  var code = this.escapeCode(e);
+  return { t: 'char', cs: csFromRanges([[code, code]]), start: start, end: this.i, raw: '\\' + e };
+};
+
+/* quantifier parsing lives outside parseAtom so a quantifier can follow
+   a group, a set or a single atom without any node knowing about it */
+Parser.prototype.parseQuant = function (atom) {
+  if (this.eof()) return atom;
+  var c = this.peek();
+  var min, max, raw;
+  if (c === '*') { this.next(); min = 0; max = Infinity; raw = '*'; }
+  else if (c === '+') { this.next(); min = 1; max = Infinity; raw = '+'; }
+  else if (c === '?') { this.next(); min = 0; max = 1; raw = '?'; }
+  else if (c === '{') {
+    var m = /^\{(\d+)(,(\d*))?\}/.exec(this.s.substr(this.i));
+    if (!m) return atom;              /* Annex B: a bare "{" is a literal */
+    this.i += m[0].length;
+    raw = m[0];
+    if (m[2] === undefined) { min = max = parseInt(m[1], 10); }
+    else if (m[3] === '') { min = parseInt(m[1], 10); max = Infinity; }
+    else { min = parseInt(m[1], 10); max = parseInt(m[3], 10); }
+  } else return atom;
+
+  var lazy = false, possessive = false;
+  if (!this.eof() && this.peek() === '?') { this.next(); lazy = true; }
+  else if (!this.eof() && this.peek() === '+') { this.next(); possessive = true; }
+
+  if (max !== Infinity && max < min) {
+    this.fail('Quantifier {' + min + ',' + max + '} has an upper bound below its lower bound');
+  }
+
+  return {
+    t: 'rep', body: [atom], min: min, max: max, lazy: lazy, possessive: possessive,
+    start: atom.start, end: this.i, raw: this.slice(atom.start, this.i), quantSrc: raw
+  };
+};
+
+Parser.prototype.slice = function (a, b) { return this.s.slice(a, b); };
+
+function parseFlags(str) {
+  var on = '', off = '';
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charAt(i);
+    if (c === '-') { off = str.slice(i + 1); break; }
+    if ('ims'.indexOf(c) >= 0) on += c;
+  }
+  return { on: on, off: off };
+}
+
+/* parseAtom must be able to see quantifiers. Wrap it. */
+Parser.prototype.parseAtomQ = function () {
+  return this.parseQuant(this.parseAtom());
+};
+Parser.prototype.parseSeq = function () {
+  var seq = [];
+  while (!this.eof() && this.peek() !== '|' && this.peek() !== ')') {
+    seq.push(this.parseAtomQ());
+  }
+  return seq;
+};
+
+/* ---------- AST queries -------------------------------------------- */
+
+function nodeNullable(n) {
+  switch (n.t) {
+    case 'char': return false;
+    case 'anchor': return true;
+    case 'backref': return false;
+    case 'inline': return true;
+    case 'rep': return n.min === 0 || nodeNullable(n.body[0]);
+    case 'group':
+      if (n.kind === 'comment') return true;
+      if (n.kind === 'look') return true;           /* zero-width */
+      return branchesNullable(n.branches);
+    default: return false;
+  }
+}
+
+function seqNullable(seq) {
+  for (var i = 0; i < seq.length; i++) if (!nodeNullable(seq[i])) return false;
+  return true;
+}
+
+function branchesNullable(branches) {
+  for (var i = 0; i < branches.length; i++) if (!seqNullable(branches[i])) return false;
+  return true;
+}
+
+function nodeMinLen(n) {
+  switch (n.t) {
+    case 'char': return 1;
+    case 'anchor': case 'backref': case 'inline': return 0;
+    case 'rep': return n.min * nodeMinLen(n.body[0]);
+    case 'group':
+      if (n.kind === 'comment' || n.kind === 'look') return 0;
+      return Math.min.apply(null, n.branches.map(seqMinLen));
+    default: return 1;
+  }
+}
+function seqMinLen(seq) {
+  var t = 0;
+  for (var i = 0; i < seq.length; i++) t += nodeMinLen(seq[i]);
+  return t;
+}
+
+/* Does this node ever consume a character? */
+function nodeConsumes(n) {
+  if (n.t === 'char') return true;
+  if (n.t === 'rep') return nodeConsumes(n.body[0]);
+  if (n.t === 'group' && n.kind !== 'comment' && n.kind !== 'look') {
+    return n.branches.some(seqConsumes);
+  }
+  return false;
+}
+function seqConsumes(seq) {
+  return seq.some(nodeConsumes);
+}
+
+/* A conservative "what can this match first" set, as a CS descriptor. */
+function nodeFirstCS(n) {
+  switch (n.t) {
+    case 'char': return n.cs;
+    case 'rep': return nodeFirstCS(n.body[0]);
+    case 'group': {
+      if (n.kind === 'look' || n.kind === 'comment') return CS_EMPTY;
+      var acc = CS_EMPTY;
+      for (var i = 0; i < n.branches.length; i++) {
+        var b = seqFirstCS(n.branches[i]);
+        if (b.any) return CS_ANY;
+        acc = csFromRanges(acc.r.concat(b.r));
+      }
+      return acc;
+    }
+    default: return CS_EMPTY;
+  }
+}
+function seqFirstCS(seq) {
+  var acc = CS_EMPTY;
+  for (var i = 0; i < seq.length; i++) {
+    var c = nodeFirstCS(seq[i]);
+    acc = csUnion(acc, c);
+    if (acc.any) return CS_ANY;
+    if (!nodeNullable(seq[i])) break;   /* nullable atoms can be skipped */
+  }
+  return acc;
+}
+
+/* Does this subtree contain a quantifier? */
+function nodeHasRep(n) {
+  if (n.t === 'rep') return true;
+  if (n.t === 'group' && n.branches) return n.branches.some(function (b) { return seqHasRep(b); });
+  return false;
+}
+function seqHasRep(seq) {
+  for (var i = 0; i < seq.length; i++) if (nodeHasRep(seq[i])) return true;
+  return false;
+}
+
+/* Find alternations inside a subtree */
+function collectAlts(n, out) {
+  out = out || [];
+  if (!n) return out;
+  if (n.t === 'group' && n.branches && n.branches.length > 1) out.push(n);
+  if (n.t === 'rep') n.body.forEach(function (c) { collectAlts(c, out); });
+  if (n.t === 'group' && n.branches) n.branches.forEach(function (b) { b.forEach(function (c) { collectAlts(c, out); }); });
+  return out;
+}
+
+/* The character a node's last repetition must end with. This is what tells
+   a boundary that can slide from one that is pinned:
+     .*  followed by .*        tail is "any"      -> slides  -> dangerous
+     (?:[a-z0-9]+\.)* then [a-z]{2,}   tail is "."  -> pinned  -> linear
+   Without this, the classic domain regex reads as an adjacent-quantifier
+   finding, which it is not. */
+function nodeTailCS(n) {
+  switch (n.t) {
+    case 'char': return n.cs;
+    case 'rep': return nodeTailCS(n.body[0]);
+    case 'group': {
+      if (n.kind === 'look' || n.kind === 'comment') return CS_EMPTY;
+      var acc = CS_EMPTY;
+      for (var i = 0; i < n.branches.length; i++) {
+        acc = csUnion(acc, seqTailCS(n.branches[i]));
+        if (acc.any) return CS_ANY;
+      }
+      return acc;
+    }
+    default: return CS_EMPTY;
+  }
+}
+function seqTailCS(seq) {
+  for (var i = seq.length - 1; i >= 0; i--) {
+    if (nodeNullable(seq[i])) continue;    /* skippable, keep looking left */
+    return nodeTailCS(seq[i]);
+  }
+  return CS_EMPTY;
+}
+
+/* The mandatory prefix of a sequence: the longest run of non-nullable nodes
+   from the front. This is what anchors an outer loop.
+
+   Groups are expanded rather than treated as one opaque atom. Taking a
+   group's whole first-set instead is what made `(?: [A-Z][a-z]+)*` look
+   vulnerable: the space anchors every outer iteration, but the group-level
+   view reported {space, A-Z, a-z} and collided with the inner [a-z]+. */
+function nodeLeadCS(n) {
+  switch (n.t) {
+    case 'char': return n.cs;
+    case 'rep': return nodeLeadCS(n.body[0]);
+    case 'group': {
+      if (n.kind === 'look' || n.kind === 'comment') return CS_EMPTY;
+      var acc = CS_EMPTY;
+      for (var i = 0; i < n.branches.length; i++) {
+        acc = csUnion(acc, seqLeadCS(n.branches[i]));
+        if (acc.any) return CS_ANY;
+      }
+      return acc;
+    }
+    default: return CS_EMPTY;
+  }
+}
+function seqLeadCS(seq) {
+  var acc = CS_EMPTY;
+  for (var i = 0; i < seq.length; i++) {
+    acc = csUnion(acc, nodeLeadCS(seq[i]));
+    if (acc.any) return CS_ANY;
+    if (!nodeNullable(seq[i])) break;
+  }
+  return acc;
+}
+
+/* Every repetition node anywhere below n. */
+function collectReps(n, out) {
+  walkTree(n, function (x) {
+    if (x !== n && x.t === 'rep') out.push(x);
+  });
+  return out;
+}
+
+/* A generic descent. Every whole-tree query goes through this: a walk that
+   forgets the root node sees nothing at all and reports a clean bill of
+   health on every pattern. */
+function walkTree(n, fn) {
+  if (!n) return;
+  fn(n);
+  if (n.t === 'root' || (n.t === 'group' && n.branches)) {
+    for (var i = 0; i < n.branches.length; i++) {
+      var seq = n.branches[i];
+      for (var j = 0; j < seq.length; j++) walkTree(seq[j], fn);
+    }
+    return;
+  }
+  if (n.t === 'rep') {
+    for (var k = 0; k < n.body.length; k++) walkTree(n.body[k], fn);
+  }
+}
+
+/* ---------- static analysis ---------------------------------------- */
+
+function staticAnalyze(ast) {
+  var findings = [];
+
+  function walkSeq(seq) {
+    for (var i = 0; i < seq.length; i++) {
+      walkNode(seq[i]);
+      /* adjacent quantified items over overlapping character sets */
+      if (i + 1 < seq.length) checkAdjacent(seq[i], seq[i + 1]);
+    }
+  }
+
+  function walkNode(n) {
+    if (n.t === 'rep') {
+      checkRep(n);
+      walkSeq(n.body);
+      return;
+    }
+    if (n.t === 'group' && n.branches) {
+      n.branches.forEach(walkSeq);
+    }
+  }
+
+  function checkRep(r) {
+    if (r.max <= 1) return;                    /* ?, {0,1} cannot loop */
+
+    /* (1) nested quantifier.
+
+       The outer loop only explodes when it can hand a character to the inner
+       repetition and take it back. It cannot, if the same pass is forced to
+       consume something the inner repetition can never match: the space in
+       `(?: [A-Z][a-z]+)*` and the dot in `(?:[a-z0-9]+\.)*` pin every
+       iteration. So an inner repetition counts only when nothing else in its
+       branch is mandatory and disjoint from it.
+
+         (a+)               nothing else mandatory      -> flagged
+         (\w+\s?)           \s? is nullable, so nothing -> flagged
+         (?: [A-Z][a-z]+)*  the space anchors it        -> quiet
+         (?:[a-z0-9]+\.)*   the dot anchors it          -> quiet
+
+       Including the repetition in its own anchor set is what made the last
+       two look vulnerable. */
+    var branches = (r.body[0] && r.body[0].t === 'group' && r.body[0].branches) ? r.body[0].branches : [r.body];
+    for (var bi = 0; bi < branches.length; bi++) {
+      var bseq = branches[bi];
+      for (var xi = 0; xi < bseq.length; xi++) {
+        var x = bseq[xi];
+        if (x.t !== 'rep' || x.max <= 1) continue;
+        var anchor = CS_EMPTY;
+        for (var ai = 0; ai < bseq.length; ai++) {
+          if (bseq[ai] === x) continue;
+          if (nodeNullable(bseq[ai])) continue;
+          anchor = csUnion(anchor, nodeLeadCS(bseq[ai]));
+          if (anchor.any) break;
+        }
+        if (anchor.any || !anchor.r.length || csOverlap(anchor, nodeFirstCS(x))) {
+          findings.push({
+            shape: 'nested-quantifier',
+            severity: 'high',
+            raw: r.raw,
+            at: r.start,
+            title: 'Nested quantifier',
+            why: 'The outer ' + quantWord(r) + ' repeats a group whose body also repeats (' + x.raw +
+              '), and nothing in that pass forces a character the inner repetition cannot take. The engine cannot tell which repetition should own a given character, so it retries every combination and the number of combinations grows with the input.',
+            fix: suggestNestedFix(r)
+          });
+          break;
+        }
+      }
+      if (findings.length) break;
+    }
+
+    /* (3) quantifier over a nullable group */
+    if (seqNullable(r.body)) {
+      findings.push({
+        shape: 'quantifier-nullable',
+        severity: 'high',
+        raw: r.raw,
+        at: r.start,
+        title: 'Quantifier over a group that can match nothing',
+        why: 'The body ' + r.raw.replace(new RegExp('\\' + quantWord(r).replace(/[*+?{}]/g, '\\$&') + '$'), '') + 'can succeed without consuming a character, so the engine can retry the outer loop on the same position.',
+        fix: 'Make the group mandatory or remove the outer repetition. If the empty case is real, match it explicitly with `?` instead of nesting it in a loop.'
+      });
+    }
+
+    /* (2) quantified alternation with overlapping branches */
+    var alts = collectAlts(r.body[0]);
+    for (var a = 0; a < alts.length; a++) {
+      var br = alts[a].branches;
+      var pairs = [];
+      for (var x = 0; x < br.length; x++) {
+        for (var y = x + 1; y < br.length; y++) {
+          if (csOverlap(seqFirstCS(br[x]), seqFirstCS(br[y]))) { pairs.push([x, y]); }
+        }
+      }
+      if (pairs.length) {
+        findings.push({
+          shape: 'overlapping-alternation',
+          severity: 'high',
+          raw: alts[a].raw,
+          at: alts[a].start,
+          title: 'Quantified alternation with overlapping branches',
+          why: 'Inside ' + r.raw + ', more than one alternative can start with the same character (' + pairs.length + ' overlapping pair' + (pairs.length > 1 ? 's' : '') + '). Each repetition can split the input down more than one path.',
+          fix: 'Rewrite so the branches are unambiguous, for example turn `(a|aa)+` into `(?:a)*` or give each branch a distinct first character.'
+        });
+      }
+    }
+  }
+
+  function checkAdjacent(a, b) {
+    if (a.t !== 'rep' || b.t !== 'rep') return;
+    /* Both sides must be unbounded. A bounded neighbour such as
+       [a-zA-Z]{2,} caps the ambiguity at a constant, which is what makes
+       ^(?:[a-zA-Z0-9]+\.)*[a-zA-Z]{2,}$ linear and not worth reporting. */
+    if (a.max !== Infinity || b.max !== Infinity) return;
+    if (a.lazy && b.lazy) return;
+    var csa = nodeFirstCS(a), csb = nodeFirstCS(b);
+    if (!csa.r.length && !csb.r.length && !csa.any && !csb.any) return;
+    if (!csOverlap(csa, csb)) return;
+    /* Overlapping first-sets are necessary but not sufficient. If a can only
+       ever end on a character b cannot take, the split point is pinned and
+       the pair is linear. */
+    var tail = nodeTailCS(a);
+    if (!tail.any && !csOverlap(tail, csb)) return;
+    findings.push({
+      shape: 'adjacent-quantifiers',
+      severity: csa.any && csb.any ? 'high' : 'medium',
+      raw: a.raw + b.raw,
+      at: a.start,
+      title: 'Adjacent quantifiers over overlapping character sets',
+      why: a.raw + ' and ' + b.raw + ' can both consume ' + (csa.any && csb.any ? 'any character' : 'the same characters') + '. When the match later fails, the engine has to retry every way of splitting the input between them. This is the shape behind the 2 July 2019 Cloudflare outage, where `.*.*=.*` in a WAF rule exhausted CPU.',
+      fix: suggestAdjacentFix(a, b)
+    });
+  }
+
+  ast.branches.forEach(walkSeq);
+  return findings;
+}
+
+function quantWord(r) {
+  return r.quantSrc || (r.max === Infinity ? (r.min === 0 ? '*' : '+') : '?');
+}
+
+/* Mechanical suggestions only. Neither changes which strings match in
+   every case, so both are stated with the trade-off rather than as a fix. */
+function suggestNestedFix(r) {
+  var m = r.body[0];
+  var atom = (m.t === 'rep' && m.max > 1) ? m.body[0].raw : null;
+  var bounded = ' or bound the outer loop (`' + (atom || 'group') + '{1,1000}`), which caps the cost but also caps how long an accepted input can be';
+  if (atom) {
+    return 'Make the inner repetition possessive or atomic, `' + atom + '++` where the engine supports it or `(?>' + atom + '+)' + quantWord(r) + '` in PCRE. Neither is free: both stop the inner match from giving characters back, so an input that previously matched by backtracking can now be rejected' + bounded + '. Confirm the rewrite against your own tests.';
+  }
+  return 'Split the repetition so the inner and outer loops cannot accept the same characters, for example by making the separator mandatory and distinct' + bounded + '. Confirm the rewrite against your own tests.';
+}
+
+function suggestAdjacentFix(a, b) {
+  var aBody = a.body[0], bBody = b.body[0];
+  if (aBody.t === 'char' && bBody.t === 'char' && aBody.cs.any && bBody.cs.any) {
+    return 'The two `.` repetitions are redundant: collapse them into one `' +
+      (a.min === 0 && b.min === 0 ? '*' : '+') + '` over `.' +
+      (a.lazy || b.lazy ? '?' : '') + '`. If one of them is inside a character class such as `[\\s\\S]`, keep that one.';
+  }
+  return 'Collapse the two repetitions into one, or make the boundary between them explicit with a negated character class so only one of them can consume a given character.';
+}
+
+/* ---------- attack string ------------------------------------------ */
+
+function deriveAttack(ast, engine) {
+  var victim = findPump(ast);
+  var pump = csSample(victim.cs);
+  var blocker = csBlocker(victim.cs);
+  var res = { pump: pump, blocker: blocker, offset: victim.node.start, sub: victim.node.raw };
+  if (engine === 're2') res.note = 'RE2 has no backtracking, so no input can blow this pattern up. The string below is still generated for comparison.';
+  return res;
+}
+
+/* The innermost repeating atom is the one whose repetition the engine
+   is forced to undo, so its character set is what an attacker pumps. */
+function findPump(ast) {
+  var best = null;
+  walkTree(ast, function (n) {
+    if (n.t === 'rep' && n.body.length === 1 && n.body[0].t === 'char' && n.body[0].cs.r.length) {
+      if (!best || n.start > best.node.start) best = { node: n.body[0], cs: n.body[0].cs };
+    }
+  });
+  if (best) return best;
+  return { node: { start: 0, raw: '' }, cs: csFromRanges([[97, 97]]) };
+}
+
+/* ---------- measurement (Web Worker) ------------------------------- */
+
+var BUDGET_MS = 250;
+var FIRST_N = 10;
+var LADDER_RATIO = 1.5;
+var MAX_N = 2048;
+var MIN_TOTAL_MS = 2;
+var MIN_REPS = 3;
+var MAX_REPS = 512;
+var HARD_STOP_MS = 6000;
+
+var WORKER_SRC = [
+  'self.onmessage=function(e){',
+  ' var d=e.data, rows=[], stopped="";',
+  ' var re;',
+  ' try{ re=new RegExp(d.src,d.flags); }catch(err){ self.postMessage({error:"compile: "+err.message}); return; }',
+  ' for(;;){',
+  '   var n = rows.length ? Math.round(rows[rows.length-1].n*d.ratio) : d.first;',
+  '   if(n>d.maxN){ stopped="max-length"; break; }',
+  /* Predictive guard. A single test() call cannot be interrupted, so the
+     next rung is only taken when the fitted cost says it will land inside
+     3x the budget. Without this the ladder walks straight into a 20 second
+     call. terminate() on the main thread is the backstop, not the plan. */
+  '   if(rows.length>=2){',
+  '     var a=rows[rows.length-2], b=rows[rows.length-1];',
+  '     var k=Math.log(b.ms/Math.max(a.ms,0.002))/Math.log(b.n/a.n);',
+  '     var predicted=b.ms*Math.pow(n/b.n,k);',
+  '     if(!isFinite(k)||predicted>d.budget*3){ stopped="predicted-next-rung-over-budget"; break; }',
+  '   }',
+  '   var s=new Array(n+1).join(d.pump)+d.blocker;',
+  /* A while loop, not a for loop: a break inside "for(;reps<n;reps++)" skips
+     the increment, so reps stayed 0 on every rung whose first trial already
+     cleared minTotal, and the page reported those rungs as 0.00 ms. */
+  /* min, not mean. One GC pause or JIT tier-up in a single trial was enough
+     to push a rung 20x over and put a -4 into the fitted k. At least
+     MIN_REPS trials are taken unless one alone exceeds the budget, and the
+     fastest is reported, which is the standard way to reject interference. */
+  '   var reps=0, total=0, min=Infinity;',
+  '   while(reps<d.maxReps){',
+  '     var t0=performance.now();',
+  '     re.lastIndex=0; re.test(s);',
+  '     var el=performance.now()-t0;',
+  '     total+=el; reps++;',
+  '     if(el<min) min=el;',
+  '     if(el>d.budget){ break; }',
+  '     if(total>=d.minTotal && reps>=d.minReps){ break; }',
+  '   }',
+  '   rows.push({n:n, ms: reps? min : 0});',
+  '   if(min>d.budget){ stopped="budget"; break; }',
+  ' }',
+  ' self.postMessage({rows:rows,stopped:stopped});',
+  '};'
+].join('\n');
+
+function runMeasurement(src, flags, pump, blocker, cb) {
+  var url;
+  try {
+    url = URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' }));
+  } catch (e) {
+    cb({ error: 'Could not create the measurement worker: ' + e.message });
+    return;
+  }
+  var w = new Worker(url);
+  var done = false;
+
+  function finish(res) {
+    if (done) return;
+    done = true;
+    clearTimeout(killer);
+    try { w.terminate(); } catch (e) { }
+    URL.revokeObjectURL(url);
+    cb(res);
+  }
+
+  /* Backstop only. A single regex call is not interruptible from inside,
+     so a pattern that outruns the predictive guard is stopped here. */
+  var killer = setTimeout(function () {
+    finish({ error: 'The measurement hit the ' + (HARD_STOP_MS / 1000) + ' second hard stop and the worker was terminated. That in itself means the pattern does not return promptly.' });
+  }, HARD_STOP_MS);
+
+  w.onmessage = function (ev) { finish(ev.data); };
+  w.onerror = function (ev) { finish({ error: 'Worker error: ' + (ev.message || 'unknown') }); };
+  w.postMessage({
+    src: src, flags: flags, pump: pump, blocker: blocker,
+    first: FIRST_N, ratio: LADDER_RATIO, maxN: MAX_N,
+    budget: BUDGET_MS, minTotal: MIN_TOTAL_MS, minReps: MIN_REPS, maxReps: MAX_REPS
+  });
+}
+
+/* ---------- verdict ------------------------------------------------ */
+
+/* Fit the cost factor k, where time is proportional to length^k:
+     k <= 1.35   linear
+     k ~ 2..3.5  polynomial (a quadratic lands near 2)
+     k > 3.5     exponential, or k that climbs rung over rung
+
+   The floor matters more than it looks. performance.now() is coarsely
+   clamped in some browsers, so a fast rung can read as 0 or as a multiple
+   of the clamp. Dropping those rows loses the early rungs, and for
+   ^(a+)+$ that left only one measurable point and the tool reported "fast"
+   for the canonical ReDoS example. Clamped rows are therefore kept and
+   their time is treated as the floor, which makes the k computed across
+   them an upper bound rather than a point estimate. */
+var NOISE_FLOOR_MS = 0.005;
+
+/* Below roughly 50 microseconds the measurement is dominated by per-call
+   overhead rather than by the pattern, which flattens the apparent curve and
+   made .*.*=.* look exponential on its first rung (k 1.9) before settling at
+   a steady 2.8 to 3.0. Pairs whose later rung is under this are dropped. */
+var MIN_PAIR_MS = 0.05;
+
+function classify(rows) {
+  /* ks[i] is the k between rows[i] and rows[i+1]; either side may be clamped. */
+  var ks = [];
+  for (var i = 1; i < rows.length; i++) {
+    var a = rows[i - 1], b = rows[i];
+    if (b.ms < MIN_PAIR_MS) continue;
+    var ams = Math.max(a.ms, NOISE_FLOOR_MS);
+    var k = Math.log(b.ms / ams) / Math.log(b.n / a.n);
+    if (isFinite(k)) ks.push(k);
+  }
+
+  if (ks.length === 0) {
+    var ceiling = rows.length ? rows[rows.length - 1].n : 0;
+    return {
+      level: 'fast',
+      label: 'No rung reached ' + MIN_PAIR_MS + ' ms, up to ' + ceiling + ' characters',
+      ks: ks, max: ks.length ? Math.max.apply(null, ks) : null, floor: NOISE_FLOOR_MS
+    };
+  }
+
+  var max = Math.max.apply(null, ks);
+  var first = ks[0], last = ks[ks.length - 1];
+  var climbing = ks.length > 1 && last > first * 1.35;
+
+  var level, label;
+  if (max > 3.5 || (climbing && last > 2.5)) {
+    level = 'exponential';
+    label = 'Exponential blow-up measured';
+  } else if (max > 1.35) {
+    level = 'superlinear';
+    label = 'Polynomial growth measured';
+  } else {
+    level = 'linear';
+    label = 'No blow-up measured up to the tested length';
+  }
+  return { level: level, label: label, ks: ks, max: max, climbing: climbing, floor: NOISE_FLOOR_MS };
+}
+
+/* ---------- rendering ---------------------------------------------- */
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function analyze() {
+  var src = document.getElementById('pattern').value;
+  var statusEl = document.getElementById('status');
+  var out = document.getElementById('results');
+  var engine = document.getElementById('engine').value;
+
+  out.innerHTML = '';
+  if (!src.trim()) { statusEl.className = 'status'; statusEl.textContent = 'Enter a regular expression first.'; return; }
+
+  var flags = '';
+  if (document.getElementById('flag-i').checked) flags += 'i';
+  if (document.getElementById('flag-m').checked) flags += 'm';
+  if (document.getElementById('flag-s').checked) flags += 's';
+  if (document.getElementById('flag-u').checked) flags += 'u';
+
+  var ast, findings;
+  try {
+    ast = new Parser(src).parse();
+    findings = staticAnalyze(ast);
+  } catch (e) {
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Could not parse the pattern: ' + e.message;
+    return;
+  }
+
+  if (flags.indexOf('u') < 0 && src.indexOf('\\u') >= 0 && src.indexOf('\\u{') < 0) {
+    /* informational only, not an error */
+  }
+
+  var attack = deriveAttack(ast, engine);
+  var worst = findings.reduce(function (acc, f) {
+    var rank = { high: 3, medium: 2, low: 1 };
+    return (!acc || rank[f.severity] > rank[acc.severity]) ? f : acc;
+  }, null);
+
+  var head = '';
+  if (engine === 're2') {
+    head = banner('Linear-time engine selected',
+      'RE2, Go <code>regexp</code> and Rust <code>regex</code> simulate every possible state at once, so matching is linear in the length of the input. A pattern that melts a backtracking engine is simply slow here, never exponential.',
+      'info');
+    var unsupported = findUnsupported(ast);
+    if (unsupported.length) {
+      head += '<div class="rd-note"><strong>Not supported by RE2:</strong> ' + unsupported.join(', ') +
+        '. This is usually the reason a RE2-incapable pattern is in a codebase at all.</div>';
+    }
+  } else if (worst && worst.severity === 'high') {
+    head = banner('Likely vulnerable', worst.title + ': <code>' + esc(worst.raw) + '</code>', 'bad');
+  } else if (findings.length) {
+    head = banner('No high-severity shape found', findings.length + ' shape' + (findings.length > 1 ? 's' : '') + ' worth reviewing. Read the findings before trusting the measurement.', 'warn');
+  } else {
+    head = banner('No known-vulnerable shape found',
+      'The pattern contains none of the four shapes that backtrack badly. That is not a proof of safety: it means the measurement below is the load-bearing evidence.', 'ok');
+  }
+
+  out.innerHTML = head + '<div id="measure-slot"><div class="rd-note">Measuring growth curve...</div></div>' +
+    findingsBlock(findings, engine) + attackBlock(attack);
+
+  statusEl.className = 'status';
+  statusEl.textContent = 'Analyzing ' + src + '...';
+
+  runMeasurement(src, flags, attack.pump, attack.blocker, function (res) {
+    var slot = document.getElementById('measure-slot');
+    if (!slot) return;
+    if (res.error) {
+      slot.innerHTML = banner('Measurement stopped', esc(res.error), 'bad');
+      statusEl.className = 'status error';
+      statusEl.textContent = 'Measurement failed.';
+      return;
+    }
+    var c = classify(res.rows);
+    slot.innerHTML = measureBlock(res, c, engine);
+    statusEl.className = 'status';
+    statusEl.textContent = 'Analysis complete: ' + findings.length + ' static finding(s), measured growth "' + c.level + '".';
+  });
+}
+
+function findUnsupported(ast) {
+  var got = {};
+  walkTree(ast, function (n) {
+    if (n.t === 'backref') got['backreferences (\\1, \\k<name>)'] = 1;
+    if (n.t === 'group' && n.kind === 'look') got['lookaround (lookahead / lookbehind)'] = 1;
+    if (n.t === 'group' && n.kind === 'atomic') got['atomic groups ((?>...)'] = 1;
+    if (n.t === 'rep' && n.possessive) got['possessive quantifiers (x++)'] = 1;
+    if (n.t === 'char' && n.negatedCat) got['negated shorthand (\\D, \\W, \\S)'] = 1;
+  });
+  return Object.keys(got);
+}
+
+function banner(title, body, tone) {
+  var bg = tone === 'bad' ? '#3b1220' : tone === 'warn' ? '#3a2f10' : tone === 'info' ? '#12253b' : '#102b1c';
+  var fg = tone === 'bad' ? '#ff9db0' : tone === 'warn' ? '#ffd479' : tone === 'info' ? '#9ecbff' : '#7ee0a4';
+  return '<div class="rd-banner" style="background:' + bg + ';border:1px solid ' + fg + ';border-radius:8px;padding:12px 14px;margin-bottom:14px;">' +
+    '<strong style="color:' + fg + ';">' + esc(title) + '</strong><div style="margin-top:6px;font-size:0.93rem;">' + body + '</div></div>';
+}
+
+function findingsBlock(findings, engine) {
+  if (!findings.length) {
+    return '<h3>Static findings</h3><p style="color:#9aa4b2;">None. The parser walked the whole pattern and matched none of the four shapes.</p>';
+  }
+  var h = '<h3>Static findings (' + findings.length + ')</h3>';
+  if (engine === 're2') {
+    h += '<p class="rd-note">These shapes are inert on a linear-time engine. They still tell you the pattern is doing redundant work, and it will stay fragile if it is ever moved to a backtracking engine.</p>';
+  }
+  findings.forEach(function (f, i) {
+    var tone = f.severity === 'high' ? '#ff9db0' : f.severity === 'medium' ? '#ffd479' : '#9ecbff';
+    h += '<div class="rd-card">' +
+      '<div><span class="rd-tag" style="color:' + tone + ';border-color:' + tone + ';">' + esc(f.severity.toUpperCase()) + '</span> ' +
+      '<strong>' + esc(f.title) + '</strong></div>' +
+      '<div class="rd-sub"><code>' + esc(f.raw) + '</code> <span style="color:#6f7787;">at offset ' + f.at + '</span></div>' +
+      '<p style="margin:8px 0 6px;">' + f.why + '</p>' +
+      '<p style="margin:0;font-size:0.9rem;color:#9aa4b2;"><strong>Rewrite to consider:</strong> ' + esc(f.fix) + '</p>' +
+      '</div>';
+  });
+  return h;
+}
+
+function measureBlock(res, c, engine) {
+  var h = '<h3>Measured growth curve</h3>';
+  h += '<p>The same pattern, the same engine, an input that grows by ' + LADDER_RATIO +
+    'x at every rung. Every trial runs inside a Web Worker, so the interface never blocks. Fast rungs are ' +
+    'sampled at least ' + MIN_REPS + ' times (more if that is needed to accumulate ' + MIN_TOTAL_MS +
+    ' ms, because a single sub-10-microsecond reading is clock quantisation rather than a measurement) and the fastest trial is ' +
+    'reported, since one GC pause is enough to corrupt a fit. A rung is only taken when the cost fitted from ' +
+    'the previous two rows predicts it will land within 3x the ' + BUDGET_MS +
+    ' ms budget, which is what keeps the ladder from stepping into a call that never returns.</p>';
+
+  h += '<table style="width:100%;border-collapse:collapse;font-family:monospace;font-size:0.88rem;">' +
+    '<tr><th style="text-align:left;padding:6px;border-bottom:1px solid #333;">Input length</th>' +
+    '<th style="text-align:right;padding:6px;border-bottom:1px solid #333;">Match time</th>' +
+    '<th style="text-align:right;padding:6px;border-bottom:1px solid #333;">Per character</th>' +
+    '<th style="text-align:right;padding:6px;border-bottom:1px solid #333;">Cost factor k</th></tr>';
+
+  var kByIndex = {};
+  for (var i = 1; i < res.rows.length; i++) {
+    var a = res.rows[i - 1], b = res.rows[i];
+    if (b.ms < MIN_PAIR_MS) continue;
+    kByIndex[b.n] = Math.log(b.ms / Math.max(a.ms, NOISE_FLOOR_MS)) / Math.log(b.n / a.n);
+  }
+
+  res.rows.forEach(function (r) {
+    var k = kByIndex[r.n];
+    var kTxt = (k === undefined) ? '' : k.toFixed(2);
+    var kCol = (k === undefined) ? '#9aa4b2' : k > 3.5 ? '#ff9db0' : k > 1.35 ? '#ffd479' : '#7ee0a4';
+    var clamped = r.ms <= NOISE_FLOOR_MS;
+    h += '<tr><td style="padding:5px;border-bottom:1px solid #222;">' + r.n + ' + 1</td>' +
+      '<td style="padding:5px;text-align:right;border-bottom:1px solid #222;color:' + (clamped ? '#6f7787' : '#fff') + ';">' +
+        (clamped ? '&lt; floor' : r.ms.toFixed(2) + ' ms') + '</td>' +
+      '<td style="padding:5px;text-align:right;border-bottom:1px solid #222;color:' + (clamped ? '#6f7787' : '#fff') + ';">' +
+        (clamped ? '' : (r.ms / r.n).toFixed(4) + ' ms') + '</td>' +
+      '<td style="padding:5px;text-align:right;border-bottom:1px solid #222;color:' + kCol + ';">' + kTxt + '</td></tr>';
+  });
+  h += '</table>';
+
+  if (res.stopped === 'budget') {
+    var lr = res.rows[res.rows.length - 1];
+    h += '<div class="rd-note" style="border-color:#ff9db0;color:#ff9db0;">Run stopped: the ' + BUDGET_MS +
+      ' ms budget was exceeded at an input length of ' + lr.n +
+      ' characters. In production a request that size already stalls the thread running it.</div>';
+  } else if (res.stopped === 'predicted-next-rung-over-budget') {
+    h += '<div class="rd-note" style="border-color:#ffd479;color:#ffd479;">Run stopped early: the fitted cost predicted the next rung would blow past the budget, so it was not attempted.</div>';
+  } else if (res.stopped === 'max-length') {
+    h += '<div class="rd-note">Reached the ' + MAX_N + ' character ceiling with the budget intact.</div>';
+  }
+
+  if (c.level === 'fast') {
+    h += '<div class="rd-note" style="border-color:#7ee0a4;color:#7ee0a4;">' + esc(c.label) +
+      '. No rung cost more than ' + MIN_PAIR_MS + ' ms, so the pattern finished faster than the measurement can resolve, let alone grow. Faster than the clock, not merely linear.</div>';
+  } else {
+    h += '<p style="margin-top:10px;"><strong>' + esc(c.label) + '</strong> &mdash; the cost factor k is ' +
+      c.ks.map(function (k) { return k.toFixed(1); }).join(' then ') +
+      '. k near 1 is linear and k near 2 to 3 is polynomial. A k above 3.5, or one that climbs rung over rung, means each extra character multiplies the work, which is the exponential case. A k computed across a rung that read below the timing floor is an upper bound.</p>';
+  }
+  if (engine === 're2') {
+    h += '<p class="rd-note">These numbers come from the browser\'s backtracking engine, so they show what this pattern would cost on PCRE, Python or Java. On the linear-time engine you selected, none of it applies.</p>';
+  }
+  return h;
+}
+
+function attackBlock(a) {
+  var sample = a.pump.repeat(64) + a.blocker;
+  return '<h3>Attack string</h3>' +
+    '<p>An input built from the pattern\'s own character set (' + esc(JSON.stringify(a.pump)) +
+    ') followed by a character the set cannot consume (' + esc(JSON.stringify(a.blocker)) +
+    '). Repeating the first part forces the engine to retry every way of splitting it.</p>' +
+    '<div class="rd-sub"><code id="attack-string">' + esc(sample) + '</code></div>' +
+    '<p style="font-size:0.9rem;color:#9aa4b2;margin-top:8px;">64 repeats shown. This is a demonstration, not a minimal payload: the character is derived from the pattern rather than solved for, and it will not trigger every vulnerable pattern. ' +
+    'The ' + esc(a.sub || 'pattern') + ' fragment near offset ' + a.offset + ' is what it exercises.' +
+    (a.note ? ' ' + esc(a.note) : '') + '</p>';
+}
+
+function clearAll() {
+  document.getElementById('pattern').value = '';
+  ['flag-i', 'flag-m', 'flag-s', 'flag-u'].forEach(function (id) { document.getElementById(id).checked = false; });
+  document.getElementById('engine').value = 'backtrack';
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('status').className = 'status';
+  document.getElementById('status').textContent = '';
+}
+
+var EXAMPLES = [
+  '^(a+)+$',
+  '.*.*=.*',
+  '^(\\w+\\s?)*$',
+  '(a|a?)+$',
+  '^(?:[a-zA-Z0-9]+\\.)*[a-zA-Z]{2,}$',
+  '^\\d{1,3}(?:\\.\\d{1,3}){3}$'
+];
+
+function loadExample() {
+  var v = document.getElementById('pattern').value;
+  var i = EXAMPLES.indexOf(v);
+  document.getElementById('pattern').value = EXAMPLES[(i + 1) % EXAMPLES.length];
+  analyze();
+}
+</script>
+<!-- Cloudflare Web Analytics --><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

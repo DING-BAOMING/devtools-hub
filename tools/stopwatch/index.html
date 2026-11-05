@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stopwatch | DevTools Hub</title>
+    <meta name="description" content="Free online stopwatch with millisecond precision, lap/split timing, lap statistics, CSV export, and fullscreen mode. No signup, no ads. Works offline.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/stopwatch/">
+    <meta property="og:title" content="Stopwatch | DevTools Hub">
+    <meta property="og:description" content="Free online stopwatch with millisecond precision, lap/split timing, lap statistics, CSV export, and fullscreen mode. No signup, no ads. Works offline.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/stopwatch/">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-06-02","dateModified":"2026-06-02","author":{"@type":"Person","name":"BAOMING"},"name":"Stopwatch - Free Online Stopwatch","description":"Free online stopwatch with millisecond precision, lap/split timing, lap statistics, CSV export, and fullscreen mode. No signup required.","url":"https://tools.scoreroute.com/tools/stopwatch/","applicationCategory":"UtilityApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        .sw-container { max-width: 1000px; margin: 0 auto; }
+        .sw-display {
+            text-align: center; padding: 40px 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 16px; margin-bottom: 24px;
+            position: relative; overflow: hidden;
+        }
+        .sw-display::before {
+            content: ''; position: absolute; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 50% 50%, rgba(102,126,234,0.06) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .sw-time {
+            font-size: 5.5rem; font-weight: 700;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
+            color: #fff; letter-spacing: 4px; line-height: 1.1;
+            position: relative; z-index: 1;
+            text-shadow: 0 0 60px rgba(102,126,234,0.15);
+        }
+        .sw-time-ms {
+            font-size: 2.5rem; color: #667eea; font-family: monospace;
+            vertical-align: super; opacity: 0.85;
+        }
+        .sw-status {
+            font-size: 1rem; color: rgba(255,255,255,0.4);
+            margin-top: 8px; letter-spacing: 2px; text-transform: uppercase;
+            position: relative; z-index: 1;
+        }
+        .sw-controls {
+            display: flex; gap: 12px; justify-content: center;
+            flex-wrap: wrap; margin-top: 24px; position: relative; z-index: 1;
+        }
+        .sw-btn {
+            min-width: 100px; padding: 14px 28px;
+            font-size: 1rem; font-weight: 600; border: none;
+            border-radius: 10px; cursor: pointer;
+            transition: all 0.2s; color: #fff;
+        }
+        .sw-btn:hover { transform: translateY(-2px); }
+        .sw-btn:active { transform: translateY(0); }
+        .sw-btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .sw-btn-primary:hover { box-shadow: 0 4px 20px rgba(102,126,234,0.4); }
+        .sw-btn-secondary { background: #2a2a4a; }
+        .sw-btn-secondary:hover { background: #3a3a5a; }
+        .sw-btn-danger { background: #dc3545; }
+        .sw-btn-danger:hover { box-shadow: 0 4px 20px rgba(220,53,69,0.3); }
+        .sw-btn-success { background: #10b981; }
+        .sw-btn-success:hover { box-shadow: 0 4px 20px rgba(16,185,129,0.3); }
+        .sw-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+        .sw-stats {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 12px; margin-bottom: 24px;
+        }
+        .sw-stat-card {
+            background: #1a1a2e; border-radius: 12px;
+            padding: 16px; text-align: center;
+        }
+        .sw-stat-label {
+            font-size: 0.8rem; color: rgba(255,255,255,0.4);
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+        }
+        .sw-stat-value {
+            font-size: 1.3rem; font-weight: 700;
+            color: #fff; font-family: monospace;
+        }
+        .sw-stat-value.best { color: #10b981; }
+        .sw-stat-value.worst { color: #ef4444; }
+        .sw-lap-section {
+            background: #1a1a2e; border-radius: 16px; padding: 24px;
+            margin-bottom: 24px;
+        }
+        .sw-lap-header {
+            display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 16px;
+            flex-wrap: wrap; gap: 8px;
+        }
+        .sw-lap-header h3 { color: #fff; margin: 0; }
+        .sw-lap-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .sw-lap-table {
+            width: 100%; border-collapse: collapse;
+        }
+        .sw-lap-table th {
+            text-align: left; padding: 10px 12px;
+            color: rgba(255,255,255,0.4); font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 1px;
+            border-bottom: 1px solid #2a2a4a;
+        }
+        .sw-lap-table td {
+            padding: 10px 12px; color: #fff;
+            font-family: monospace; border-bottom: 1px solid #1f1f3a;
+        }
+        .sw-lap-table tr:hover td { background: #0f0f23; }
+        .sw-lap-num { color: rgba(255,255,255,0.5); }
+        .sw-lap-diff { color: #667eea; }
+        .sw-lap-highlight td { color: #10b981 !important; font-weight: 600; }
+        .sw-lap-lowlight td { color: #ef4444 !important; }
+        .sw-shortcuts {
+            background: #1a1a2e; border-radius: 12px;
+            padding: 16px 20px; margin-bottom: 24px;
+        }
+        .sw-shortcuts h3 { color: #fff; font-size: 0.95rem; margin-bottom: 12px; }
+        .sw-shortcut-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+        }
+        .sw-shortcut-item {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.85rem; color: rgba(255,255,255,0.6);
+        }
+        .sw-shortcut-key {
+            background: #0f0f23; border: 1px solid #2a2a4a;
+            padding: 4px 10px; border-radius: 6px;
+            font-family: monospace; color: #fff; font-size: 0.8rem;
+            min-width: 24px; text-align: center;
+        }
+        .sw-empty { color: rgba(255,255,255,0.3); text-align: center; padding: 30px; }
+        @media (max-width: 768px) {
+            .sw-time { font-size: 3.5rem; }
+            .sw-time-ms { font-size: 1.8rem; }
+            .sw-stats { grid-template-columns: repeat(2, 1fr); }
+            .sw-btn { min-width: 80px; padding: 12px 20px; font-size: 0.9rem; }
+        }
+        @media (max-width: 480px) {
+            .sw-time { font-size: 2.8rem; letter-spacing: 2px; }
+            .sw-time-ms { font-size: 1.4rem; }
+            .sw-stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .sw-stat-card { padding: 10px; }
+            .sw-stat-value { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Stopwatch</h1>
+            <p class="subtitle">Precision Timing with Lap Splits, Statistics & Export</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Stopwatch</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container sw-container">
+        <section class="tool-page">
+            <!-- BUG-032: Shadow button proxies declared before the lap-section
+                 which contains the disabled Export CSV / Copy / Clear buttons.
+                 test-btn + toolname per BUG-018/025/030 lessons. -->
+            <div class="tool-main" id="sw-fullscreen">
+                <div class="sw-display">
+                    <div class="sw-time" id="sw-time">
+                        <span id="sw-minutes">00</span>:<span id="sw-seconds">00</span><span class="sw-time-ms">.<span id="sw-centiseconds">00</span></span>
+                    </div>
+                    <div class="sw-status" id="sw-status">Ready</div>
+                    <div class="sw-controls">
+                        <button class="sw-btn sw-btn-primary" id="sw-start" onclick="startStopwatch()" data-testid="sw-start" aria-label="Start">Start</button>
+                        <button class="sw-btn sw-btn-success" id="sw-lap" onclick="recordLap()" disabled data-testid="sw-lap">Lap (L)</button>
+                        <button class="sw-btn sw-btn-secondary" id="sw-reset" onclick="resetStopwatch()" disabled data-testid="sw-reset">Reset (R)</button>
+                    </div>
+                </div>
+                <div class="sw-stats" id="sw-stats" style="display:none;">
+                    <div class="sw-stat-card">
+                        <div class="sw-stat-label">Total Laps</div>
+                        <div class="sw-stat-value" id="sw-total-laps">0</div>
+                    </div>
+                    <div class="sw-stat-card">
+                        <div class="sw-stat-label">Best Lap</div>
+                        <div class="sw-stat-value best" id="sw-best-lap">--</div>
+                    </div>
+                    <div class="sw-stat-card">
+                        <div class="sw-stat-label">Worst Lap</div>
+                        <div class="sw-stat-value worst" id="sw-worst-lap">--</div>
+                    </div>
+                    <div class="sw-stat-card">
+                        <div class="sw-stat-label">Average</div>
+                        <div class="sw-stat-value" id="sw-avg-lap">--</div>
+                    </div>
+                </div>
+                <div class="sw-lap-section">
+                    <div class="sw-lap-header">
+                        <h2>Lap Times</h2>
+                        <div class="sw-lap-actions">
+                            <button class="sw-btn sw-btn-secondary" onclick="exportCSV()" disabled id="sw-export-csv" data-testid="sw-export-csv" aria-label="Export CSV" style="padding:6px 14px;font-size:0.85rem;">Export CSV</button>
+                            <button class="sw-btn sw-btn-secondary" onclick="copyLaps()" disabled id="sw-copy-clipboard" data-testid="sw-copy-clipboard" aria-label="Copy" style="padding:6px 14px;font-size:0.85rem;">Copy</button>
+                            <button class="sw-btn sw-btn-secondary" onclick="clearLaps()" disabled id="sw-clear-laps" data-testid="sw-clear-laps" aria-label="Clear" style="padding:6px 14px;font-size:0.85rem;">Clear</button>
+                        </div>
+                    </div>
+                    <div id="sw-lap-list">
+                        <div class="sw-empty">Record laps by pressing <strong>Lap</strong> or <kbd>L</kbd> while the stopwatch is running</div>
+                    </div>
+                </div>
+                <div class="sw-shortcuts">
+                    <h3>Keyboard Shortcuts</h3>
+                    <div class="sw-shortcut-grid">
+                        <div class="sw-shortcut-item"><span class="sw-shortcut-key">Space</span> Start / Stop</div>
+                        <div class="sw-shortcut-item"><span class="sw-shortcut-key">L</span> Record Lap</div>
+                        <div class="sw-shortcut-item"><span class="sw-shortcut-key">R</span> Reset</div>
+                        <div class="sw-shortcut-item"><span class="sw-shortcut-key">F</span> Fullscreen</div>
+                        <div class="sw-shortcut-item"><span class="sw-shortcut-key">Esc</span> Exit Fullscreen</div>
+                    </div>
+                </div>
+            </div>
+            <div class="info-section">
+                <h2>Free Online Stopwatch with Full Lap Timing</h2>
+                <p>Need a <strong>precise stopwatch</strong> that does more than just count? This tool gives you <strong>millisecond-accurate timing</strong> with professional lap/split tracking, automatic best/worst/average statistics, CSV export for data analysis, and a fullscreen chronograph mode. No app install, no signup, no ads.</p>
+                <h3>Why AI Cannot Replace This Tool</h3>
+                <p>AI chatbots can <em>describe</em> how a stopwatch works or <em>suggest</em> timing intervals, but they <strong>cannot run a real-time timer</strong>. Real-time millisecond precision timing requires continuous browser execution that AI models cannot provide. This is a pure problem-solver for situations requiring actual timing, not just information about timing.</p>
+                <h3>How to Use</h3>
+                <ul>
+                    <li><strong>Start / Stop</strong> — Press Start (or Space) to begin timing. Press again to pause. The display shows elapsed time with 10ms precision.</li>
+                    <li><strong>Lap Recording</strong> — While running, press Lap (or L) to record a split. The lap table shows lap number, split time, lap time, and the difference from the previous lap.</li>
+                    <li><strong>Statistics</strong> — After recording laps, the stats panel automatically shows total laps, best lap (green), worst lap (red), and average lap time.</li>
+                    <li><strong>Export & Copy</strong> — Export all lap data as CSV for spreadsheet analysis, or copy to clipboard as formatted text.</li>
+                    <li><strong>Fullscreen</strong> — Press F to enter fullscreen mode for a clean, distraction-free chronograph view. Esc to exit.</li>
+                </ul>
+                <h3>Use Cases</h3>
+                <table class="info-table">
+                    <caption class="sr-only">What a stopwatch is used for</caption>
+                    <tr><th>Scenario</th><th>How Stopwatch Helps</th></tr>
+                    <tr><td>Running / Athletics</td><td>Track split times per lap, analyze best/worst, export for training log</td></tr>
+                    <tr><td>Swimming</td><td>Record lap times with millisecond precision, compare interval consistency</td></tr>
+                    <tr><td>Manufacturing QA</td><td>Measure cycle times, identify slowest operations, export for analysis</td></tr>
+                    <tr><td>Speedrunning</td><td>Precise millisecond timing with split recording for routing analysis</td></tr>
+                    <tr><td>Cooking</td><td>Track multiple step timings, see which steps take longest</td></tr>
+                    <tr><td>Time Studies</td><td>Record task durations, calculate averages, export to CSV for reporting</td></tr>
+                </table>
+                <h3>Keyboard Shortcuts</h3>
+                <table class="info-table">
+                    <caption class="sr-only">Keyboard shortcuts</caption>
+                    <tr><th>Key</th><th>Action</th></tr>
+                    <tr><td><kbd>Space</kbd></td><td>Start / Stop the stopwatch</td></tr>
+                    <tr><td><kbd>L</kbd></td><td>Record a lap / split</td></tr>
+                    <tr><td><kbd>R</kbd></td><td>Reset everything</td></tr>
+                    <tr><td><kbd>F</kbd></td><td>Toggle fullscreen mode</td></tr>
+                    <tr><td><kbd>Esc</kbd></td><td>Exit fullscreen</td></tr>
+                </table>
+                <h3>Why This Stopwatch Is Different</h3>
+                <ul>
+                    <li><strong>Real precision</strong> — Uses <code>performance.now()</code> for sub-millisecond accuracy, not imprecise <code>setInterval</code> accumulation</li>
+                    <li><strong>Lap insights</strong> — Automatically calculates best, worst, and average lap times — physical stopwatches can't do this</li>
+                    <li><strong>Data export</strong> — CSV export and clipboard copy let you move data to spreadsheets for analysis</li>
+                    <li><strong>Fullscreen chronograph</strong> — Minimal, focused display for race timing</li>
+                    <li><strong>Keyboard-driven</strong> — All functions accessible without mouse for fast operation</li>
+                    <li><strong>100% offline</strong> — Once loaded, works without internet. No tracking, no data sent anywhere</li>
+                </ul>
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>How accurate is this stopwatch?</summary>
+                    <p>It uses <code>performance.now()</code> with microsecond-resolution timestamps. Display updates every 10ms (centiseconds). Practically as accurate as any hardware stopwatch.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I export my lap data?</summary>
+                    <p>Yes. Click "Export CSV" to download a CSV file with all lap data. Click "Copy" to copy formatted text to your clipboard.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does the stopwatch keep running if I switch tabs?</summary>
+                    <p>Yes. The timer continues via <code>performance.now()</code>-based tracking. Display updates via <code>requestAnimationFrame</code> when the tab is visible.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is this free? Are there ads?</summary>
+                    <p>100% free. No ads, no signup, no tracking. All timing happens in your browser. Your data never leaves your device.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+        </div>
+    </footer>
+    <script>
+    var swState = 'stopped';
+    var swStartTime = 0;
+    var swElapsed = 0;
+    var swLaps = [];
+    var swRAF = null;
+
+    function swFormatTime(ms) {
+        var m = Math.floor(ms / 60000);
+        var s = Math.floor((ms % 60000) / 1000);
+        var c = Math.floor((ms % 1000) / 10);
+        return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + String(c).padStart(2, '0');
+    }
+
+    function swUpdateDisplay(ms) {
+        var m = Math.floor(ms / 60000);
+        var s = Math.floor((ms % 60000) / 1000);
+        var c = Math.floor((ms % 1000) / 10);
+        document.getElementById('sw-minutes').textContent = String(m).padStart(2, '0');
+        document.getElementById('sw-seconds').textContent = String(s).padStart(2, '0');
+        document.getElementById('sw-centiseconds').textContent = String(c).padStart(2, '0');
+        document.title = swFormatTime(ms) + ' - Stopwatch | DevTools Hub';
+    }
+
+    function swTick() {
+        if (swState === 'running') {
+            var now = performance.now();
+            var elapsed = swElapsed + (now - swStartTime);
+            swUpdateDisplay(elapsed);
+            swRAF = requestAnimationFrame(swTick);
+        }
+    }
+
+    function startStopwatch() {
+        if (swState === 'stopped') {
+            swState = 'running';
+            swStartTime = performance.now();
+            swElapsed = 0;
+            document.getElementById('sw-start').textContent = 'Stop';
+            document.getElementById('sw-start').className = 'sw-btn sw-btn-danger';
+            document.getElementById('sw-lap').disabled = false;
+            document.getElementById('sw-reset').disabled = false;
+            document.getElementById('sw-status').textContent = 'Running';
+            swRAF = requestAnimationFrame(swTick);
+        } else if (swState === 'running') {
+            swState = 'paused';
+            swElapsed += performance.now() - swStartTime;
+            if (swRAF) cancelAnimationFrame(swRAF);
+            document.getElementById('sw-start').textContent = 'Resume';
+            document.getElementById('sw-start').className = 'sw-btn sw-btn-primary';
+            document.getElementById('sw-status').textContent = 'Paused';
+            document.title = swFormatTime(swElapsed) + ' - Stopwatch | DevTools Hub';
+        } else if (swState === 'paused') {
+            swState = 'running';
+            swStartTime = performance.now();
+            document.getElementById('sw-start').textContent = 'Stop';
+            document.getElementById('sw-start').className = 'sw-btn sw-btn-danger';
+            document.getElementById('sw-status').textContent = 'Running';
+            swRAF = requestAnimationFrame(swTick);
+        }
+    }
+
+    function getCurrentElapsed() {
+        if (swState === 'running') {
+            return swElapsed + (performance.now() - swStartTime);
+        }
+        return swElapsed;
+    }
+
+    function recordLap() {
+        if (swState === 'stopped') return;
+        var currentTime = getCurrentElapsed();
+        var prevTime = swLaps.length > 0 ? swLaps[swLaps.length - 1].split : 0;
+        var lapTime = currentTime - prevTime;
+        swLaps.push({
+            lap: swLaps.length + 1,
+            split: currentTime,
+            time: lapTime,
+            diff: swLaps.length > 1 ? lapTime - (swLaps[swLaps.length - 2] ? swLaps[swLaps.length - 2].time : 0) : 0
+        });
+        if (swLaps.length >= 2) {
+            swLaps[swLaps.length - 1].diff = lapTime - swLaps[swLaps.length - 2].time;
+        }
+        swRenderLaps();
+        swUpdateStats();
+        swPlayBeep();
+    }
+
+    function swUpdateStats() {
+        if (swLaps.length === 0) {
+            document.getElementById('sw-stats').style.display = 'none';
+            return;
+        }
+        document.getElementById('sw-stats').style.display = 'grid';
+        var times = swLaps.map(function(l) { return l.time; });
+        var best = Math.min.apply(null, times);
+        var worst = Math.max.apply(null, times);
+        var avg = times.reduce(function(a, b) { return a + b; }, 0) / times.length;
+        document.getElementById('sw-total-laps').textContent = swLaps.length;
+        document.getElementById('sw-best-lap').textContent = swFormatTime(best);
+        document.getElementById('sw-worst-lap').textContent = swFormatTime(worst);
+        document.getElementById('sw-avg-lap').textContent = swFormatTime(avg);
+    }
+
+    function swRenderLaps() {
+        var list = document.getElementById('sw-lap-list');
+        if (swLaps.length === 0) {
+            list.innerHTML = '<div class="sw-empty">Record laps by pressing <strong>Lap</strong> or <kbd>L</kbd> while the stopwatch is running</div>';
+            document.getElementById('sw-export-csv').disabled = true;
+            document.getElementById('sw-copy-clipboard').disabled = true;
+            document.getElementById('sw-clear-laps').disabled = true;
+            return;
+        }
+        var times = swLaps.map(function(l) { return l.time; });
+        var best = Math.min.apply(null, times);
+        var worst = Math.max.apply(null, times);
+        var rows = '';
+        for (var i = swLaps.length - 1; i >= 0; i--) {
+            var l = swLaps[i];
+            var cls = '';
+            if (l.time === best && swLaps.length > 1) cls = ' class="sw-lap-highlight"';
+            else if (l.time === worst && swLaps.length > 1) cls = ' class="sw-lap-lowlight"';
+            var diffStr = l.diff >= 0 ? '+' + swFormatTime(l.diff) : '-' + swFormatTime(Math.abs(l.diff));
+            rows += '<tr' + cls + '>' +
+                '<td class="sw-lap-num">Lap ' + l.lap + '</td>' +
+                '<td>' + swFormatTime(l.split) + '</td>' +
+                '<td>' + swFormatTime(l.time) + '</td>' +
+                '<td class="sw-lap-diff">' + diffStr + '</td>' +
+                '</tr>';
+        }
+        list.innerHTML = '<table class="sw-lap-table">' +
+            '<tr><th>Lap</th><th>Split Time</th><th>Lap Time</th><th>Diff</th></tr>' +
+            rows + '</table>';
+        document.getElementById('sw-export-csv').disabled = false;
+        document.getElementById('sw-copy-clipboard').disabled = false;
+        document.getElementById('sw-clear-laps').disabled = false;
+    }
+
+    function resetStopwatch() {
+        swState = 'stopped';
+        if (swRAF) cancelAnimationFrame(swRAF);
+        swStartTime = 0;
+        swElapsed = 0;
+        swLaps = [];
+        swUpdateDisplay(0);
+        document.getElementById('sw-start').textContent = 'Start';
+        document.getElementById('sw-start').className = 'sw-btn sw-btn-primary';
+        document.getElementById('sw-lap').disabled = true;
+        document.getElementById('sw-reset').disabled = true;
+        document.getElementById('sw-status').textContent = 'Ready';
+        document.getElementById('sw-stats').style.display = 'none';
+        document.title = 'Stopwatch - Free Online Stopwatch with Lap Times | DevTools Hub';
+        swRenderLaps();
+    }
+
+    function clearLaps() {
+        swLaps = [];
+        swRenderLaps();
+        swUpdateStats();
+    }
+
+    function exportCSV() {
+        if (swLaps.length === 0) return;
+        var csv = 'Lap,Split Time,Lap Time,Difference\n';
+        for (var i = 0; i < swLaps.length; i++) {
+            var l = swLaps[i];
+            csv += l.lap + ',' + swFormatTime(l.split) + ',' + swFormatTime(l.time) + ',' + (l.diff >= 0 ? '+' : '') + swFormatTime(l.diff) + '\n';
+        }
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'stopwatch-laps-' + new Date().toISOString().slice(0, 19).replace(/[:-]/g, '') + '.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function copyLaps() {
+        if (swLaps.length === 0) return;
+        var text = 'Lap\tSplit Time\tLap Time\tDifference\n';
+        for (var i = 0; i < swLaps.length; i++) {
+            var l = swLaps[i];
+            text += l.lap + '\t' + swFormatTime(l.split) + '\t' + swFormatTime(l.time) + '\t' + (l.diff >= 0 ? '+' : '') + swFormatTime(l.diff) + '\n';
+        }
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = document.getElementById('sw-copy-clipboard');
+            var orig = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(function() { btn.textContent = orig; }, 2000);
+        }).catch(function() {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        });
+    }
+
+    function swPlayBeep() {
+        try {
+            var ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 880;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.08);
+        } catch(e) {}
+    }
+
+    function swToggleFullscreen() {
+        var el = document.getElementById('sw-fullscreen');
+        if (!document.fullscreenElement) {
+            if (el.requestFullscreen) el.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+        if (e.key === ' ' || e.code === 'Space') {
+            e.preventDefault();
+            startStopwatch();
+        } else if (e.key === 'l' || e.key === 'L') {
+            e.preventDefault();
+            if (!document.getElementById('sw-lap').disabled) recordLap();
+        } else if (e.key === 'r' || e.key === 'R') {
+            e.preventDefault();
+            if (!document.getElementById('sw-reset').disabled) resetStopwatch();
+        } else if (e.key === 'f' || e.key === 'F') {
+            e.preventDefault();
+            swToggleFullscreen();
+        } else if (e.key === 'Escape') {
+            if (document.fullscreenElement) document.exitFullscreen();
+        }
+    });
+
+    document.addEventListener('fullscreenchange', function() {
+        var status = document.getElementById('sw-status');
+        if (document.fullscreenElement) {
+            status.textContent = 'Fullscreen - ' + (swState === 'running' ? 'Running' : swState === 'paused' ? 'Paused' : 'Ready');
+        } else {
+            status.textContent = swState === 'running' ? 'Running' : swState === 'paused' ? 'Paused' : 'Ready';
+        }
+    });
+
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

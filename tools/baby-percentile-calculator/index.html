@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Percentile Calculator | DevTools Hub</title>
+    <meta name="description" content="Baby Percentile Calculator on WHO growth curves. Weight, length and head circumference percentiles with z-scores, charts and corrected age for preemies.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/baby-percentile-calculator/">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Baby Percentile Calculator | DevTools Hub">
+    <meta property="og:description" content="Baby Percentile Calculator on WHO growth curves. Weight, length and head circumference percentiles with z-scores, charts and corrected age for preemies.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/baby-percentile-calculator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Baby Percentile Calculator | DevTools Hub">
+    <meta name="twitter:description" content="Baby Percentile Calculator on WHO growth curves. Weight, length and head circumference percentiles with z-scores, charts and corrected age for preemies.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/baby-percentile-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-10-22","dateModified":"2026-10-22","author":{"@type":"Person","name":"BAOMING"},"name":"Baby Percentile Calculator","description":"Free baby percentile calculator using the WHO Child Growth Standards for ages 0 to 24 months. Computes weight-for-age, length-for-age, head-circumference-for-age and weight-for-length percentiles from the published WHO LMS tables, with z-scores, an interactive chart, and corrected age for babies born early. All math runs in the browser.","url":"https://tools.scoreroute.com/tools/baby-percentile-calculator/","applicationCategory":"HealthApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What do baby growth percentiles actually mean?","acceptedAnswer":{"@type":"Answer","text":"A percentile is a position in a reference population, not a grade. A weight at the 30th percentile means about 30 of every 100 babies of the same age and sex in the reference group weigh less, and 70 weigh more. Every band on the growth chart is occupied by healthy babies by construction, so the percentile itself does not tell you whether your baby is doing well. What matters over time is where your baby travels along their own curve, which a pediatrician reads at regular visits."}},{"@type":"Question","name":"Which growth chart does this calculator use?","acceptedAnswer":{"@type":"Answer","text":"This calculator uses the WHO Child Growth Standards (2006, with the head circumference curves released in 2007) for ages 0 to 24 months. Those are the curves recommended for infants in the United States and used in the NHS red book and by pediatric societies worldwide. The CDC 2000 charts take over from age 2, which is outside the range of this tool."}},{"@type":"Question","name":"My baby is premature - should I use adjusted age?","acceptedAnswer":{"@type":"Answer","text":"Yes. For babies born more than a couple of weeks early, pediatric practice adjusts age by the number of weeks before 40 weeks of gestation, usually until 24 months of age. Our percentile calculator subtracts (40 - gestational weeks) from your baby's calendar age before solving the curves, so a baby born at 32 weeks who is 4 calendar months old is assessed at roughly a 2-month equivalent. Pick the gestational age from the dropdown and the corrected age is applied automatically."}},{"@type":"Question","name":"My baby is on the 15th percentile - is that bad?","acceptedAnswer":{"@type":"Answer","text":"Most likely that is simply where your baby sits in the queue, and it is a perfectly healthy place to be as long as your baby stays roughly there over time. Only a small share of babies sit near the 50th percentile. A single measurement is a snapshot, and pediatricians look for a consistent trend, crossing of two major percentile lines, or a big mismatch between weight and length percentiles before anything else."}},{"@type":"Question","name":"How is the percentile calculated?","acceptedAnswer":{"@type":"Answer","text":"From the published WHO LMS parameters. For your baby's exact age in months and sex, the calculator takes the three curve parameters L (a power that removes skew), M (the median) and S (a coefficient of variation), and computes a z-score as z = ((x / M) ^ L - 1) / (L x S). The z-score is then converted to a percentile with the standard normal distribution, and fractional ages are handled by interpolating linearly between WHO month points."}},{"@type":"Question","name":"When is a percentile worth calling the pediatrician about?","acceptedAnswer":{"@type":"Answer","text":"The percentile describes position, not health, and no chart can know your baby's history. Call your pediatrician if your baby is below the 2nd or above the 98th percentile, if the curve crosses two major lines in either direction between visits, or if weight and length percentiles drift far apart over time. Those are the situations where a professional should read the pattern."}},{"@type":"Question","name":"Do you store or upload the measurements?","acceptedAnswer":{"@type":"Answer","text":"Never. The WHO reference tables load with the page and every calculation runs inside your browser. Your measurements are not sent anywhere, not saved and do not appear in any server log; open the network tab while you calculate and you will see no outgoing requests."}},{"@type":"Question","name":"Why does a weight-for-length row appear when I enter both weight and length?","acceptedAnswer":{"@type":"Answer","text":"Weight-for-length is the other way pediatric charts express a baby's size: it compares weight to length directly, without age on the axis, so a short baby and a tall baby can be read on equal terms. When you enter both weight and length, the calculator shows that proportion row in addition to the age-based percentiles. It only appears when both values are present, because the axis is length."}}]}
+    </script>
+    <style>
+        .bpc-panel {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+        .bpc-panel h3 { margin: 0 0 14px; font-size: 1rem; color: #667eea; }
+        .bpc-toggle-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .bpc-toggle-group button {
+            padding: 10px 16px;
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            color: #d0d0e0;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .bpc-toggle-group button[aria-pressed="true"] {
+            background: #667eea;
+            border-color: #667eea;
+            color: #fff;
+        }
+        .bpc-toggle-group button:focus-visible {
+            outline: 3px solid #7eb3ff !important;
+            outline-offset: 2px !important;
+        }
+        .bpc-field {
+            margin-bottom: 12px;
+        }
+        .bpc-field label {
+            display: block;
+            color: #8888a0;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        .bpc-field input,
+        .bpc-field select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        .bpc-field input:focus, .bpc-field select:focus {
+            outline: 2px solid #667eea;
+            border-color: transparent;
+        }
+        .bpc-gr { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .bpc-unit-hint { color: #8888a0; font-size: 0.75rem; }
+        .bpc-result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2a4a;
+            flex-wrap: wrap;
+        }
+        .bpc-result-row:last-child { border-bottom: none; }
+        .bpc-result-row .bpc-measure { color: #d0d0e0; font-size: 0.9rem; }
+        .bpc-result-row .bpc-val { color: #667eea; font-weight: 600; font-size: 1.05rem; white-space: nowrap; }
+        .bpc-result-note { color: #8888a0; font-size: 0.8rem; margin-top: 10px; }
+        .bpc-chart-wrap { margin-top: 16px; }
+        .bpc-chart-wrap canvas {
+            width: 100%;
+            height: auto;
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+        }
+        @media (max-width: 640px) {
+            .bpc-gr { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Baby Percentile Calculator</h1>
+            <p class="subtitle">WHO Growth Curves for Weight, Length and Head Circumference, 0-24 Months</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/calculators/">Calculators</a> &gt; <span>Baby Percentile Calculator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" role="main">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Find Where Your Baby Sits on the WHO Growth Curves</h2>
+
+                <div class="bpc-panel">
+                    <div class="bpc-toggle-group" role="group" aria-label="Units">
+                        <button type="button" id="bpc-unit-metric" name="bpc-unit" aria-pressed="true">Metric (kg / cm)</button>
+                        <button type="button" id="bpc-unit-imperial" name="bpc-unit" aria-pressed="false">Imperial (lb / in)</button>
+                    </div>
+                    <div class="bpc-toggle-group" role="group" aria-label="Baby's sex">
+                        <button type="button" id="bpc-sex-boy" name="bpc-sex" data-testid="sex-boy" aria-pressed="true">Boy</button>
+                        <button type="button" id="bpc-sex-girl" name="bpc-sex" data-testid="sex-girl" aria-pressed="false">Girl</button>
+                    </div>
+
+                    <div class="bpc-gr">
+                        <div class="bpc-field">
+                            <label for="bpc-age">Age in months (0 to 24)</label>
+                            <input type="number" id="bpc-age" value="6" min="0" max="24" step="0.5" inputmode="decimal" aria-describedby="bpc-age-hint">
+                            <span class="bpc-unit-hint" id="bpc-age-hint">Fractions allowed, e.g. 19.5</span>
+                        </div>
+                        <div class="bpc-field">
+                            <label for="bpc-ga">Gestational age at birth (optional)</label>
+                            <select id="bpc-ga">
+                                <option value="40" selected>40 weeks or later (no adjustment)</option>
+                                <option value="39">39 weeks</option>
+                                <option value="38">38 weeks</option>
+                                <option value="37">37 weeks</option>
+                                <option value="36">36 weeks</option>
+                                <option value="35">35 weeks</option>
+                                <option value="34">34 weeks</option>
+                                <option value="33">33 weeks</option>
+                                <option value="32">32 weeks</option>
+                                <option value="31">31 weeks</option>
+                                <option value="30">30 weeks</option>
+                                <option value="28">28 weeks</option>
+                                <option value="26">26 weeks</option>
+                                <option value="24">24 weeks</option>
+                            </select>
+                            <span class="bpc-unit-hint">Pick fewer than 40 to use corrected age</span>
+                        </div>
+                        <div class="bpc-field">
+                            <label for="bpc-weight">Weight (<span id="bpc-w-unit">kg</span>)</label>
+                            <input type="number" id="bpc-weight" step="0.01" min="0" placeholder="e.g. 7.9" inputmode="decimal">
+                        </div>
+                        <div class="bpc-field">
+                            <label for="bpc-length">Length, lying down (<span id="bpc-l-unit">cm</span>)</label>
+                            <input type="number" id="bpc-length" step="0.1" min="0" placeholder="e.g. 67.6" inputmode="decimal">
+                        </div>
+                        <div class="bpc-field">
+                            <label for="bpc-head">Head circumference (<span id="bpc-h-unit">cm</span>)</label>
+                            <input type="number" id="bpc-head" step="0.1" min="0" placeholder="e.g. 43.0" inputmode="decimal">
+                        </div>
+                    </div>
+
+                    <div class="btn-group" style="margin-top:16px;">
+                        <button type="button" id="bpc-calc" name="bpc-calculate" class="btn btn-primary" data-testid="calculate">Calculate Percentiles</button>
+                        <button type="button" id="bpc-clear" class="btn">Clear</button>
+                        <button type="button" id="bpc-copy" name="bpc-copy-summary" class="copy-btn">Copy Summary</button>
+                    </div>
+
+                    <div id="bpc-status" class="status" role="status" aria-live="polite" style="display:none;"></div>
+                </div>
+
+                <div class="bpc-panel" id="bpc-result-panel" style="display:none;">
+                    <h3 id="bpc-result-heading">Results</h3>
+                    <div id="bpc-results"></div>
+                    <div class="bpc-chart-wrap" id="bpc-chart-wrap" style="display:none;">
+                        <h3 style="margin-bottom:8px;">On the curve</h3>
+                        <label for="bpc-chart-metric">Chart this measurement</label>
+                        <select id="bpc-chart-metric"></select>
+                        <canvas id="bpc-chart" height="300" aria-label="Growth curve chart with WHO 3rd, 15th, 50th, 85th and 97th percentile lines and the entered measurement marked" role="img"></canvas>
+                        <p class="bpc-unit-hint">Solid line: 50th percentile (median). Dashed lines from left/bottom to right/top: 3rd, 15th, 85th and 97th. The filled dot is the measurement you entered.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>How This Baby Percentile Calculator Works</h2>
+                <p>Every well-child visit ends with a number and a curve. This calculator takes your baby's weight, length or head circumference and places it on the WHO Child Growth Standards, the same reference your pediatrician or health visitor checks against. You enter the measurement and the age in months, and the tool solves the exact LMS equation behind the curve, so you get the percentile and the z-score rather than a rough estimate read off a picture. Since the reference tables load with the page and the math runs entirely in your browser, your numbers stay on your device.</p>
+                <p>The WHO standards were built from the Multicentre Growth Reference Study, which followed 8,440 children across Brazil, Ghana, India, Norway, Oman and the United States and found that healthy growth is strikingly similar across all six. That is the reason the same curves are used by the CDC for children under two and by health services around the world. WHO publishes the curve parameters (L, M and S for each age and sex) and this calculator is driven directly by those published values, sampled at every WHO month point and interpolated linearly between them.</p>
+
+                <h3>How to take the measurements</h3>
+                <ol>
+                    <li><strong>Weight:</strong> undressed, before a feed, on the same scale each time.</li>
+                    <li><strong>Length (until age 2):</strong> measured lying down on a firm surface, legs straight, heels together. Standing height from 24 months, and the WHO reference changes at that boundary.</li>
+                    <li><strong>Head circumference:</strong> with a soft tape around the widest part, just above the eyebrows and ears, over the back of the head. Take two tries and use the larger.</li>
+                </ol>
+
+                <h2>Why AI Chatbots Cannot Replace This Tool</h2>
+                <p>Ask a chatbot whether your 6-month-old's 7.9 kg is normal and you will get a friendly paragraph that may invent a benchmark with no reference table behind it. A growth percentile is not free-form knowledge: it is the exact result of a formula z = ((x / M) ^ L − 1) / (L × S), where L, M and S are World Health Organization curve parameters published in printed tables, one row per age and sex. Language models do not carry those tables reliably and often quote percentiles for the wrong age, the wrong sex, or the wrong reference. This calculator keeps the WHO tables in the page, interpolates them with the official convention of 30.4375 days per month and applies the published math exactly, so the same measurement always yields the same defensible percentile you can bring to a pediatric appointment.</p>
+
+                <h2>How to Use It</h2>
+                <ol>
+                    <li>Choose the sex curve: Boy or Girl.</li>
+                    <li>Enter the age in months. For a baby born early, pick the gestational weeks and the corrected age is applied for you.</li>
+                    <li>Enter any of the three measurements in kg/cm or lb/in. At least one value is required.</li>
+                    <li>Press Calculate Percentiles to get the WHO percentile and z-score for each number you entered, plus the weight-for-length result when both weight and length are present.</li>
+                    <li>Use the chart select to see the measurement plotted between the 3rd and 97th percentile curves, and copy the summary text for your appointment.</li>
+                </ol>
+
+                <h2>Frequently Asked Questions</h2>
+
+                <details class="faq-item">
+                    <summary>What do baby growth percentiles actually mean?</summary>
+                    <p>A percentile is a position in a reference population, not a grade. A weight at the 30th percentile means about 30 of every 100 babies of the same age and sex in the reference group weigh less, and 70 weigh more. Every band on the growth chart is occupied by healthy babies by construction, so the percentile itself does not tell you whether your baby is doing well. What matters over time is where your baby travels along their own curve, which a pediatrician reads at regular visits.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Which growth chart does this calculator use?</summary>
+                    <p>This calculator uses the WHO Child Growth Standards (2006, with the head circumference curves released in 2007) for ages 0 to 24 months. Those are the curves recommended for infants in the United States and used in the NHS red book and by pediatric societies worldwide. The CDC 2000 charts take over from age 2, which is outside the range of this tool.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>My baby is premature - should I use adjusted age?</summary>
+                    <p>Yes. For babies born more than a couple of weeks early, pediatric practice adjusts age by the number of weeks before 40 weeks of gestation, usually until 24 months of age. Our percentile calculator subtracts (40 − gestational weeks) from your baby's calendar age before solving the curves, so a baby born at 32 weeks who is 4 calendar months old is assessed at roughly a 2-month equivalent. Pick the gestational age from the dropdown and the corrected age is applied automatically.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>My baby is on the 15th percentile - is that bad?</summary>
+                    <p>Most likely that is simply where your baby sits in the queue, and it is a perfectly healthy place to be as long as your baby stays roughly there over time. Only a small share of babies sit near the 50th percentile. A single measurement is a snapshot, and pediatricians look for a consistent trend, crossing of two major percentile lines, or a big mismatch between weight and length percentiles before anything else.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How is the percentile calculated?</summary>
+                    <p>From the published WHO LMS parameters. For your baby's exact age in months and sex, the calculator takes the three curve parameters L (a power that removes skew), M (the median) and S (a coefficient of variation), and computes a z-score as z = ((x / M) ^ L − 1) / (L × S). The z-score is then converted to a percentile with the standard normal distribution, and fractional ages are handled by interpolating linearly between WHO month points.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>When is a percentile worth calling the pediatrician about?</summary>
+                    <p>The percentile describes position, not health, and no chart can know your baby's history. Call your pediatrician if your baby is below the 2nd or above the 98th percentile, if the curve crosses two major lines in either direction between visits, or if weight and length percentiles drift far apart over time. Those are the situations where a professional should read the pattern.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Do you store or upload the measurements?</summary>
+                    <p>Never. The WHO reference tables load with the page and every calculation runs inside your browser. Your measurements are not sent anywhere, not saved and do not appear in any server log; open the network tab while you calculate and you will see no outgoing requests.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Why does a weight-for-length row appear when I enter both weight and length?</summary>
+                    <p>Weight-for-length is the other way pediatric charts express a baby's size: it compares weight to length directly, without age on the axis, so a short baby and a tall baby can be read on equal terms. When you enter both weight and length, the calculator shows that proportion row in addition to the age-based percentiles. It only appears when both values are present, because the axis is length.</p>
+                </details>
+
+                <p style="color:#8888a0;font-size:0.85rem;margin-top:20px;">Curve parameters: WHO Child Growth Standards (2006) and the 2007 head circumference release. This tool computes a position on a reference curve and is not medical advice; your pediatrician reads the trend and the child, not a single number.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    
+// WHO Child Growth Standards LMS parameters (2006, head circumference 2007).
+// WFA_*: d = days 0..61, snap-to-exact-day for age < 2 mo; w = months 2..24 step 0.25 mo (89 pts).
+// LFA_*/HCA_*: months 0..24 (26 pts), linear interp. WFL_*: integer cm 45..110 (66 pts), linear interp.
+// Source: WHO expanded daily tables, sex 1=boys 2=girls. Point format: [L, M, S].
+var WHO_LMS={
+WFA_B:{d:[[0.3487,3.3464,0.146],[0.3127,3.3174,0.1469],[0.3029,3.337,0.1468],[0.2959,3.3627,0.1465],[0.2903,3.3915,0.1461],[0.2855,3.4223,0.1457],[0.2813,3.4545,0.1453],[0.2776,3.4879,0.1448],[0.2742,3.5222,0.1444],[0.2711,3.5576,0.1439],[0.2681,3.5941,0.1434],[0.2654,3.6319,0.1429],[0.2628,3.671,0.1424],[0.2604,3.7113,0.1419],[0.2581,3.7529,0.1414],[0.2558,3.7956,0.1409],[0.2537,3.8389,0.1404],[0.2517,3.8828,0.14],[0.2497,3.927,0.1395],[0.2478,3.9714,0.139],[0.246,4.0158,0.1385],[0.2442,4.0603,0.1381],[0.2425,4.1046,0.1376],[0.2408,4.1489,0.1372],[0.2392,4.193,0.1367],[0.2376,4.2369,0.1363],[0.2361,4.2806,0.1358],[0.2346,4.324,0.1354],[0.2331,4.3671,0.135],[0.2317,4.41,0.1346],[0.2303,4.4525,0.1341],[0.229,4.4946,0.1337],[0.2276,4.5363,0.1333],[0.2263,4.5776,0.1329],[0.225,4.6185,0.1325],[0.2237,4.659,0.1322],[0.2225,4.699,0.1318],[0.2213,4.7386,0.1314],[0.2201,4.7778,0.131],[0.2189,4.8166,0.1307],[0.2178,4.8549,0.1303],[0.2166,4.8928,0.1299],[0.2155,4.9303,0.1296],[0.2144,4.9674,0.1293],[0.2133,5.0041,0.1289],[0.2122,5.0404,0.1286],[0.2112,5.0763,0.1283],[0.2101,5.1118,0.1279],[0.2091,5.1469,0.1276],[0.2081,5.1817,0.1273],[0.2071,5.2161,0.127],[0.2061,5.2501,0.1267],[0.2052,5.2837,0.1264],[0.2042,5.3171,0.1261],[0.2032,5.35,0.1258],[0.2023,5.3826,0.1255],[0.2014,5.4149,0.1252],[0.2005,5.4468,0.1249],[0.1996,5.4784,0.1246],[0.1987,5.5097,0.1244],[0.1978,5.5407,0.1241],[0.1969,5.5714,0.1238]],w:[[0.1969,5.5714,0.1238],[0.191,5.7781,0.1221],[0.1847,5.9979,0.1202],[0.1789,6.2019,0.1186],[0.174,6.369,0.1173],[0.1688,6.5483,0.116],[0.1638,6.7166,0.1149],[0.1597,6.8559,0.114],[0.1551,7.0069,0.1131],[0.1513,7.1325,0.1125],[0.1471,7.2692,0.1118],[0.1431,7.3992,0.1112],[0.1396,7.5077,0.1108],[0.1358,7.6262,0.1104],[0.1326,7.7255,0.1101],[0.129,7.8344,0.1098],[0.1256,7.9389,0.1096],[0.1226,8.0269,0.1094],[0.1193,8.1239,0.1092],[0.1165,8.2058,0.1091],[0.1134,8.2963,0.109],[0.1103,8.3837,0.1089],[0.1077,8.4578,0.1089],[0.1048,8.5401,0.1089],[0.1019,8.62,0.1088],[0.0994,8.6882,0.1088],[0.0967,8.7642,0.1088],[0.0943,8.8292,0.1088],[0.0917,8.9019,0.1088],[0.0891,8.9731,0.1088],[0.0868,9.0342,0.1089],[0.0843,9.1028,0.1089],[0.0821,9.1618,0.1089],[0.0797,9.2282,0.1089],[0.0773,9.2935,0.109],[0.0752,9.3499,0.109],[0.0729,9.4136,0.1091],[0.0709,9.4687,0.1091],[0.0686,9.531,0.1092],[0.0664,9.5926,0.1092],[0.0645,9.646,0.1093],[0.0623,9.7064,0.1093],[0.0605,9.7588,0.1094],[0.0583,9.8183,0.1094],[0.0563,9.8772,0.1095],[0.0545,9.9284,0.1096],[0.0524,9.9865,0.1096],[0.0504,10.0442,0.1097],[0.0487,10.0944,0.1098],[0.0467,10.1515,0.1098],[0.045,10.2011,0.1099],[0.0431,10.2576,0.11],[0.0412,10.3139,0.1101],[0.0396,10.3629,0.1102],[0.0377,10.4187,0.1102],[0.0361,10.4674,0.1103],[0.0343,10.5228,0.1104],[0.0325,10.578,0.1105],[0.0309,10.6262,0.1106],[0.0292,10.6811,0.1107],[0.0276,10.7289,0.1108],[0.0259,10.7835,0.1109],[0.0242,10.8378,0.111],[0.0227,10.8852,0.1111],[0.021,10.9393,0.1112],[0.0196,10.9865,0.1113],[0.0179,11.0403,0.1114],[0.0163,11.094,0.1115],[0.0149,11.1409,0.1116],[0.0132,11.1944,0.1118],[0.0116,11.2478,0.1119],[0.0103,11.2945,0.112],[0.0087,11.3478,0.1121],[0.0073,11.3945,0.1122],[0.0058,11.4477,0.1124],[0.0043,11.5009,0.1125],[0.0029,11.5474,0.1126],[0.0014,11.6005,0.1128],[0.0001,11.6469,0.1129],[-0.0014,11.6999,0.113],[-0.0029,11.7528,0.1132],[-0.0041,11.7991,0.1133],[-0.0056,11.852,0.1134],[-0.0069,11.8982,0.1135],[-0.0083,11.951,0.1137],[-0.0097,12.0037,0.1138],[-0.011,12.0497,0.114],[-0.0124,12.1023,0.1141],[-0.0137,12.1548,0.1143]]},
+WFA_G:{d:[[0.3809,3.2322,0.1417],[0.3259,3.1957,0.1458],[0.3101,3.2104,0.1464],[0.2986,3.2315,0.1466],[0.2891,3.2558,0.1466],[0.281,3.2821,0.1465],[0.2737,3.3099,0.1463],[0.2671,3.3388,0.146],[0.2609,3.3687,0.1457],[0.2551,3.3995,0.1453],[0.2497,3.4314,0.145],[0.2446,3.4643,0.1446],[0.2397,3.4983,0.1442],[0.2349,3.5333,0.1438],[0.2304,3.5693,0.1434],[0.226,3.6063,0.143],[0.2218,3.6438,0.1426],[0.2177,3.6818,0.1422],[0.2137,3.7201,0.1418],[0.2099,3.7584,0.1414],[0.2061,3.7968,0.141],[0.2024,3.8352,0.1406],[0.1989,3.8735,0.1402],[0.1954,3.9116,0.1398],[0.1919,3.9495,0.1395],[0.1886,3.9872,0.1391],[0.1853,4.0247,0.1388],[0.1821,4.0618,0.1384],[0.1789,4.0987,0.1381],[0.1758,4.1353,0.1377],[0.1727,4.1716,0.1374],[0.1697,4.2075,0.1371],[0.1668,4.2431,0.1367],[0.1638,4.2783,0.1364],[0.161,4.3131,0.1361],[0.1582,4.3476,0.1358],[0.1554,4.3818,0.1355],[0.1526,4.4155,0.1353],[0.1499,4.449,0.135],[0.1473,4.482,0.1347],[0.1446,4.5148,0.1344],[0.142,4.5472,0.1342],[0.1395,4.5793,0.1339],[0.1369,4.611,0.1337],[0.1344,4.6425,0.1334],[0.132,4.6736,0.1332],[0.1295,4.7044,0.133],[0.1271,4.7349,0.1327],[0.1247,4.7651,0.1325],[0.1224,4.795,0.1323],[0.12,4.8245,0.1321],[0.1177,4.8538,0.1319],[0.1154,4.8828,0.1317],[0.1132,4.9115,0.1315],[0.1109,4.9399,0.1313],[0.1087,4.968,0.1311],[0.1065,4.9959,0.1309],[0.1044,5.0235,0.1307],[0.1022,5.0509,0.1305],[0.1001,5.078,0.1303],[0.098,5.1049,0.1301],[0.0959,5.1315,0.13]],w:[[0.0959,5.1315,0.13],[0.0818,5.3121,0.1289],[0.0667,5.5061,0.1278],[0.0525,5.6883,0.1269],[0.0407,5.8393,0.1262],[0.0279,6.0031,0.1255],[0.0158,6.1582,0.1249],[0.0057,6.2874,0.1245],[-0.0053,6.428,0.124],[-0.0146,6.5452,0.1237],[-0.0248,6.6729,0.1233],[-0.0345,6.7944,0.123],[-0.0428,6.8959,0.1227],[-0.0518,7.007,0.1225],[-0.0594,7.1003,0.1223],[-0.0678,7.2029,0.1222],[-0.0759,7.3016,0.122],[-0.0828,7.3849,0.122],[-0.0904,7.477,0.1219],[-0.0968,7.5551,0.1218],[-0.1039,7.6416,0.1218],[-0.1107,7.7254,0.1218],[-0.1165,7.7968,0.1218],[-0.1229,7.8762,0.1218],[-0.1292,7.9534,0.1218],[-0.1344,8.0193,0.1218],[-0.1403,8.0928,0.1219],[-0.1452,8.1557,0.1219],[-0.1507,8.2259,0.122],[-0.1561,8.2946,0.1221],[-0.1606,8.3536,0.1221],[-0.1656,8.4199,0.1222],[-0.1698,8.4769,0.1222],[-0.1745,8.5411,0.1223],[-0.1791,8.6044,0.1224],[-0.183,8.659,0.1224],[-0.1873,8.7207,0.1225],[-0.1909,8.774,0.1225],[-0.195,8.8344,0.1226],[-0.1989,8.8943,0.1226],[-0.2022,8.9462,0.1227],[-0.2059,9.0051,0.1227],[-0.2091,9.0563,0.1228],[-0.2126,9.1144,0.1228],[-0.216,9.1722,0.1228],[-0.2188,9.2225,0.1229],[-0.222,9.2796,0.1229],[-0.2251,9.3365,0.1229],[-0.2277,9.3861,0.1229],[-0.2307,9.4426,0.123],[-0.2331,9.4918,0.123],[-0.2359,9.5479,0.123],[-0.2385,9.6038,0.123],[-0.2408,9.6526,0.123],[-0.2433,9.7083,0.123],[-0.2455,9.7569,0.123],[-0.2478,9.8124,0.123],[-0.2501,9.8677,0.123],[-0.2521,9.9161,0.123],[-0.2543,9.9713,0.1231],[-0.2561,10.0196,0.1231],[-0.2582,10.0746,0.1231],[-0.2601,10.1296,0.1231],[-0.2618,10.1776,0.1231],[-0.2637,10.2324,0.1231],[-0.2653,10.2803,0.1231],[-0.2671,10.3349,0.1231],[-0.2688,10.3895,0.1231],[-0.2702,10.4372,0.1232],[-0.2719,10.4917,0.1232],[-0.2734,10.5461,0.1232],[-0.2748,10.5937,0.1232],[-0.2763,10.6481,0.1232],[-0.2775,10.6957,0.1233],[-0.2789,10.7501,0.1233],[-0.2803,10.8045,0.1233],[-0.2814,10.8521,0.1234],[-0.2827,10.9065,0.1234],[-0.2838,10.9542,0.1234],[-0.285,11.0088,0.1235],[-0.2862,11.0633,0.1235],[-0.2872,11.1111,0.1236],[-0.2883,11.1658,0.1236],[-0.2893,11.2137,0.1236],[-0.2903,11.2684,0.1237],[-0.2914,11.3232,0.1237],[-0.2922,11.3712,0.1238],[-0.2932,11.426,0.1238],[-0.2942,11.4809,0.1239]]},
+LFA_B:[[1,49.8842,0.038],[1,54.6645,0.0356],[1,58.4384,0.0342],[1,61.4013,0.0333],[1,63.9041,0.0326],[1,65.8912,0.032],[1,67.6435,0.0317],[1,69.1615,0.0314],[1,70.6224,0.0312],[1,71.9714,0.0312],[1,73.2653,0.0312],[1,74.5464,0.0313],[1,75.7391,0.0314],[1,76.9304,0.0315],[1,78.0451,0.0317],[1,79.1613,0.032],[1,80.2113,0.0322],[1,81.234,0.0325],[1,82.2628,0.0328],[1,83.2318,0.0331],[1,84.2074,0.0334],[1,85.1291,0.0338],[1,86.0589,0.0341],[1,86.9392,0.0345],[1,87.1303,0.0351]],
+LFA_G:[[1,49.1477,0.0379],[1,53.6326,0.0364],[1,57.0796,0.0357],[1,59.7773,0.0352],[1,62.1071,0.0349],[1,64.019,0.0346],[1,65.751,0.0345],[1,67.2842,0.0344],[1,68.7732,0.0344],[1,70.1463,0.0344],[1,71.4656,0.0345],[1,72.7788,0.0346],[1,74.0049,0.0348],[1,75.2297,0.035],[1,76.377,0.0351],[1,77.5258,0.0353],[1,78.6055,0.0356],[1,79.6559,0.0358],[1,80.7121,0.036],[1,81.708,0.0362],[1,82.7116,0.0364],[1,83.6595,0.0367],[1,84.6154,0.0369],[1,85.5184,0.0371],[1,85.7299,0.0376]],
+HCA_B:[[1,34.4618,0.0369],[1,37.2435,0.0314],[1,39.1349,0.03],[1,40.5008,0.0292],[1,41.6401,0.0287],[1,42.5524,0.0284],[1,43.3393,0.0282],[1,43.9791,0.028],[1,44.5384,0.028],[1,45.0007,0.0279],[1,45.4004,0.0279],[1,45.7593,0.0279],[1,46.0637,0.0279],[1,46.3421,0.0279],[1,46.5834,0.0279],[1,46.809,0.0279],[1,47.0088,0.028],[1,47.1936,0.028],[1,47.3718,0.028],[1,47.5341,0.028],[1,47.6931,0.0281],[1,47.8399,0.0281],[1,47.985,0.0281],[1,48.1198,0.0282],[1,48.2536,0.0282]],
+HCA_G:[[1,33.8787,0.035],[1,36.5163,0.0321],[1,38.258,0.0317],[1,39.521,0.0314],[1,40.5895,0.0312],[1,41.454,0.031],[1,42.2079,0.0309],[1,42.8278,0.0308],[1,43.3753,0.0306],[1,43.8309,0.0305],[1,44.2273,0.0304],[1,44.5865,0.0304],[1,44.894,0.0303],[1,45.1779,0.0302],[1,45.4255,0.0301],[1,45.6582,0.0301],[1,45.865,0.03],[1,46.0571,0.0299],[1,46.2431,0.0299],[1,46.4135,0.0298],[1,46.5814,0.0298],[1,46.7375,0.0297],[1,46.8931,0.0297],[1,47.0388,0.0296],[1,47.1845,0.0296]],
+WFL_B:[[-0.3521,2.441,0.0918],[-0.3521,2.6077,0.0912],[-0.3521,2.7755,0.0907],[-0.3521,2.948,0.0901],[-0.3521,3.1308,0.0895],[-0.3521,3.3278,0.0889],[-0.3521,3.5376,0.0883],[-0.3521,3.762,0.0877],[-0.3521,4.006,0.0871],[-0.3521,4.2693,0.0865],[-0.3521,4.5467,0.0859],[-0.3521,4.8338,0.0854],[-0.3521,5.1259,0.0848],[-0.3521,5.418,0.0843],[-0.3521,5.7074,0.0838],[-0.3521,5.9907,0.0834],[-0.3521,6.2632,0.0831],[-0.3521,6.5251,0.0828],[-0.3521,6.7786,0.0826],[-0.3521,7.0255,0.0824],[-0.3521,7.2666,0.0822],[-0.3521,7.5034,0.0822],[-0.3521,7.737,0.0821],[-0.3521,7.9674,0.0821],[-0.3521,8.1955,0.0822],[-0.3521,8.4227,0.0823],[-0.3521,8.648,0.0824],[-0.3521,8.8697,0.0825],[-0.3521,9.0865,0.0827],[-0.3521,9.2974,0.0828],[-0.3521,9.5032,0.083],[-0.3521,9.7033,0.0831],[-0.3521,9.8963,0.0831],[-0.3521,10.0827,0.0832],[-0.3521,10.2649,0.0832],[-0.3521,10.4475,0.0831],[-0.3521,10.6352,0.0829],[-0.3521,10.8321,0.0827],[-0.3521,11.0415,0.0825],[-0.3521,11.2651,0.0822],[-0.3521,11.5007,0.0818],[-0.3521,11.7444,0.0815],[-0.3521,11.9916,0.0811],[-0.3521,12.2382,0.0808],[-0.3521,12.4815,0.0806],[-0.3521,12.7209,0.0804],[-0.3521,12.9569,0.0803],[-0.3521,13.191,0.0803],[-0.3521,13.4239,0.0803],[-0.3521,13.6572,0.0803],[-0.3521,13.8928,0.0805],[-0.3521,14.1325,0.0807],[-0.3521,14.3782,0.0809],[-0.3521,14.6316,0.0812],[-0.3521,14.8934,0.0816],[-0.3521,15.1637,0.082],[-0.3521,15.4419,0.0824],[-0.3521,15.7276,0.0829],[-0.3521,16.0206,0.0834],[-0.3521,16.3204,0.084],[-0.3521,16.6268,0.0845],[-0.3521,16.9401,0.0851],[-0.3521,17.2607,0.0857],[-0.3521,17.5885,0.0863],[-0.3521,17.9242,0.0869],[-0.3521,18.2689,0.0876]],
+WFL_G:[[-0.3833,2.4607,0.0903],[-0.3833,2.6306,0.0904],[-0.3833,2.8007,0.0904],[-0.3833,2.9741,0.0905],[-0.3833,3.156,0.0906],[-0.3833,3.3518,0.0907],[-0.3833,3.5636,0.0908],[-0.3833,3.7911,0.0909],[-0.3833,4.0332,0.0909],[-0.3833,4.2875,0.091],[-0.3833,4.5498,0.0911],[-0.3833,4.8162,0.0912],[-0.3833,5.0837,0.0913],[-0.3833,5.3507,0.0913],[-0.3833,5.6151,0.0913],[-0.3833,5.8742,0.0914],[-0.3833,6.127,0.0914],[-0.3833,6.3738,0.0914],[-0.3833,6.6144,0.0913],[-0.3833,6.8501,0.0913],[-0.3833,7.0812,0.0912],[-0.3833,7.3076,0.0911],[-0.3833,7.5288,0.091],[-0.3833,7.7448,0.0909],[-0.3833,7.9559,0.0908],[-0.3833,8.163,0.0907],[-0.3833,8.3666,0.0906],[-0.3833,8.5679,0.0904],[-0.3833,8.7661,0.0903],[-0.3833,8.9601,0.0902],[-0.3833,9.149,0.0901],[-0.3833,9.3337,0.0899],[-0.3833,9.5166,0.0898],[-0.3833,9.7015,0.0896],[-0.3833,9.8915,0.0895],[-0.3833,10.0891,0.0894],[-0.3833,10.2965,0.0893],[-0.3833,10.514,0.0892],[-0.3833,10.741,0.0891],[-0.3833,10.9767,0.089],[-0.3833,11.2198,0.089],[-0.3833,11.4684,0.089],[-0.3833,11.7201,0.089],[-0.3833,11.972,0.089],[-0.3833,12.2229,0.089],[-0.3833,12.4723,0.0891],[-0.3833,12.7205,0.0891],[-0.3833,12.9681,0.0892],[-0.3833,13.2158,0.0893],[-0.3833,13.4643,0.0895],[-0.3833,13.7146,0.0896],[-0.3833,13.9676,0.0898],[-0.3833,14.2239,0.09],[-0.3833,14.4848,0.0902],[-0.3833,14.7519,0.0904],[-0.3833,15.0267,0.0907],[-0.3833,15.3108,0.091],[-0.3833,15.6046,0.0913],[-0.3833,15.9087,0.0916],[-0.3833,16.2229,0.0919],[-0.3833,16.547,0.0922],[-0.3833,16.8814,0.0925],[-0.3833,17.2269,0.0929],[-0.3833,17.5839,0.0933],[-0.3833,17.9526,0.0936],[-0.3833,18.3324,0.094]],
+};
+var WHO_WFL_MIN=45,WHO_WFL_MAX=110;
+
+    </script>
+    <script>
+        var bpcState = { metric: true, boy: true, last: null };
+
+        function bpcShowStatus(msg, type) {
+            var el = document.getElementById('bpc-status');
+            if (typeof showStatus === 'function') {
+                document.getElementById('bpc-status').style.display = '';
+                showStatus('bpc-status', msg, type);
+                return;
+            }
+            el.style.display = '';
+            el.textContent = msg;
+        }
+
+        function bpcInterp(arr, x, xmin, xmax, nostep) {
+            var step = nostep ? (xmax - xmin) / (arr.length - 1) : 1;
+            var f = (x - xmin) / step;
+            var i = Math.max(0, Math.min(arr.length - 2, Math.floor(f)));
+            var t = Math.max(0, Math.min(1, f - i));
+            return [
+                arr[i][0] + (arr[i + 1][0] - arr[i][0]) * t,
+                arr[i][1] + (arr[i + 1][1] - arr[i][1]) * t,
+                arr[i][2] + (arr[i + 1][2] - arr[i][2]) * t
+            ];
+        }
+
+        function bpcAgeLMS(key, mo) {
+            var t = WHO_LMS[key];
+            if (!t.d) return bpcInterp(t, mo, 0, 24, true);
+            var dx = mo * 30.4375;
+            if (dx < 62) return t.d[Math.max(0, Math.min(61, Math.round(dx)))];
+            return bpcInterp(t.w, (mo - 2) / 0.25, 0, 22, false);
+        }
+
+        function bpcZ(v, L, M, S) {
+            if (v <= 0 || M <= 0) return null;
+            var z = Math.abs(L) < 1e-6 ? Math.log(v / M) / S : (Math.pow(v / M, L) - 1) / (L * S);
+            return Math.max(-8, Math.min(8, z));
+        }
+
+        function bpcErf(x) {
+            var t = 1 / (1 + 0.3275911 * Math.abs(x));
+            var y = 1 - t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429)))) * Math.exp(-x * x);
+            return x >= 0 ? y : -y;
+        }
+
+        function bpcPct(z) {
+            return 100 * 0.5 * (1 + bpcErf(z / Math.SQRT2));
+        }
+
+        function bpcNum(id) {
+            var s = document.getElementById(id).value;
+            if (s === '' || s === null) return null;
+            var v = parseFloat(s);
+            return isFinite(v) ? v : null;
+        }
+
+        function bpcAgeMonths() {
+            var cal = bpcNum('bpc-age');
+            if (cal === null) return null;
+            var ga = parseInt(document.getElementById('bpc-ga').value, 10) || 40;
+            var corr = (40 - ga) * 7 / 30.4375;
+            return Math.max(0, Math.min(24, cal - corr));
+        }
+
+        var bpcMet = {};
+        function bpcSetUnits(metric) {
+            bpcState.metric = metric;
+            document.getElementById('bpc-unit-metric').setAttribute('aria-pressed', metric ? 'true' : 'false');
+            document.getElementById('bpc-unit-imperial').setAttribute('aria-pressed', metric ? 'false' : 'true');
+            document.getElementById('bpc-w-unit').textContent = metric ? 'kg' : 'lb';
+            document.getElementById('bpc-l-unit').textContent = metric ? 'cm' : 'in';
+            document.getElementById('bpc-h-unit').textContent = metric ? 'cm' : 'in';
+            document.getElementById('bpc-weight').placeholder = metric ? 'e.g. 7.9' : 'e.g. 17.4';
+            document.getElementById('bpc-length').placeholder = metric ? 'e.g. 67.6' : 'e.g. 26.6';
+            document.getElementById('bpc-head').placeholder = metric ? 'e.g. 43.0' : 'e.g. 16.9';
+        }
+
+        function bpcSetSex(boy) {
+            bpcState.boy = boy;
+            document.getElementById('bpc-sex-boy').setAttribute('aria-pressed', boy ? 'true' : 'false');
+            document.getElementById('bpc-sex-girl').setAttribute('aria-pressed', boy ? 'false' : 'true');
+        }
+
+        function bpcToggle(btnId, fn, arg) {
+            document.getElementById(btnId).addEventListener('click', function () { fn(arg); bpcClearResults(); });
+        }
+
+        function bpcClearResults() {
+            var p = document.getElementById('bpc-result-panel');
+            p.style.display = 'none';
+            document.getElementById('bpc-results').innerHTML = '';
+        }
+
+        function bpcRound(v, d) {
+            var m = Math.pow(10, d);
+            return Math.round((v + Number.EPSILON) * m) / m;
+        }
+
+        function bpcFmtPct(p) {
+            if (p <= 0.05) return '<0.1%';
+            if (p >= 99.95) return '>99.9%';
+            return bpcRound(p, 1) + '%';
+        }
+
+        function bpcCalc() {
+            var ageCal = bpcNum('bpc-age');
+            if (ageCal === null) { bpcShowStatus('Enter your baby\'s age in months (0 to 24).', 'error'); return; }
+            if (ageCal < 0 || ageCal > 24) { bpcShowStatus('This calculator covers 0 to 24 months. Older children use the CDC charts, from age 2.', 'error'); return; }
+            var age = bpcAgeMonths();
+
+            var wRaw = bpcNum('bpc-weight'), lRaw = bpcNum('bpc-length'), hRaw = bpcNum('bpc-head');
+            if (wRaw === null && lRaw === null && hRaw === null) { bpcShowStatus('Enter at least one measurement: weight, length or head circumference.', 'error'); return; }
+            // BUG-399: the bounds and the messages were metric-only, so a visitor who switched the
+            // unit toggle to imperial was told to "enter the weight in kilograms" and had a valid
+            // 40 lb (18 kg) baby rejected against the 30 kg ceiling. The range follows the unit
+            // the visitor actually selected.
+            var bpcMetric = bpcState.metric;
+            var wMax = bpcMetric ? 30 : 30 / 0.45359237;   // 30 kg  = 66.1 lb
+            var lMax = bpcMetric ? 130 : 130 / 2.54;        // 130 cm = 51.2 in
+            var hMax = bpcMetric ? 75 : 75 / 2.54;          // 75 cm  = 29.5 in
+            var wUnit = bpcMetric ? 'kilograms' : 'pounds';
+            var lUnit = bpcMetric ? 'centimetres' : 'inches';
+            if (wRaw !== null && (wRaw <= 0 || wRaw > wMax)) { bpcShowStatus('Weight looks out of range. Enter the weight in ' + wUnit + '.', 'error'); return; }
+            if (lRaw !== null && (lRaw <= 0 || lRaw > lMax)) { bpcShowStatus('Length looks out of range. Enter recumbent length in ' + lUnit + '.', 'error'); return; }
+            if (hRaw !== null && (hRaw <= 0 || hRaw > hMax)) { bpcShowStatus('Head circumference looks out of range. Enter it in ' + lUnit + '.', 'error'); return; }
+
+            var w = wRaw === null ? null : (bpcState.metric ? wRaw : wRaw * 0.45359237);
+            var l = lRaw === null ? null : (bpcState.metric ? lRaw : lRaw * 2.54);
+            var h = hRaw === null ? null : (bpcState.metric ? hRaw : hRaw * 2.54);
+
+            var sex = bpcState.boy ? 'B' : 'G';
+            bpcMet = {};
+            var rows = [];
+            function row(label, key, tableKey, val, axisNote) {
+                var lms = axisNote.wfl ? bpcInterp(WHO_LMS[tableKey], axisNote.axisVal, WHO_WFL_MIN, WHO_WFL_MAX, false) : bpcAgeLMS(tableKey, axisNote.axisVal);
+                var z = bpcZ(val, lms[0], lms[1], lms[2]);
+                if (z === null) return null;
+                var p = bpcPct(z);
+                bpcMet[key] = { val: val, pct: p, z: z, lms: lms, _age: age };
+                return { label: label, pct: p, z: z, val: val, key: key };
+            }
+            var monthNote = { axisVal: age, axisMin: 0, axisMax: 24, frac: true };
+            if (w !== null) {
+                var r = row('Weight-for-age', 'weight', 'WFA_' + sex, w, monthNote);
+                if (r) rows.push(r);
+            }
+            if (l !== null) {
+                var r2 = row('Length-for-age', 'length', 'LFA_' + sex, l, monthNote);
+                if (r2) rows.push(r2);
+            }
+            if (h !== null) {
+                var r3 = row('Head circumference-for-age', 'head', 'HCA_' + sex, h, monthNote);
+                if (r3) rows.push(r3);
+            }
+            if (w !== null && l !== null && l >= WHO_WFL_MIN && l <= WHO_WFL_MAX) {
+                var r4 = row('Weight-for-length', 'wfl', 'WFL_' + sex, w, { axisVal: l, axisMin: WHO_WFL_MIN, axisMax: WHO_WFL_MAX, frac: true, wfl: true });
+                if (r4) rows.push(r4);
+            }
+            if (!rows.length) { bpcShowStatus('No result could be computed. Check the entered values.', 'error'); return; }
+
+            var out = document.getElementById('bpc-results');
+            var html = '';
+            for (var i = 0; i < rows.length; i++) {
+                var rw = rows[i];
+                var valTxt = bpcRound(bpcState.metric ? rw.val : (rw.key === 'weight' ? rw.val / 0.45359237 : rw.val / 2.54), rw.key === 'weight' ? 2 : 1);
+                var u = rw.key === 'weight' ? (bpcState.metric ? 'kg' : 'lb') : (bpcState.metric ? 'cm' : 'in');
+                html += '<div class="bpc-result-row" data-testid="result-' + rw.key + '">'
+                    + '<span class="bpc-measure">' + rw.label + ': ' + valTxt + ' ' + u + '</span>'
+                    + '<span class="bpc-val">' + bpcFmtPct(rw.pct) + ' &middot; z ' + (rw.z >= 0 ? '+' : '') + bpcRound(rw.z, 2) + '</span>'
+                    + '</div>';
+            }
+            out.innerHTML = html;
+            document.getElementById('bpc-result-panel').style.display = '';
+            document.getElementById('bpc-status').style.display = 'none';
+
+            bpcState.last = { sex: sex, age: age, rows: rows };
+            bpcBuildChartSelect(rows);
+            bpcDrawChart();
+        }
+
+        function bpcChartRows() {
+            var sel = document.getElementById('bpc-chart-metric');
+            if (!sel || !sel.value || !bpcMet[sel.value]) return null;
+            return sel.value;
+        }
+
+        function bpcBuildChartSelect(rows) {
+            var sel = document.getElementById('bpc-chart-metric');
+            var opts = '';
+            var names = { weight: 'Weight-for-age', length: 'Length-for-age', head: 'Head circumference-for-age' };
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].key === 'wfl') continue;
+                if (names[rows[i].key]) opts += '<option value="' + rows[i].key + '">' + names[rows[i].key] + '</option>';
+            }
+            sel.innerHTML = opts;
+            var wrap = document.getElementById('bpc-chart-wrap');
+            wrap.style.display = opts ? '' : 'none';
+            sel.removeEventListener('change', bpcOnChange);
+            sel.addEventListener('change', bpcOnChange);
+        }
+        function bpcOnChange() { bpcDrawChart(); }
+
+        function bpcDrawChart() {
+            var key = bpcChartRows();
+            if (!key) return;
+            var sex = bpcState.boy ? 'B' : 'G';
+            var tKey = { weight: 'WFA_', length: 'LFA_', head: 'HCA_' }[key] + sex;
+            var arr = WHO_LMS[tKey];
+            var cv = document.getElementById('bpc-chart');
+            var dpr = window.devicePixelRatio || 1;
+            var W = cv.clientWidth || 600, H = 300;
+            cv.width = W * dpr; cv.height = H * dpr;
+            var ctx = cv.getContext('2d');
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, W, H);
+
+            var pad = { l: 52, r: 14, t: 12, b: 30 };
+            // y range from percentile curves
+            var yVals = [];
+            var per = [0.03, 0.15, 0.5, 0.85, 0.97];
+            for (var m = 0; m <= 24; m += 1) {
+                var lms = bpcAgeLMS(tKey, m);
+                for (var k = 0; k < per.length; k++) yVals.push(bpcLmsValue(lms[0], lms[1], lms[2], bpcInvNorm(per[k])));
+            }
+            yVals.push(bpcMet[key].val);
+            var yMin = Math.min.apply(null, yVals), yMax = Math.max.apply(null, yVals);
+            var padY = (yMax - yMin) * 0.05 || 1;
+            yMin -= padY; yMax += padY;
+
+            function X(mo) { return pad.l + (W - pad.l - pad.r) * (mo / 24); }
+            function Y(v) { return pad.t + (H - pad.t - pad.b) * (1 - (v - yMin) / (yMax - yMin)); }
+
+            // axes
+            ctx.strokeStyle = '#2a2a4a'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, H - pad.b); ctx.lineTo(W - pad.r, H - pad.b); ctx.stroke();
+            ctx.fillStyle = '#8888a0'; ctx.font = '11px sans-serif';
+            for (var mo = 0; mo <= 24; mo += 3) ctx.fillText(mo, X(mo) - 4, H - pad.b + 14);
+            var lbls = 4;
+            for (var g = 0; g <= lbls; g++) {
+                var v = yMin + (yMax - yMin) * g / lbls;
+                ctx.fillText(bpcRound(v, 1), 8, Y(v) + 4);
+            }
+
+            // percentile curves
+            var styles = [
+                { c: '#4a4a6a', d: [5, 4], w: 1.2 },
+                { c: '#5a6ad0', d: [5, 4], w: 1.2 },
+                { c: '#a0b8ff', d: [], w: 2.2 },
+                { c: '#5a6ad0', d: [5, 4], w: 1.2 },
+                { c: '#4a4a6a', d: [5, 4], w: 1.2 }
+            ];
+            for (var pi = 0; pi < per.length; pi++) {
+                ctx.beginPath();
+                ctx.setLineDash(styles[pi].d);
+                ctx.lineWidth = styles[pi].w;
+                ctx.strokeStyle = styles[pi].c;
+                for (var mm = 0; mm <= 240; mm++) {
+                    var m2 = mm / 10;
+                    var p2 = bpcAgeLMS(tKey, m2);
+                    var v2 = bpcLmsValue(p2[0], p2[1], p2[2], bpcInvNorm(per[pi]));
+                    var x = X(m2), y = Y(v2);
+                    if (mm === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            // entered point
+            var pv = bpcMet[key];
+            var ax = X(pv._age);
+            var ay = Y(pv.val);
+            ctx.beginPath();
+            ctx.arc(ax, ay, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1.5; ctx.stroke();
+        }
+
+        function bpcLmsValue(L, M, S, z) {
+            if (Math.abs(L) < 1e-6) return M * Math.exp(S * z);
+            var t = 1 + L * S * z;
+            if (t <= 0) return M;
+            return M * Math.pow(t, 1 / L);
+        }
+
+        function bpcInvNorm(p) {
+            // Acklam's inverse normal CDF approximation
+            var a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+            var b = [-5.447609880812971e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+            var c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400757277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+            var d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+            var pl = 0.02425;
+            if (p < pl) {
+                var q1 = Math.sqrt(-2 * Math.log(p));
+                return (((((c[0] * q1 + c[1]) * q1 + c[2]) * q1 + c[3]) * q1 + c[4]) * q1 + c[5]) / ((((d[0] * q1 + d[1]) * q1 + d[2]) * q1 + d[3]) * q1 + 1);
+            }
+            if (p <= 1 - pl) {
+                var q2 = p - 0.5, r2 = q2 * q2;
+                return (((((a[0] * r2 + a[1]) * r2 + a[2]) * r2 + a[3]) * r2 + a[4]) * r2 + a[5]) * q2 / (((((b[0] * r2 + b[1]) * r2 + b[2]) * r2 + b[3]) * r2 + b[4]) * r2 + 1);
+            }
+            var q3 = Math.sqrt(-2 * Math.log(1 - p));
+            return -(((((c[0] * q3 + c[1]) * q3 + c[2]) * q3 + c[3]) * q3 + c[4]) * q3 + c[5]) / ((((d[0] * q3 + d[1]) * q3 + d[2]) * q3 + d[3]) * q3 + 1);
+        }
+
+        function bpcCopySummary() {
+            var rows = document.querySelectorAll('.bpc-result-row .bpc-measure');
+            var vals = document.querySelectorAll('.bpc-result-row .bpc-val');
+            if (!rows.length) { bpcShowStatus('Calculate first, then copy.', 'error'); return; }
+            var sex = bpcState.boy ? 'Boy' : 'Girl';
+            var lines = ['Baby percentile summary (WHO, sex: ' + sex + ', age ' + bpcRound(bpcState.last.age, 2) + ' months' + (bpcState.last.age < bpcNum('bpc-age') ? ', corrected age' : '') + ')'];
+            for (var i = 0; i < rows.length; i++) {
+                lines.push(rows[i].textContent.trim() + ': ' + vals[i].textContent.trim());
+            }
+            lines.push('Source: https://tools.scoreroute.com/tools/baby-percentile-calculator/');
+            var text = lines.join('\n');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () { bpcShowStatus('Summary copied to clipboard.', 'ok'); }, function () { bpcFallbackCopy(text); });
+            } else {
+                bpcFallbackCopy(text);
+            }
+        }
+        function bpcFallbackCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); bpcShowStatus('Summary copied to clipboard.', 'ok'); } catch (e) { bpcShowStatus('Copy failed. Select the text manually.', 'error'); }
+            document.body.removeChild(ta);
+        }
+
+        function bpcClear() {
+            document.getElementById('bpc-weight').value = '';
+            document.getElementById('bpc-length').value = '';
+            document.getElementById('bpc-head').value = '';
+            bpcClearResults();
+            document.getElementById('bpc-status').style.display = 'none';
+        }
+
+        bpcToggle('bpc-unit-metric', bpcSetUnits, true);
+        bpcToggle('bpc-unit-imperial', bpcSetUnits, false);
+        bpcToggle('bpc-sex-boy', bpcSetSex, true);
+        bpcToggle('bpc-sex-girl', bpcSetSex, false);
+        // BUG-399: the selected member is painted by `.bpc-toggle-group button[aria-pressed="true"]`,
+        // but the attribute was only ever set by a CLICK — so on load nothing was announced and
+        // nothing was painted (both buttons looked identical while the tool was already in
+        // Metric/Boy). Sync the DOM to the state the tool starts in.
+        bpcSetUnits(true);
+        bpcSetSex(true);
+        document.getElementById('bpc-calc').addEventListener('click', bpcCalc);
+        document.getElementById('bpc-clear').addEventListener('click', bpcClear);
+        document.getElementById('bpc-copy').addEventListener('click', bpcCopySummary);
+    </script>
+</body>
+</html>

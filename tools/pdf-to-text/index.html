@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Text Extractor - Free Online PDF Text Reader</title>
+    <meta name="description" content="Free PDF to text extractor. Pull plain text from any PDF in your browser using pdf.js. No upload, no signup, 100% private. Copy or download results.">
+    <meta name="keywords" content="pdf to text,pdf text extractor,pdf to plain text,extract text from pdf,pdf reader online,free pdf text,pdf content extractor,no upload">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/pdf-to-text/">
+    <meta property="og:title" content="PDF to Text Extractor - Free Online PDF Text Reader | DevTools Hub">
+    <meta property="og:description" content="Extract plain text from any PDF instantly in your browser. No upload, no signup, 100% private. Copy or download the result.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/pdf-to-text/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PDF to Text Extractor - Free Online PDF Text Reader">
+    <meta name="twitter:description" content="Extract plain text from any PDF in your browser. No upload, no signup.">
+    <meta name="twitter:image" content="/og-image.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-11-03",
+        "dateModified": "2026-11-03",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "PDF to Text Extractor - Free Online PDF Text Reader",
+        "description": "Extract plain text from any PDF file directly in your browser. Uses Mozilla's pdf.js to parse PDF structure and read all text objects. No upload, no signup, 100% private. Copy or download the extracted text as a .txt file.",
+        "url": "https://tools.scoreroute.com/tools/pdf-to-text/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires modern browser with WebAssembly support for pdf.js",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": [
+            "Extract text from any PDF in your browser",
+            "No upload required - 100% client-side processing",
+            "Copy extracted text to clipboard",
+            "Download as .txt file",
+            "Supports password-protected PDFs (shows error if locked)",
+            "Works offline after first load"
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+        {"@type":"Question","name":"Is my PDF uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. The entire extraction runs inside your browser using Mozilla pdf.js. The PDF file is read via the File API, parsed locally, and text is extracted without any network request. You can confirm this by opening DevTools Network tab before clicking Extract — zero requests will appear."}},
+        {"@type":"Question","name":"Can this extract text from scanned PDFs?","acceptedAnswer":{"@type":"Answer","text":"No. Scanned PDFs contain only images, not text objects. For scanned documents, use our PDF OCR tool which runs Tesseract.js in the browser to recognize text from images. This tool works with PDFs that have embedded text (most Word-exported PDFs, born-digital PDFs)."}},
+        {"@type":"Question","name":"Why can't AI chatbots extract text from my PDF?","acceptedAnswer":{"@type":"Answer","text":"AI chatbots process text tokens, not PDF binary files. When you upload a PDF to a chatbot, it cannot read the embedded text layer because it does not have a PDF parser. Some chatbots accept PDF uploads but then describe the content in prose rather than extracting structured text. To get clean extracted text, a tool needs to parse the PDF binary, walk the content stream, and collect every text object in reading order — exactly what pdf.js does in your browser."}},
+        {"@type":"Question","name":"What happens with password-protected PDFs?","acceptedAnswer":{"@type":"Answer","text":"If the PDF is encrypted, pdf.js will throw an error when trying to open it. The tool will display a clear error message asking you to unlock the PDF first. We do not ask for or store your password — it is processed entirely in your browser."}},
+        {"@type":"Question","name":"Is there a file size limit?","acceptedAnswer":{"@type":"Answer","text":"The practical limit depends on your device memory. PDFs up to about 100 MB work on most modern computers. Very large PDFs may take longer to process but the tool handles them entirely in-memory with no upload."}}
+    ]}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>PDF to Text Extractor</h1>
+            <p class="subtitle">Extract Plain Text from PDFs — 100% Browser-Based</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/">Tools</a> &gt; <span>PDF to Text</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Extract Text from PDF</h2>
+                <div id="drop-zone" class="drop-zone" aria-label="Drop PDF file here or click to browse">
+                    <p id="drop-text">Drop a PDF file here, or <label class="drop-label">click to browse<span class="sr-only">file picker</span></label></p>
+                    <input type="file" id="pdf-input" accept=".pdf,application/pdf" aria-label="Choose PDF file">
+                </div>
+                <div id="file-info" class="file-info" style="display:none;margin-bottom:16px;"></div>
+                <div class="btn-group">
+                    <button id="extract-btn" class="btn btn-primary" onclick="extractText()" disabled>Extract Text</button>
+                    <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+                </div>
+                <textarea id="text-output" readonly placeholder="Extracted text will appear here..." aria-label="Extracted text output"></textarea>
+                <div class="btn-group">
+                    <button class="copy-btn" onclick="copyToClipboard('text-output')">Copy to Clipboard</button>
+                    <button class="copy-btn" onclick="downloadText()">Download as .txt</button>
+                </div>
+                <div id="extract-status" class="status"></div>
+            </div>
+
+            <div class="info-section">
+                <h3>What is a PDF to Text Extractor?</h3>
+                <p>A PDF to text extractor pulls plain text content from PDF files without uploading them anywhere. PDFs store text in structured objects within the file — this tool reads those objects directly using Mozilla pdf.js and outputs them in reading order as clean text you can copy or save.</p>
+
+                <h3>How It Works</h3>
+                <p>When you select or drop a PDF, the browser reads the file via the File API. pdf.js parses the PDF binary, walks each page's content stream, and collects all text strings in the order they appear on the page. The results are concatenated and displayed in a text area. Nothing leaves your device.</p>
+
+                <h3>PDF to Text vs PDF OCR</h3>
+                <div class="example-box">
+                    <div class="example-item">
+                        <strong>PDF to Text (this tool)</strong>
+                        <span style="display: block; margin-top: 4px;">Works with PDFs that have embedded text — Word exports, generated reports, digital documents. Instant extraction, preserves original formatting order.</span>
+                    </div>
+                    <div class="example-item">
+                        <strong>PDF OCR (our other tool)</strong>
+                        <span style="display: block; margin-top: 4px;">Works with scanned PDFs that contain only images. Uses Tesseract.js to recognize characters from pixel data. Slower but necessary for paper documents.</span>
+                    </div>
+                </div>
+
+                <h3>Common Use Cases</h3>
+                <ul>
+                    <li><strong>Data extraction:</strong> Pull text from invoices, receipts, and forms for spreadsheet import</li>
+                    <li><strong>Content repurposing:</strong> Extract article text from PDF reports for editing or translation</li>
+                    <li><strong>Search and indexing:</strong> Get raw text from PDFs to build search indexes or run analysis</li>
+                    <li><strong>Accessibility:</strong> Extract text from PDFs to feed screen readers or text-to-speech tools</li>
+                    <li><strong>Migration:</strong> Convert legacy PDF content into editable documents or databases</li>
+                </ul>
+
+                <h3>Why Browser-Based Matters</h3>
+                <p>Online PDF text extractors on the internet typically require you to upload your file to their server. That means handing over potentially confidential documents — contracts, financial records, personal data — to an unknown service. Our tool processes everything locally. Your PDF never touches a network. Open the Network tab in DevTools and you will see zero upload requests.</p>
+                <p>This also means no daily limits, no account creation, and no waiting in a queue. Large PDFs process as fast as your device allows.</p>
+
+                <h3>Why AI Chatbots Cannot Replace This</h3>
+                <p>Large language models like ChatGPT, Claude, and Gemini process text tokens — they do not have PDF parsers built in. When a chatbot receives a PDF upload, it cannot read the embedded text layer because it lacks the machinery to decode PDF binary structure. Some vision-capable models can describe what they see in an image, but they cannot extract structured, machine-readable text from a PDF file. They output prose descriptions, not clean text you can copy and use. Our tool runs pdf.js — the same engine that powers PDF rendering in Firefox — inside your browser to do exactly what a human would do if they opened the file in a PDF reader and pressed Ctrl+A: select and copy every text object in order.</p>
+
+                <h3>Technical Details</h3>
+                <ul>
+                    <li><a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">pdf.js</a> — Mozilla's open-source PDF renderer that parses PDF structure and extracts text content</li>
+                    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/File_API" target="_blank" rel="noopener">File API</a> — browser standard for reading local files without uploading</li>
+                    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D" target="_blank" rel="noopener">Canvas API</a> — used internally by pdf.js for page rendering</li>
+                </ul>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>Is my PDF uploaded to a server?</summary>
+                    <p>No. All processing happens inside your browser. The PDF is read via the File API, parsed by pdf.js, and text is extracted without any network request. Open DevTools Network tab before clicking Extract to verify — you will see zero outbound requests.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can this extract text from scanned PDFs?</summary>
+                    <p>No. Scanned PDFs are images, not text. For scanned documents, use our <a href="/tools/pdf-ocr/">PDF OCR tool</a> instead, which runs Tesseract.js to recognize text from images.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What if my PDF is password-protected?</summary>
+                    <p>If the PDF is encrypted, pdf.js will show an error and the tool will display a clear message. We do not ask for or store passwords — the PDF must be unlocked before extraction.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is there a file size limit?</summary>
+                    <p>There is no hard limit, but very large PDFs (50 MB+) may take longer to process depending on your device. Most documents up to 100 MB work fine on modern computers.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I download the extracted text?</summary>
+                    <p>Yes. Click "Download as .txt" to save the extracted text as a plain text file to your device.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does this work offline?</summary>
+                    <p>Yes, after the first page load. pdf.js is loaded from a CDN and cached by your browser. Once cached, the tool works without an internet connection.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why can't AI chatbots extract text from my PDF?</summary>
+                    <p>AI chatbots process text tokens and lack PDF parsers. They cannot read the embedded text layer of a PDF file. Some can describe what they see in an uploaded PDF, but they output prose, not structured text you can copy. Our tool runs a real PDF parser (pdf.js) in your browser to extract clean, machine-readable text.</p>
+                </details>
+
+                <div class="related-section">
+                    <h4>Related Tools</h4>
+                    <ul>
+                        <li><a href="/tools/pdf-ocr/">PDF OCR - Scanned PDF to Searchable PDF</a></li>
+                        <li><a href="/tools/pdf-to-word/">PDF to Word Converter</a></li>
+                        <li><a href="/tools/pdf-to-image/">PDF to Image Converter</a></li>
+                        <li><a href="/tools/pdf-compressor/">PDF Compressor</a></li>
+                        <li><a href="/tools/pdf-merger/">PDF Merger</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        var pdfjsLib = null;
+        var selectedFile = null;
+
+        function showStatus(id, msg, type) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = msg;
+            el.className = 'status ' + (type || '');
+        }
+
+        function setPdfJs() {
+            if (pdfjsLib) return Promise.resolve(pdfjsLib);
+            return import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs').then(function(m) {
+                m.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+                pdfjsLib = m;
+                return m;
+            });
+        }
+
+        function handleFile(file) {
+            if (!file || file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                showStatus('extract-status', 'Please select a valid PDF file.', 'error');
+                return;
+            }
+            selectedFile = file;
+            var info = document.getElementById('file-info');
+            info.style.display = 'block';
+            info.innerHTML = '<strong>Selected:</strong> ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+            document.getElementById('extract-btn').disabled = false;
+            showStatus('extract-status', 'PDF loaded. Click Extract Text to begin.', 'success');
+        }
+
+        var dropZone = document.getElementById('drop-zone');
+        var fileInput = document.getElementById('pdf-input');
+
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.style.borderColor = '#7eb3ff';
+            dropZone.style.background = 'rgba(126,179,255,0.05)';
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.style.borderColor = '';
+            dropZone.style.background = '';
+            var files = e.dataTransfer.files;
+            if (files.length > 0) handleFile(files[0]);
+        });
+
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) handleFile(this.files[0]);
+        });
+
+        async function extractText() {
+            if (!selectedFile) {
+                showStatus('extract-status', 'Please select a PDF file first.', 'error');
+                return;
+            }
+            showStatus('extract-status', 'Loading PDF parser...', 'success');
+            document.getElementById('extract-btn').disabled = true;
+            try {
+                var module = await setPdfJs();
+                var arrayBuffer = await selectedFile.arrayBuffer();
+                var pdf = await module.getDocument({ data: arrayBuffer, useWorkerFetch: true, isEvalSupported: false, useSystemFonts: true }).promise;
+                var totalPages = pdf.numPages;
+                var allText = [];
+                for (var i = 1; i <= totalPages; i++) {
+                    var page = await pdf.getPage(i);
+                    var textContent = await page.getTextContent();
+                    var pageText = '';
+                    var lastY = null;
+                    for (var j = 0; j < textContent.items.length; j++) {
+                        var item = textContent.items[j];
+                        if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
+                            pageText += '\n';
+                        }
+                        pageText += item.str;
+                        lastY = item.transform[5];
+                    }
+                    allText.push(pageText.trim());
+                    showStatus('extract-status', 'Reading page ' + i + ' of ' + totalPages + '...', 'success');
+                }
+                var result = allText.join('\n\n');
+                document.getElementById('text-output').value = result;
+                showStatus('extract-status', 'Extracted ' + result.split(/\s+/).filter(function(w){return w.length>0}).length + ' words from ' + totalPages + ' page(s).', 'success');
+            } catch (e) {
+                var msg = e.message || String(e);
+                if (msg.indexOf('Password') !== -1 || msg.indexOf('password') !== -1 || msg.indexOf('encrypt') !== -1) {
+                    showStatus('extract-status', 'This PDF is password-protected. Please unlock it first.', 'error');
+                } else {
+                    showStatus('extract-status', 'Error: ' + msg, 'error');
+                }
+            } finally {
+                document.getElementById('extract-btn').disabled = false;
+            }
+        }
+
+        function clearAll() {
+            selectedFile = null;
+            fileInput.value = '';
+            document.getElementById('text-output').value = '';
+            document.getElementById('file-info').style.display = 'none';
+            document.getElementById('extract-btn').disabled = true;
+            showStatus('extract-status', '', '');
+        }
+
+        function downloadText() {
+            var text = document.getElementById('text-output').value;
+            if (!text) { showStatus('extract-status', 'No text to download. Extract text first.', 'error'); return; }
+            var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = (selectedFile ? selectedFile.name.replace(/\.pdf$/i, '') : 'extracted-text') + '.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatus('extract-status', 'Downloaded as .txt file.', 'success');
+        }
+    </script>
+</body>
+</html>

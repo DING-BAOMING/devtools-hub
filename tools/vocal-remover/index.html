@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<title>Vocal Remover - Remove Vocals from Songs Free | DevTools Hub</title>
+<meta name="description" content="Free online vocal remover. Strip vocals from any song to make karaoke or instrumental versions. MP3, WAV, M4A, OGG, FLAC. 100% private, no upload.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/vocal-remover/">
+<meta property="og:title" content="Vocal Remover - Remove Vocals from Songs Free | DevTools Hub">
+<meta property="og:description" content="Strip vocals from any song to make karaoke or instrumental versions. 100% private, no upload.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/vocal-remover/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Vocal Remover - Free Online Vocal Remover">
+<meta name="twitter:description" content="Remove vocals from any song instantly. Karaoke and instrumental export. 100% private, no upload.">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, ai-train:no">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Vocal Remover","description":"Free online vocal remover that strips vocals from any MP3, WAV, M4A, OGG, FLAC, AAC audio file to produce a karaoke (instrumental) or acapella (vocals-only) stem. Uses center-channel phase cancellation in the browser via Web Audio API. No upload, no signup, 100% private.","url":"https://tools.scoreroute.com/tools/vocal-remover/","applicationCategory":"MultimediaApplication","operatingSystem":"Any","browserRequirements":"Modern browser with JavaScript and Web Audio API support","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-08-27","dateModified":"2026-08-27","featureList":["Remove vocals from any audio file using center-channel phase cancellation","Export karaoke instrumental stem as 16-bit PCM WAV","Export acapella vocal-only stem as 16-bit PCM WAV","Strength slider to tune vocal-removal intensity","A/B toggle to preview original vs processed in real time","Side-by-side original + karaoke + acapella players","Drag-and-drop file upload with progress","Accepts MP3, WAV, M4A, OGG, FLAC, AAC, WEBM, OPUS","Works entirely in the browser - file never leaves your device","No signup, no watermark, no daily limit","Preserves original sample rate and channel layout","Audio metadata (filename, size, duration, channels, sample rate)"]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How does this vocal remover work?","acceptedAnswer":{"@type":"Answer","text":"The tool uses center-channel phase cancellation. Most commercial songs mix lead vocals and bass identically into both the left and right channels. Subtracting the right channel from the left cancels out these center-panned elements while preserving the stereo-panned instruments. The remaining signal is the karaoke/instrumental track. The acapella (vocals-only) track is computed by subtracting the karaoke from the original."}},{"@type":"Question","name":"Will it work on every song?","acceptedAnswer":{"@type":"Answer","text":"It works best on professionally produced stereo music where vocals are mixed to the center and instruments are panned to left/right. Songs with strong stereo vocals, reverb-heavy vocal chains or hard-panned vocals will leave vocal artifacts. Strength and blend sliders let you tune the result for difficult mixes."}},{"@type":"Question","name":"Is my audio file uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. The entire pipeline runs locally in your browser using the Web Audio API and OfflineAudioContext. The audio file is decoded into PCM samples, processed in memory, encoded back to WAV, and downloaded. It never leaves your device."}},{"@type":"Question","name":"What audio formats are supported?","acceptedAnswer":{"@type":"Answer","text":"The tool accepts any audio format your browser can decode with AudioContext.decodeAudioData: MP3, WAV, M4A, OGG, FLAC, AAC, WEBM, OPUS. The output is always a 16-bit PCM WAV at the original sample rate."}},{"@type":"Question","name":"Can I get both the karaoke and acapella stems?","acceptedAnswer":{"@type":"Answer","text":"Yes. The tool renders two stems in a single pass: karaoke (instrumental with vocals removed) and acapella (vocals-only by subtracting the karaoke from the original mix). Both are downloadable as separate WAV files."}},{"@type":"Question","name":"Why does the karaoke track still sound slightly different from the song?","acceptedAnswer":{"@type":"Answer","text":"The center-channel subtraction cancels anything panned identically to both channels (typically lead vocals and centered bass/drums) but cannot cancel anything panned asymmetrically. You will lose some bass weight and any centered reverb tails. This is the trade-off of a 100% client-side, no-AI approach. For higher quality on tough tracks you would need an AI model server-side."}},{"@type":"Question","name":"Does it cost money?","acceptedAnswer":{"@type":"Answer","text":"No. The tool is free to use with no signup. All processing happens on your device so there are no server costs and no daily limit."}},{"@type":"Question","name":"Can I use the result commercially?","acceptedAnswer":{"@type":"Answer","text":"You are responsible for the rights to the input audio. If you own the recording or have permission (e.g. a song you wrote, or content released under Creative Commons) you can use the karaoke/acapella stems commercially. Stripping vocals from a copyrighted commercial song for redistribution is not permitted."}}]}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.vr-wrap { max-width: 1000px; margin: 0 auto; color: #e8e8f0; }
+.vr-dropzone { border: 2px dashed #555; border-radius: 12px; padding: 36px 16px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(126, 179, 255, 0.04); margin-bottom: 16px; }
+.vr-dropzone:hover, .vr-dropzone.dragover { border-color: #7eb3ff; background: rgba(126, 179, 255, 0.1); }
+.vr-dropzone svg { width: 44px; height: 44px; margin-bottom: 8px; opacity: 0.7; color: #a3c8ff; }
+.vr-dropzone-title { color: #e8e8f0; font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+.vr-dropzone-hint { color: #9090b0; font-size: 0.85rem; }
+.vr-dropzone-hint strong { color: #e8e8f0; }
+.vr-file-input { display: none; }
+.vr-panel { background: #1a1a2e; border: 1px solid #2a2a4e; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.vr-panel-title { font-size: 0.85rem; font-weight: 700; color: #9090b0; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.vr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+@media (max-width: 640px) { .vr-grid { grid-template-columns: 1fr; } }
+.vr-field { display: flex; flex-direction: column; gap: 4px; }
+.vr-label { font-size: 0.8rem; color: #9090b0; font-weight: 600; }
+.vr-select, .vr-input { padding: 0.5rem 0.75rem; border: 1px solid #555; border-radius: 6px; background: #0f0f23; color: #e8e8f0; font-size: 0.95rem; font-family: inherit; }
+.vr-select:focus, .vr-input:focus { outline: 2px solid #7eb3ff; outline-offset: 1px; }
+.vr-select option { background: #0f0f23; color: #e8e8f0; }
+.vr-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0; align-items: center; }
+.vr-btn { padding: 0.6rem 1.2rem; border: none; border-radius: 6px; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s, transform 0.05s; font-weight: 500; }
+.vr-btn:hover:not(:disabled) { opacity: 0.85; }
+.vr-btn:active:not(:disabled) { transform: translateY(1px); }
+.vr-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.vr-btn-primary { background: linear-gradient(135deg, #7eb3ff, #a78bfa); color: #0a0d14; font-weight: 700; }
+.vr-btn-secondary { background: #333; color: #e8e8f0; }
+.vr-btn-success { background: #10b981; color: #fff; }
+.vr-btn-danger { background: #ef4444; color: #fff; }
+.vr-status { padding: 0.75rem 1rem; border-radius: 6px; margin: 0.75rem 0; font-size: 0.9rem; }
+.vr-status.info { background: rgba(126, 179, 255, 0.15); color: #a3c8ff; border: 1px solid rgba(126, 179, 255, 0.4); }
+.vr-status.success { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+.vr-status.error { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+.vr-status.warn { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+.vr-progress { height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
+.vr-progress-bar { height: 100%; background: linear-gradient(90deg, #7eb3ff, #a78bfa); transition: width 0.2s; width: 0%; }
+.vr-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 0.5rem 0; }
+.vr-meta-card { background: #0f0f23; border: 1px solid #2a2a4e; border-radius: 6px; padding: 8px 10px; }
+.vr-meta-label { font-size: 0.7rem; color: #9090b0; text-transform: uppercase; letter-spacing: 0.05em; }
+.vr-meta-value { font-size: 0.95rem; color: #e8e8f0; font-weight: 600; margin-top: 2px; word-break: break-all; }
+.vr-audio-player { width: 100%; margin: 0.5rem 0; }
+.vr-result-section { background: #1a1a2e; border: 1px solid #2a2a4e; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+.vr-result-title { font-size: 0.85rem; font-weight: 700; color: #9090b0; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.vr-result-section h3 { margin: 0 0 8px 0; font-size: 1.05rem; color: #e8e8f0; }
+.vr-result-section p { color: #9090b0; font-size: 0.85rem; margin: 0 0 8px 0; }
+.vr-stems { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .vr-stems { grid-template-columns: 1fr; } }
+.vr-stem { background: #0f0f23; border: 1px solid #2a2a4e; border-radius: 10px; padding: 12px; }
+.vr-stem-title { color: #7eb3ff; font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+.vr-stem-desc { color: #9090b0; font-size: 0.8rem; margin-bottom: 8px; }
+.vr-slider-row { display: flex; flex-direction: column; gap: 6px; margin: 0.5rem 0; }
+.vr-slider-row input[type=range] { width: 100%; }
+.vr-slider-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #9090b0; }
+.vr-toggle-row { display: flex; gap: 6px; flex-wrap: wrap; margin: 0.5rem 0; }
+.vr-toggle { padding: 0.4rem 0.8rem; background: #252545; color: #ccc; border: 1px solid #3a3a5a; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+.vr-toggle:hover { background: #2d2d55; }
+.vr-toggle.active { background: linear-gradient(135deg, #7eb3ff, #a78bfa); color: #0a0d14; border-color: #7eb3ff; font-weight: 700; }
+.vr-callout { background: linear-gradient(135deg, rgba(126, 179, 255, 0.12), rgba(167, 139, 250, 0.12)); border: 1px solid rgba(126, 179, 255, 0.4); border-radius: 10px; padding: 1.25rem; margin: 1.5rem 0; }
+.vr-callout h2 { color: #a3c8ff; margin: 0 0 0.5rem 0; font-size: 1.05rem; border-bottom: 0; padding-bottom: 0; }
+.vr-callout p { color: #ccc; margin: 0.5rem 0; font-size: 0.92rem; line-height: 1.55; }
+.vr-info-section { margin-top: 2rem; }
+.vr-info-section h2 { color: #7eb3ff; border-bottom: 1px solid #2a2a4e; padding-bottom: 0.5rem; }
+.vr-info-section p, .vr-info-section li { color: #ccc; line-height: 1.7; }
+.vr-info-section ol, .vr-info-section ul { margin: 0 0 1rem 1.5rem; }
+.vr-feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.vr-feature-card { background: #0f0f23; padding: 1rem; border-radius: 8px; border-left: 4px solid #7eb3ff; }
+.vr-feature-card h3 { color: #e8e8f0; margin: 0 0 0.4rem 0; font-size: 0.95rem; }
+.related-section h2 { margin-top: 0; border-bottom: 0; padding-bottom: 0; }
+.vr-feature-card p { color: #9090b0; font-size: 0.85rem; line-height: 1.45; margin: 0; }
+.vr-faq-item { background: #1a1a2e; padding: 0 1rem; border-radius: 6px; margin: 0.6rem 0; border: 1px solid #2a2a4e; }
+.vr-faq-item summary { padding: 0.7rem 0; cursor: pointer; color: #e8e8f0; font-weight: 600; font-size: 0.95rem; list-style: none; }
+.vr-faq-item summary::-webkit-details-marker { display: none; }
+.vr-faq-item summary:focus-visible { outline: 2px solid #7eb3ff; outline-offset: 2px; border-radius: 4px; }
+.vr-faq-item summary::after { content: "+"; float: right; font-size: 1.2rem; color: #7eb3ff; }
+.vr-faq-item[open] summary::after { content: "-"; }
+.vr-faq-item[open] summary { padding-bottom: 0.2rem; }
+.vr-faq-item p { color: #ccc; padding: 0.4rem 0 0.7rem 0; line-height: 1.7; margin: 0; font-size: 0.9rem; }
+.vr-tag { display: inline-block; background: #333; color: #ccc; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; margin-right: 4px; }
+.vr-tag-green { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+.vr-tag-blue { background: rgba(126, 179, 255, 0.2); color: #a3c8ff; }
+section h2 { color: #7eb3ff; margin-top: 2.5rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem; }
+section p, section li { color: #ccc; line-height: 1.7; }
+.vr-waveform { width: 100%; height: 80px; background: #0f0f23; border-radius: 6px; margin: 0.5rem 0; display: block; }
+.vr-pill-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.vr-pill { background: rgba(126, 179, 255, 0.15); color: #a3c8ff; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; border: 1px solid rgba(126, 179, 255, 0.3); }
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>Vocal Remover</h1>
+<p class="subtitle">Strip Vocals &middot; Make Karaoke &middot; MP3 &middot; WAV &middot; M4A &middot; OGG &middot; FLAC</p>
+<nav class="breadcrumb">
+<a href="/">Home</a> &gt; <a href="/tools/media/">Tools</a> &gt; <span>Vocal Remover</span>
+<a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+</nav>
+</div>
+</header>
+<main class="container">
+<section class="tool-page">
+<div class="tool-main">
+
+<div class="vr-wrap">
+
+<div class="vr-callout">
+<h2>Why this vocal remover is different</h2>
+<p>AI chatbots like ChatGPT, Claude or Gemini cannot process audio. They have no audio upload pipeline, no center-channel subtraction engine, and no way to export a 16-bit WAV karaoke stem. This tool runs entirely in your browser using the Web Audio API and OfflineAudioContext - the decoded audio stays on your device and never touches a server.</p>
+<p>Unlike paid services such as LALAL.AI, Moises.ai or vocalremover.org upload limits, this is unlimited, free, and 100% private. The trade-off is that we use classical DSP (center-channel phase cancellation), not an AI model - so quality varies by mix, but you can tune it with the strength slider and instantly A/B the result.</p>
+</div>
+
+<div class="vr-panel">
+<div class="vr-panel-title">1. Upload Audio File</div>
+<div class="vr-dropzone" id="vrDropzone" tabindex="0" role="button">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+<div class="vr-dropzone-title">Click to choose, or drag an audio file here</div>
+<div class="vr-dropzone-hint"><strong>MP3, WAV, M4A, OGG, FLAC, AAC, WEBM, OPUS</strong> &middot; stays on your device</div>
+</div>
+<input aria-label="Audio file to process" type="file" id="vrFileInput" class="vr-file-input" accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac,.aac,.webm,.opus">
+<div id="vrFileMeta" class="vr-meta" style="display:none"></div>
+<canvas id="vrWaveform" class="vr-waveform" style="display:none" aria-label="Audio waveform"></canvas>
+<audio id="vrAudioPlayer" class="vr-audio-player" controls style="display:none" aria-label="Original audio preview"></audio>
+</div>
+
+<div class="vr-panel" id="vrOptionsPanel" style="display:none">
+<div class="vr-panel-title">2. Vocal Removal Settings</div>
+<div class="vr-slider-row">
+<div class="vr-slider-label">
+<label for="vrStrength" class="vr-label">Vocal Removal Strength</label>
+<span id="vrStrengthValue" class="vr-label">100%</span>
+</div>
+<input type="range" id="vrStrength" min="0" max="100" value="100" step="5" aria-label="Vocal removal strength">
+</div>
+<div class="vr-slider-row">
+<div class="vr-slider-label">
+<label for="vrVocalLeak" class="vr-label">Vocal Pass-Through (blend back original)</label>
+<span id="vrVocalLeakValue" class="vr-label">0%</span>
+</div>
+<input type="range" id="vrVocalLeak" min="0" max="50" value="0" step="5" aria-label="Vocal pass-through amount">
+</div>
+<div class="vr-row">
+<button id="vrProcessBtn" class="vr-btn vr-btn-primary" disabled aria-label="Process audio and generate karaoke/acapella stems">Remove Vocals</button>
+<button id="vrClearBtn" class="vr-btn vr-btn-secondary" disabled aria-label="Clear selected file">Clear</button>
+</div>
+<div id="vrProgress" class="vr-progress" style="display:none" aria-hidden="true"><div id="vrProgressBar" class="vr-progress-bar"></div></div>
+<div id="vrStatus" class="vr-status" style="display:none" role="status" aria-live="polite"></div>
+</div>
+
+<div class="vr-result-section" id="vrResultPanel" style="display:none">
+<div class="vr-result-title">3. Download Stems</div>
+<div class="vr-stems">
+<div class="vr-stem">
+<div class="vr-stem-title">Karaoke (Instrumental)</div>
+<div class="vr-stem-desc">Vocals removed, instruments preserved</div>
+<audio id="vrKaraokePlayer" class="vr-audio-player" controls aria-label="Karaoke instrumental preview"></audio>
+<div class="vr-row">
+<button id="vrDownloadKaraokeBtn" class="vr-btn vr-btn-success" disabled aria-label="Download karaoke instrumental as WAV">Download .wav</button>
+<button id="vrPlayKaraokeBtn" class="vr-btn vr-btn-secondary" disabled aria-label="Preview karaoke only">Preview Karaoke</button>
+</div>
+</div>
+<div class="vr-stem">
+<div class="vr-stem-title">Acapella (Vocals-Only)</div>
+<div class="vr-stem-desc">Vocals isolated, instruments removed</div>
+<audio id="vrAcapellaPlayer" class="vr-audio-player" controls aria-label="Acapella vocals-only preview"></audio>
+<div class="vr-row">
+<button id="vrDownloadAcapellaBtn" class="vr-btn vr-btn-success" disabled aria-label="Download acapella vocals as WAV">Download .wav</button>
+<button id="vrPlayAcapellaBtn" class="vr-btn vr-btn-secondary" disabled aria-label="Preview acapella only">Preview Acapella</button>
+</div>
+</div>
+</div>
+<div class="vr-toggle-row" style="margin-top:1rem">
+<span class="vr-label" style="margin-right:8px">Quick A/B Compare:</span>
+<button class="vr-toggle active" data-ab="original" id="vrABOriginalBtn" aria-label="A/B original">Original</button>
+<button class="vr-toggle" data-ab="karaoke" id="vrABKaraokeBtn" aria-label="A/B karaoke">Karaoke</button>
+<button class="vr-toggle" data-ab="acapella" id="vrABAcapellaBtn" aria-label="A/B acapella">Acapella</button>
+</div>
+</div>
+
+<section class="vr-info-section">
+<h2>How It Works</h2>
+<p>Most commercial music is mixed so that lead vocals and centered instruments (bass, kick drum, snare) appear identically in both the left and right channels, while the guitars, keys, and panned percussion sit asymmetrically across the stereo field.</p>
+<ol>
+<li><strong>Decode</strong> &mdash; Your audio file is decoded locally with <code>AudioContext.decodeAudioData()</code> into a stereo buffer of float PCM samples.</li>
+<li><strong>Subtract</strong> &mdash; The karaoke stem is computed by subtracting the right channel from the left (and right from left for true stereo output). Anything panned identically cancels out.</li>
+<li><strong>Blend</strong> &mdash; The vocal pass-through slider lets you mix some of the original signal back into the karaoke stem to recover bass weight and centered reverb tails.</li>
+<li><strong>Recover acapella</strong> &mdash; The acapella stem is the residual: <code>original - karaoke</code>. This recovers the isolated vocals with any remaining stereo content intact.</li>
+<li><strong>Encode</strong> &mdash; Both stems are encoded as 16-bit PCM WAV files at the original sample rate, then offered as downloads.</li>
+</ol>
+<p>Because the entire pipeline is in your browser, your audio never leaves the device. There are no uploads, no server-side AI models, no daily limits, and no watermarks.</p>
+</section>
+
+<section class="vr-info-section">
+<h2>Why AI Chatbots Cannot Do This</h2>
+<p>Even though modern LLMs can write essays, summarize meetings, and answer trivia, they cannot do this in their standard chat interface:</p>
+<ul>
+<li><strong>No audio processing</strong> &mdash; ChatGPT, Claude and Gemini accept text (and sometimes images or short audio clips). They cannot decode a user-supplied MP3 file into a stereo PCM buffer and run DSP on it.</li>
+<li><strong>No stereo math</strong> &mdash; The karaoke algorithm is a per-sample <code>left - right</code> subtraction. AI assistants have no runtime that performs per-sample DSP on millions of samples.</li>
+<li><strong>No WAV output</strong> &mdash; A chatbot cannot write a 16-bit PCM WAV header with the correct sample rate, bit depth, and channel layout, or stream a downloadable binary blob.</li>
+<li><strong>No auditioning</strong> &mdash; You need to hear whether the removal worked. AI can describe what karaoke <em>should</em> sound like, but cannot let you press Play on the result.</li>
+</ul>
+<p>That is why this tool exists: it solves a real audio problem that AI assistants cannot address through their standard chat interface.</p>
+</section>
+
+<section class="vr-info-section">
+<h2>Use Cases</h2>
+<div class="vr-feature-grid">
+<div class="vr-feature-card">
+<h3>Karaoke Tracks</h3>
+<p>Drop any song in and get a karaoke backing track you can sing along to or import into a karaoke app.</p>
+</div>
+<div class="vr-feature-card">
+<h3>Instrumental Practice</h3>
+<p>Musicians learning a song can isolate the instrumental to study the arrangement and play along.</p>
+</div>
+<div class="vr-feature-card">
+<h3>Remix &amp; Sampling</h3>
+<p>Producers can extract an acapella stem to layer over a new beat, or grab a karaoke stem to flip into a new genre.</p>
+</div>
+<div class="vr-feature-card">
+<h3>Language Learning</h3>
+<p>Isolate the vocals to study pronunciation and phrasing without instrumental interference.</p>
+</div>
+<div class="vr-feature-card">
+<h3>Backing Tracks for Cover Bands</h3>
+<p>Strip vocals from a reference recording to give your cover band an authentic backing track to play with.</p>
+</div>
+<div class="vr-feature-card">
+<h3>DJ Mashups</h3>
+<p>Extract acapellas to mash with other tracks in real-time DJ sets or live performances.</p>
+</div>
+</div>
+</section>
+
+<section class="vr-info-section">
+<h2>Frequently Asked Questions</h2>
+<details class="vr-faq-item">
+<summary>How does this vocal remover work?</summary>
+<p>The tool uses center-channel phase cancellation. Most commercial songs mix lead vocals and bass identically into both the left and right channels. Subtracting the right channel from the left cancels out these center-panned elements while preserving the stereo-panned instruments. The remaining signal is the karaoke/instrumental track. The acapella (vocals-only) track is computed by subtracting the karaoke from the original.</p>
+</details>
+<details class="vr-faq-item">
+<summary>Will it work on every song?</summary>
+<p>It works best on professionally produced stereo music where vocals are mixed to the center and instruments are panned to left/right. Songs with strong stereo vocals, reverb-heavy vocal chains or hard-panned vocals will leave vocal artifacts. Strength and blend sliders let you tune the result for difficult mixes.</p>
+</details>
+<details class="vr-faq-item">
+<summary>Is my audio file uploaded to a server?</summary>
+<p>No. The entire pipeline runs locally in your browser using the Web Audio API and OfflineAudioContext. The audio file is decoded into PCM samples, processed in memory, encoded back to WAV, and downloaded. It never leaves your device.</p>
+</details>
+<details class="vr-faq-item">
+<summary>What audio formats are supported?</summary>
+<p>The tool accepts any audio format your browser can decode with AudioContext.decodeAudioData: MP3, WAV, M4A, OGG, FLAC, AAC, WEBM, OPUS. The output is always a 16-bit PCM WAV at the original sample rate.</p>
+</details>
+<details class="vr-faq-item">
+<summary>Can I get both the karaoke and acapella stems?</summary>
+<p>Yes. The tool renders two stems in a single pass: karaoke (instrumental with vocals removed) and acapella (vocals-only by subtracting the karaoke from the original mix). Both are downloadable as separate WAV files.</p>
+</details>
+<details class="vr-faq-item">
+<summary>Why does the karaoke track still sound slightly different from the song?</summary>
+<p>The center-channel subtraction cancels anything panned identically to both channels (typically lead vocals and centered bass/drums) but cannot cancel anything panned asymmetrically. You will lose some bass weight and any centered reverb tails. This is the trade-off of a 100% client-side, no-AI approach. For higher quality on tough tracks you would need an AI model server-side.</p>
+</details>
+<details class="vr-faq-item">
+<summary>Does it cost money?</summary>
+<p>No. The tool is free to use with no signup. All processing happens on your device so there are no server costs and no daily limit.</p>
+</details>
+<details class="vr-faq-item">
+<summary>Can I use the result commercially?</summary>
+<p>You are responsible for the rights to the input audio. If you own the recording or have permission (e.g. a song you wrote, or content released under Creative Commons) you can use the karaoke/acapella stems commercially. Stripping vocals from a copyrighted commercial song for redistribution is not permitted.</p>
+</details>
+</section>
+
+<section class="related-section">
+<h2>Related Tools</h2>
+<ul>
+<li><a href="/tools/voice-changer/">Voice Changer</a></li>
+<li><a href="/tools/audio-editor/">Audio Editor</a></li>
+<li><a href="/tools/audio-cutter/">Audio Cutter</a></li>
+<li><a href="/tools/audio-joiner/">Audio Joiner</a></li>
+<li><a href="/tools/audio-converter/">Audio Converter</a></li>
+<li><a href="/tools/voice-recorder/">Voice Recorder</a></li>
+<li><a href="/tools/tone-generator/">Tone Generator</a></li>
+<li><a href="/tools/audio-transcriber/">Audio File Transcriber</a></li>
+</ul>
+</section>
+
+</div>
+
+</div>
+</section>
+</main>
+<footer>
+<p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  var dropzone = document.getElementById('vrDropzone');
+  var fileInput = document.getElementById('vrFileInput');
+  var audioPlayer = document.getElementById('vrAudioPlayer');
+  var fileMeta = document.getElementById('vrFileMeta');
+  var waveformCanvas = document.getElementById('vrWaveform');
+  var optionsPanel = document.getElementById('vrOptionsPanel');
+  var strengthSlider = document.getElementById('vrStrength');
+  var strengthValue = document.getElementById('vrStrengthValue');
+  var vocalLeakSlider = document.getElementById('vrVocalLeak');
+  var vocalLeakValue = document.getElementById('vrVocalLeakValue');
+  var processBtn = document.getElementById('vrProcessBtn');
+  var clearBtn = document.getElementById('vrClearBtn');
+  var progress = document.getElementById('vrProgress');
+  var progressBar = document.getElementById('vrProgressBar');
+  var statusEl = document.getElementById('vrStatus');
+  var resultPanel = document.getElementById('vrResultPanel');
+  var karaokePlayer = document.getElementById('vrKaraokePlayer');
+  var acapellaPlayer = document.getElementById('vrAcapellaPlayer');
+  var downloadKaraokeBtn = document.getElementById('vrDownloadKaraokeBtn');
+  var downloadAcapellaBtn = document.getElementById('vrDownloadAcapellaBtn');
+  var playKaraokeBtn = document.getElementById('vrPlayKaraokeBtn');
+  var playAcapellaBtn = document.getElementById('vrPlayAcapellaBtn');
+  var abOriginalBtn = document.getElementById('vrABOriginalBtn');
+  var abKaraokeBtn = document.getElementById('vrABKaraokeBtn');
+  var abAcapellaBtn = document.getElementById('vrABAcapellaBtn');
+
+  var state = {
+    file: null,
+    audioBuffer: null,
+    karaokeBlob: null,
+    acapellaBlob: null,
+    karaokeUrl: null,
+    acapellaUrl: null,
+    filename: 'song'
+  };
+
+  function formatBytes(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+    return (n / 1048576).toFixed(2) + ' MB';
+  }
+
+  function formatDuration(sec) {
+    if (!sec || !isFinite(sec)) return 'unknown';
+    var h = Math.floor(sec / 3600);
+    var m = Math.floor((sec % 3600) / 60);
+    var s = Math.floor(sec % 60);
+    if (h > 0) return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    return m + ':' + String(s).padStart(2, '0');
+  }
+
+  function setStatus(msg, type) {
+    if (!msg) {
+      statusEl.style.display = 'none';
+      statusEl.textContent = '';
+      return;
+    }
+    statusEl.style.display = 'block';
+    statusEl.textContent = msg;
+    statusEl.className = 'vr-status ' + (type || 'info');
+  }
+
+  function setProgress(pct) {
+    if (pct == null) {
+      progress.style.display = 'none';
+      progressBar.style.width = '0%';
+      return;
+    }
+    progress.style.display = 'block';
+    progressBar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+  }
+
+  function writeString(view, offset, str) {
+    for (var i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i));
+    }
+  }
+
+  function audioBufferToWav(buffer) {
+    var numChannels = buffer.numberOfChannels;
+    var sampleRate = buffer.sampleRate;
+    var length = buffer.length;
+    var bytesPerSample = 2;
+    var dataSize = length * numChannels * bytesPerSample;
+    var bufferSize = 44 + dataSize;
+    var ab = new ArrayBuffer(bufferSize);
+    var view = new DataView(ab);
+
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeString(view, 8, 'WAVE');
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numChannels * bytesPerSample, true);
+    view.setUint16(32, numChannels * bytesPerSample, true);
+    view.setUint16(34, 16, true);
+    writeString(view, 36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    var channels = [];
+    for (var c = 0; c < numChannels; c++) channels.push(buffer.getChannelData(c));
+    var offset = 44;
+    for (var i = 0; i < length; i++) {
+      for (var ch = 0; ch < numChannels; ch++) {
+        var sample = Math.max(-1, Math.min(1, channels[ch][i]));
+        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+        view.setInt16(offset, sample, true);
+        offset += 2;
+      }
+    }
+    return new Blob([view], { type: 'audio/wav' });
+  }
+
+  function computeKaraoke(originalBuffer, strengthPct, leakPct) {
+    var strength = strengthPct / 100;
+    var leak = leakPct / 100;
+    var numChannels = originalBuffer.numberOfChannels;
+    var sampleRate = originalBuffer.sampleRate;
+    var length = originalBuffer.length;
+
+    var karaokeCtx = new OfflineAudioContext(numChannels, length, sampleRate);
+    var src = karaokeCtx.createBuffer(numChannels, length, sampleRate);
+    var dst = karaokeCtx.createBuffer(numChannels, length, sampleRate);
+
+    var origL = originalBuffer.getChannelData(0);
+    var origR = numChannels > 1 ? originalBuffer.getChannelData(1) : origL;
+
+    if (numChannels === 1) {
+      for (var i = 0; i < length; i++) {
+        dst.getChannelData(0)[i] = origL[i] * 0.5;
+      }
+    } else {
+      for (var j = 0; j < length; j++) {
+        var diff = (origL[j] - origR[j]) * 0.5;
+        var k = diff * strength + origL[j] * leak;
+        var kr = -diff * strength + origR[j] * leak;
+        dst.getChannelData(0)[j] = k;
+        dst.getChannelData(1)[j] = kr;
+      }
+    }
+
+    var acapellaCtx = new OfflineAudioContext(numChannels, length, sampleRate);
+    var acDst = acapellaCtx.createBuffer(numChannels, length, sampleRate);
+    if (numChannels === 1) {
+      for (var k2 = 0; k2 < length; k2++) {
+        acDst.getChannelData(0)[k2] = origL[k2] - dst.getChannelData(0)[k2];
+      }
+    } else {
+      for (var l = 0; l < length; l++) {
+        acDst.getChannelData(0)[l] = origL[l] - dst.getChannelData(0)[l];
+        acDst.getChannelData(1)[l] = origR[l] - dst.getChannelData(1)[l];
+      }
+    }
+
+    return { karaokeBuffer: dst, acapellaBuffer: acDst };
+  }
+
+  function drawWaveform(buffer) {
+    if (!waveformCanvas) return;
+    var w = waveformCanvas.width = waveformCanvas.offsetWidth;
+    var h = waveformCanvas.height = waveformCanvas.offsetHeight;
+    var ctx = waveformCanvas.getContext('2d');
+    ctx.fillStyle = '#0f0f23';
+    ctx.fillRect(0, 0, w, h);
+
+    var data = buffer.getChannelData(0);
+    var step = Math.max(1, Math.floor(data.length / w));
+    var mid = h / 2;
+    ctx.strokeStyle = '#7eb3ff';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (var x = 0; x < w; x++) {
+      var min = 1.0;
+      var max = -1.0;
+      for (var j = 0; j < step; j++) {
+        var idx = (x * step) + j;
+        if (idx >= data.length) break;
+        var datum = data[idx];
+        if (datum < min) min = datum;
+        if (datum > max) max = datum;
+      }
+      ctx.moveTo(x, mid + min * mid);
+      ctx.lineTo(x, mid + max * mid);
+    }
+    ctx.stroke();
+  }
+
+  function clearFile() {
+    state.file = null;
+    state.audioBuffer = null;
+    if (state.karaokeUrl) { URL.revokeObjectURL(state.karaokeUrl); state.karaokeUrl = null; }
+    if (state.acapellaUrl) { URL.revokeObjectURL(state.acapellaUrl); state.acapellaUrl = null; }
+    state.karaokeBlob = null;
+    state.acapellaBlob = null;
+    fileInput.value = '';
+    audioPlayer.src = '';
+    audioPlayer.style.display = 'none';
+    fileMeta.style.display = 'none';
+    fileMeta.innerHTML = '';
+    waveformCanvas.style.display = 'none';
+    optionsPanel.style.display = 'none';
+    processBtn.disabled = true;
+    clearBtn.disabled = true;
+    resultPanel.style.display = 'none';
+    karaokePlayer.src = '';
+    acapellaPlayer.src = '';
+    downloadKaraokeBtn.disabled = true;
+    downloadAcapellaBtn.disabled = true;
+    playKaraokeBtn.disabled = true;
+    playAcapellaBtn.disabled = true;
+    setProgress(null);
+    setStatus(null);
+    setAB('original');
+  }
+
+  function renderFileMeta(file, buffer) {
+    var meta = [
+      { label: 'Filename', value: file.name },
+      { label: 'Size', value: formatBytes(file.size) },
+      { label: 'Type', value: file.type || 'unknown' },
+      { label: 'Channels', value: buffer.numberOfChannels === 1 ? 'Mono' : 'Stereo' },
+      { label: 'Sample Rate', value: buffer.sampleRate + ' Hz' },
+      { label: 'Duration', value: formatDuration(buffer.duration) }
+    ];
+    fileMeta.innerHTML = '';
+    meta.forEach(function(m) {
+      var card = document.createElement('div');
+      card.className = 'vr-meta-card';
+      var label = document.createElement('div');
+      label.className = 'vr-meta-label';
+      label.textContent = m.label;
+      var val = document.createElement('div');
+      val.className = 'vr-meta-value';
+      val.textContent = m.value;
+      card.appendChild(label);
+      card.appendChild(val);
+      fileMeta.appendChild(card);
+    });
+    fileMeta.style.display = 'grid';
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    var allowed = /\.(mp3|wav|m4a|ogg|oga|flac|aac|webm|opus)$/i;
+    if (!allowed.test(file.name)) {
+      setStatus('Unsupported file type. Please upload an audio file.', 'error');
+      return;
+    }
+    if (file.size === 0) {
+      setStatus('Empty file.', 'error');
+      return;
+    }
+    if (file.size > 200 * 1024 * 1024) {
+      setStatus('File too large. Max 200MB for browser DSP. Your file: ' + formatBytes(file.size), 'error');
+      return;
+    }
+
+    state.file = file;
+    state.filename = file.name.replace(/\.[^.]+$/, '');
+    setStatus('Decoding audio...', 'info');
+    setProgress(20);
+
+    var url = URL.createObjectURL(file);
+    audioPlayer.src = url;
+    audioPlayer.style.display = 'block';
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      ctx.decodeAudioData(e.target.result.slice(0), function(buffer) {
+        state.audioBuffer = buffer;
+        setProgress(60);
+        renderFileMeta(file, buffer);
+        drawWaveform(buffer);
+        waveformCanvas.style.display = 'block';
+        optionsPanel.style.display = 'block';
+        processBtn.disabled = false;
+        clearBtn.disabled = false;
+        resultPanel.style.display = 'none';
+        setStatus('Audio decoded. Adjust strength, then click Remove Vocals.', 'success');
+        setTimeout(function() { setProgress(null); }, 800);
+      }, function(err) {
+        setStatus('Failed to decode audio: ' + (err.message || err) + '. Try a different file (MP3/WAV/M4A).', 'error');
+        setProgress(null);
+      });
+    };
+    reader.onerror = function() {
+      setStatus('Failed to read file.', 'error');
+      setProgress(null);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  async function processAudio() {
+    if (!state.audioBuffer) return;
+    processBtn.disabled = true;
+    clearBtn.disabled = true;
+    setProgress(10);
+    setStatus('Removing vocals... (may take a few seconds for long songs)', 'info');
+
+    setTimeout(function() {
+      try {
+        var strength = parseInt(strengthSlider.value, 10);
+        var leak = parseInt(vocalLeakSlider.value, 10);
+        setProgress(40);
+        var stems = computeKaraoke(state.audioBuffer, strength, leak);
+        setProgress(70);
+        state.karaokeBlob = audioBufferToWav(stems.karaokeBuffer);
+        state.acapellaBlob = audioBufferToWav(stems.acapellaBuffer);
+        setProgress(90);
+        if (state.karaokeUrl) URL.revokeObjectURL(state.karaokeUrl);
+        if (state.acapellaUrl) URL.revokeObjectURL(state.acapellaUrl);
+        state.karaokeUrl = URL.createObjectURL(state.karaokeBlob);
+        state.acapellaUrl = URL.createObjectURL(state.acapellaBlob);
+        karaokePlayer.src = state.karaokeUrl;
+        acapellaPlayer.src = state.acapellaUrl;
+        downloadKaraokeBtn.disabled = false;
+        downloadAcapellaBtn.disabled = false;
+        playKaraokeBtn.disabled = false;
+        playAcapellaBtn.disabled = false;
+        resultPanel.style.display = 'block';
+        setProgress(100);
+        setStatus('Vocal removal complete! Karaoke: ' + formatBytes(state.karaokeBlob.size) + ' | Acapella: ' + formatBytes(state.acapellaBlob.size), 'success');
+        setTimeout(function() { setProgress(null); }, 1200);
+        resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (e) {
+        setStatus('Processing failed: ' + (e.message || e), 'error');
+        setProgress(null);
+      } finally {
+        processBtn.disabled = false;
+        clearBtn.disabled = false;
+      }
+    }, 30);
+  }
+
+  function downloadBlob(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function setAB(which) {
+    var buttons = [abOriginalBtn, abKaraokeBtn, abAcapellaBtn];
+    buttons.forEach(function(b) {
+      if (b.dataset.ab === which) b.classList.add('active');
+      else b.classList.remove('active');
+    });
+    if (which === 'original') audioPlayer.muted = false;
+    else audioPlayer.muted = false;
+  }
+
+  dropzone.addEventListener('click', function() { fileInput.click(); });
+  dropzone.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
+  dropzone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+  dropzone.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+  });
+  dropzone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    var files = e.dataTransfer.files;
+    if (files && files.length) handleFile(files[0]);
+  });
+  fileInput.addEventListener('change', function(e) {
+    var files = e.target.files;
+    if (files && files.length) handleFile(files[0]);
+  });
+
+  strengthSlider.addEventListener('input', function() {
+    strengthValue.textContent = strengthSlider.value + '%';
+  });
+  vocalLeakSlider.addEventListener('input', function() {
+    vocalLeakValue.textContent = vocalLeakSlider.value + '%';
+  });
+
+  processBtn.addEventListener('click', processAudio);
+  clearBtn.addEventListener('click', clearFile);
+
+  downloadKaraokeBtn.addEventListener('click', function() {
+    if (!state.karaokeBlob) return;
+    downloadBlob(state.karaokeBlob, state.filename + '-karaoke.wav');
+  });
+  downloadAcapellaBtn.addEventListener('click', function() {
+    if (!state.acapellaBlob) return;
+    downloadBlob(state.acapellaBlob, state.filename + '-acapella.wav');
+  });
+
+  playKaraokeBtn.addEventListener('click', function() {
+    if (!state.karaokeUrl) return;
+    audioPlayer.pause();
+    karaokePlayer.currentTime = 0;
+    karaokePlayer.play();
+    setAB('karaoke');
+  });
+  playAcapellaBtn.addEventListener('click', function() {
+    if (!state.acapellaUrl) return;
+    audioPlayer.pause();
+    acapellaPlayer.currentTime = 0;
+    acapellaPlayer.play();
+    setAB('acapella');
+  });
+
+  abOriginalBtn.addEventListener('click', function() { setAB('original'); karaokePlayer.pause(); acapellaPlayer.pause(); audioPlayer.play(); });
+  abKaraokeBtn.addEventListener('click', function() { setAB('karaoke'); audioPlayer.pause(); acapellaPlayer.pause(); karaokePlayer.play(); });
+  abAcapellaBtn.addEventListener('click', function() { setAB('acapella'); audioPlayer.pause(); karaokePlayer.pause(); acapellaPlayer.play(); });
+
+})();
+</script>
+</body>
+</html>

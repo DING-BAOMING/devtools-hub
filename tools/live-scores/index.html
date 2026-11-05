@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Sports Scores Tracker - NFL NBA MLB NHL Soccer | DevTools Hub</title>
+    <meta name="description" content="Free live sports scores tracker. Real-time NFL, NBA, MLB, NHL and soccer scores. Updated every 30 seconds. No signup, no ads. AI cannot show live game scores.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/live-scores/">
+    <meta property="og:title" content="Live Sports Scores Tracker - NFL NBA MLB NHL Soccer | DevTools Hub">
+    <meta property="og:description" content="Free live sports scores tracker for NFL, NBA, MLB, NHL and soccer. Real-time updates every 30 seconds. No signup required.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/live-scores/">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Live Sports Scores Tracker",
+      "description": "Free live sports scores tracker for NFL, NBA, MLB, NHL and soccer. Real-time updates every 30 seconds. No signup required.",
+      "url": "https://tools.scoreroute.com/tools/live-scores/",
+      "applicationCategory": "SportsApplication",
+      "operatingSystem": "All",
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+      "author": {"@type": "Person", "name": "BAOMING"},
+      "datePublished": "2026-06-08",
+      "dateModified": "2026-06-08"
+    }
+    </script>
+    <style>
+        .scores-container { max-width: 1200px; margin: 0 auto; }
+        .sport-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; padding: 12px; background: #1a1a2e; border-radius: 12px; }
+        .sport-tab { background: #0f0f23; border: 2px solid #2a2a4a; color: #aaa; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
+        .sport-tab:hover { border-color: #667eea; color: #fff; }
+        .sport-tab.active { background: #667eea; border-color: #667eea; color: #fff; }
+        .sport-tab .tab-icon { margin-right: 6px; }
+        .league-tabs { display: none; flex-wrap: wrap; gap: 4px; margin-bottom: 16px; padding: 8px 12px; background: #0f0f23; border-radius: 8px; }
+        .league-tabs.show { display: flex; }
+        .league-tab { background: transparent; border: 1px solid #2a2a4a; color: #888; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+        .league-tab:hover { border-color: #667eea; color: #fff; }
+        .league-tab.active { background: #667eea; border-color: #667eea; color: #fff; }
+        .date-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; padding: 10px; background: #1a1a2e; border-radius: 8px; }
+        .date-nav .date-label { color: #fff; font-size: 1rem; font-weight: 600; min-width: 180px; text-align: center; }
+        .date-nav button { background: #0f0f23; border: 1px solid #2a2a4a; color: #aaa; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+        .date-nav button:hover { border-color: #667eea; color: #fff; }
+        .date-nav button.today-btn { background: #667eea; border-color: #667eea; color: #fff; }
+        .controls-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .auto-refresh { display: flex; align-items: center; gap: 8px; color: #888; font-size: 0.85rem; }
+        .auto-refresh input[type="checkbox"] { accent-color: #667eea; }
+        .auto-refresh .refresh-count { color: #4ade80; font-size: 0.8rem; }
+        .refresh-btn { background: #0f0f23; border: 1px solid #2a2a4a; color: #aaa; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+        .refresh-btn:hover { border-color: #667eea; color: #fff; }
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+        .game-card { background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%); border-radius: 14px; padding: 20px; border: 1px solid #2a2a4a; transition: border-color 0.2s; }
+        .game-card:hover { border-color: #3a3a5a; }
+        .game-card.live { border-color: #ef4444; box-shadow: 0 0 20px rgba(239,68,68,0.1); }
+        .game-card.final { border-color: #2a2a4a; }
+        .game-card.scheduled { border-color: #2a2a4a; }
+        .game-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .game-status { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+        .game-status.live { background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid #ef4444; }
+        .game-status.final { background: rgba(100,100,100,0.2); color: #888; border: 1px solid #3a3a4a; }
+        .game-status.scheduled { background: rgba(102,126,234,0.15); color: #667eea; border: 1px solid #3a3a5a; }
+        .game-league { color: #666; font-size: 0.75rem; }
+        .game-teams { display: flex; flex-direction: column; gap: 10px; }
+        .team-row { display: flex; align-items: center; gap: 10px; }
+        .team-logo { width: 36px; height: 36px; border-radius: 50%; background: #0f0f23; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.7rem; color: #888; overflow: hidden; }
+        .team-logo img { width: 100%; height: 100%; object-fit: contain; }
+        .team-logo .fallback { font-weight: 700; font-size: 0.8rem; color: #aaa; }
+        .team-name { flex: 1; color: #ddd; font-size: 0.9rem; font-weight: 500; }
+        .team-score { font-size: 1.6rem; font-weight: 700; color: #fff; min-width: 36px; text-align: center; font-family: 'JetBrains Mono', monospace; }
+        .team-score.winner { color: #4ade80; }
+        .game-detail { margin-top: 10px; padding-top: 10px; border-top: 1px solid #2a2a4a; display: flex; justify-content: space-between; align-items: center; }
+        .game-detail .detail { color: #888; font-size: 0.8rem; }
+        .game-detail .detail span { color: #aaa; }
+        .game-detail .clock { color: #facc15; font-size: 0.85rem; font-weight: 600; }
+        .score-divider { font-size: 0.8rem; color: #555; text-align: center; min-width: 20px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #888; }
+        .empty-state .empty-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state h3 { color: #aaa; margin-bottom: 8px; font-size: 1.2rem; }
+        .empty-state p { font-size: 0.9rem; color: #666; max-width: 400px; margin: 0 auto; }
+        .loading-scores { text-align: center; padding: 60px 20px; }
+        .loading-spinner { display: inline-block; width: 40px; height: 40px; border: 3px solid #2a2a4a; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-msg { text-align: center; padding: 40px; color: #ef4444; background: rgba(239,68,68,0.1); border-radius: 12px; margin: 20px 0; }
+        .footer-attribution { text-align: center; color: #555; font-size: 0.75rem; margin-top: 16px; }
+        .last-updated { color: #666; font-size: 0.8rem; text-align: center; margin-top: 12px; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 20px; }
+        .feature-item { background: #0f0f23; padding: 20px; border-radius: 12px; border: 1px solid #2a2a4a; text-align: center; }
+        .feature-item .fi-icon { font-size: 2rem; margin-bottom: 10px; }
+        .feature-item h4 { color: #667eea; margin-bottom: 6px; font-size: 0.95rem; }
+        .feature-item p { color: #888; font-size: 0.85rem; line-height: 1.5; }
+        .legend { display: flex; gap: 16px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 6px; color: #888; font-size: 0.8rem; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .legend-dot.green { background: #4ade80; }
+        .legend-dot.red { background: #ef4444; }
+        .legend-dot.blue { background: #667eea; }
+        @media (max-width: 600px) {
+            .games-grid { grid-template-columns: 1fr; }
+            .sport-tab { padding: 8px 12px; font-size: 0.8rem; }
+            .date-nav { flex-wrap: wrap; }
+            .date-nav .date-label { min-width: 140px; font-size: 0.9rem; }
+            .team-logo { width: 28px; height: 28px; }
+            .team-score { font-size: 1.3rem; min-width: 28px; }
+            .controls-bar { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Live Sports Scores Tracker</h1>
+            <p class="subtitle">Real-Time NFL &middot; NBA &middot; MLB &middot; NHL &middot; Soccer</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/finance/">Money &amp; Markets</a> &gt; <span>Live Sports Scores</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="scores-container">
+                    <div class="sport-tabs" role="group" aria-label="Sport selection">
+                        <button class="sport-tab active" aria-pressed="true" data-sport="football" data-league="nfl"><span class="tab-icon">🏈</span>NFL</button>
+                        <button class="sport-tab" aria-pressed="false" data-sport="basketball" data-league="nba"><span class="tab-icon">🏀</span>NBA</button>
+                        <button class="sport-tab" aria-pressed="false" data-sport="baseball" data-league="mlb"><span class="tab-icon">⚾</span>MLB</button>
+                        <button class="sport-tab" aria-pressed="false" data-sport="hockey" data-league="nhl"><span class="tab-icon">🏒</span>NHL</button>
+                        <button class="sport-tab" aria-pressed="false" data-sport="soccer" data-league="eng.1"><span class="tab-icon">⚽</span>Soccer</button>
+                    </div>
+                    <div class="league-tabs" id="soccer-leagues">
+                        <button class="league-tab active" data-league="eng.1">Premier League</button>
+                        <button class="league-tab" data-league="esp.1">La Liga</button>
+                        <button class="league-tab" data-league="ita.1">Serie A</button>
+                        <button class="league-tab" data-league="ger.1">Bundesliga</button>
+                        <button class="league-tab" data-league="fra.1">Ligue 1</button>
+                    </div>
+                    <div class="date-nav">
+                        <button onclick="changeDate(-1)" title="Previous day">&larr; Prev</button>
+                        <span class="date-label" id="date-label">Today</span>
+                        <button onclick="changeDate(1)" title="Next day">Next &rarr;</button>
+                        <button class="today-btn" onclick="goToday()">Today</button>
+                    </div>
+                    <div class="controls-bar">
+                        <div class="auto-refresh">
+                            <input type="checkbox" id="auto-refresh" checked onchange="toggleAutoRefresh()">
+                            <label for="auto-refresh">Auto-refresh (30s)</label>
+                            <span class="refresh-count" id="refresh-count"></span>
+                        </div>
+                        <button class="refresh-btn" onclick="loadScores()">&#x21bb; Refresh Now</button>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item"><div class="legend-dot red"></div> Live</div>
+                        <div class="legend-item"><div class="legend-dot green"></div> Final</div>
+                        <div class="legend-item"><div class="legend-dot blue"></div> Scheduled</div>
+                    </div>
+                    <div id="scores-content">
+                        <div class="loading-scores">
+                            <div class="loading-spinner"></div>
+                            <p style="color:#888;margin-top:16px;">Loading live scores...</p>
+                        </div>
+                    </div>
+                    <div class="last-updated" id="last-updated"></div>
+                    <div class="footer-attribution">Data via ESPN. Not affiliated with ESPN.</div>
+                </div>
+            </div>
+        </section>
+        <section class="info-section">
+            <h2>Why This Beats AI for Live Sports Scores</h2>
+            <p>Ask ChatGPT "What's the score of the Chiefs game?" and it will guess based on old training data. This tracker connects to <strong>real-time ESPN data</strong> — every score, every quarter, every second. AI cannot show live game scores because they change by the minute and are never in any training dataset.</p>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="fi-icon">🏈</div>
+                    <h3>5 Major Sports</h3>
+                    <p>NFL, NBA, MLB, NHL and top soccer leagues</p>
+                </div>
+                <div class="feature-item">
+                    <div class="fi-icon">⚡</div>
+                    <h4>30-Second Updates</h4>
+                    <p>Auto-refresh keeps scores current</p>
+                </div>
+                <div class="feature-item">
+                    <div class="fi-icon">📅</div>
+                    <h4>Any Date</h4>
+                    <p>Browse past scores or upcoming games</p>
+                </div>
+                <div class="feature-item">
+                    <div class="fi-icon">🔒</div>
+                    <h4>100% Free</h4>
+                    <p>No signup, no ads, no tracking</p>
+                </div>
+            </div>
+            <h3 style="margin-top:30px;">How It Works</h3>
+            <p>This tool fetches live scoreboard data from ESPN's public API through our Cloudflare proxy. No API key, no authentication, no rate limits for casual use. The page updates automatically every 30 seconds so you never miss a score change. Unlike AI chatbots that fabricate scores, every number you see is a real, verified game result from an official sports data provider.</p>
+            <h3 style="margin-top:30px;">Frequently Asked Questions</h3>
+            <details class="faq-item">
+                <summary>Does this show live scores during games?</summary>
+                <p>Yes! When a game is in progress, you'll see "LIVE" badges, the current quarter/period, and running scores updated every 30 seconds. The card glows red for active games.</p>
+            </details>
+            <details class="faq-item">
+                <summary>What soccer leagues are supported?</summary>
+                <p>We cover the top 5 European leagues: Premier League (England), La Liga (Spain), Serie A (Italy), Bundesliga (Germany), and Ligue 1 (France).</p>
+            </details>
+            <details class="faq-item">
+                <summary>Can I see yesterday's scores?</summary>
+                <p>Yes. Use the date navigation bar to go back to any date with games. The tool shows all scheduled, live, and completed games for the selected date.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Is this tool free?</summary>
+                <p>Completely free. No signup, no ads, no tracking, no hidden limits. The data comes from ESPN's public API which is freely accessible.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Why can't AI show live sports scores?</summary>
+                <p>AI models are trained on static snapshots of the internet and have no access to real-time data. Game scores change by the second. A live score utility is something only a purpose-built tool with a real-time API connection can provide.</p>
+            </details>
+        </section>
+    </main>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+    <script src="/tools.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        var state = {
+            sport: 'football',
+            league: 'nfl',
+            date: new Date(),
+            games: [],
+            autoRefresh: true,
+            refreshTimer: null,
+            refreshCount: 0
+        };
+
+        var LEAGUE_MAP = {
+            'nfl': { sport: 'football', label: 'NFL' },
+            'nba': { sport: 'basketball', label: 'NBA' },
+            'mlb': { sport: 'baseball', label: 'MLB' },
+            'nhl': { sport: 'hockey', label: 'NHL' },
+            'eng.1': { sport: 'soccer', label: 'Premier League' },
+            'esp.1': { sport: 'soccer', label: 'La Liga' },
+            'ita.1': { sport: 'soccer', label: 'Serie A' },
+            'ger.1': { sport: 'soccer', label: 'Bundesliga' },
+            'fra.1': { sport: 'soccer', label: 'Ligue 1' }
+        };
+
+        function formatDate(d) {
+            var y = d.getFullYear();
+            var m = String(d.getMonth() + 1).padStart(2, '0');
+            var day = String(d.getDate()).padStart(2, '0');
+            return y + m + day;
+        }
+
+        function formatDateDisplay(d) {
+            var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return d.toLocaleDateString('en-US', options);
+        }
+
+        function isToday(d) {
+            var today = new Date();
+            return d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
+        }
+
+        function getStatusType(status) {
+            if (!status || !status.type) return 'scheduled';
+            var id = status.type.id;
+            if (id === '2') return 'live';
+            if (id === '3') return 'final';
+            return 'scheduled';
+        }
+
+        function getStatusDisplay(status) {
+            if (!status || !status.type) return 'Scheduled';
+            if (status.type.id === '2') return 'LIVE';
+            if (status.type.id === '3') return 'Final';
+            return status.type.shortDetail || status.type.description || 'Scheduled';
+        }
+
+        function getClockDisplay(status) {
+            if (!status || !status.type) return '';
+            if (status.type.id === '2') {
+                var detail = status.type.shortDetail || status.type.detail || '';
+                return detail;
+            }
+            return '';
+        }
+
+        function getPeriodDisplay(competition) {
+            if (!competition) return '';
+            var status = competition.status;
+            if (!status || !status.type) return '';
+            if (status.type.id === '2') {
+                var period = competition.series || '';
+                if (period) return period;
+                return status.type.shortDetail || status.type.detail || '';
+            }
+            return '';
+        }
+
+        function getTeamLogo(team) {
+            if (team.logo) return team.logo;
+            if (team.abbreviation) {
+                var sport = state.sport;
+                if (state.sport === 'soccer') sport = 'football';
+                return 'https://a.espncdn.com/i/teamlogos/' + sport + '/500/' + team.abbreviation.toLowerCase() + '.png';
+            }
+            return '';
+        }
+
+        function renderScores(data) {
+            var container = document.getElementById('scores-content');
+            var events = data.events || [];
+            var lastUpdated = document.getElementById('last-updated');
+
+            if (events.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><h3>No Games Today</h3><p>No games scheduled for this date in the selected league. Try a different date or league.</p></div>';
+                var now = new Date();
+                lastUpdated.textContent = 'Checked at ' + now.toLocaleTimeString();
+                return;
+            }
+
+            var html = '<div class="games-grid">';
+
+            for (var i = 0; i < events.length; i++) {
+                var event = events[i];
+                var comp = event.competitions && event.competitions[0];
+                if (!comp) continue;
+
+                var status = comp.status;
+                var statusType = getStatusType(status);
+                var statusDisplay = getStatusDisplay(status);
+                var clockDisplay = getClockDisplay(status);
+                var periodDisplay = getPeriodDisplay(comp);
+                var competitors = comp.competitors || [];
+                var homeTeam = null;
+                var awayTeam = null;
+
+                for (var j = 0; j < competitors.length; j++) {
+                    if (competitors[j].homeAway === 'home') homeTeam = competitors[j];
+                    if (competitors[j].homeAway === 'away') awayTeam = competitors[j];
+                }
+
+                if (!homeTeam || !awayTeam) continue;
+
+                var homeTeamInfo = homeTeam.team || {};
+                var awayTeamInfo = awayTeam.team || {};
+                var homeScore = homeTeam.score ? homeTeam.score.displayValue || '0' : '0';
+                var awayScore = awayTeam.score ? awayTeam.score.displayValue || '0' : '0';
+                var homeLogo = getTeamLogo(homeTeamInfo);
+                var awayLogo = getTeamLogo(awayTeamInfo);
+                var homeWinner = homeTeam.winner || false;
+                var awayWinner = awayTeam.winner || false;
+
+                html += '<div class="game-card ' + statusType + '">';
+                html += '<div class="game-header">';
+                html += '<span class="game-league">' + (LEAGUE_MAP[state.league] ? LEAGUE_MAP[state.league].label : state.league.toUpperCase()) + '</span>';
+                html += '<span class="game-status ' + statusType + '">' + statusDisplay + '</span>';
+                html += '</div>';
+
+                html += '<div class="game-teams">';
+                // Away team
+                html += '<div class="team-row">';
+                html += '<div class="team-logo">';
+                if (awayLogo) {
+                    html += '<img src="' + awayLogo + '" alt="' + (awayTeamInfo.abbreviation || 'Away') + '" onerror="this.parentElement.innerHTML=\'<span class=fallback>' + (awayTeamInfo.abbreviation || awayTeamInfo.name || 'AW') + '</span>\'">';
+                } else {
+                    html += '<span class="fallback">' + (awayTeamInfo.abbreviation || awayTeamInfo.name || 'AW') + '</span>';
+                }
+                html += '</div>';
+                html += '<span class="team-name">' + (awayTeamInfo.displayName || awayTeamInfo.location + ' ' + awayTeamInfo.name || 'Away Team') + '</span>';
+                html += '<span class="team-score' + (awayWinner ? ' winner' : '') + '">' + awayScore + '</span>';
+                html += '</div>';
+
+                // Home team
+                html += '<div class="team-row">';
+                html += '<div class="team-logo">';
+                if (homeLogo) {
+                    html += '<img src="' + homeLogo + '" alt="' + (homeTeamInfo.abbreviation || 'Home') + '" onerror="this.parentElement.innerHTML=\'<span class=fallback>' + (homeTeamInfo.abbreviation || homeTeamInfo.name || 'HM') + '</span>\'">';
+                } else {
+                    html += '<span class="fallback">' + (homeTeamInfo.abbreviation || homeTeamInfo.name || 'HM') + '</span>';
+                }
+                html += '</div>';
+                html += '<span class="team-name">' + (homeTeamInfo.displayName || homeTeamInfo.location + ' ' + homeTeamInfo.name || 'Home Team') + '</span>';
+                html += '<span class="team-score' + (homeWinner ? ' winner' : '') + '">' + homeScore + '</span>';
+                html += '</div>';
+                html += '</div>';
+
+                if (clockDisplay || periodDisplay) {
+                    html += '<div class="game-detail">';
+                    html += '<div class="detail"><span>' + (periodDisplay || '') + '</span></div>';
+                    html += '<div class="clock">' + (clockDisplay || '') + '</div>';
+                    html += '</div>';
+                }
+
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+            var now = new Date();
+            lastUpdated.textContent = 'Updated at ' + now.toLocaleTimeString();
+        }
+
+        async function loadScores() {
+            var container = document.getElementById('scores-content');
+            if (state.games.length === 0) {
+                container.innerHTML = '<div class="loading-scores"><div class="loading-spinner"></div><p style="color:#888;margin-top:16px;">Loading live scores...</p></div>';
+            }
+
+            var dates = formatDate(state.date);
+            var url = '/api/sports?sport=' + encodeURIComponent(state.sport) + '&league=' + encodeURIComponent(state.league) + '&dates=' + dates;
+
+            try {
+                var res = await fetch(url);
+                if (!res.ok) {
+                    var errData;
+                    try { errData = await res.json(); } catch(e) {}
+                    throw new Error((errData && errData.error) || 'HTTP ' + res.status);
+                }
+                var data = await res.json();
+                state.games = data.events || [];
+                renderScores(data);
+            } catch (e) {
+                if (state.games.length === 0) {
+                    container.innerHTML = '<div class="error-msg">Failed to load scores. ' + e.message + '</div>';
+                }
+                console.error('loadScores error:', e);
+            }
+        }
+
+        function changeDate(delta) {
+            state.date = new Date(state.date);
+            state.date.setDate(state.date.getDate() + delta);
+            updateDateLabel();
+            loadScores();
+        }
+
+        function goToday() {
+            state.date = new Date();
+            updateDateLabel();
+            loadScores();
+        }
+
+        function updateDateLabel() {
+            var label = document.getElementById('date-label');
+            if (isToday(state.date)) {
+                label.textContent = 'Today \u2014 ' + formatDateDisplay(state.date);
+            } else {
+                label.textContent = formatDateDisplay(state.date);
+            }
+        }
+
+        function toggleAutoRefresh() {
+            state.autoRefresh = document.getElementById('auto-refresh').checked;
+            if (state.autoRefresh) {
+                startAutoRefresh();
+            } else {
+                stopAutoRefresh();
+            }
+        }
+
+        function startAutoRefresh() {
+            stopAutoRefresh();
+            state.refreshTimer = setInterval(function() {
+                state.refreshCount++;
+                var countEl = document.getElementById('refresh-count');
+                if (countEl) countEl.textContent = 'Auto-updated ' + state.refreshCount + 'x';
+                loadScores();
+            }, 30000);
+        }
+
+        function stopAutoRefresh() {
+            if (state.refreshTimer) {
+                clearInterval(state.refreshTimer);
+                state.refreshTimer = null;
+            }
+        }
+
+        function switchSport(sport, league) {
+            state.sport = sport;
+            state.league = league;
+
+            document.querySelectorAll('.sport-tab').forEach(function(tab) {
+                var isActive = tab.getAttribute('data-sport') === sport && tab.getAttribute('data-league') === league;
+                tab.classList.toggle('active', isActive);
+                tab.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+
+            var soccerLeagues = document.getElementById('soccer-leagues');
+            if (sport === 'soccer') {
+                soccerLeagues.classList.add('show');
+            } else {
+                soccerLeagues.classList.remove('show');
+            }
+
+            state.games = [];
+            loadScores();
+        }
+
+        function init() {
+            // Sport tabs
+            document.querySelectorAll('.sport-tab').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    var sport = tab.getAttribute('data-sport');
+                    var league = tab.getAttribute('data-league');
+                    switchSport(sport, league);
+                });
+            });
+
+            // Soccer league tabs
+            document.querySelectorAll('.league-tab').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    var league = tab.getAttribute('data-league');
+                    document.querySelectorAll('.league-tab').forEach(function(t) { t.classList.remove('active'); });
+                    tab.classList.add('active');
+                    state.league = league;
+                    state.games = [];
+                    loadScores();
+                });
+            });
+
+            updateDateLabel();
+            loadScores();
+
+            if (state.autoRefresh) {
+                startAutoRefresh();
+            }
+        }
+
+        window.loadScores = loadScores;
+        window.changeDate = changeDate;
+        window.goToday = goToday;
+        window.toggleAutoRefresh = toggleAutoRefresh;
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
+</body>
+</html>

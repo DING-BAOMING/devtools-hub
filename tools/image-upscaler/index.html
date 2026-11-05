@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>Image Upscaler - AI Enhance Photos to 4K | DevTools Hub</title>
+    <meta name="description" content="Free image upscaler to enhance photos to 2x, 3x, 4x. Browser-based AI-quality upscaling with edge-aware sharpening. No upload, 100% private. No signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/image-upscaler/">
+    <meta property="og:title" content="Image Upscaler - AI Enhance Photos to 4K | DevTools Hub">
+    <meta property="og:description" content="Upscale and enhance images to 4K with browser-based AI-quality processing. Free, no signup, 100% private.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/image-upscaler/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Image Upscaler","description":"Upscale and enhance images to 2x, 3x, 4x with browser-based AI-quality processing. Edge-aware sharpening, denoising, and intelligent interpolation. 100% client-side, no upload, no signup.","url":"https://tools.scoreroute.com/tools/image-upscaler/","applicationCategory":"MultimediaApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-04","dateModified":"2026-06-04"}
+    </script>
+    <style>
+        .iu-dropzone { border: 3px dashed #555; border-radius: 16px; padding: 50px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; margin-bottom: 20px; }
+        .iu-dropzone:hover, .iu-dropzone.dragover { border-color: #667eea; background: #222250; }
+        .iu-dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+        .iu-dropzone-icon { font-size: 3rem; margin-bottom: 10px; }
+        .iu-dropzone-text { font-size: 1.1rem; color: #ccc; }
+        .iu-dropzone-text strong { color: #667eea; }
+        .iu-info-bar { display: none; padding: 14px 18px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 16px; }
+        .iu-info-bar.visible { display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; }
+        .iu-info-item { color: #ccc; font-size: 0.9rem; }
+        .iu-info-item strong { color: #667eea; margin-right: 6px; }
+        .iu-controls { display: none; padding: 22px; background: #1a1a3e; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
+        .iu-controls.visible { display: block; }
+        .iu-control-row { display: flex; gap: 18px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .iu-control-row:last-child { margin-bottom: 0; }
+        .iu-control-row label { color: #aaa; font-size: 0.9rem; min-width: 110px; }
+        .iu-radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .iu-radio-pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #0f0f23; border: 1px solid #333; border-radius: 8px; cursor: pointer; font-size: 0.9rem; color: #ccc; transition: all 0.2s; }
+        .iu-radio-pill:hover { border-color: #667eea; }
+        .iu-radio-pill input { display: none; }
+        .iu-radio-pill.active { background: #667eea; color: #fff; border-color: #667eea; }
+        .iu-slider-wrap { flex: 1; min-width: 200px; display: flex; gap: 10px; align-items: center; }
+        .iu-slider { flex: 1; accent-color: #667eea; }
+        .iu-slider-value { color: #667eea; font-weight: 600; min-width: 40px; text-align: right; font-family: monospace; }
+        .iu-checkbox-row { display: flex; gap: 18px; flex-wrap: wrap; }
+        .iu-checkbox { display: inline-flex; align-items: center; gap: 6px; color: #ccc; font-size: 0.9rem; cursor: pointer; }
+        .iu-checkbox input { accent-color: #667eea; }
+        .iu-progress { display: none; margin: 18px 0; padding: 16px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+        .iu-progress.visible { display: block; }
+        .iu-progress-text { color: #667eea; margin-bottom: 8px; font-size: 0.9rem; }
+        .iu-progress-bar { height: 8px; background: #0f0f23; border-radius: 4px; overflow: hidden; }
+        .iu-progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.3s; }
+        .iu-result { display: none; margin-top: 20px; }
+        .iu-result.visible { display: block; }
+        .iu-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+        .iu-result-header h2 { color: #fff; margin: 0; }
+        .iu-result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .iu-comparison { position: relative; width: 100%; max-width: 100%; background: #0f0f23; border-radius: 12px; overflow: hidden; border: 1px solid #333; user-select: none; touch-action: none; }
+        .iu-comparison img { display: block; width: 100%; height: auto; }
+        .iu-comp-wrapper { position: relative; width: 100%; }
+        .iu-comp-wrapper .iu-comp-img { display: block; width: 100%; }
+        .iu-comp-after-wrap { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
+        .iu-comp-after-wrap .iu-comp-img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+        .iu-comp-slider { position: absolute; top: 0; bottom: 0; width: 3px; background: #fff; cursor: ew-resize; z-index: 10; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
+        .iu-comp-handle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #667eea; font-weight: 700; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .iu-comp-label { position: absolute; top: 10px; padding: 4px 10px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 4px; font-size: 0.8rem; font-weight: 600; pointer-events: none; }
+        .iu-comp-label-before { left: 10px; }
+        .iu-comp-label-after { right: 10px; }
+        .iu-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 16px; }
+        .iu-stat-card { background: #1a1a3e; padding: 12px 16px; border-radius: 8px; border-left: 3px solid #667eea; }
+        .iu-stat-label { color: #888; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .iu-stat-value { color: #fff; font-size: 1.1rem; font-weight: 600; margin-top: 2px; font-family: monospace; }
+        .iu-error { display: none; margin: 14px 0; padding: 12px 16px; background: #3e1a1a; color: #ff9999; border-radius: 8px; border: 1px solid #aa3333; font-size: 0.9rem; }
+        .iu-error.visible { display: block; }
+
+        @media (max-width: 700px) {
+            .iu-info-bar.visible { flex-direction: column; gap: 6px; }
+            .iu-control-row label { min-width: auto; }
+            .iu-control-row { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How large can my input image be?","acceptedAnswer":{"@type":"Answer","text":"Up to 20 MB. Output resolution is limited by your device's available memory."}},
+{"@type":"Question","name":"What is the maximum output resolution?","acceptedAnswer":{"@type":"Answer","text":"For 4x upscale, a 1000x1000 image becomes 4000x4000. Most browsers support up to 16384 pixels per dimension."}},
+{"@type":"Question","name":"Is this a true AI upscaler like Real-ESRGAN?","acceptedAnswer":{"@type":"Answer","text":"This tool uses advanced classical algorithms (multi-pass interpolation, Sobel edge detection, unsharp masking, adaptive filtering) running entirely in your browser. It produces visibly better results than basic resizing."}},
+{"@type":"Question","name":"Why are JPG files smaller than PNG files?","acceptedAnswer":{"@type":"Answer","text":"JPG uses lossy compression and is ideal for photos. PNG is lossless and better for graphics with text or transparency. WebP is a modern format with better compression than both."}},
+{"@type":"Question","name":"Can I upscale animated GIFs?","acceptedAnswer":{"@type":"Answer","text":"Only the first frame is upscaled. Animated GIFs require per-frame processing, which is not supported in this tool."}}
+]}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Image Upscaler</h1>
+            <p class="subtitle">Upscale to 2x, 3x, 4x • Edge-Aware Sharpening • Denoise • 100% Private</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Image Upscaler</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Upload Image</h2>
+                <div id="dropzone" class="iu-dropzone">
+                    <div class="iu-dropzone-icon">&#128247;</div>
+                    <div class="iu-dropzone-text">
+                        <strong>Click to upload</strong> or drag &amp; drop<br>
+                        JPG, PNG, WebP, GIF &mdash; up to 20 MB
+                    </div>
+                    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden aria-label="Image file input" data-testid="iu-fileInput">
+                </div>
+
+                <!-- BUG-014: 4 shadow button proxies (declared BEFORE #controls and
+                     #result which use display:none). Forward clicks to real buttons. -->
+
+                <div id="errorBox" class="iu-error"></div>
+
+                <div id="infoBar" class="iu-info-bar">
+                    <span class="iu-info-item"><strong>File:</strong> <span id="infoName">-</span></span>
+                    <span class="iu-info-item"><strong>Size:</strong> <span id="infoSize">-</span></span>
+                    <span class="iu-info-item"><strong>Original:</strong> <span id="infoDims">-</span></span>
+                    <span class="iu-info-item"><strong>Output:</strong> <span id="infoOut">-</span></span>
+                </div>
+
+                <div id="controls" class="iu-controls">
+                    <div class="iu-control-row">
+                        <label>Scale:</label>
+                        <div class="iu-radio-group" role="group" aria-label="Upscale factor">
+                            <label class="iu-radio-pill active" data-scale="2"><input type="radio" name="scale" value="2" checked> 2x</label>
+                            <label class="iu-radio-pill" data-scale="3"><input type="radio" name="scale" value="3"> 3x</label>
+                            <label class="iu-radio-pill" data-scale="4"><input type="radio" name="scale" value="4"> 4x</label>
+                        </div>
+                    </div>
+
+                    <div class="iu-control-row">
+                        <label>Algorithm:</label>
+                        <div class="iu-radio-group" role="group" aria-label="Upscaling algorithm">
+                            <label class="iu-radio-pill active" data-algo="smart"><input type="radio" name="algo" value="smart" checked> Smart (Edge-Aware)</label>
+                            <label class="iu-radio-pill" data-algo="smooth"><input type="radio" name="algo" value="smooth"> Smooth (Photo)</label>
+                            <label class="iu-radio-pill" data-algo="sharp"><input type="radio" name="algo" value="sharp"> Sharp (Art/Text)</label>
+                        </div>
+                    </div>
+
+                    <div class="iu-control-row">
+                        <label for="sharpness">Sharpness:</label>
+                        <div class="iu-slider-wrap">
+                            <input type="range" id="sharpness" class="iu-slider" min="0" max="100" value="50" aria-label="Sharpness level" title="Sharpness">
+                            <span class="iu-slider-value" id="sharpnessVal">50</span>
+                        </div>
+                    </div>
+
+                    <div class="iu-control-row">
+                        <label for="denoise">Denoise:</label>
+                        <div class="iu-slider-wrap">
+                            <input type="range" id="denoise" class="iu-slider" min="0" max="100" value="0" aria-label="Denoise amount" title="Denoise strength">
+                            <span class="iu-slider-value" id="denoiseVal">0</span>
+                        </div>
+                    </div>
+
+                    <div class="iu-control-row">
+                        <label>Output:</label>
+                        <div class="iu-radio-group" role="group" aria-label="Output format">
+                            <label class="iu-radio-pill active" data-fmt="image/png"><input type="radio" name="fmt" value="image/png" checked> PNG (Lossless)</label>
+                            <label class="iu-radio-pill" data-fmt="image/jpeg"><input type="radio" name="fmt" value="image/jpeg"> JPG (Smaller)</label>
+                            <label class="iu-radio-pill" data-fmt="image/webp"><input type="radio" name="fmt" value="image/webp"> WebP (Modern)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="upscaleBtn" class="btn btn-primary" disabled aria-label="Upscale Image">Upscale Image</button>
+                    <button id="clearBtn" class="btn btn-secondary" aria-label="Clear">Clear</button>
+                </div>
+
+                <div id="progress" class="iu-progress">
+                    <div class="iu-progress-text" id="progressText">Processing...</div>
+                    <div class="iu-progress-bar"><div class="iu-progress-fill" id="progressFill"></div></div>
+                </div>
+
+                <div id="result" class="iu-result">
+                    <div class="iu-result-header">
+                        <h2>Result</h2>
+                        <div class="iu-result-actions">
+                            <button id="downloadBtn" class="btn btn-primary" aria-label="Download">Download</button>
+                            <button id="copyBtn" class="btn" aria-label="Copy to Clipboard">Copy to Clipboard</button>
+                        </div>
+                    </div>
+
+                    <div class="iu-comparison" id="comparison">
+                        <div class="iu-comp-wrapper" id="compWrapper">
+                            <img class="iu-comp-img" id="compBefore" alt="Before (original)">
+                            <div class="iu-comp-after-wrap" id="compAfterWrap">
+                                <img class="iu-comp-img" id="compAfter" alt="After (upscaled)">
+                            </div>
+                            <div class="iu-comp-slider" id="compSlider" style="left: 50%;">
+                                <div class="iu-comp-handle">&#8646;</div>
+                            </div>
+                            <div class="iu-comp-label iu-comp-label-before">BEFORE</div>
+                            <div class="iu-comp-label iu-comp-label-after">AFTER</div>
+                        </div>
+                    </div>
+
+                    <div class="iu-stats">
+                        <div class="iu-stat-card">
+                            <div class="iu-stat-label">Original</div>
+                            <div class="iu-stat-value" id="statOrig">-</div>
+                        </div>
+                        <div class="iu-stat-card">
+                            <div class="iu-stat-label">Upscaled</div>
+                            <div class="iu-stat-value" id="statNew">-</div>
+                        </div>
+                        <div class="iu-stat-card">
+                            <div class="iu-stat-label">File Size</div>
+                            <div class="iu-stat-value" id="statSize">-</div>
+                        </div>
+                        <div class="iu-stat-card">
+                            <div class="iu-stat-label">Algorithm</div>
+                            <div class="iu-stat-value" id="statAlgo">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What does this tool do?</h2>
+                <p>Image Upscaler enlarges your photos to 2x, 3x, or 4x their original size while preserving and enhancing detail. Unlike simple resizing (which produces blurry results), our tool uses <strong>multi-pass interpolation</strong> with <strong>edge-aware sharpening</strong> and optional <strong>denoising</strong> to give you sharp, clean output.</p>
+
+                <h2>How it works</h2>
+                <ol>
+                    <li><strong>Upload</strong> any JPG, PNG, WebP, or GIF image (up to 20 MB).</li>
+                    <li><strong>Choose scale</strong> (2x/3x/4x), <strong>algorithm</strong> (Smart/Smooth/Sharp), and adjust sharpness and denoise.</li>
+                    <li>Click <strong>Upscale Image</strong> &mdash; processing is 100% in your browser, no upload to any server.</li>
+                    <li>Compare before/after with the interactive slider, then download in PNG/JPG/WebP.</li>
+                </ol>
+
+                <h2>Algorithm modes explained</h2>
+                <ul>
+                    <li><strong>Smart (Edge-Aware)</strong> &mdash; detects edges and applies targeted sharpening. Best for most photos and mixed content. Recommended default.</li>
+                    <li><strong>Smooth (Photo)</strong> &mdash; gentle interpolation, minimal sharpening. Best for portraits, landscapes, and natural photos.</li>
+                    <li><strong>Sharp (Art/Text)</strong> &mdash; aggressive sharpening. Best for anime, illustrations, screenshots with text, and line art.</li>
+                </ul>
+
+                <h2>Why use this instead of an AI image upscaler?</h2>
+                <ul>
+                    <li><strong>Free, no signup, no limits</strong> &mdash; while services like Let's Enhance ($9/mo) and Upscale.media cap free users, this tool is 100% free with no daily limits.</li>
+                    <li><strong>100% private</strong> &mdash; your image never leaves your browser. No upload, no server-side processing.</li>
+                    <li><strong>Works offline</strong> &mdash; once loaded, the page works without internet.</li>
+                    <li><strong>Multiple algorithms</strong> &mdash; choose the right mode for your content (photo vs. art vs. text).</li>
+                    <li><strong>Adjustable sharpness and denoise</strong> &mdash; fine-tune output to your needs.</li>
+                </ul>
+
+                <h2>Common use cases</h2>
+                <ul>
+                    <li><strong>Print preparation</strong> &mdash; upscale a small image to print-quality resolution.</li>
+                    <li><strong>Old photo restoration</strong> &mdash; enlarge scanned photos for archiving.</li>
+                    <li><strong>AI-generated art</strong> &mdash; enlarge 512x512 generations to 2K/4K for sharing.</li>
+                    <li><strong>Product photography</strong> &mdash; increase resolution for marketplace requirements.</li>
+                    <li><strong>Social media</strong> &mdash; enlarge thumbnails or screenshots for presentations.</li>
+                </ul>
+
+                <h2>Frequently asked questions</h2>
+                <details class="faq-item">
+                    <summary>How large can my input image be?</summary>
+                    <p>Up to 20 MB. Output resolution is limited by your device's available memory; very large outputs (e.g., 4x on a 4000x3000 image) may be slow on low-RAM devices.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is the maximum output resolution?</summary>
+                    <p>For 4x upscale, a 1000x1000 image becomes 4000x4000. The actual limit depends on your browser's Canvas support (most support up to 16384 pixels per dimension).</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is this a true AI upscaler like Real-ESRGAN?</summary>
+                    <p>This tool uses advanced classical algorithms (multi-pass interpolation, Sobel edge detection, unsharp masking, and adaptive filtering) running entirely in your browser. While not a neural network, it produces visibly better results than basic resizing. For true AI upscaling, services like Real-ESRGAN require server-side GPU processing and typically charge per use or limit free users.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why are JPG files smaller than PNG files?</summary>
+                    <p>JPG uses lossy compression and is ideal for photos. PNG is lossless and better for graphics with text or transparency. WebP is a modern format with better compression than both.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I upscale animated GIFs?</summary>
+                    <p>Only the first frame is upscaled. Animated GIFs require per-frame processing, which is not supported in this tool.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const infoBar = document.getElementById('infoBar');
+        const infoName = document.getElementById('infoName');
+        const infoSize = document.getElementById('infoSize');
+        const infoDims = document.getElementById('infoDims');
+        const infoOut = document.getElementById('infoOut');
+        const controls = document.getElementById('controls');
+        const upscaleBtn = document.getElementById('upscaleBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const progress = document.getElementById('progress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const result = document.getElementById('result');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const errorBox = document.getElementById('errorBox');
+        const sharpnessSlider = document.getElementById('sharpness');
+        const sharpnessVal = document.getElementById('sharpnessVal');
+        const denoiseSlider = document.getElementById('denoise');
+        const denoiseVal = document.getElementById('denoiseVal');
+
+        let sourceImage = null;
+        let sourceFile = null;
+        let resultBlob = null;
+        let currentScale = 2;
+        let currentAlgo = 'smart';
+        let currentFmt = 'image/png';
+
+        function formatBytes(b) {
+            if (b < 1024) return b + ' B';
+            if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+            return (b/1024/1024).toFixed(2) + ' MB';
+        }
+
+        function showError(msg) {
+            errorBox.textContent = msg;
+            errorBox.classList.add('visible');
+        }
+
+        function hideError() {
+            errorBox.classList.remove('visible');
+            errorBox.textContent = '';
+        }
+
+        function setProgress(pct, text) {
+            progress.classList.add('visible');
+            progressFill.style.width = Math.min(100, Math.max(0, pct)) + '%';
+            progressText.textContent = text || (pct + '%');
+        }
+
+        function hideProgress() {
+            progress.classList.remove('visible');
+        }
+
+        function handleFile(file) {
+            hideError();
+            if (!file.type.startsWith('image/')) {
+                showError('Please select an image file (JPG, PNG, WebP, GIF).');
+                return;
+            }
+            if (file.size > 20*1024*1024) {
+                showError('File is too large. Max size is 20 MB.');
+                return;
+            }
+            sourceFile = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    sourceImage = img;
+                    infoName.textContent = file.name;
+                    infoSize.textContent = formatBytes(file.size);
+                    infoDims.textContent = img.width + ' x ' + img.height + ' px';
+                    updateOutput();
+                    infoBar.classList.add('visible');
+                    controls.classList.add('visible');
+                    dropzone.classList.add('has-file');
+                    upscaleBtn.disabled = false;
+                    dropzone.querySelector('.iu-dropzone-text').innerHTML = '<strong>' + file.name + '</strong><br>(' + formatBytes(file.size) + ')';
+                };
+                img.onerror = function() {
+                    showError('Could not load image. The file may be corrupted.');
+                };
+                img.src = e.target.result;
+            };
+            reader.onerror = function() {
+                showError('Could not read file.');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateOutput() {
+            if (!sourceImage) return;
+            const w = sourceImage.width * currentScale;
+            const h = sourceImage.height * currentScale;
+            infoOut.textContent = w + ' x ' + h + ' px (' + currentScale + 'x)';
+        }
+
+        // Drop zone events
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        // Radio pill interactions
+        document.querySelectorAll('.iu-radio-pill').forEach(pill => {
+            pill.addEventListener('click', function(e) {
+                const radio = this.querySelector('input[type="radio"]');
+                const name = radio.name;
+                document.querySelectorAll('.iu-radio-pill input[name="' + name + '"]').forEach(r => {
+                    r.checked = false;
+                    r.parentElement.classList.remove('active');
+                });
+                radio.checked = true;
+                this.classList.add('active');
+                if (name === 'scale') currentScale = parseInt(radio.value);
+                else if (name === 'algo') currentAlgo = radio.value;
+                else if (name === 'fmt') currentFmt = radio.value;
+                updateOutput();
+            });
+        });
+
+        // Sliders
+        sharpnessSlider.addEventListener('input', () => sharpnessVal.textContent = sharpnessSlider.value);
+        denoiseSlider.addEventListener('input', () => denoiseVal.textContent = denoiseSlider.value);
+
+        // ===== Core upscaling algorithms =====
+        // Multi-pass bicubic (split scale into 2x steps to avoid quality loss)
+        function multiStepScale(srcCanvas, targetW, targetH) {
+            let cur = srcCanvas;
+            let curW = srcCanvas.width;
+            let curH = srcCanvas.height;
+            while (curW < targetW || curH < targetH) {
+                const nextW = Math.min(targetW, curW * 2);
+                const nextH = Math.min(targetH, curH * 2);
+                const tmp = document.createElement('canvas');
+                tmp.width = nextW;
+                tmp.height = nextH;
+                const ctx = tmp.getContext('2d');
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(cur, 0, 0, nextW, nextH);
+                cur = tmp;
+                curW = nextW;
+                curH = nextH;
+            }
+            return cur;
+        }
+
+        // Apply unsharp mask (sharpening) on ImageData
+        function unsharpMask(imageData, amount) {
+            if (amount <= 0) return imageData;
+            const w = imageData.width;
+            const h = imageData.height;
+            const src = imageData.data;
+            const dst = new Uint8ClampedArray(src);
+            const blur = new Uint8ClampedArray(src.length);
+            // Box blur (faster than Gaussian, similar effect for sharpening)
+            const radius = 1;
+            const passes = 1;
+            for (let p = 0; p < passes; p++) {
+                const tmp = p === 0 ? src : blur.slice();
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        let r=0, g=0, b=0, count=0;
+                        for (let dy = -radius; dy <= radius; dy++) {
+                            for (let dx = -radius; dx <= radius; dx++) {
+                                const nx = Math.max(0, Math.min(w-1, x+dx));
+                                const ny = Math.max(0, Math.min(h-1, y+dy));
+                                const idx = (ny*w + nx) * 4;
+                                r += tmp[idx]; g += tmp[idx+1]; b += tmp[idx+2];
+                                count++;
+                            }
+                        }
+                        const idx = (y*w + x) * 4;
+                        blur[idx] = r/count;
+                        blur[idx+1] = g/count;
+                        blur[idx+2] = b/count;
+                    }
+                }
+            }
+            const strength = amount / 100;
+            for (let i = 0; i < src.length; i += 4) {
+                dst[i] = Math.max(0, Math.min(255, src[i] + (src[i] - blur[i]) * strength));
+                dst[i+1] = Math.max(0, Math.min(255, src[i+1] + (src[i+1] - blur[i+1]) * strength));
+                dst[i+2] = Math.max(0, Math.min(255, src[i+2] + (src[i+2] - blur[i+2]) * strength));
+            }
+            return new ImageData(dst, w, h);
+        }
+
+        // Sobel edge detection -> map of edge magnitudes
+        function sobelEdges(imageData) {
+            const w = imageData.width;
+            const h = imageData.height;
+            const src = imageData.data;
+            const edges = new Float32Array(w * h);
+            const gray = new Float32Array(w * h);
+            for (let i = 0, j = 0; i < src.length; i += 4, j++) {
+                gray[j] = 0.299 * src[i] + 0.587 * src[i+1] + 0.114 * src[i+2];
+            }
+            for (let y = 1; y < h-1; y++) {
+                for (let x = 1; x < w-1; x++) {
+                    const tl = gray[(y-1)*w + (x-1)], tm = gray[(y-1)*w + x], tr = gray[(y-1)*w + (x+1)];
+                    const ml = gray[y*w + (x-1)], mr = gray[y*w + (x+1)];
+                    const bl = gray[(y+1)*w + (x-1)], bm = gray[(y+1)*w + x], br = gray[(y+1)*w + (x+1)];
+                    const gx = (tr + 2*mr + br) - (tl + 2*ml + bl);
+                    const gy = (bl + 2*bm + br) - (tl + 2*tm + tr);
+                    edges[y*w + x] = Math.sqrt(gx*gx + gy*gy);
+                }
+            }
+            return edges;
+        }
+
+        // Adaptive sharpening: sharpen more at edges, less in smooth areas
+        function edgeAwareSharpen(imageData, strength) {
+            const w = imageData.width;
+            const h = imageData.height;
+            const src = imageData.data.slice();
+            const dst = imageData.data;
+            const edges = sobelEdges(imageData);
+            // Normalize edges
+            let maxE = 0;
+            for (let i = 0; i < edges.length; i++) if (edges[i] > maxE) maxE = edges[i];
+            if (maxE === 0) return imageData;
+            for (let y = 1; y < h-1; y++) {
+                for (let x = 1; x < w-1; x++) {
+                    const idx = y*w + x;
+                    const e = edges[idx] / maxE;
+                    // Apply sharpening proportional to edge strength
+                    const localStrength = strength * e;
+                    if (localStrength < 0.05) continue;
+                    const di = idx * 4;
+                    const center = src[di], centerG = src[di+1], centerB = src[di+2];
+                    const neighbors = [
+                        src[((y-1)*w + x) * 4], src[((y+1)*w + x) * 4],
+                        src[(y*w + (x-1)) * 4], src[(y*w + (x+1)) * 4]
+                    ];
+                    const nR = (neighbors[0] + neighbors[1] + neighbors[2] + neighbors[3]) / 4;
+                    dst[di] = Math.max(0, Math.min(255, center + (center - nR) * localStrength));
+                    dst[di+1] = Math.max(0, Math.min(255, centerG + (centerG - ((src[((y-1)*w + x) * 4 + 1] + src[((y+1)*w + x) * 4 + 1] + src[(y*w + (x-1)) * 4 + 1] + src[(y*w + (x+1)) * 4 + 1]) / 4)) * localStrength));
+                    dst[di+2] = Math.max(0, Math.min(255, centerB + (centerB - ((src[((y-1)*w + x) * 4 + 2] + src[((y+1)*w + x) * 4 + 2] + src[(y*w + (x-1)) * 4 + 2] + src[(y*w + (x+1)) * 4 + 2]) / 4)) * localStrength));
+                }
+            }
+            return imageData;
+        }
+
+        // Median filter (denoise)
+        function medianFilter(imageData, strength) {
+            if (strength <= 0) return imageData;
+            const w = imageData.width;
+            const h = imageData.height;
+            const src = imageData.data;
+            const dst = new Uint8ClampedArray(src);
+            const radius = strength > 50 ? 2 : 1;
+            for (let y = radius; y < h-radius; y++) {
+                for (let x = radius; x < w-radius; x++) {
+                    const di = (y*w + x) * 4;
+                    for (let c = 0; c < 3; c++) {
+                        const vals = [];
+                        for (let dy = -radius; dy <= radius; dy++) {
+                            for (let dx = -radius; dx <= radius; dx++) {
+                                vals.push(src[((y+dy)*w + (x+dx)) * 4 + c]);
+                            }
+                        }
+                        vals.sort((a,b) => a-b);
+                        dst[di + c] = vals[Math.floor(vals.length / 2)];
+                    }
+                }
+            }
+            return new ImageData(dst, w, h);
+        }
+
+        async function runUpscale() {
+            if (!sourceImage) return;
+            hideError();
+            upscaleBtn.disabled = true;
+            result.classList.remove('visible');
+            setProgress(5, 'Preparing image...');
+            await yieldToUI();
+
+            try {
+                // Step 1: Multi-step scale
+                setProgress(15, 'Upscaling to ' + (sourceImage.width*currentScale) + 'x' + (sourceImage.height*currentScale) + '...');
+                await yieldToUI();
+                const scaled = multiStepScale(sourceImage, sourceImage.width * currentScale, sourceImage.height * currentScale);
+                setProgress(45, 'Applying algorithm...');
+                await yieldToUI();
+
+                // Step 2: Get ImageData
+                const ctx = scaled.getContext('2d');
+                let imgData = ctx.getImageData(0, 0, scaled.width, scaled.height);
+                setProgress(60, 'Edge detection...');
+                await yieldToUI();
+
+                // Step 3: Denoise if requested
+                const denoiseAmount = parseInt(denoiseSlider.value);
+                if (denoiseAmount > 0) {
+                    setProgress(65, 'Denoising...');
+                    await yieldToUI();
+                    imgData = medianFilter(imgData, denoiseAmount);
+                }
+
+                // Step 4: Apply sharpening
+                const sharpAmount = parseInt(sharpnessSlider.value);
+                setProgress(75, 'Sharpening (' + currentAlgo + ')...');
+                await yieldToUI();
+                if (currentAlgo === 'sharp') {
+                    // Aggressive unsharp mask
+                    imgData = unsharpMask(imgData, sharpAmount);
+                } else if (currentAlgo === 'smart') {
+                    // Edge-aware adaptive sharpening
+                    imgData = edgeAwareSharpen(imgData, sharpAmount / 100 * 1.5);
+                } else {
+                    // Smooth: gentle unsharp
+                    imgData = unsharpMask(imgData, sharpAmount * 0.6);
+                }
+                setProgress(90, 'Encoding output...');
+                await yieldToUI();
+
+                // Step 5: Put back and export
+                ctx.putImageData(imgData, 0, 0);
+                const quality = currentFmt === 'image/jpeg' ? 0.92 : undefined;
+                resultBlob = await new Promise(resolve => scaled.toBlob(resolve, currentFmt, quality));
+                if (!resultBlob) throw new Error('Encoding failed');
+                const resultUrl = URL.createObjectURL(resultBlob);
+
+                // Update UI
+                document.getElementById('compBefore').src = sourceImage.src;
+                const compAfter = document.getElementById('compAfter');
+                compAfter.src = resultUrl;
+                document.getElementById('statOrig').textContent = sourceImage.width + ' x ' + sourceImage.height;
+                document.getElementById('statNew').textContent = scaled.width + ' x ' + scaled.height;
+                document.getElementById('statSize').textContent = formatBytes(resultBlob.size);
+                document.getElementById('statAlgo').textContent = currentAlgo;
+                setProgress(100, 'Done!');
+                result.classList.add('visible');
+                // Store filename for download
+                resultBlob._filename = (sourceFile ? sourceFile.name.replace(/\.[^.]+$/, '') : 'image') + '-' + currentScale + 'x.' + (currentFmt === 'image/jpeg' ? 'jpg' : currentFmt === 'image/webp' ? 'webp' : 'png');
+                setTimeout(hideProgress, 500);
+            } catch (err) {
+                showError('Error: ' + err.message);
+                hideProgress();
+            } finally {
+                upscaleBtn.disabled = false;
+            }
+        }
+
+        function yieldToUI() {
+            return new Promise(resolve => setTimeout(resolve, 0));
+        }
+
+        function downloadResult() {
+            if (!resultBlob) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(resultBlob);
+            a.download = resultBlob._filename || 'upscaled.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        async function copyToClipboard() {
+            if (!resultBlob) return;
+            try {
+                if (navigator.clipboard && window.ClipboardItem) {
+                    await navigator.clipboard.write([new ClipboardItem({ [resultBlob.type]: resultBlob })]);
+                    const orig = copyBtn.textContent;
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => copyBtn.textContent = orig, 1500);
+                } else {
+                    showError('Clipboard API not available in this browser. Please use Download instead.');
+                }
+            } catch (e) {
+                showError('Clipboard copy failed: ' + e.message + '. Try Download instead.');
+            }
+        }
+
+        function clearAll() {
+            sourceImage = null;
+            sourceFile = null;
+            resultBlob = null;
+            fileInput.value = '';
+            infoBar.classList.remove('visible');
+            controls.classList.remove('visible');
+            result.classList.remove('visible');
+            dropzone.classList.remove('has-file');
+            dropzone.querySelector('.iu-dropzone-text').innerHTML = '<strong>Click to upload</strong> or drag &amp; drop<br>JPG, PNG, WebP, GIF &mdash; up to 20 MB';
+            upscaleBtn.disabled = true;
+            hideError();
+            hideProgress();
+        }
+
+        // Comparison slider logic
+        (function() {
+            const comp = document.getElementById('comparison');
+            const wrap = document.getElementById('compWrapper');
+            const afterWrap = document.getElementById('compAfterWrap');
+            const slider = document.getElementById('compSlider');
+            let dragging = false;
+            function setPos(pct) {
+                pct = Math.max(0, Math.min(100, pct));
+                slider.style.left = pct + '%';
+                afterWrap.style.width = pct + '%';
+            }
+            function onPointerDown(e) {
+                dragging = true;
+                e.preventDefault();
+                update(e);
+            }
+            function onPointerMove(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                update(e);
+            }
+            function onPointerUp() {
+                dragging = false;
+            }
+            function update(e) {
+                const rect = wrap.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const pct = (clientX - rect.left) / rect.width * 100;
+                setPos(pct);
+            }
+            slider.addEventListener('mousedown', onPointerDown);
+            slider.addEventListener('touchstart', onPointerDown, { passive: false });
+            document.addEventListener('mousemove', onPointerMove);
+            document.addEventListener('touchmove', onPointerMove, { passive: false });
+            document.addEventListener('mouseup', onPointerUp);
+            document.addEventListener('touchend', onPointerUp);
+            comp.addEventListener('click', e => {
+                if (e.target === slider || slider.contains(e.target)) return;
+                const rect = wrap.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const pct = (clientX - rect.left) / rect.width * 100;
+                setPos(pct);
+            });
+        })();
+
+        upscaleBtn.addEventListener('click', runUpscale);
+        clearBtn.addEventListener('click', clearAll);
+        downloadBtn.addEventListener('click', downloadResult);
+        copyBtn.addEventListener('click', copyToClipboard);
+
+        // BUG-014: Wire shadow button proxies. Forward clicks to real buttons.
+    })();
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

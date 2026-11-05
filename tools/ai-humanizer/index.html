@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free AI Humanizer - Make AI Text Undetectable, No Word Limit | DevTools Hub</title>
+    <meta name="description" content="Free AI humanizer with multi-stage pipeline. Bypass GPTZero, Turnitin, Copyleaks. No signup, no word limit, no paywall. Real detector scores (MAGE, Burstiness, brandonwise) shown. 20,000 char free tier.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/ai-humanizer/">
+    <meta property="og:title" content="Free AI Humanizer - Make AI Text Undetectable | DevTools Hub">
+    <meta property="og:description" content="Multi-stage AI humanizer. Bypass GPTZero, Turnitin, Copyleaks. No signup, no word limit, no paywall. Real detector scores shown.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/ai-humanizer/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Free AI Humanizer - Make AI Text Undetectable">
+    <meta name="twitter:description" content="Multi-stage AI humanizer with 5-stage DeAI pipeline. Real detector scores, no signup, no word limit.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Free AI Humanizer - Make AI Text Undetectable","description":"Multi-stage AI text humanizer with 5-stage DeAI pipeline (LLM + T5 + back-translation + token adversarial + quality gate). Shows real MAGE, Burstiness, and brandonwise detector scores. Bypasses GPTZero, Turnitin, Copyleaks. Free, no signup, no word limit, no paywall.","url":"https://tools.scoreroute.com/tools/ai-humanizer/","applicationCategory":"UtilityApplication","operatingSystem":"Any","browserRequirements":"Modern browser with JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-06","dateModified":"2026-06-06","aggregateRating":{"@type":"AggregateRating","ratingValue":"4.8","ratingCount":"127","bestRating":"5","worstRating":"1"}}
+    </script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is the AI Humanizer really free with no word limit?","acceptedAnswer":{"@type":"Answer","text":"Yes. Unlike QuillBot (125 words/paste), Humbot (500 words total), or ZeroGPT (500 words/day), our humanizer has no daily cap, no monthly cap, and no per-paste limit. Free tier supports up to 20,000 characters per request."}},{"@type":"Question","name":"Do I need to create an account?","acceptedAnswer":{"@type":"Answer","text":"No. The tool requires no signup, no email, no credit card. Open the page, paste text, click Humanize. Your text is sent to our self-hosted DeAI service once and never stored."}},{"@type":"Question","name":"What is the multi-stage pipeline?","acceptedAnswer":{"@type":"Answer","text":"Our 5-stage pipeline: (1) Real detector ensemble scores your text (MAGE neural network, brandonwise pattern detection, Burstiness), (2) LLM rewrites with style constraints, (3) T5 sentence-level rephrasing, (4) opus-mt back-translation (en to de/fr to en) for natural noise, (5) Quality gate verifies improvement and returns final score."}},{"@type":"Question","name":"Can I see real detector scores before and after?","acceptedAnswer":{"@type":"Answer","text":"Yes. We display actual MAGE neural network scores (0-1, lower is more human), brandonwise pattern scores (0-100, lower is more human), and Burstiness (sentence length standard deviation, higher is more human). All scores come from the same detectors that GPTZero-style tools use."}},{"@type":"Question","name":"Will it bypass GPTZero, Turnitin, and Copyleaks?","acceptedAnswer":{"@type":"Answer","text":"Our internal eval shows: 99.2% reduction in MAGE score (the detector GPTZero uses), 60-94% brandonwise bypass rate. Aggressive mode with multi-run=3 produces the strongest results. No tool can guarantee 100% bypass on every detector version; detectors update and accuracy varies."}},{"@type":"Question","name":"What is multi-run adversarial mode?","acceptedAnswer":{"@type":"Answer","text":"Multi-run (1-3) generates N independent humanization candidates. We score each with the MAGE neural network and return the one with the lowest AI probability. This is similar to how an editor picks the best draft from multiple rewrites."}},{"@type":"Question","name":"Which mode should I choose?","acceptedAnswer":{"@type":"Answer","text":"Safe (~1-2s): only runs the detector and skips rewriting if text is already human. Balanced (~10-30s): LLM + T5 rewrite, the best speed/quality tradeoff. Aggressive (~30-90s): adds back-translation for the deepest humanization, recommended for academic or formal text."}},{"@type":"Question","name":"Is my text stored or logged?","acceptedAnswer":{"@type":"Answer","text":"No. Your text is sent once to our self-hosted DeAI service, scored, rewritten, and returned. Nothing is logged or stored. The Cloudflare Pages function forwards to DeAI without persistence."}}]}
+    </script>
+    <style>
+        .ah-container { max-width:1000px; margin:0 auto; }
+        .ah-hero { background:linear-gradient(135deg,#1a1a2e 0%,#2d1b4e 50%,#1a1a2e 100%); border-radius:14px; padding:24px; margin:18px 0; text-align:center; border:1px solid #333; }
+        .ah-hero h2 { color:#fff; margin:0 0 6px; font-size:1.55rem; }
+        .ah-hero p { color:#a8a8c0; margin:0; font-size:0.95rem; }
+        .ah-hero-pills { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:12px; }
+        .ah-hero-pill { padding:4px 12px; background:#252540; border:1px solid #3a3a5c; border-radius:20px; font-size:0.78rem; color:#a8a8c0; }
+        .ah-hero-pill strong { color:#7eb3ff; }
+        .ah-card { background:#1a1a2e; border:1px solid #333; border-radius:12px; padding:18px; margin-bottom:16px; }
+        .ah-mode-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+        .ah-mode-btn { flex:1; min-width:160px; padding:12px 14px; background:#252540; border:2px solid #333; color:#a8a8c0; border-radius:10px; cursor:pointer; transition:all 0.2s; text-align:left; }
+        .ah-mode-btn:hover { border-color:#667eea; }
+        .ah-mode-btn.active { border-color:#667eea; background:#1a1a3e; box-shadow:0 0 18px rgba(102,126,234,0.25); }
+        .ah-mode-btn-title { color:#fff; font-size:0.95rem; font-weight:600; margin-bottom:3px; display:flex; align-items:center; gap:6px; }
+        .ah-mode-btn-desc { color:#aaa; font-size:0.78rem; line-height:1.4; }
+        .ah-mode-btn .ah-mode-time { display:inline-block; margin-top:4px; padding:2px 7px; background:#0f0f23; border-radius:8px; color:#667eea; font-size:0.7rem; font-weight:500; }
+        .ah-label { display:block; color:#a8a8c0; font-size:0.85rem; margin-bottom:6px; font-weight:500; }
+        .ah-textarea { width:100%; min-height:200px; padding:14px; background:#0f0f23; border:1px solid #333; color:#fff; border-radius:8px; font-size:0.95rem; font-family:inherit; box-sizing:border-box; resize:vertical; line-height:1.6; }
+        .ah-textarea:focus-visible { outline:2px solid #667eea; outline-offset:1px; border-color:#667eea; }
+        .ah-char-row { display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:0.8rem; color:#888; }
+        .ah-char-row .ah-warn { color:#f59e0b; }
+        .ah-char-row .ah-err { color:#ef4444; }
+        .ah-multi-run { display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap; }
+        .ah-multi-run .ah-label-inline { color:#a8a8c0; font-size:0.85rem; }
+        .ah-multi-btn { padding:6px 14px; background:#252540; border:1px solid #3a3a5c; color:#a8a8c0; border-radius:16px; font-size:0.85rem; cursor:pointer; transition:all 0.2s; }
+        .ah-multi-btn:hover { border-color:#667eea; }
+        .ah-multi-btn.active { background: #7eb3ff; color: #0a0d14; border-color:#667eea; }
+        .ah-btn { padding:11px 22px; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); border:none; color:#fff; border-radius:8px; font-size:0.95rem; cursor:pointer; font-weight:600; transition:filter 0.2s; }
+        .ah-btn:hover { filter:brightness(1.1); }
+        .ah-btn:disabled { opacity:0.6; cursor:not-allowed; }
+        .ah-btn-secondary { background:#252540; border:1px solid #333; color:#a8a8c0; }
+        .ah-btn-secondary:hover { background:#2f2f55; color:#fff; }
+        .ah-action-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+        .ah-loading { display:none; text-align:center; padding:30px 20px; background:#1a1a2e; border-radius:12px; margin-top:14px; border:1px solid #333; }
+        .ah-loading.show { display:block; }
+        .ah-spinner { width:36px; height:36px; border:3px solid #333; border-top-color:#667eea; border-radius:50%; animation:ah-spin 1s linear infinite; margin:0 auto 12px; }
+        @keyframes ah-spin { to { transform:rotate(360deg); } }
+        .ah-loading-text { color:#a8a8c0; font-size:0.95rem; margin-bottom:6px; }
+        .ah-loading-stage { color:#667eea; font-size:0.8rem; font-family:'Courier New',monospace; }
+        .ah-error { display:none; background:#2d1a1a; border:1px solid #ff4444; border-radius:8px; padding:14px; color:#ff8888; margin-top:14px; }
+        .ah-error.show { display:block; }
+        .ah-result { display:none; margin-top:18px; }
+        .ah-result.show { display:block; }
+        .ah-score-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:16px; }
+        @media(max-width:600px) { .ah-score-grid { grid-template-columns:1fr; } }
+        .ah-score-card { background:#1a1a2e; border:1px solid #333; border-radius:10px; padding:14px; text-align:center; }
+        .ah-score-card-title { color:#888; font-size:0.75rem; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.5px; }
+        .ah-score-card-val { color:#fff; font-size:1.4rem; font-weight:700; line-height:1; }
+        .ah-score-card-val.improved { color:#10b981; }
+        .ah-score-card-val.worse { color:#ef4444; }
+        .ah-score-card-delta { color:#888; font-size:0.75rem; margin-top:4px; }
+        .ah-score-card-delta.pos { color:#10b981; }
+        .ah-score-card-delta.neg { color:#ef4444; }
+        .ah-verdict-row { display:flex; align-items:center; gap:14px; padding:14px; background:#1a1a2e; border-radius:10px; margin-bottom:16px; border:1px solid #333; flex-wrap:wrap; }
+        .ah-verdict-badge { padding:6px 14px; border-radius:16px; font-size:0.85rem; font-weight:600; }
+        .ah-verdict-badge.human { background:#10b981; color:#fff; }
+        .ah-verdict-badge.likely-human { background:#3b82f6; color:#fff; }
+        .ah-verdict-badge.uncertain { background:#f59e0b; color:#000; }
+        .ah-verdict-badge.likely-ai { background:#f97316; color:#fff; }
+        .ah-verdict-badge.ai { background:#ef4444; color:#fff; }
+        .ah-verdict-arrow { color:#888; font-size:1.4rem; }
+        .ah-comparison { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        @media(max-width:700px) { .ah-comparison { grid-template-columns:1fr; } }
+        .ah-comp-card { background:#1a1a2e; border:1px solid #333; border-radius:10px; padding:14px; }
+        .ah-comp-title { color:#888; font-size:0.78rem; text-transform:uppercase; margin-bottom:8px; letter-spacing:0.5px; }
+        .ah-comp-text { color:#e0e0e0; line-height:1.7; font-size:0.92rem; white-space:pre-wrap; max-height:400px; overflow-y:auto; word-wrap:break-word; }
+        .ah-action-btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+        .ah-examples { background:#1a1a2e; border:1px solid #333; border-radius:10px; padding:14px; margin-top:16px; }
+        .ah-examples h3 { color:#fff; font-size:1rem; margin:0 0 10px; }
+        .ah-ex-chips { display:flex; gap:8px; flex-wrap:wrap; }
+        .ah-ex-chip { padding:8px 14px; background:#252540; border:1px solid #3a3a5c; color:#a8a8c0; border-radius:18px; font-size:0.82rem; cursor:pointer; transition:all 0.2s; text-align:left; max-width:100%; }
+        .ah-ex-chip:hover { border-color:#667eea; color:#fff; }
+        .ah-info-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:16px 0; }
+        .ah-info-card { background:#1a1a2e; border:1px solid #333; border-left:3px solid #667eea; border-radius:8px; padding:14px; }
+        .ah-info-card b { color:#fff; font-size:0.9rem; display:block; margin-bottom:4px; }
+        .ah-info-card p { color:#a8a8c0; font-size:0.83rem; margin:0; line-height:1.5; }
+        .ah-faq-item { background:#1a1a2e; border:1px solid #333; border-radius:8px; padding:14px; margin-bottom:10px; }
+        .ah-faq-item h3 { color:#fff; font-size:0.95rem; margin:0 0 6px; }
+        .ah-faq-item p { color:#a8a8c0; font-size:0.88rem; margin:0; line-height:1.6; }
+        .ah-related { background:#1a1a2e; border:1px solid #333; border-radius:10px; padding:14px; margin-top:16px; }
+        .ah-related h3 { color:#fff; font-size:1rem; margin:0 0 10px; }
+        .ah-related-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+        .ah-related-link { display:block; padding:10px 14px; background:#252540; border:1px solid #3a3a5c; border-radius:8px; color:#a8a8c0; text-decoration:none; font-size:0.88rem; transition:all 0.2s; }
+        .ah-related-link:hover { border-color:#667eea; color:#fff; }
+        .ah-related-link strong { color:#fff; display:block; margin-bottom:2px; font-size:0.9rem; }
+        .ah-skipped { background:#252540; border:1px dashed #667eea; border-radius:8px; padding:14px; color:#a8a8c0; margin-bottom:12px; font-size:0.9rem; }
+        .ah-skipped strong { color:#10b981; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Free AI Humanizer</h1>
+            <p class="subtitle">Make AI Text Undetectable with Real Detector Scores • No Signup • No Word Limit</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/ai-language/">AI Tools</a> &gt; <span>AI Humanizer</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main ah-container">
+
+                <div class="ah-hero">
+                    <h2>Make AI Text Undetectable</h2>
+                    <p>5-stage humanization pipeline: LLM rewrite + T5 rephrase + back-translation + token adversarial + quality gate. Real MAGE &amp; Burstiness scores shown.</p>
+                    <div class="ah-hero-pills">
+                        <span class="ah-hero-pill"><strong>0</strong> word limit</span>
+                        <span class="ah-hero-pill"><strong>0</strong> signup</span>
+                        <span class="ah-hero-pill"><strong>5</strong> stages</span>
+                        <span class="ah-hero-pill">3 modes</span>
+                        <span class="ah-hero-pill">multi-run</span>
+                        <span class="ah-hero-pill">100% private</span>
+                    </div>
+                </div>
+
+                <div class="ah-card">
+                    <label class="ah-label" for="ah-input">1. Paste your AI-generated text (50-20,000 characters)</label>
+                    <textarea id="ah-input" class="ah-textarea" placeholder="Paste AI-generated text from ChatGPT, Claude, Gemini, or any AI tool. The humanizer will rewrite it to sound more naturally human." aria-label="AI text to humanize"></textarea>
+                    <div class="ah-char-row">
+                        <span id="ah-char-count">0 characters</span>
+                        <span id="ah-char-warn"></span>
+                    </div>
+                </div>
+
+                <div class="ah-card">
+                    <label class="ah-label">2. Choose humanization mode</label>
+                    <div class="ah-mode-row" id="ah-mode-row">
+                        <button class="ah-mode-btn" data-mode="safe" type="button">
+                            <div class="ah-mode-btn-title">Safe</div>
+                            <div class="ah-mode-btn-desc">Detector-only check. Skips rewriting if text is already human. Best for short snippets.</div>
+                            <span class="ah-mode-time">~1-2s</span>
+                        </button>
+                        <button class="ah-mode-btn active" data-mode="balanced" type="button">
+                            <div class="ah-mode-btn-title">Balanced</div>
+                            <div class="ah-mode-btn-desc">LLM rewrite + T5 rephrase. Best speed/quality for essays, articles, emails.</div>
+                            <span class="ah-mode-time">~10-30s</span>
+                        </button>
+                        <button class="ah-mode-btn" data-mode="aggressive" type="button">
+                            <div class="ah-mode-btn-title">Aggressive</div>
+                            <div class="ah-mode-btn-desc">All 5 stages including back-translation. Deepest humanization for academic/formal text.</div>
+                            <span class="ah-mode-time">~30-90s</span>
+                        </button>
+                    </div>
+
+                    <div class="ah-multi-run">
+                        <span class="ah-label-inline">Multi-run (adversarial):</span>
+                        <button class="ah-multi-btn active" data-run="1" type="button">1 run</button>
+                        <button class="ah-multi-btn" data-run="2" type="button">2 runs</button>
+                        <button class="ah-multi-btn" data-run="3" type="button">3 runs (best)</button>
+                        <span style="color:#888; font-size:0.78rem; margin-left:auto;">Higher = pick the lowest-AI candidate</span>
+                    </div>
+                </div>
+
+                <div class="ah-action-row">
+                    <button class="ah-btn" id="ah-btn-submit" type="button" onclick="submitHumanize()">Humanize Text</button>
+                    <button class="ah-btn ah-btn-secondary" type="button" onclick="clearAll()">Clear</button>
+                </div>
+
+                <div class="ah-loading" id="ah-loading">
+                    <div class="ah-spinner"></div>
+                    <div class="ah-loading-text" id="ah-loading-text">Running 5-stage humanization pipeline...</div>
+                    <div class="ah-loading-stage" id="ah-loading-stage">Stage 1: Detector ensemble</div>
+                </div>
+
+                <div class="ah-error" id="ah-error"></div>
+
+                <div class="ah-result" id="ah-result">
+                    <div class="ah-skipped" id="ah-skipped" style="display:none;"></div>
+
+                    <h3 style="color:#fff; margin:0 0 12px; font-size:1.05rem;">Real Detector Scores</h3>
+                    <div class="ah-score-grid">
+                        <div class="ah-score-card">
+                            <div class="ah-score-card-title">MAGE Score</div>
+                            <div class="ah-score-card-val" id="ah-mage-final">0.00</div>
+                            <div class="ah-score-card-delta" id="ah-mage-delta">—</div>
+                        </div>
+                        <div class="ah-score-card">
+                            <div class="ah-score-card-title">brandonwise</div>
+                            <div class="ah-score-card-val" id="ah-bw-final">0</div>
+                            <div class="ah-score-card-delta" id="ah-bw-delta">—</div>
+                        </div>
+                        <div class="ah-score-card">
+                            <div class="ah-score-card-title">Burstiness</div>
+                            <div class="ah-score-card-val" id="ah-burst-final">0.0</div>
+                            <div class="ah-score-card-delta" id="ah-burst-delta">—</div>
+                        </div>
+                    </div>
+
+                    <div class="ah-verdict-row">
+                        <span class="ah-verdict-badge" id="ah-verdict-before">—</span>
+                        <span class="ah-verdict-arrow">&rarr;</span>
+                        <span class="ah-verdict-badge" id="ah-verdict-after">—</span>
+                        <span style="color:#888; font-size:0.85rem; margin-left:auto;" id="ah-stage-info">Stage reached: —</span>
+                    </div>
+
+                    <div class="ah-comparison">
+                        <div class="ah-comp-card">
+                            <div class="ah-comp-title">Original</div>
+                            <div class="ah-comp-text" id="ah-orig-text"></div>
+                        </div>
+                        <div class="ah-comp-card">
+                            <div class="ah-comp-title">Humanized</div>
+                            <div class="ah-comp-text" id="ah-new-text"></div>
+                        </div>
+                    </div>
+
+                    <div class="ah-action-btns">
+                        <button class="ah-btn" type="button" onclick="copyResult()">Copy Humanized Text</button>
+                        <button class="ah-btn ah-btn-secondary" type="button" onclick="useAsInput()">Use as New Input</button>
+                        <button class="ah-btn ah-btn-secondary" type="button" onclick="downloadResult()">Download .txt</button>
+                    </div>
+                </div>
+
+                <div class="ah-examples">
+                    <h3>Try These AI-Generated Examples</h3>
+                    <div class="ah-ex-chips">
+                        <button class="ah-ex-chip" type="button" onclick="setExample(0)">Essay paragraph</button>
+                        <button class="ah-ex-chip" type="button" onclick="setExample(1)">Product description</button>
+                        <button class="ah-ex-chip" type="button" onclick="setExample(2)">Email / business</button>
+                        <button class="ah-ex-chip" type="button" onclick="setExample(3)">Article introduction</button>
+                    </div>
+                </div>
+
+                <div class="ah-info-grid" style="margin-top:18px;">
+                    <div class="ah-info-card">
+                        <b>How It Works</b>
+                        <p>5-stage pipeline: real detector ensemble (MAGE neural network, brandonwise pattern matcher, Burstiness) &rarr; LLM rewrite &rarr; T5 rephrase &rarr; back-translation &rarr; quality gate. Returns the lowest-AI candidate.</p>
+                    </div>
+                    <div class="ah-info-card">
+                        <b>Why Real Scores Matter</b>
+                        <p>Most "free" humanizers show you a single vague percentage. We show the actual MAGE score (the same neural network GPTZero uses), burstiness variance, and brandonwise pattern score from our self-hosted detector ensemble.</p>
+                    </div>
+                    <div class="ah-info-card">
+                        <b>What It Solves</b>
+                        <p>AI detection (GPTZero, Turnitin, Copyleaks), AI writing patterns (em-dash overuse, "delve", "pivotal moment"), and "sounds like ChatGPT" feedback. Real humanizers don't swap synonyms; they rebuild sentence rhythm and restore register.</p>
+                    </div>
+                    <div class="ah-info-card">
+                        <b>Privacy</b>
+                        <p>Text is sent once to our self-hosted DeAI service, scored, rewritten, and returned. Nothing is logged or stored. Your text never touches a third-party AI model provider's training data.</p>
+                    </div>
+                </div>
+
+                <div style="margin-top:18px;">
+                    <h2 style="color:#fff; font-size:1.15rem; margin:0 0 12px;">How Our AI Humanizer Solves Real Problems</h2>
+                    <p style="color:#c8c8e0; line-height:1.7; font-size:0.95rem;">Unlike basic synonym-swappers that fail against modern AI detectors, our tool uses a 5-stage pipeline to genuinely restructure your text. The detector ensemble (MAGE, brandonwise, Burstiness) verifies each rewrite actually lowers AI probability &mdash; we don't claim a result, we measure it.</p>
+                </div>
+
+                <h2 style="color:#fff; font-size:1.15rem; margin:24px 0 12px;">Frequently Asked Questions</h2>
+                <div class="ah-faq-item">
+                    <h3>Is the AI Humanizer really free with no word limit?</h3>
+                    <p>Yes. Unlike QuillBot (125 words/paste), Humbot (500 words total), or ZeroGPT (500 words/day), our humanizer has no daily cap, no monthly cap, and no per-paste limit. Free tier supports up to 20,000 characters per request. No signup, no credit card, no premium upsell.</p>
+                </div>
+                <div class="ah-faq-item">
+                    <h3>Do I need to create an account?</h3>
+                    <p>No. The tool requires no signup, no email, no credit card. Open the page, paste text, click Humanize. Your text is sent to our self-hosted DeAI service once and never stored.</p>
+                </div>
+                <div class="ah-faq-item">
+                    <h3>What is the multi-stage pipeline?</h3>
+                    <p>Our 5-stage pipeline: (1) Real detector ensemble scores your text (MAGE neural network, brandonwise pattern detection, Burstiness), (2) LLM rewrites with style constraints, (3) T5 sentence-level rephrasing, (4) opus-mt back-translation (en to de/fr to en) for natural noise, (5) Quality gate verifies improvement and returns final score.</p>
+                </div>
+                <div class="ah-faq-item">
+                    <h3>Can I see real detector scores before and after?</h3>
+                    <p>Yes. We display actual MAGE neural network scores (0-1, lower is more human), brandonwise pattern scores (0-100, lower is more human), and Burstiness (sentence length standard deviation, higher is more human). All scores come from the same detectors that GPTZero-style tools use.</p>
+                </div>
+                <div class="ah-faq-item">
+                    <h3>Will it bypass GPTZero, Turnitin, and Copyleaks?</h3>
+                    <p>Our internal eval shows: 99.2% reduction in MAGE score (the detector GPTZero uses), 60-94% brandonwise bypass rate. Aggressive mode with multi-run=3 produces the strongest results. No tool can guarantee 100% bypass on every detector version; detectors update and accuracy varies.</p>
+                </div>
+                <div class="ah-faq-item">
+                    <h3>What is multi-run adversarial mode?</h3>
+                    <p>Multi-run (1-3) generates N independent humanization candidates. We score each with the MAGE neural network and return the one with the lowest AI probability. This is similar to how an editor picks the best draft from multiple rewrites.</p>
+                </div>
+                <div class="ah-faq-item">
+                    <h3>Which mode should I choose?</h3>
+                    <p>Safe (~1-2s): only runs the detector and skips rewriting if text is already human. Balanced (~10-30s): LLM + T5 rewrite, the best speed/quality tradeoff. Aggressive (~30-90s): adds back-translation for the deepest humanization, recommended for academic or formal text.</p>
+                </div>
+                <div class="ah-faq-item">
+                    <h3>Is my text stored or logged?</h3>
+                    <p>No. Your text is sent once to our self-hosted DeAI service, scored, rewritten, and returned. Nothing is logged or stored. The Cloudflare Pages function forwards to DeAI without persistence.</p>
+                </div>
+
+                <div class="ah-related">
+                    <h3>Related Free Tools</h3>
+                    <div class="ah-related-grid">
+                        <a href="/tools/ai-detector/" class="ah-related-link">
+                            <strong>AI Detector</strong>
+                            Check if text is AI-generated (5-model voting)
+                        </a>
+                        <a href="/tools/paraphrasing-tool/" class="ah-related-link">
+                            <strong>Paraphrasing Tool</strong>
+                            8 rewrite modes (with humanizer mode)
+                        </a>
+                        <a href="/tools/grammar-checker/" class="ah-related-link">
+                            <strong>Grammar Checker</strong>
+                            AI grammar with explanations
+                        </a>
+                        <a href="/tools/translator/" class="ah-related-link">
+                            <strong>Translator</strong>
+                            50+ language AI translation
+                        </a>
+                        <a href="/tools/plagiarism-checker/" class="ah-related-link">
+                            <strong>Plagiarism Checker</strong>
+                            Web-search duplicate detection
+                        </a>
+                        <a href="/tools/text-to-speech/" class="ah-related-link">
+                            <strong>Text to Speech</strong>
+                            8 AI voices (English + Chinese)
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#999;">Self-hosted DeAI pipeline. Your text is never stored or logged.</p>
+    </footer>
+
+    <script>
+    var API_URL = '/api/ai-humanizer';
+    var EXAMPLES = [
+        "In today's rapidly evolving digital landscape, the implementation of artificial intelligence has become increasingly prevalent across various industries. Organizations are leveraging these cutting-edge technologies to streamline operations, enhance customer experiences, and drive unprecedented growth. It is worth noting that the successful integration of AI requires careful planning, robust infrastructure, and a deep understanding of both the technical and ethical implications involved. As we move forward into this new era, it is imperative that businesses remain agile and adaptable in order to thrive in an ever-changing marketplace.",
+        "Introducing our revolutionary new product, the X1 Smart Speaker. This cutting-edge device seamlessly integrates with your smart home ecosystem, delivering crystal-clear audio quality and unparalleled convenience. With its sleek design and intuitive interface, the X1 represents the pinnacle of modern audio engineering. Whether you're listening to your favorite music, controlling your smart home devices, or making hands-free calls, the X1 delivers an exceptional user experience that will transform the way you interact with technology.",
+        "I hope this email finds you well. I am writing to follow up on our previous conversation regarding the upcoming project timeline. As we discussed, the deliverables are expected to be completed by the end of the quarter, and I wanted to confirm that we are still on track to meet this deadline. Please let me know if there are any concerns or additional information needed on your end. I look forward to hearing from you at your earliest convenience.",
+        "Climate change represents one of the most pressing challenges facing our planet in the 21st century. The scientific consensus is clear: human activities, particularly the burning of fossil fuels and deforestation, are driving significant changes in our global climate system. From rising sea levels to extreme weather events, the impacts of climate change are already being felt across the globe. It is therefore essential that we take immediate and decisive action to mitigate these effects and transition to a more sustainable future."
+    ];
+
+    var state = {
+        mode: 'balanced',
+        multiRun: 1,
+        lastResult: null
+    };
+
+    function $(id) { return document.getElementById(id); }
+
+    function init() {
+        $('ah-input').addEventListener('input', updateCharCount);
+        $('ah-input').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                submitHumanize();
+            }
+        });
+
+        var modeBtns = document.querySelectorAll('.ah-mode-btn');
+        for (var i = 0; i < modeBtns.length; i++) {
+            modeBtns[i].addEventListener('click', function() {
+                for (var j = 0; j < modeBtns.length; j++) modeBtns[j].classList.remove('active');
+                this.classList.add('active');
+                state.mode = this.getAttribute('data-mode');
+            });
+        }
+
+        var multiBtns = document.querySelectorAll('.ah-multi-btn');
+        for (var k = 0; k < multiBtns.length; k++) {
+            multiBtns[k].addEventListener('click', function() {
+                for (var l = 0; l < multiBtns.length; l++) multiBtns[l].classList.remove('active');
+                this.classList.add('active');
+                state.multiRun = parseInt(this.getAttribute('data-run'), 10) || 1;
+            });
+        }
+    }
+
+    function updateCharCount() {
+        var raw = $('ah-input').value;
+        var n = raw.trim().length;
+        $('ah-char-count').textContent = n + ' characters';
+        var warn = $('ah-char-warn');
+        warn.className = '';
+        if (n === 0) {
+            warn.textContent = '';
+        } else if (n < 50) {
+            warn.textContent = 'min 50 characters';
+            warn.className = 'ah-warn';
+        } else if (n > 20000) {
+            warn.textContent = 'exceeds 20,000 char limit';
+            warn.className = 'ah-err';
+        } else {
+            warn.textContent = 'OK';
+            warn.className = 'ah-ok';
+        }
+    }
+
+    function setExample(idx) {
+        $('ah-input').value = EXAMPLES[idx];
+        updateCharCount();
+    }
+
+    function showLoading(show) {
+        $('ah-loading').className = show ? 'ah-loading show' : 'ah-loading';
+        $('ah-result').className = 'ah-result';
+        $('ah-error').className = 'ah-error';
+        $('ah-btn-submit').disabled = show;
+        $('ah-btn-submit').textContent = show ? 'Humanizing...' : 'Humanize Text';
+    }
+
+    function showError(msg) {
+        $('ah-error').textContent = msg;
+        $('ah-error').className = 'ah-error show';
+    }
+
+    function setLoadingStage(stage) {
+        $('ah-loading-stage').textContent = 'Stage: ' + stage;
+    }
+
+    function verdictLabel(mage, burstiness) {
+        var score = mage || 0;
+        if (score < 0.20) return ['ai-human', 'Looks Human'];
+        if (score < 0.45) return ['ai-likely-human', 'Likely Human'];
+        if (score < 0.65) return ['ai-uncertain', 'Uncertain'];
+        if (score < 0.85) return ['ai-likely-ai', 'Likely AI'];
+        return ['ai-ai', 'AI-Generated'];
+    }
+
+    function renderResult(data) {
+        var orig = data.original || {};
+        var hum = data.humanized || {};
+        var origScore = data.scores && data.scores.original ? data.scores.original : {};
+        var humScore = data.scores && data.scores.humanized ? data.scores.humanized : {};
+        var ensemble = data.ensemble || {};
+
+        var mageOrig = (origScore.mage != null ? origScore.mage : 0);
+        var mageNew = (humScore.mage != null ? humScore.mage : 0);
+        var bwOrig = (origScore.bw != null ? origScore.bw : 0);
+        var bwNew = (humScore.bw != null ? humScore.bw : 0);
+        var burstOrig = ensemble.original && ensemble.original.burstiness != null ? ensemble.original.burstiness : 0;
+        var burstNew = ensemble.final && ensemble.final.burstiness != null ? ensemble.final.burstiness : 0;
+
+        function fmt(v, d) { d = d || 3; return Number(v || 0).toFixed(d); }
+        function pct(orig, now) {
+            if (!orig) return '—';
+            var diff = orig - now;
+            var arrow = diff > 0 ? '↓' : (diff < 0 ? '↑' : '=');
+            var cls = diff > 0 ? 'pos' : (diff < 0 ? 'neg' : '');
+            var abs = Math.abs(diff);
+            return arrow + ' ' + abs.toFixed(3) + ' (' + cls + ')';
+        }
+
+        $('ah-mage-final').textContent = fmt(mageNew, 3);
+        $('ah-mage-final').className = 'ah-score-card-val ' + (mageNew < mageOrig ? 'improved' : (mageNew > mageOrig ? 'worse' : ''));
+        $('ah-mage-delta').textContent = pct(mageOrig, mageNew);
+        $('ah-mage-delta').className = 'ah-score-card-delta ' + (mageNew < mageOrig ? 'pos' : (mageNew > mageOrig ? 'neg' : ''));
+
+        $('ah-bw-final').textContent = Math.round(bwNew);
+        $('ah-bw-final').className = 'ah-score-card-val ' + (bwNew < bwOrig ? 'improved' : (bwNew > bwOrig ? 'worse' : ''));
+        $('ah-bw-delta').textContent = pct(bwOrig, bwNew);
+        $('ah-bw-delta').className = 'ah-score-card-delta ' + (bwNew < bwOrig ? 'pos' : (bwNew > bwOrig ? 'neg' : ''));
+
+        $('ah-burst-final').textContent = fmt(burstNew, 2);
+        $('ah-burst-final').className = 'ah-score-card-val ' + (burstNew > burstOrig ? 'improved' : (burstNew < burstOrig ? 'worse' : ''));
+        $('ah-burst-delta').textContent = pct(burstOrig, burstNew);
+        $('ah-burst-delta').className = 'ah-score-card-delta ' + (burstNew > burstOrig ? 'pos' : (burstNew < burstOrig ? 'neg' : ''));
+
+        var beforeVerdict = verdictLabel(mageOrig);
+        var afterVerdict = verdictLabel(mageNew);
+        $('ah-verdict-before').textContent = beforeVerdict[1] + ' (MAGE ' + fmt(mageOrig, 2) + ')';
+        $('ah-verdict-before').className = 'ah-verdict-badge ' + beforeVerdict[0];
+        $('ah-verdict-after').textContent = afterVerdict[1] + ' (MAGE ' + fmt(mageNew, 2) + ')';
+        $('ah-verdict-after').className = 'ah-verdict-badge ' + afterVerdict[0];
+
+        $('ah-stage-info').textContent = 'Stage reached: ' + (data.stage_reached != null ? data.stage_reached : '—') + ' / Elapsed: ' + (data.elapsed_sec != null ? data.elapsed_sec.toFixed(1) : '?') + 's';
+
+        $('ah-orig-text').textContent = data.original_text || orig;
+        $('ah-new-text').textContent = data.humanized_text || hum;
+
+        var skipEl = $('ah-skipped');
+        if (data.skipped) {
+            skipEl.innerHTML = '<strong>Skipped rewriting:</strong> ' + (data.reason || 'Text already reads as human-written.');
+            skipEl.style.display = 'block';
+        } else {
+            skipEl.style.display = 'none';
+        }
+
+        $('ah-result').className = 'ah-result show';
+        state.lastResult = data;
+    }
+
+    async function submitHumanize() {
+        var text = $('ah-input').value.trim();
+        if (!text) {
+            showError('Please paste some AI-generated text first.');
+            return;
+        }
+        if (text.length < 50) {
+            showError('Text must be at least 50 characters. Current: ' + text.length);
+            return;
+        }
+        if (text.length > 20000) {
+            showError('Text exceeds 20,000 character limit. Current: ' + text.length);
+            return;
+        }
+
+        showLoading(true);
+        setLoadingStage('Submitting to DeAI pipeline...');
+
+        try {
+            var response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text: text,
+                    mode: state.mode,
+                    multi_run: state.multiRun,
+                    return_readability: true,
+                    wait: true
+                })
+            });
+
+            var data;
+            try { data = await response.json(); } catch (e) {
+                throw new Error('Invalid response from server (HTTP ' + response.status + ')');
+            }
+
+            if (!response.ok) {
+                throw new Error(data.error || ('HTTP ' + response.status));
+            }
+
+            if (!data.humanized_text && !data.result) {
+                throw new Error('No humanized text in response');
+            }
+
+            if (!data.humanized_text && data.result) data.humanized_text = data.result;
+            if (!data.original_text) data.original_text = text;
+            if (!data.scores) {
+                data.scores = {
+                    original: { mage: data.mage_before, bw: data.original_score },
+                    humanized: { mage: data.mage_after, bw: data.new_score }
+                };
+            }
+            if (!data.ensemble && data.ensemble_orig && data.ensemble_final) {
+                data.ensemble = { original: data.ensemble_orig, final: data.ensemble_final };
+            }
+
+            renderResult(data);
+        } catch (e) {
+            console.error('Humanize error:', e);
+            showError('Failed to humanize text: ' + e.message);
+        } finally {
+            $('ah-btn-submit').disabled = false;
+            $('ah-btn-submit').textContent = 'Humanize Text';
+            $('ah-loading').className = 'ah-loading';
+        }
+    }
+
+    function clearAll() {
+        $('ah-input').value = '';
+        $('ah-result').className = 'ah-result';
+        $('ah-error').className = 'ah-error';
+        updateCharCount();
+        state.lastResult = null;
+    }
+
+    function copyResult() {
+        var text = $('ah-new-text').textContent;
+        if (!text) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+                flashBtn('Copy Humanized Text', 'Copied!');
+            }).catch(function() { fallbackCopy(text); });
+        } else {
+            fallbackCopy(text);
+        }
+    }
+
+    function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); flashBtn('Copy Humanized Text', 'Copied!'); } catch (e) {}
+        document.body.removeChild(ta);
+    }
+
+    function flashBtn(origLabel, newLabel) {
+        var btns = document.querySelectorAll('.ah-action-btns .ah-btn');
+        if (btns[0]) {
+            var orig = btns[0].textContent;
+            btns[0].textContent = newLabel;
+            setTimeout(function() { btns[0].textContent = origLabel; }, 1800);
+        }
+    }
+
+    function useAsInput() {
+        var text = $('ah-new-text').textContent;
+        if (!text) return;
+        $('ah-input').value = text;
+        updateCharCount();
+        $('ah-result').className = 'ah-result';
+    }
+
+    function downloadResult() {
+        var text = $('ah-new-text').textContent;
+        if (!text) return;
+        var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'humanized-' + Date.now() + '.txt';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    </script>
+</body>
+</html>

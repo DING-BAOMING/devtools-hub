@@ -1,0 +1,57 @@
+# DevTools Hub — https://tools.scoreroute.com/
+#
+# Policy: we WANT AI assistants to read our pages and cite them, and we do NOT
+# want our content used to train a model. Those are different crawlers and they
+# get different answers.
+#
+#   Allowed    = user-triggered retrieval + search indexes -> produces citations
+#   Disallowed = bulk training crawlers                   -> produces training data
+#
+# This matches the `ai-train:no` directive already on every page's meta robots tag.
+# The two disagreed before this file was rewritten: robots.txt said `Allow` for
+# GPTBot, CCBot and Google-Extended while every page refused training. A crawler
+# reading only one of the two got opposite instructions. robots.txt is the one
+# these bots obey, so it is the one that had to change.
+
+# --- Search engines ---
+User-agent: *
+Allow: /
+Crawl-delay: 1
+
+# --- AI retrieval: allowed. These are the crawlers that produce citations. ---
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# --- AI training: blocked, consistent with ai-train:no on every page ---
+# Google-Extended controls Gemini grounding and Vertex AI training; we decline both.
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Google-Extended-Data
+Disallow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+# anthropic-ai is Anthropic's bulk TRAINING crawler (ClaudeBot above is the retrieval one).
+# It was missing from this file while every page carried ai-train:no — the file and the pages
+# disagreed about the same crawler.
+User-agent: anthropic-ai
+Disallow: /
+
+Sitemap: https://tools.scoreroute.com/sitemap.xml

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio to Text Converter | DevTools Hub</title>
+<meta name="description" content="Free online audio to text converter. Convert speech to text in real-time with browser-based voice recognition. No uploads, no sign-up, 100% private.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/audio-to-text/">
+<meta property="og:title" content="Audio to Text Converter | DevTools Hub">
+<meta property="og:description" content="Free online audio to text converter. Convert speech to text in real-time. No uploads, no sign-up, 100% private.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/audio-to-text/">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Audio to Text Converter",
+  "url": "https://tools.scoreroute.com/tools/audio-to-text/",
+  "description": "Free online audio to text converter using browser-based speech recognition. Convert speech to text in real-time.",
+  "applicationCategory": "Multimedia",
+  "operatingSystem": "All",
+  "browserRequirements": "Requires Chrome, Edge, or Safari"
+}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.converter-form { max-width: 800px; margin: 2rem auto; }
+.status-bar { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+.status-bar.listening { background: #d4edda; color: #155724; }
+.status-bar.idle { background: #f8f9fa; color: #495057; }
+.status-bar.error { background: #f8d7da; color: #721c24; }
+.status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.status-dot.active { background: #28a745; animation: pulse 1s infinite; }
+.status-dot.idle { background: #6c757d; }
+.status-dot.error { background: #dc3545; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; }
+.btn-start { background: #28a745; color: white; }
+.btn-stop { background: #dc3545; color: white; }
+.btn-clear { background: #6c757d; color: white; }
+.btn-copy { background: #007bff; color: white; }
+.btn-download { background: #17a2b8; color: white; }
+.text-output { width: 100%; min-height: 300px; padding: 1rem; border: 2px solid #dee2e6; border-radius: 8px; font-size: 1rem; line-height: 1.6; resize: vertical; font-family: inherit; }
+.language-select { padding: 0.5rem; border-radius: 4px; border: 1px solid #dee2e6; font-size: 0.9rem; }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+.feature-card { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #007bff; }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="logo">DevTools Hub</a>
+    <nav class="main-nav">
+      <a href="/">Home</a>
+      <a href="/tools/feedback/">Feedback</a>
+    </nav>
+  </div>
+</header>
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span>/</span>
+    <span aria-current="page">Audio to Text Converter</span>
+  </nav>
+  <h1>Audio to Text Converter</h1>
+  <p class="hero-text">Convert speech to text in real-time. Just click start and speak. No uploads, no sign-up, 100% private — everything stays in your browser.</p>
+  <div class="converter-form">
+    <div class="status-bar idle" id="statusBar">
+      <span class="status-dot idle" id="statusDot"></span>
+      <span id="statusText">Click "Start Recording" and begin speaking</span>
+    </div>
+    <div class="btn-group">
+      <label class="sr-only" for="languageSelect">Recognition language</label><select class="language-select" id="languageSelect" title="Recognition language">
+        <option value="en-US">English (US)</option>
+        <option value="en-GB">English (UK)</option>
+        <option value="zh-CN">中文</option>
+        <option value="es-ES">Español</option>
+        <option value="fr-FR">Français</option>
+        <option value="de-DE">Deutsch</option>
+        <option value="ja-JP">日本語</option>
+        <option value="ko-KR">한국어</option>
+      </select>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-start" id="startBtn">Start Recording</button>
+      <button class="btn btn-stop" id="stopBtn" disabled>Stop Recording</button>
+      <button class="btn btn-clear" id="clearBtn">Clear Text</button>
+      <button class="btn btn-copy" id="copyBtn">Copy to Clipboard</button>
+      <button class="btn btn-download" id="downloadBtn">Download as TXT</button>
+    </div>
+    <textarea class="text-output" id="textOutput" placeholder="Your transcribed text will appear here..." readonly aria-label="Your transcribed text will appear here"></textarea>
+    <p class="interim" id="interimText" style="color:#6c757d;min-height:1.5em;font-style:italic;margin-top:0.5rem"></p>
+  </div>
+  <section>
+    <h2>Why Use This Tool?</h2>
+    <div class="feature-grid">
+      <div class="feature-card"><h3>Real-Time Transcription</h3><p>Speech appears as you speak. No waiting for uploads or processing.</p></div>
+      <div class="feature-card"><h3>100% Private</h3><p>Everything runs in your browser. No audio is uploaded or stored on any server.</p></div>
+      <div class="feature-card"><h3>Multi-Language</h3><p>Supports 8+ languages including English, Chinese, Spanish, French, German, Japanese, Korean.</p></div>
+      <div class="feature-card"><h3>Easy Export</h3><p>Copy to clipboard or download as TXT file. Ready for use in documents or notes.</p></div>
+      <div class="feature-card"><h3>No Sign-Up</h3><p>Start transcribing immediately. No account, no email, no credit card required.</p></div>
+      <div class="feature-card"><h3>Completely Free</h3><p>Uses your browser's built-in speech recognition. No API costs, no limits.</p></div>
+    </div>
+  </section>
+  <section>
+    <h2>How to Convert Audio to Text</h2>
+    <ol>
+      <li><strong>Select your language</strong> from the dropdown</li>
+      <li><strong>Click "Start Recording"</strong> and allow microphone access</li>
+      <li><strong>Start speaking</strong> — your words appear in real-time</li>
+      <li><strong>Click "Stop Recording"</strong> when finished</li>
+      <li><strong>Copy or download</strong> your text</li>
+    </ol>
+  </section>
+  <section>
+    <h2>Common Use Cases</h2>
+    <ul>
+      <li><strong>Students:</strong> Transcribe lectures and study notes</li>
+      <li><strong>Journalists:</strong> Convert interview recordings to text</li>
+      <li><strong>Professionals:</strong> Dictate emails, reports, meeting notes</li>
+      <li><strong>Content Creators:</strong> Generate captions and transcripts</li>
+      <li><strong>Accessibility:</strong> Voice typing for those with typing difficulties</li>
+    </ul>
+  </section>
+  <section>
+    <h2>Browser Compatibility</h2>
+    <p>Uses the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API" target="_blank" rel="noopener">Web Speech API</a>, supported in Chrome, Edge, and Safari. For best experience use Chrome or Edge.</p>
+  </section>
+  <section>
+    <h2>FAQs</h2>
+    <details><summary>Is my audio sent to a server?</summary><p>No. All speech recognition happens in your browser. Your audio never leaves your device.</p></details>
+    <details><summary>How accurate is it?</summary><p>90-95% for clear speech in quiet environments with a good microphone. Accuracy varies by language and background noise.</p></details>
+    <details><summary>Is there a time limit?</summary><p>No. You can speak for as long as you need. The browser transcribes continuously until you stop.</p></details>
+    <details><summary>Which browsers are supported?</summary><p>Chrome, Edge, and Safari. Firefox has partial support.</p></details>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2026 DevTools Hub. Free online developer tools.</p>
+  </div>
+</footer>
+<script>
+(function(){
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR){document.getElementById('statusBar').className='status-bar error';document.getElementById('statusText').textContent='Speech recognition not supported. Use Chrome, Edge, or Safari.';document.getElementById('startBtn').disabled=true;return;}
+var rec=new SR();
+var out=document.getElementById('textOutput');
+var interim=document.getElementById('interimText');
+var sb=document.getElementById('statusBar');
+var sd=document.getElementById('statusDot');
+var st=document.getElementById('statusText');
+var s=document.getElementById('startBtn');
+var sp=document.getElementById('stopBtn');
+var cl=document.getElementById('clearBtn');
+var cp=document.getElementById('copyBtn');
+var dl=document.getElementById('downloadBtn');
+var lg=document.getElementById('languageSelect');
+var listening=false;
+var finalT='';
+rec.continuous=true;
+rec.interimResults=true;
+rec.lang=lg.value;
+lg.addEventListener('change',function(){rec.lang=this.value;});
+rec.onresult=function(e){
+  var interimT='';
+  for(var i=e.resultIndex;i<e.results.length;i++){
+    if(e.results[i].isFinal){finalT+=e.results[i][0].transcript+' ';}
+    else{interimT+=e.results[i][0].transcript;}
+  }
+  out.value=finalT.trim();
+  interim.textContent=interimT||'...';
+  out.scrollTop=out.scrollHeight;
+};
+rec.onerror=function(e){
+  if(e.error==='no-speech'){st.textContent='No speech detected. Try speaking louder.';return;}
+  if(e.error==='aborted')return;
+  sb.className='status-bar error';sd.className='status-dot error';
+  st.textContent='Error: '+e.error+'. Click Start to retry.';
+  listening=false;s.disabled=false;sp.disabled=true;
+};
+rec.onend=function(){if(listening)rec.start();};
+s.addEventListener('click',function(){
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(){
+    finalT=out.value;rec.start();listening=true;
+    s.disabled=true;sp.disabled=false;
+    sb.className='status-bar listening';sd.className='status-dot active';
+    st.textContent='Listening... Speak now';
+  }).catch(function(){
+    sb.className='status-bar error';sd.className='status-dot error';
+    st.textContent='Microphone access denied. Allow mic access in browser settings.';
+  });
+});
+sp.addEventListener('click',function(){
+  rec.stop();listening=false;
+  s.disabled=false;sp.disabled=true;
+  sb.className='status-bar idle';sd.className='status-dot idle';
+  st.textContent='Recording stopped.'+(finalT.trim()?' Transcription ready.':' No speech recorded.');
+  interim.textContent='';
+});
+cl.addEventListener('click',function(){finalT='';out.value='';interim.textContent='';st.textContent='Text cleared. Click Start to begin.';});
+cp.addEventListener('click',function(){
+  if(!out.value){st.textContent='No text to copy. Record audio first.';return;}
+  if(!navigator.clipboard){st.textContent='Clipboard not available. Select text manually.';return;}
+  navigator.clipboard.writeText(out.value).then(function(){st.textContent='Copied to clipboard!';setTimeout(function(){st.textContent=listening?'Listening...':'Click Start to begin';},2000);}).catch(function(){st.textContent='Copy failed. Select text manually.';});
+});
+dl.addEventListener('click',function(){
+  if(!out.value){st.textContent='No text to download. Record audio first.';return;}
+  var b=new Blob([out.value],{type:'text/plain;charset=utf-8'});var u=URL.createObjectURL(b);
+  var a=document.createElement('a');a.href=u;a.download='transcription.txt';a.click();URL.revokeObjectURL(u);
+  st.textContent='Downloaded as transcription.txt';
+  setTimeout(function(){st.textContent=listening?'Listening...':'Click Start to begin';},2000);
+});
+})();
+</script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

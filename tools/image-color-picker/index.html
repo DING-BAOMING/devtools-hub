@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Color Picker - Pick Colors from Photo Online | DevTools Hub</title>
+    <meta name="description" content="Free online image color picker. Upload any photo and click to pick exact pixel colors. Get HEX, RGB, HSL, CMYK values instantly. No upload, 100% private.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/image-color-picker/">
+    <meta property="og:title" content="Image Color Picker - Pick Colors from Photo Online | DevTools Hub">
+    <meta property="og:description" content="Free online image color picker. Upload any photo and click to pick exact pixel colors. Get HEX, RGB, HSL, CMYK values instantly. No upload, 100% private.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/image-color-picker/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Image Color Picker - Pick Colors from Photo Online | DevTools Hub">
+    <meta name="twitter:description" content="Free online image color picker. Upload any photo and click to pick exact pixel colors. Get HEX, RGB, HSL, CMYK values instantly. No upload, 100% private.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/image-color-picker/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .upload-zone {
+            border: 2px dashed #4a5568;
+            border-radius: 12px;
+            padding: 48px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #1a1a2e;
+            margin-bottom: 24px;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        .upload-zone svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            color: #667eea;
+        }
+        .upload-zone h3 {
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .upload-zone p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .upload-zone input {
+            display: none;
+        }
+        .work-area {
+            display: none;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .work-area.active {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        @media (max-width: 768px) {
+            .work-area.active { grid-template-columns: 1fr; }
+        }
+        .image-panel {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+        .image-panel .img-wrap {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            cursor: crosshair;
+        }
+        .image-panel .img-wrap img {
+            max-width: 100%;
+            max-height: 450px;
+            display: block;
+            border-radius: 8px;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        #magnifier {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+            overflow: hidden;
+            background-repeat: no-repeat;
+        }
+        #magnifier .mag-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            font-size: 10px;
+            font-family: monospace;
+            text-align: center;
+            padding: 2px 0;
+        }
+        .color-panel {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .color-preview {
+            width: 100%;
+            height: 80px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #333;
+        }
+        .color-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            background: #0f0f23;
+            border-radius: 8px;
+            border: 1px solid #2a2a3e;
+        }
+        .color-field .label {
+            color: #888;
+            font-size: 0.75rem;
+            min-width: 36px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .color-field .value {
+            flex: 1;
+            font-family: monospace;
+            color: #ddd;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .color-field .value:hover {
+            color: #667eea;
+        }
+        .color-field .copy-badge {
+            font-size: 0.65rem;
+            color: #10b981;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .color-field .copy-badge.show {
+            opacity: 1;
+        }
+        .picked-colors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 16px;
+            min-height: 32px;
+        }
+        .picked-swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+        .picked-swatch:hover {
+            border-color: #667eea;
+            transform: scale(1.15);
+        }
+        .picked-swatch.active {
+            border-color: #667eea;
+        }
+        .pixel-coords {
+            color: #666;
+            font-size: 0.75rem;
+            font-family: monospace;
+            margin-top: 4px;
+        }
+        .btn-clear-history {
+            margin-top: 8px;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .status-bar .file-name {
+            color: #888;
+            font-size: 0.8rem;
+        }
+    </style>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Image Color Picker","description":"Free online image color picker. Upload any photo and click to pick exact pixel colors in HEX, RGB, HSL, CMYK.","url":"https://tools.scoreroute.com/tools/image-color-picker/","applicationCategory":"Multimedia","operatingSystem":"All","browserRequirements":"Requires JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING","url":"https://tools.scoreroute.com"},"datePublished":"2026-06-25","dateModified":"2026-06-25","featureList":["Upload image by drag-drop, file picker, or paste","Hover magnifier with 8x zoom and crosshair","Click to pick exact pixel color","HEX, RGB, HSL, CMYK color values","One-click copy for each format","Color history of picked colors","100% client-side, no upload to server","No signup, no watermark, no ads"]}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Image Color Picker</h1>
+            <p class="subtitle">Pick Exact Colors from Any Photo - HEX, RGB, HSL, CMYK</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Image Color Picker</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="upload-zone" id="uploadZone">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <h2>Drop an image here, click to upload, or paste (Ctrl+V)</h2>
+                    <p>Supports JPG, PNG, WebP, GIF, BMP - Max 20MB</p>
+                    <input type="file" id="fileInput" accept="image/*" aria-label="Upload Image">
+                </div>
+
+                <div class="work-area" id="workArea">
+                    <div class="image-panel">
+                        <div class="status-bar">
+                            <span class="file-name" id="fileName"></span>
+                            <button class="btn btn-secondary" onclick="resetTool()" style="padding:4px 12px;font-size:0.8rem;">Change Image</button>
+                        </div>
+                        <div class="img-wrap" id="imgWrap">
+                            <img id="mainImage" alt="Uploaded image for color picking" crossorigin="anonymous">
+                            <div id="magnifier">
+                                <div class="mag-info" id="magInfo">#000000</div>
+                            </div>
+                        </div>
+                        <div class="pixel-coords" id="pixelCoords">Hover over the image to pick colors</div>
+                    </div>
+
+                    <div class="color-panel">
+                        <div class="color-preview" id="colorPreview" style="background:#667eea;"></div>
+
+                        <div class="color-field">
+                            <span class="label">HEX</span>
+                            <span class="value" id="hexVal" onclick="copyVal('hexVal')">#667eea</span>
+                            <span class="copy-badge" id="hexBadge">Copied!</span>
+                        </div>
+                        <div class="color-field">
+                            <span class="label">RGB</span>
+                            <span class="value" id="rgbVal" onclick="copyVal('rgbVal')">rgb(102,126,234)</span>
+                            <span class="copy-badge" id="rgbBadge">Copied!</span>
+                        </div>
+                        <div class="color-field">
+                            <span class="label">HSL</span>
+                            <span class="value" id="hslVal" onclick="copyVal('hslVal')">hsl(231,75%,67%)</span>
+                            <span class="copy-badge" id="hslBadge">Copied!</span>
+                        </div>
+                        <div class="color-field">
+                            <span class="label">CMYK</span>
+                            <span class="value" id="cmykVal" onclick="copyVal('cmykVal')">cmyk(56,46,0,8)</span>
+                            <span class="copy-badge" id="cmykBadge">Copied!</span>
+                        </div>
+
+                        <div style="margin-top:16px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <span style="color:#888;font-size:0.8rem;">Picked Colors</span>
+                                <button class="btn btn-secondary" onclick="clearHistory()" style="padding:2px 10px;font-size:0.7rem;">Clear</button>
+                            </div>
+                            <div class="picked-colors" id="pickedColors"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What is an Image Color Picker?</h2>
+                <p>An image color picker (also called a photo color picker or color extractor) lets you upload any image and click on individual pixels to identify their exact color values. Unlike dominant color extractors that show only the most common colors, this tool gives you pixel-level precision. You can inspect any area of a photo, screenshot, or design mockup and get the exact HEX, RGB, HSL, and CMYK codes ready to use in your projects.</p>
+
+                <h2>How It Works</h2>
+                <p>Upload your image by dragging and dropping, clicking to browse, or pressing Ctrl+V to paste from clipboard. The image loads entirely in your browser. Move your cursor over the image to see a magnified view with a crosshair showing the exact pixel under inspection. Click to lock that color. All four color format values appear instantly, ready to copy with a single click. Every color you pick is saved to the history bar for quick reference.</p>
+
+                <h2>Why Use This Tool?</h2>
+                <ul>
+                    <li><strong>Pixel Precision</strong> - Pick colors from exact pixels, not just dominant shades</li>
+                    <li><strong>Magnifier Zoom</strong> - 8x magnified view with crosshair for pinpoint accuracy</li>
+                    <li><strong>Four Color Formats</strong> - Get HEX, RGB, HSL, and CMYK values instantly</li>
+                    <li><strong>Color History</strong> - All picked colors saved for easy comparison</li>
+                    <li><strong>100% Private</strong> - Your image never leaves your device, no upload to servers</li>
+                    <li><strong>Paste Support</strong> - Paste screenshots directly from clipboard (Ctrl+V)</li>
+                </ul>
+
+                <h2>Common Uses</h2>
+                <ul>
+                    <li><strong>Brand Color Matching</strong> - Extract exact brand colors from logo images</li>
+                    <li><strong>UI Design</strong> - Pick colors from design mockups for development</li>
+                    <li><strong>Photo Editing</strong> - Sample colors from photographs for retouching</li>
+                    <li><strong>Web Development</strong> - Get pixel-perfect color codes from reference images</li>
+                    <li><strong>Digital Art</strong> - Build color palettes from inspirational images</li>
+                </ul>
+
+                <h2>Frequently Asked Questions</h2>
+                <details class="faq-item">
+                    <summary>How is this different from a dominant color extractor?</summary>
+                    <p>A dominant color extractor analyzes the whole image and returns the most common colors. An image color picker lets you click on any specific pixel to get its exact color. Use the extractor for quick palettes and the picker when you need precise colors from specific areas.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Are my images uploaded to a server?</summary>
+                    <p>No. Everything runs in your browser using the HTML5 Canvas API. Your image data never leaves your device. You can verify this by opening your browser's developer tools and checking the Network tab — you will see zero outbound requests containing image data.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What image formats are supported?</summary>
+                    <p>JPG, PNG, WebP, GIF, BMP, and most common image formats. Maximum file size is 20MB. For best results, use high-resolution images for accurate pixel sampling.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I paste a screenshot directly?</summary>
+                    <p>Yes. Press Ctrl+V (or Cmd+V on Mac) anywhere on the page after taking a screenshot. The image will be loaded directly from your clipboard. This works in Chrome, Edge, Firefox, and most modern browsers.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why does the magnifier show a zoomed view?</summary>
+                    <p>The 8x magnifier makes it possible to pick colors from tiny details or thin lines that would be hard to click precisely at normal zoom. The crosshair helps you identify the exact pixel being sampled.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I copy all picked colors at once?</summary>
+                    <p>Click any color swatch in the history bar to re-select it. Each individual color format (HEX, RGB, HSL, CMYK) can be copied with a single click. A confirmation message appears briefly when the value is copied.</p>
+                </details>
+
+                <div class="related-section">
+                    <h3>Related Tools</h3>
+                    <ul>
+                        <li><a href="/tools/color-picker/">Color Picker - HEX RGB HSL Converter</a></li>
+                        <li><a href="/tools/color-palette-extractor/">Color Palette Extractor - Extract Dominant Colors</a></li>
+                        <li><a href="/tools/color-contrast-checker/">Color Contrast Checker - WCAG Accessibility</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Free online developer tools. No signup. Browser-based. 100% private.</p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        var state = { r: 102, g: 126, b: 234, history: [], currentImage: null };
+
+        var uploadZone = document.getElementById('uploadZone');
+        var fileInput = document.getElementById('fileInput');
+        var workArea = document.getElementById('workArea');
+        var mainImage = document.getElementById('mainImage');
+        var imgWrap = document.getElementById('imgWrap');
+        var magnifier = document.getElementById('magnifier');
+        var magInfo = document.getElementById('magInfo');
+        var pixelCoords = document.getElementById('pixelCoords');
+        var colorPreview = document.getElementById('colorPreview');
+        var hexVal = document.getElementById('hexVal');
+        var rgbVal = document.getElementById('rgbVal');
+        var hslVal = document.getElementById('hslVal');
+        var cmykVal = document.getElementById('cmykVal');
+        var pickedColors = document.getElementById('pickedColors');
+        var fileName = document.getElementById('fileName');
+
+        uploadZone.addEventListener('click', function() { fileInput.click(); });
+
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        uploadZone.addEventListener('dragleave', function() { uploadZone.classList.remove('dragover'); });
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            var f = e.dataTransfer.files[0];
+            if (f && f.type.startsWith('image/')) loadImage(f);
+        });
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files[0]) loadImage(e.target.files[0]);
+        });
+
+        document.addEventListener('paste', function(e) {
+            var items = e.clipboardData.items;
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].type.startsWith('image/')) {
+                    var blob = items[i].getAsFile();
+                    if (blob) loadImage(blob);
+                    break;
+                }
+            }
+        });
+
+        function loadImage(file) {
+            if (file.size > 20 * 1024 * 1024) { alert('Image must be under 20MB'); return; }
+            fileName.textContent = file.name || 'Pasted image';
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                mainImage.onload = function() {
+                    workArea.classList.add('active');
+                    uploadZone.style.display = 'none';
+                    state.currentImage = mainImage;
+                    state.history = [];
+                    updateHistory();
+                };
+                mainImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        imgWrap.addEventListener('mousemove', function(e) {
+            if (!mainImage.src) return;
+            var rect = imgWrap.getBoundingClientRect();
+            var imgRect = mainImage.getBoundingClientRect();
+            var x = e.clientX - imgRect.left;
+            var y = e.clientY - imgRect.top;
+            var scaleX = mainImage.naturalWidth / imgRect.width;
+            var scaleY = mainImage.naturalHeight / imgRect.height;
+            var px = Math.round(x * scaleX);
+            var py = Math.round(y * scaleY);
+            if (px < 0 || py < 0 || px >= mainImage.naturalWidth || py >= mainImage.naturalHeight) {
+                magnifier.style.display = 'none';
+                return;
+            }
+
+            var color = getPixelColor(mainImage, px, py);
+            state.r = color.r; state.g = color.g; state.b = color.b;
+            updateDisplay(color);
+            pixelCoords.textContent = 'Pixel: (' + px + ', ' + py + ')';
+
+            var magSize = 120;
+            var magScale = 8;
+            var mx = Math.round(e.clientX - rect.left - magSize / 2);
+            var my = Math.round(e.clientY - rect.top - magSize / 2);
+            magnifier.style.display = 'block';
+            magnifier.style.left = mx + 'px';
+            magnifier.style.top = my + 'px';
+            var bgW = mainImage.naturalWidth * magScale;
+            var bgH = mainImage.naturalHeight * magScale;
+            magnifier.style.backgroundImage = 'url(' + mainImage.src + ')';
+            magnifier.style.backgroundSize = bgW + 'px ' + bgH + 'px';
+            magnifier.style.backgroundPosition = (-px * magScale + magSize / 2) + 'px ' + (-py * magScale + magSize / 2) + 'px';
+            magnifier.style.backgroundRepeat = 'no-repeat';
+            var hex = rgbToHex(color.r, color.g, color.b);
+            magInfo.textContent = hex;
+        });
+
+        imgWrap.addEventListener('mouseleave', function() {
+            magnifier.style.display = 'none';
+        });
+
+        imgWrap.addEventListener('click', function(e) {
+            if (!mainImage.src) return;
+            var hex = rgbToHex(state.r, state.g, state.b);
+            if (state.history.length === 0 || state.history[state.history.length - 1] !== hex) {
+                state.history.push(hex);
+                if (state.history.length > 20) state.history.shift();
+                updateHistory();
+            }
+        });
+
+        function getPixelColor(img, px, py) {
+            var canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            var data = ctx.getImageData(px, py, 1, 1).data;
+            return { r: data[0], g: data[1], b: data[2] };
+        }
+
+        function updateDisplay(c) {
+            var hex = rgbToHex(c.r, c.g, c.b);
+            colorPreview.style.background = hex;
+            hexVal.textContent = hex;
+            rgbVal.textContent = 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')';
+            var hsl = rgbToHsl(c.r, c.g, c.b);
+            hslVal.textContent = 'hsl(' + hsl.h + ',' + hsl.s + '%,' + hsl.l + '%)';
+            var cmyk = rgbToCmyk(c.r, c.g, c.b);
+            cmykVal.textContent = 'cmyk(' + cmyk.c + ',' + cmyk.m + ',' + cmyk.y + ',' + cmyk.k + ')';
+        }
+
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(function(x) { return x.toString(16).padStart(2, '0'); }).join('');
+        }
+
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            var max = Math.max(r, g, b), min = Math.min(r, g, b);
+            var h, s, l = (max + min) / 2;
+            if (max === min) { h = s = 0; }
+            else {
+                var d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+            return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+        }
+
+        function rgbToCmyk(r, g, b) {
+            var cr = r / 255, cg = g / 255, cb = b / 255;
+            var k = 1 - Math.max(cr, cg, cb);
+            if (k === 1) return { c: 0, m: 0, y: 0, k: 100 };
+            var c = Math.round((1 - cr - k) / (1 - k) * 100);
+            var m = Math.round((1 - cg - k) / (1 - k) * 100);
+            var y = Math.round((1 - cb - k) / (1 - k) * 100);
+            return { c: c, m: m, y: y, k: Math.round(k * 100) };
+        }
+
+        function copyVal(id) {
+            var el = document.getElementById(id);
+            var txt = el.textContent;
+            navigator.clipboard.writeText(txt).then(function() {
+                var badgeId = id.replace('Val', 'Badge');
+                var badge = document.getElementById(badgeId);
+                if (badge) {
+                    badge.classList.add('show');
+                    setTimeout(function() { badge.classList.remove('show'); }, 1500);
+                }
+            });
+        }
+
+        function updateHistory() {
+            pickedColors.innerHTML = '';
+            state.history.forEach(function(hex) {
+                var sw = document.createElement('div');
+                sw.className = 'picked-swatch';
+                sw.style.background = hex;
+                sw.title = hex;
+                sw.addEventListener('click', function() {
+                    var c = hexToRgb(hex);
+                    state.r = c.r; state.g = c.g; state.b = c.b;
+                    updateDisplay(c);
+                });
+                pickedColors.appendChild(sw);
+            });
+        }
+
+        function hexToRgb(hex) {
+            var r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return r ? { r: parseInt(r[1], 16), g: parseInt(r[2], 16), b: parseInt(r[3], 16) } : { r: 0, g: 0, b: 0 };
+        }
+
+        function clearHistory() {
+            state.history = [];
+            updateHistory();
+        }
+
+        function resetTool() {
+            mainImage.src = '';
+            workArea.classList.remove('active');
+            uploadZone.style.display = '';
+            fileInput.value = '';
+            state.history = [];
+            updateHistory();
+            magnifier.style.display = 'none';
+            pixelCoords.textContent = 'Hover over the image to pick colors';
+            colorPreview.style.background = '#667eea';
+            hexVal.textContent = '#667eea';
+            rgbVal.textContent = 'rgb(102,126,234)';
+            var hsl = rgbToHsl(102, 126, 234);
+            hslVal.textContent = 'hsl(' + hsl.h + ',' + hsl.s + '%,' + hsl.l + '%)';
+            var cmyk = rgbToCmyk(102, 126, 234);
+            cmykVal.textContent = 'cmyk(' + cmyk.c + ',' + cmyk.m + ',' + cmyk.y + ',' + cmyk.k + ')';
+        }
+    </script>
+</body>
+</html>

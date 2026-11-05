@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proxy Checker - Free IP Proxy Detection Tool | DevTools Hub</title>
+<meta name="description" content="Free online proxy checker. Detect if an IP address is a proxy, VPN, or Tor exit node. Check IP geolocation, WHOIS, and open proxy ports.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/proxy-checker/">
+<meta property="og:title" content="Proxy Checker - Free IP Proxy Detection Tool">
+<meta property="og:description" content="Detect if an IP address is a proxy, VPN, or Tor exit node. Check open ports and geolocation.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/proxy-checker/">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Proxy Checker","url":"https://tools.scoreroute.com/tools/proxy-checker/","description":"Free online proxy checker tool. Detect proxy IPs, check open ports, and find IP geolocation.","applicationCategory":"SecurityApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.lookup-area { max-width: 750px; margin: 2rem auto; }
+.lookup-area * { color: #ccc; }
+.search-box { display: flex; gap: 1rem; margin: 1.5rem 0; flex-wrap: wrap; }
+.search-box input { flex: 1; padding: 1rem; border: 1px solid #555; border-radius: 8px; background: #1a1a3e; color: #fff; font-size: 1rem; min-width: 200px; }
+.search-box input:focus { outline: 2px solid transparent; border-color: #667eea; }
+.search-box input::placeholder { color: #666; }
+.btn { padding: 1rem 2rem; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.result-area { display: none; margin: 1.5rem 0; padding: 1.5rem; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+.result-area.visible { display: block; }
+.result-area.error { border-color: #dc3545; background: #2a1a1e; }
+.result-title { color: #fff; font-size: 1.2rem; margin-bottom: 1rem; }
+.result-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #333; flex-wrap: wrap; }
+.result-row:last-child { border-bottom: none; }
+.result-label { color: #888; }
+.result-value { color: #667eea; font-weight: 500; word-break: break-all; text-align: right; }
+.badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600; }
+.badge-proxy { background: #dc3545; color: #fff; }
+.badge-clean { background: #10b981; color: #fff; }
+.badge-warning { background: #f59e0b; color: #000; }
+.loading { display: none; text-align: center; padding: 2rem; }
+.loading.visible { display: block; }
+.spinner { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+section h2 { color: #fff; margin-top: 2rem; }
+section p, section li { color: #ccc; }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+.feature-card { background: #1a1a3e; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #667eea; }
+.feature-card h3 { color: #fff; margin-bottom: 0.5rem; }
+.feature-card p { color: #aaa; }
+.hero-text { color: #ccc; font-size: 1.1rem; }
+ol li, ul li { margin: 0.5rem 0; }
+.hint { color: #888; font-size: 0.9rem; margin-top: 0.5rem; }
+.section-title { color: #fff; font-size: 1.1rem; margin: 1rem 0 0.5rem; border-bottom: 1px solid #333; padding-bottom: 0.3rem; }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="logo">DevTools Hub</a>
+    <nav class="main-nav">
+      <a href="/">Home</a>
+      <a href="/tools/feedback/">Feedback</a>
+    </nav>
+  </div>
+</header>
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span>/</span>
+    <span aria-current="page">Proxy Checker</span>
+  </nav>
+  <h1>Proxy Checker</h1>
+  <p class="hero-text">Detect if an IP address or domain is behind a proxy, VPN, or Tor exit node. Check geolocation, open ports, and WHOIS info.</p>
+
+  <div class="lookup-area">
+    <div class="search-box">
+      <input type="text" id="hostInput" placeholder="Enter IP address or domain (e.g., 1.2.3.4 or example.com:8080)" autocomplete="off" aria-label="Enter IP address or domain">
+      <button id="checkBtn" class="btn btn-primary">Check</button>
+    </div>
+    <p class="hint">Supports IP addresses, domains, and IP:port format for proxy testing</p>
+
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Checking host information...</p>
+    </div>
+
+    <div id="resultArea" class="result-area">
+      <div id="resultTitle" class="result-title"></div>
+      <div id="resultContent"></div>
+    </div>
+  </div>
+
+  <section>
+    <h2>What is a Proxy Checker?</h2>
+    <p>A proxy checker tests whether an IP address operates as a proxy server, VPN endpoint, or Tor exit node. It analyzes network characteristics, open ports, and hosting data to determine if traffic from that IP is likely anonymized or relayed.</p>
+  </section>
+
+  <section>
+    <h2>How to Use</h2>
+    <ol>
+      <li><strong>Enter an IP address or domain</strong> in the search box (e.g., <code>1.2.3.4</code> or <code>example.com:8080</code>)</li>
+      <li><strong>Click "Check"</strong> or press Enter to start the analysis</li>
+      <li><strong>Review results</strong> including geolocation, proxy detection, and open port information</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Features</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>Proxy Detection</h3>
+        <p>Identifies if an IP is a known proxy, VPN, or Tor exit node using data center detection and port analysis.</p>
+      </div>
+      <div class="feature-card">
+        <h3>IP Geolocation</h3>
+        <p>Shows the physical location, ISP, and ASN information for any IP address worldwide.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Port Scanning</h3>
+        <p>Checks common proxy ports (80, 443, 1080, 3128, 8080, 8118, 8888) for open services.</p>
+      </div>
+      <div class="feature-card">
+        <h3>WHOIS Lookup</h3>
+        <p>Retrieves domain registration details including registrar, creation date, and organization.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Why Use a Proxy Checker?</h2>
+    <ul>
+      <li><strong>Security:</strong> Identify traffic relay points and potential anonymization in your network</li>
+      <li><strong>Compliance:</strong> Ensure users aren't bypassing geo-restrictions via proxies</li>
+      <li><strong>Forensics:</strong> Investigate suspicious IP addresses for proxy/VPN behavior</li>
+      <li><strong>Privacy:</strong> Understand what information your own IP address reveals</li>
+    </ul>
+  </section>
+</main>
+<footer><p>&copy; 2025 DevTools Hub | <a href="/">Free Developer Tools</a></p></footer>
+<script src="/tools.js"></script>
+<script>
+var btn = document.getElementById('checkBtn');
+var input = document.getElementById('hostInput');
+var loading = document.getElementById('loading');
+var resultArea = document.getElementById('resultArea');
+var resultTitle = document.getElementById('resultTitle');
+var resultContent = document.getElementById('resultContent');
+
+function doCheck() {
+  var host = input.value.trim();
+  if (!host) { alert('Please enter an IP address or domain'); return; }
+  
+  loading.classList.add('visible');
+  resultArea.classList.remove('visible', 'error');
+  btn.disabled = true;
+
+  fetch('/api/proxy-checker?host=' + encodeURIComponent(host))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      loading.classList.remove('visible');
+      btn.disabled = false;
+      
+      if (data.error) {
+        resultArea.classList.add('visible', 'error');
+        resultTitle.textContent = 'Error';
+        resultContent.innerHTML = '<div class="result-row"><span class="result-label">Error</span><span class="result-value" style="color:#dc3545">' + escapeHtml(data.error) + '</span></div>';
+        return;
+      }
+
+      resultArea.classList.add('visible');
+      resultArea.classList.remove('error');
+      var html = '';
+
+      // Proxy status badge
+      var badge, badgeClass;
+      if (data.proxyDetection && data.proxyDetection.isProxy) {
+        badge = 'PROXY/VPN DETECTED';
+        badgeClass = 'badge-proxy';
+      } else {
+        badge = 'NO PROXY DETECTED';
+        badgeClass = 'badge-clean';
+      }
+      resultTitle.innerHTML = 'Results for <strong>' + escapeHtml(data.host) + '</strong> <span class="badge ' + badgeClass + '">' + badge + '</span>';
+      if (data.port) html += '<div class="result-row"><span class="result-label">Port</span><span class="result-value">' + data.port + '</span></div>';
+
+      // Confidence
+      if (data.proxyDetection) {
+        html += '<div class="section-title">Proxy Detection</div>';
+        html += '<div class="result-row"><span class="result-label">Confidence</span><span class="result-value">' + data.proxyDetection.confidence + '</span></div>';
+        data.proxyDetection.indicators.forEach(function(ind) {
+          html += '<div class="result-row"><span class="result-label">Indicator</span><span class="result-value">' + escapeHtml(ind) + '</span></div>';
+        });
+      }
+
+      // Geolocation
+      if (data.geo) {
+        html += '<div class="section-title">Geolocation</div>';
+        html += '<div class="result-row"><span class="result-label">IP Address</span><span class="result-value">' + escapeHtml(data.geo.ip) + '</span></div>';
+        html += '<div class="result-row"><span class="result-label">Country</span><span class="result-value">' + escapeHtml(data.geo.country || 'N/A') + ' (' + escapeHtml(data.geo.countryCode || '') + ')</span></div>';
+        if (data.geo.region) html += '<div class="result-row"><span class="result-label">Region</span><span class="result-value">' + escapeHtml(data.geo.region) + '</span></div>';
+        if (data.geo.city) html += '<div class="result-row"><span class="result-label">City</span><span class="result-value">' + escapeHtml(data.geo.city) + '</span></div>';
+        html += '<div class="result-row"><span class="result-label">ISP</span><span class="result-value">' + escapeHtml(data.geo.isp || 'N/A') + '</span></div>';
+        html += '<div class="result-row"><span class="result-label">ASN</span><span class="result-value">' + escapeHtml(data.geo.asn || 'N/A') + '</span></div>';
+        html += '<div class="result-row"><span class="result-label">Hosting/DC</span><span class="result-value">' + (data.geo.hosting ? 'Yes' : 'No') + '</span></div>';
+      }
+
+      // Port checks
+      if (data.portChecks) {
+        html += '<div class="section-title">Port Check</div>';
+        html += '<div class="result-row"><span class="result-label">Ports Scanned</span><span class="result-value">' + data.portChecks.checked.join(', ') + '</span></div>';
+        if (data.portChecks.open.length > 0) {
+          data.portChecks.open.forEach(function(p) {
+            html += '<div class="result-row"><span class="result-label">Port ' + p.port + ' (' + p.type + ')</span><span class="result-value" style="color:#f59e0b">OPEN (status ' + p.status + ')</span></div>';
+          });
+        } else {
+          html += '<div class="result-row"><span class="result-label">Status</span><span class="result-value">No open proxy ports found</span></div>';
+        }
+      }
+
+      // WHOIS
+      if (data.whois) {
+        html += '<div class="section-title">WHOIS Information</div>';
+        if (data.whois.registrar) html += '<div class="result-row"><span class="result-label">Registrar</span><span class="result-value">' + escapeHtml(data.whois.registrar) + '</span></div>';
+        if (data.whois.organization) html += '<div class="result-row"><span class="result-label">Organization</span><span class="result-value">' + escapeHtml(data.whois.organization) + '</span></div>';
+        if (data.whois.creationDate) html += '<div class="result-row"><span class="result-label">Created</span><span class="result-value">' + escapeHtml(data.whois.creationDate) + '</span></div>';
+        if (data.whois.expirationDate) html += '<div class="result-row"><span class="result-label">Expires</span><span class="result-value">' + escapeHtml(data.whois.expirationDate) + '</span></div>';
+        if (data.whois.nameServers && data.whois.nameServers.length) html += '<div class="result-row"><span class="result-label">Name Servers</span><span class="result-value">' + escapeHtml(data.whois.nameServers.join(', ')) + '</span></div>';
+      }
+
+      resultContent.innerHTML = html;
+    })
+    .catch(function(err) {
+      loading.classList.remove('visible');
+      btn.disabled = false;
+      resultArea.classList.add('visible', 'error');
+      resultTitle.textContent = 'Error';
+      resultContent.innerHTML = '<div class="result-row"><span class="result-label">Error</span><span class="result-value" style="color:#dc3545">' + escapeHtml(err.message) + '</span></div>';
+    });
+}
+
+function escapeHtml(text) {
+  var d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+btn.addEventListener('click', doCheck);
+input.addEventListener('keydown', function(e) { if (e.key === 'Enter') doCheck(); });
+</script>
+<!-- Cloudflare Web Analytics --><!-- End Cloudflare Web Analytics -->
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIP Calculator - Free Mutual Fund Returns | DevTools Hub</title>
+    <meta name="description" content="Free SIP calculator. Estimate mutual fund maturity from monthly investment, return and tenure. Goal, step-up and lumpsum modes. 100% private, no signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/sip-calculator/">
+    <meta property="og:title" content="SIP Calculator - Free Mutual Fund Returns | DevTools Hub">
+    <meta property="og:description" content="Free SIP calculator. Estimate mutual fund maturity from monthly investment, return and tenure. Goal, step-up and lumpsum modes. 100% private, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/sip-calculator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SIP Calculator - Free Mutual Fund Returns | DevTools Hub">
+    <meta name="twitter:description" content="Free SIP calculator. Estimate mutual fund maturity from monthly investment, return and tenure. 100% private, no signup.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/sip-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-07-31","dateModified":"2026-07-31","author":{"@type":"Person","name":"BAOMING"},"name":"SIP Calculator","description":"Free SIP calculator that estimates mutual fund maturity value from monthly investment, expected annual return and investment tenure. Supports regular SIP, step-up SIP, SIP plus lumpsum, and goal-based modes with inflation-adjusted real value.","url":"https://tools.scoreroute.com/tools/sip-calculator/","applicationCategory":"FinanceApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is a SIP?","acceptedAnswer":{"@type":"Answer","text":"A Systematic Investment Plan (SIP) is a way to invest a fixed amount regularly, usually monthly, into a mutual fund. Because you invest on a schedule instead of all at once, you buy fewer units when prices are high and more when prices are low, which smooths your average purchase cost over time."}},{"@type":"Question","name":"How accurate is this SIP calculator?","acceptedAnswer":{"@type":"Answer","text":"It uses the standard future value of annuity-due formula that fund houses and banks use, compounding monthly returns from your expected annual rate. The result is an estimate based on the inputs you provide; actual returns depend on market performance and will differ from any projection."}},{"@type":"Question","name":"What rate of return should I use?","acceptedAnswer":{"@type":"Answer","text":"A common assumption is 10% to 12% per year for long-term equity funds, and 6% to 8% for hybrid or debt funds. The calculator only reflects the rate you enter, so you can test different assumptions and compare the outcomes."}},{"@type":"Question","name":"Can I use this for goal planning?","acceptedAnswer":{"@type":"Answer","text":"Yes. Switch to Goal-Based mode, enter the amount you want to accumulate and the time horizon, and the calculator works backwards to tell you the monthly SIP required to reach that target at your assumed return."}},{"@type":"Question","name":"What is the difference between SIP and a lumpsum investment?","acceptedAnswer":{"@type":"Answer","text":"A lumpsum is a one-time investment of a large amount. A SIP spreads small, regular investments over time. The SIP plus lumpsum mode lets you model both together, which is how many investors build portfolios in practice."}}]}
+    </script>
+    <style>
+        :root {
+            --bg: #0f0f23;
+            --card-bg: #1a1a2e;
+            --border: #2a2a4a;
+            --primary: #667eea;
+            --text: #fff;
+            --text-secondary: #888;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+        .sip-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: var(--bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .sip-form .full-width {
+            grid-column: 1 / -1;
+        }
+        .sip-form label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .sip-form input, .sip-form select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+        .sip-form input:focus, .sip-form select:focus {
+            outline: 2px solid var(--primary);
+            border-color: transparent;
+        }
+        .sip-modes {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .sip-modes button {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .sip-modes button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .sip-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .sip-result-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+        .sip-result-card .value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 8px;
+            word-break: break-word;
+        }
+        .sip-result-card .label {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+        .sip-result-card.invested .value { color: var(--text); }
+        .sip-result-card.gain .value { color: var(--success); }
+        .sip-breakdown {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .sip-breakdown th {
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            padding: 10px 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        .sip-breakdown th:first-child { text-align: left; }
+        .sip-breakdown td {
+            padding: 10px 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        .sip-breakdown td:first-child { text-align: left; }
+        .sip-breakdown tr:hover { background: var(--card-bg); }
+        .sip-breakdown tr.total td { font-weight: 700; border-top: 2px solid var(--primary); }
+        .sip-chart-container {
+            width: 100%;
+            height: 300px;
+            margin: 20px 0;
+            position: relative;
+        }
+        #sipChart { width: 100%; height: 100%; }
+        .sip-toggles {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .sip-toggles button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .sip-toggles button.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .sip-examples {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .sip-examples button {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .sip-examples button:hover { background: var(--primary); color: white; }
+        .sip-inline {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sip-inline input[type="checkbox"] {
+            width: auto;
+            padding: 0;
+        }
+        .sip-note {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        @media (max-width: 640px) {
+            .sip-form { grid-template-columns: 1fr; }
+            .sip-results { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>SIP Calculator</h1>
+            <p class="subtitle">See How Much Your Monthly Mutual Fund Investments Can Grow</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/finance/">Finance</a> &gt; <span>SIP Calculator</span>
+              <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" role="main">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Estimate Your SIP Returns</h2>
+
+                <div class="sip-examples">
+                    <button onclick="loadExample('standard')">Standard SIP</button>
+                    <button onclick="loadExample('longterm')">Long-Term Wealth</button>
+                    <button onclick="loadExample('crore')">₹1 Crore Goal</button>
+                    <button onclick="loadExample('stepup')">Step-Up SIP</button>
+                </div>
+
+                <div class="sip-modes" role="group" aria-label="SIP calculation mode">
+                    <button id="mode-regular" class="active tab" aria-pressed="true" onclick="setMode('regular')">Regular SIP</button>
+                    <button class="sip-tab" id="mode-stepup" aria-pressed="false" onclick="setMode('stepup')">Step-Up SIP</button>
+                    <button class="sip-tab" id="mode-lumpsum" aria-pressed="false" onclick="setMode('lumpsum')">SIP + Lumpsum</button>
+                    <button class="sip-tab" id="mode-goal" aria-pressed="false" onclick="setMode('goal')">Goal-Based</button>
+                </div>
+
+                <div class="sip-form">
+                    <div>
+                        <label for="sipCurrency">Currency</label>
+                        <select id="sipCurrency">
+                            <option value="INR" selected>₹ Indian Rupee</option>
+                            <option value="USD">$ US Dollar</option>
+                            <option value="EUR">€ Euro</option>
+                            <option value="GBP">£ British Pound</option>
+                        </select>
+                    </div>
+                    <div id="fieldGoal" style="display:none;">
+                        <label for="sipGoal">Target Corpus</label>
+                        <input type="number" id="sipGoal" value="10000000" min="1" step="100000" aria-label="Target corpus amount">
+                    </div>
+                    <div id="fieldMonthly">
+                        <label for="sipMonthly">Monthly Investment</label>
+                        <input type="number" id="sipMonthly" value="5000" min="0" step="500" aria-label="Monthly SIP investment amount">
+                    </div>
+                    <div id="fieldLumpsum" style="display:none;">
+                        <label for="sipLumpsum">Lumpsum Amount</label>
+                        <input type="number" id="sipLumpsum" value="100000" min="0" step="10000" aria-label="One-time lumpsum amount">
+                    </div>
+                    <div>
+                        <label for="sipYears">Investment Duration (Years)</label>
+                        <input type="number" id="sipYears" value="10" min="1" max="50" step="1" aria-label="Investment duration in years">
+                    </div>
+                    <div>
+                        <label for="sipReturn">Expected Annual Return (%)</label>
+                        <input type="number" id="sipReturn" value="12" min="0" max="40" step="0.5" aria-label="Expected annual return percentage">
+                    </div>
+                    <div id="fieldStepup" style="display:none;">
+                        <label for="sipStepup">Annual Step-Up Rate (%)</label>
+                        <input type="number" id="sipStepup" value="10" min="0" max="50" step="1" aria-label="Annual step-up rate percentage">
+                    </div>
+                    <div>
+                        <label for="sipInflation">Annual Inflation Rate (%)</label>
+                        <input type="number" id="sipInflation" value="6" min="0" max="20" step="0.5" aria-label="Annual inflation rate percentage">
+                    </div>
+                    <div class="sip-inline full-width">
+                        <input type="checkbox" id="sipInflationOn" aria-label="Show inflation-adjusted real value">
+                        <label for="sipInflationOn" style="margin:0;">Show inflation-adjusted real value</label>
+                    </div>
+                    <div class="btn-group full-width">
+                        <button onclick="calculateSIP()" class="btn btn-primary">Calculate</button>
+                        <button onclick="clearAll()" class="btn btn-secondary">Clear</button>
+                    </div>
+                </div>
+
+                <div id="sipStatus" class="status"></div>
+
+                <div id="sipResults" style="display:none;">
+                    <div class="sip-results">
+                        <div class="sip-result-card">
+                            <div class="label">Maturity Value</div>
+                            <div class="value" id="resValue">-</div>
+                        </div>
+                        <div class="sip-result-card invested">
+                            <div class="label">Total Invested</div>
+                            <div class="value" id="resInvested">-</div>
+                        </div>
+                        <div class="sip-result-card gain">
+                            <div class="label">Estimated Returns</div>
+                            <div class="value" id="resGain">-</div>
+                        </div>
+                        <div class="sip-result-card" id="cardReal" style="display:none;">
+                            <div class="label">Real Value (After Inflation)</div>
+                            <div class="value" id="resReal">-</div>
+                        </div>
+                        <div class="sip-result-card" id="cardSipReq" style="display:none;">
+                            <div class="label">Required Monthly SIP</div>
+                            <div class="value" id="resSipReq">-</div>
+                        </div>
+                    </div>
+
+                    <div class="sip-toggles">
+                        <button class="active" onclick="showBreakdown('table')">Year-by-Year</button>
+                        <button onclick="showBreakdown('chart')">Chart View</button>
+                    </div>
+
+                    <div id="breakdownTable">
+                        <table class="sip-breakdown" id="sipTable">
+<caption class="sr-only">SIP balance year by year: what you put in, what it earned, what it is worth</caption>
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Invested</th>
+                                    <th>Returns</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sipTableBody"><tr><td colspan="4">No data yet.</td></tr></tbody>
+                        </table>
+                    </div>
+
+                    <div id="breakdownChart" style="display:none;">
+                        <div class="sip-chart-container">
+                            <canvas id="sipChart"></canvas>
+                        </div>
+                    </div>
+
+                    <p class="sip-note">Estimates only, based on the inputs you provide. Mutual fund investments are subject to market risks.</p>
+
+                    <div class="btn-group" style="margin-top:16px;">
+                        <button onclick="copyResults()" class="copy-btn">Copy Results</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What Is a SIP?</h2>
+                <p>A Systematic Investment Plan (SIP) is a way to invest a fixed amount regularly, usually monthly, into a mutual fund. Because you invest on a schedule instead of all at once, you buy fewer units when prices are high and more when prices are low, which smooths your average purchase cost over time. SIPs are one of the most popular ways to build long-term wealth because they are simple, disciplined, and work well with regular income.</p>
+
+                <h2>How the SIP Calculator Works</h2>
+                <p>An SIP calculator uses a standard annuity-due formula to project how a fixed monthly investment grows over time. Every month you invest the same amount, and each installment earns returns from the moment it is invested, so later installments have less time to compound than earlier ones. The calculator compounds your returns monthly at a rate derived from your expected annual return, then sums the future value of all installments to give your maturity value, total invested, and total wealth gained. This is the same math used by mutual fund houses, banks, and every reputable SIP return calculator.</p>
+
+                <h3>The Formula</h3>
+                <p style="font-family:monospace;background:var(--card-bg);padding:16px;border-radius:8px;text-align:center;font-size:1.05rem;">
+                    FV = P &times; [((1 + i)<sup>n</sup> &minus; 1) / i] &times; (1 + i)
+                </p>
+                <p>Where P is the monthly investment, i is the monthly return rate (derived from your annual return by compounding, not simple division), and n is the number of monthly installments. The leading (1 + i) factor reflects that installments are invested at the start of each month. In Goal-Based mode the calculator solves this same equation backwards for P, telling you the monthly SIP required to reach a target corpus. Step-Up mode applies a growing-annuity calculation where the monthly amount rises each year, and Lumpsum mode adds the compounded value of a one-time investment.</p>
+
+                <h2>Why AI Cannot Replace This Tool</h2>
+                <p>Large language models routinely make mistakes on SIP calculations. Compound exponentials over long time horizons are hard for them to evaluate reliably, and they frequently divide the annual return by 12 instead of converting it with the correct compound rate, mix up annuity-due and ordinary annuity timing, or return different numbers for the same inputs across conversations. This tool applies deterministic JavaScript math with no approximation and no variation: the same inputs always produce the same bit-exact result. It also runs entirely in your browser, so your financial details never leave your device.</p>
+
+                <h2>Frequently Asked Questions</h2>
+
+                <details class="faq-item">
+                    <summary>What is a SIP?</summary>
+                    <p>A Systematic Investment Plan (SIP) is a way to invest a fixed amount regularly, usually monthly, into a mutual fund. Because you invest on a schedule instead of all at once, you buy fewer units when prices are high and more when prices are low, which smooths your average purchase cost over time.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How accurate is this SIP calculator?</summary>
+                    <p>It uses the standard future value of annuity-due formula that fund houses and banks use, compounding monthly returns from your expected annual rate. The result is an estimate based on the inputs you provide; actual returns depend on market performance and will differ from any projection.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What rate of return should I use?</summary>
+                    <p>A common assumption is 10% to 12% per year for long-term equity funds, and 6% to 8% for hybrid or debt funds. The calculator only reflects the rate you enter, so you can test different assumptions and compare the outcomes.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Why does the calculator convert my annual return to a monthly rate?</summary>
+                    <p>Because you invest every month, each installment must earn a monthly return. The correct monthly rate is not simply the annual rate divided by 12. It is derived so that compounding twelve months of that rate equals your annual return. Using the naive division overstates your results.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Does the calculator factor in inflation?</summary>
+                    <p>Only if you switch on the inflation toggle. When enabled, it shows the maturity value expressed in today's purchasing power, discounted by the inflation rate you set. This gives a more honest picture of what your corpus will actually be worth when you reach your goal.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Can I use this for goal planning?</summary>
+                    <p>Yes. Switch to Goal-Based mode, enter the amount you want to accumulate and the time horizon, and the calculator works backwards to tell you the monthly SIP required to reach that target at your assumed return.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What is a step-up SIP?</summary>
+                    <p>A step-up SIP increases your monthly investment by a fixed percentage every year, typically aligned with salary growth. Because your contributions grow along with your income, a step-up SIP builds a larger corpus than a flat SIP over the same period.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What is the difference between SIP and a lumpsum investment?</summary>
+                    <p>A lumpsum is a one-time investment of a large amount. A SIP spreads small, regular investments over time. The SIP + Lumpsum mode lets you model both together, which is how many investors build portfolios in practice.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Is my financial data private?</summary>
+                    <p>Yes. All calculations happen locally in your browser. Nothing is uploaded, stored, or transmitted, so you can check your own figures without sharing them with anyone.</p>
+                </details>
+
+                <h2>Related Tools</h2>
+                <p>
+                    <a href="/tools/compound-interest-calculator/">Compound Interest Calculator</a> &middot;
+                    <a href="/tools/loan-calculator/">Loan Calculator</a> &middot;
+                    <a href="/tools/auto-loan-calculator/">Auto Loan Calculator</a> &middot;
+                    <a href="/tools/salary-calculator/">Salary Calculator</a> &middot;
+                    <a href="/tools/gold-price/">Gold Price</a>
+                </p>
+
+                <h2>Disclaimer</h2>
+                <p>This calculator provides estimates for educational and planning purposes only and is not financial advice. Mutual fund investments are subject to market risks; returns are not guaranteed and may vary. Please consult a qualified financial advisor before making investment decisions.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        var sipChartInstance = null;
+        var sipLastResults = null;
+        var sipMode = 'regular';
+
+        var CURRENCY_META = {
+            INR: { locale: 'en-IN', currency: 'INR' },
+            USD: { locale: 'en-US', currency: 'USD' },
+            EUR: { locale: 'de-DE', currency: 'EUR' },
+            GBP: { locale: 'en-GB', currency: 'GBP' }
+        };
+
+        function setMode(mode) {
+            sipMode = mode;
+            var modes = ['regular', 'stepup', 'lumpsum', 'goal'];
+            for (var i = 0; i < modes.length; i++) {
+                var btn = document.getElementById('mode-' + modes[i]);
+                var isActive = modes[i] === mode;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            }
+            document.getElementById('fieldMonthly').style.display = (mode === 'goal') ? 'none' : 'block';
+            document.getElementById('fieldStepup').style.display = (mode === 'stepup') ? 'block' : 'none';
+            document.getElementById('fieldLumpsum').style.display = (mode === 'lumpsum') ? 'block' : 'none';
+            document.getElementById('fieldGoal').style.display = (mode === 'goal') ? 'block' : 'none';
+        }
+
+        function getMonthlyRate(annualRate) {
+            return Math.pow(1 + annualRate / 100, 1 / 12) - 1;
+        }
+
+        function calculateSIP() {
+            var currency = document.getElementById('sipCurrency').value;
+            var years = parseFloat(document.getElementById('sipYears').value) || 0;
+            var annualReturn = parseFloat(document.getElementById('sipReturn').value) || 0;
+            var inflationOn = document.getElementById('sipInflationOn').checked;
+            var inflation = parseFloat(document.getElementById('sipInflation').value) || 0;
+            var monthly = parseFloat(document.getElementById('sipMonthly').value) || 0;
+            var lumpsum = parseFloat(document.getElementById('sipLumpsum').value) || 0;
+            var stepup = parseFloat(document.getElementById('sipStepup').value) || 0;
+            var goal = parseFloat(document.getElementById('sipGoal').value) || 0;
+
+            if (years < 1) { showStatus('sipStatus', 'Investment duration must be at least 1 year.', 'error'); return; }
+            if (annualReturn <= 0 && monthly <= 0 && lumpsum <= 0 && sipMode !== 'goal') {
+                showStatus('sipStatus', 'Please enter a return rate or investment amount.', 'error'); return;
+            }
+            if (sipMode === 'goal' && goal <= 0) {
+                showStatus('sipStatus', 'Please enter a target corpus amount.', 'error'); return;
+            }
+
+            var r = getMonthlyRate(annualReturn);
+            var n = Math.round(years * 12);
+            var yearData = [];
+            var yearValue = 0;
+            var yearInvested = 0;
+            var yearsInvested = 0;
+            var monthlyUsed = monthly;
+            var requiredMonthly = null;
+
+            if (sipMode === 'goal') {
+                if (r === 0) {
+                    monthlyUsed = goal / n;
+                } else {
+                    var factor = (Math.pow(1 + r, n) - 1) / r * (1 + r);
+                    monthlyUsed = goal / factor;
+                }
+                requiredMonthly = monthlyUsed;
+            }
+
+            var fundValue = 0;
+            var totalInvested = 0;
+            var startOfYearValue = 0;
+
+            if (sipMode === 'lumpsum' && lumpsum > 0) {
+                fundValue = lumpsum;
+                totalInvested = lumpsum;
+            }
+
+            for (var y = 1; y <= years; y++) {
+                startOfYearValue = fundValue;
+                var yearContribution = 0;
+                for (var m = 0; m < 12; m++) {
+                    var pay = monthlyUsed;
+                    if (sipMode === 'stepup' && y > 1) {
+                        pay = monthly * Math.pow(1 + stepup / 100, y - 1);
+                    }
+                    fundValue = fundValue + pay;
+                    yearContribution += pay;
+                    fundValue = fundValue * (1 + r);
+                }
+                totalInvested += yearContribution;
+                yearsInvested += yearContribution;
+                var yearReturn = fundValue - startOfYearValue - yearContribution;
+                yearData.push({
+                    year: y,
+                    invested: totalInvested,
+                    returns: fundValue - totalInvested,
+                    value: fundValue,
+                    annualReturn: yearReturn
+                });
+            }
+
+            var finalValue = fundValue;
+            var totalInvestedSum = totalInvested;
+            var totalGain = finalValue - totalInvestedSum;
+            var realValue = inflationOn && inflation > 0 ? finalValue / Math.pow(1 + inflation / 100, years) : null;
+
+            sipLastResults = {
+                mode: sipMode,
+                currency: currency,
+                monthly: monthlyUsed,
+                years: years,
+                annualReturn: annualReturn,
+                stepup: stepup,
+                lumpsum: lumpsum,
+                goal: goal,
+                inflationOn: inflationOn,
+                inflation: inflation,
+                finalValue: finalValue,
+                totalInvested: totalInvestedSum,
+                totalGain: totalGain,
+                realValue: realValue,
+                requiredMonthly: requiredMonthly,
+                yearData: yearData
+            };
+
+            document.getElementById('resValue').textContent = formatMoney(finalValue, currency);
+            document.getElementById('resInvested').textContent = formatMoney(totalInvestedSum, currency);
+            document.getElementById('resGain').textContent = formatMoney(totalGain, currency);
+
+            var cardReal = document.getElementById('cardReal');
+            var cardSipReq = document.getElementById('cardSipReq');
+            cardReal.style.display = realValue !== null ? 'block' : 'none';
+            if (realValue !== null) {
+                document.getElementById('resReal').textContent = formatMoney(realValue, currency);
+            }
+            cardSipReq.style.display = (sipMode === 'goal') ? 'block' : 'none';
+            if (sipMode === 'goal') {
+                document.getElementById('resSipReq').textContent = formatMoney(monthlyUsed, currency);
+            }
+
+            renderSipTable(yearData, currency);
+            renderSipChart(yearData, currency);
+
+            document.getElementById('sipResults').style.display = 'block';
+            showStatus('sipStatus', 'Calculation complete. Results shown below.', 'success');
+        }
+
+        function renderSipTable(data, currency) {
+            var tbody = document.getElementById('sipTableBody');
+            tbody.innerHTML = '';
+            for (var i = 0; i < data.length; i++) {
+                var d = data[i];
+                var tr = document.createElement('tr');
+                if (i === data.length - 1) tr.className = 'total';
+                tr.innerHTML =
+                    '<td>Year ' + d.year + '</td>' +
+                    '<td>' + formatMoney(d.invested, currency) + '</td>' +
+                    '<td>' + formatMoney(d.returns, currency) + '</td>' +
+                    '<td>' + formatMoney(d.value, currency) + '</td>';
+                tbody.appendChild(tr);
+            }
+        }
+
+        function renderSipChart(data, currency) {
+            var canvas = document.getElementById('sipChart');
+            if (sipChartInstance) { sipChartInstance.destroy(); sipChartInstance = null; }
+            if (typeof Chart === 'undefined') {
+                var script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';
+                script.onload = function() { renderSipChartActual(data, currency); };
+                document.head.appendChild(script);
+                return;
+            }
+            renderSipChartActual(data, currency);
+        }
+
+        function renderSipChartActual(data, currency) {
+            var canvas = document.getElementById('sipChart');
+            var ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            var parent = canvas.parentElement;
+            canvas.width = parent.offsetWidth || 800;
+            canvas.height = 300;
+
+            var labels = data.map(function(d) { return 'Y' + d.year; });
+            var values = data.map(function(d) { return d.value; });
+            var invested = data.map(function(d) { return d.invested; });
+
+            sipChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Portfolio Value',
+                        data: values,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102,126,234,0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 2
+                    }, {
+                        label: 'Total Invested',
+                        data: invested,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.05)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 1,
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#b3b8c0', font: { size: 12 } } } },
+                    scales: {
+                        x: { ticks: { color: '#888', maxTicksLimit: 15 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: {
+                            ticks: { color: '#888', callback: function(v) { return compactMoney(v, currency); } },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showBreakdown(view) {
+            var table = document.getElementById('breakdownTable');
+            var chart = document.getElementById('breakdownChart');
+            var buttons = document.querySelectorAll('.sip-toggles button');
+            if (view === 'table') {
+                table.style.display = 'block';
+                chart.style.display = 'none';
+                buttons[0].classList.add('active');
+                buttons[1].classList.remove('active');
+            } else {
+                table.style.display = 'none';
+                chart.style.display = 'block';
+                buttons[0].classList.remove('active');
+                buttons[1].classList.add('active');
+                if (sipLastResults) {
+                    renderSipChart(sipLastResults.yearData, sipLastResults.currency);
+                }
+            }
+        }
+
+        function formatMoney(v, currency) {
+            var meta = CURRENCY_META[currency] || CURRENCY_META.INR;
+            return v.toLocaleString(meta.locale, {
+                style: 'currency',
+                currency: meta.currency,
+                maximumFractionDigits: 0,
+                minimumFractionDigits: 0
+            });
+        }
+
+        function compactMoney(v, currency) {
+            var meta = CURRENCY_META[currency] || CURRENCY_META.INR;
+            var sym = meta.currency === 'INR' ? '₹' : meta.currency === 'USD' ? '$' : meta.currency === 'EUR' ? '€' : '£';
+            if (Math.abs(v) >= 100000000) return sym + (v / 100000000).toFixed(1) + 'Cr';
+            if (Math.abs(v) >= 100000) return sym + (v / 100000).toFixed(1) + 'L';
+            if (Math.abs(v) >= 1000) return sym + (v / 1000).toFixed(1) + 'K';
+            return sym + v.toFixed(0);
+        }
+
+        function clearAll() {
+            document.getElementById('sipCurrency').value = 'INR';
+            document.getElementById('sipMonthly').value = '5000';
+            document.getElementById('sipYears').value = '10';
+            document.getElementById('sipReturn').value = '12';
+            document.getElementById('sipStepup').value = '10';
+            document.getElementById('sipLumpsum').value = '100000';
+            document.getElementById('sipGoal').value = '10000000';
+            document.getElementById('sipInflation').value = '6';
+            document.getElementById('sipInflationOn').checked = false;
+            setMode('regular');
+            document.getElementById('sipResults').style.display = 'none';
+            showStatus('sipStatus', '', '');
+        }
+
+        function copyResults() {
+            if (!sipLastResults) return;
+            var r = sipLastResults;
+            var lines = [];
+            lines.push('SIP Calculator Results');
+            lines.push('============================');
+            lines.push('Mode: ' + r.mode.replace('regular', 'Regular SIP').replace('stepup', 'Step-Up SIP').replace('lumpsum', 'SIP + Lumpsum').replace('goal', 'Goal-Based'));
+            if (r.requiredMonthly !== null) {
+                lines.push('Target Corpus: ' + formatMoney(r.goal, r.currency));
+                lines.push('Required Monthly SIP: ' + formatMoney(r.requiredMonthly, r.currency));
+            } else {
+                lines.push('Monthly Investment: ' + formatMoney(r.monthly, r.currency));
+            }
+            if (r.lumpsum > 0) lines.push('Lumpsum: ' + formatMoney(r.lumpsum, r.currency));
+            if (r.stepup > 0) lines.push('Annual Step-Up: ' + r.stepup + '%');
+            lines.push('Duration: ' + r.years + ' years');
+            lines.push('Expected Annual Return: ' + r.annualReturn + '%');
+            if (r.inflationOn) lines.push('Inflation Rate: ' + r.inflation + '%');
+            lines.push('--------------------------------');
+            lines.push('Maturity Value: ' + formatMoney(r.finalValue, r.currency));
+            lines.push('Total Invested: ' + formatMoney(r.totalInvested, r.currency));
+            lines.push('Estimated Returns: ' + formatMoney(r.totalGain, r.currency));
+            if (r.realValue !== null) lines.push('Real Value (After Inflation): ' + formatMoney(r.realValue, r.currency));
+            lines.push('============================');
+            lines.push('Year-by-Year Breakdown:');
+            for (var i = 0; i < r.yearData.length; i++) {
+                var d = r.yearData[i];
+                lines.push('Year ' + d.year + ': Invested=' + formatMoney(d.invested, r.currency) + ' Returns=' + formatMoney(d.returns, r.currency) + ' Value=' + formatMoney(d.value, r.currency));
+            }
+            copyToClipboardRaw(lines.join('\n'));
+            showStatus('sipStatus', 'Results copied to clipboard!', 'success');
+        }
+
+        function loadExample(name) {
+            var examples = {
+                standard: { mode: 'regular', monthly: 5000, years: 10, ret: 12, stepup: 10, lumpsum: 100000, goal: 10000000 },
+                longterm: { mode: 'regular', monthly: 10000, years: 20, ret: 12, stepup: 10, lumpsum: 100000, goal: 10000000 },
+                crore: { mode: 'goal', monthly: 5000, years: 15, ret: 12, stepup: 10, lumpsum: 100000, goal: 10000000 },
+                stepup: { mode: 'stepup', monthly: 10000, years: 15, ret: 12, stepup: 10, lumpsum: 100000, goal: 10000000 }
+            };
+            var ex = examples[name];
+            if (!ex) return;
+            document.getElementById('sipMonthly').value = ex.monthly;
+            document.getElementById('sipYears').value = ex.years;
+            document.getElementById('sipReturn').value = ex.ret;
+            document.getElementById('sipStepup').value = ex.stepup;
+            document.getElementById('sipLumpsum').value = ex.lumpsum;
+            document.getElementById('sipGoal').value = ex.goal;
+            setMode(ex.mode);
+            calculateSIP();
+        }
+
+        function round2(v) { return Math.round(v * 100) / 100; }
+
+        function copyToClipboardRaw(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch(e) {}
+            document.body.removeChild(ta);
+        }
+    </script>
+</body>
+</html>

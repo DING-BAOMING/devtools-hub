@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Online Video Editor - Trim & Cut Video in Browser</title>
+    <meta name="description" content="Free online video editor. Trim, crop, rotate, flip, add speed, filters and text to video in your browser. 100% private, no upload, export MP4.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/video-editor/">
+    <meta property="og:title" content="Free Online Video Editor - Trim & Cut Video in Browser">
+    <meta property="og:description" content="Free online video editor. Trim, crop, rotate, flip, add speed, filters and text to video in your browser. 100% private, no upload, export MP4.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/video-editor/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Free Online Video Editor - Trim & Cut Video in Browser">
+    <meta name="twitter:description" content="Free online video editor. Trim, crop, rotate, flip, add speed, filters and text to video in your browser. 100% private, no upload, export MP4.">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-08-18","dateModified":"2026-08-18","author":{"@type":"Person","name":"BAOMING"},"name":"Free Online Video Editor","description":"Free online video editor. Trim, crop, rotate, flip, speed, filters and text on video, processed 100% in your browser.","url":"https://tools.scoreroute.com/tools/video-editor/","applicationCategory":"MultimediaApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        .ve-area { max-width: 840px; margin: 0 auto; }
+        .ve-dropzone { border: 3px dashed #555; border-radius: 12px; padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a2e; }
+        .ve-dropzone:hover, .ve-dropzone.dragover { border-color: #667eea; background: #252540; }
+        .ve-dropzone.has-file { border-color: #28a745; }
+        .ve-icon { font-size: 2.6rem; margin-bottom: 0.8rem; }
+        .ve-info { display: none; margin: 1rem 0; padding: 1rem; background: #1a1a2e; border-radius: 8px; }
+        .ve-info.visible { display: block; }
+        .ve-row { display: flex; justify-content: space-between; padding: 0.25rem 0; color: #ccc; }
+        .ve-label { color: #888; }
+        .ve-stage-wrap { display: none; margin: 1rem 0; }
+        .ve-stage-wrap.visible { display: block; }
+        .ve-stage { position: relative; width: 100%; margin: 0 auto; background: #000; border-radius: 10px; overflow: hidden; }
+        .ve-stage video { width: 100%; height: 100%; display: block; object-fit: cover; }
+        .ve-overlay { position: absolute; color: #fff; font-weight: 700; text-shadow: 1px 1px 2px #000; pointer-events: none; white-space: nowrap; z-index: 2; }
+        .ve-panel { background: #1a1a2e; border-radius: 12px; padding: 1.2rem 1.4rem; margin: 0.8rem 0; }
+        .ve-panel h2 { color: #fff; margin: 0 0 0.8rem 0; font-size: 1.05rem; }
+        .ve-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem 1rem; }
+        .ve-field label { display: block; color: #aaa; font-size: 0.85rem; margin-bottom: 0.25rem; }
+        .ve-field select, .ve-field input[type="number"], .ve-field input[type="text"], .ve-field input[type="color"] { width: 100%; padding: 7px 8px; background: #0f0f23; border: 1px solid #333; color: #fff; border-radius: 6px; }
+        .ve-field input[type="range"] { width: 100%; }
+        .ve-field .ve-range-val { color: #667eea; font-size: 0.75rem; float: right; }
+        .ve-chk { display: flex; align-items: center; gap: 6px; color: #ccc; font-size: 0.9rem; }
+        .ve-chk input { width: auto; }
+        .ve-btn-row { display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center; margin: 1rem 0; }
+        .ve-progress { display: none; margin: 0.6rem 0; padding: 1rem; background: #1a1a2e; border-radius: 8px; }
+        .ve-progress.visible { display: block; }
+        .ve-bar { height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-top: 0.5rem; }
+        .ve-bar-fill { height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.3s; }
+        .ve-result { display: none; margin: 1rem 0; padding: 1.2rem; background: #1a3e2a; border-radius: 8px; text-align: center; border: 1px solid #28a745; }
+        .ve-result.visible { display: block; }
+        .ve-result video { max-width: 100%; max-height: 320px; margin: 0.8rem 0; border-radius: 8px; }
+        .ve-btn { padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+        .ve-btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+        .ve-btn-success { background: #28a745; color: #fff; }
+        .ve-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .ve-trim-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .ve-trim-row input[type="number"] { width: 100px; padding: 8px; background: #0f0f23; border: 1px solid #333; color: #fff; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Free Online Video Editor</h1>
+            <p class="subtitle">Trim, crop, rotate, speed up, add filters and text — all in your browser. 100% private, no upload.</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/media/">Media Tools</a> &gt; <span>Video Editor</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main ve-area">
+                <div id="ve-dropzone" class="ve-dropzone" onclick="document.getElementById('ve-file').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleDrop(event)">
+                    <div class="ve-icon">&#127916;</div>
+                    <div class="ve-text"><strong>Click or drop a video file</strong><br>MP4, WebM, MOV, AVI, MKV</div>
+                    <input type="file" id="ve-file" accept="video/*" style="display:none" onchange="handleFile(this.files[0])" aria-label="Video Editor" data-testid="ve-file">
+                </div>
+
+                <div id="ve-info" class="ve-info">
+                    <div class="ve-row"><span class="ve-label">File:</span><span id="ve-filename">-</span></div>
+                    <div class="ve-row"><span class="ve-label">Size:</span><span id="ve-filesize">-</span></div>
+                    <div class="ve-row"><span class="ve-label">Dimensions:</span><span id="ve-dims">-</span></div>
+                    <div class="ve-row"><span class="ve-label">Duration:</span><span id="ve-duration">-</span></div>
+                </div>
+
+                <div id="ve-stage-wrap" class="ve-stage-wrap">
+                    <div class="ve-stage" id="ve-stage">
+                        <video id="ve-video" muted playsinline></video>
+                        <div id="ve-overlay" class="ve-overlay" style="display:none;"></div>
+                    </div>
+                    <p style="color:#888; font-size:0.85rem; margin-top:0.4rem;" id="ve-preview-note">Preview shows visual edits only. Trim, speed and audio are applied on export.</p>
+                </div>
+
+                <div id="ve-controls" style="display:none;">
+                    <div class="ve-panel">
+                        <h2>Trim &amp; Speed</h2>
+                        <div class="ve-trim-row" style="margin-bottom:0.8rem;">
+                            <div><label style="color:#aaa;">Start (s)</label><input type="number" id="ve-start" min="0" step="0.1" value="0" aria-label="Start seconds"></div>
+                            <div><label style="color:#aaa;">End (s)</label><input type="number" id="ve-end" min="0" step="0.1" value="0" aria-label="End seconds"></div>
+                        </div>
+                        <div class="ve-field" style="max-width:200px;">
+                            <label for="ve-speed">Playback speed</label>
+                            <select id="ve-speed" title="Speed">
+                                <option value="0.25">0.25x (slow)</option>
+                                <option value="0.5">0.5x (half speed)</option>
+                                <option value="0.75">0.75x</option>
+                                <option value="1" selected>1x (normal)</option>
+                                <option value="1.25">1.25x</option>
+                                <option value="1.5">1.5x</option>
+                                <option value="1.75">1.75x</option>
+                                <option value="2">2x (double speed)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="ve-panel">
+                        <h2>Transform</h2>
+                        <div class="ve-grid">
+                            <div class="ve-field">
+                                <label for="ve-rotate">Rotate</label>
+                                <select id="ve-rotate" title="Rotate">
+                                    <option value="0" selected>None</option>
+                                    <option value="90">90&deg; clockwise</option>
+                                    <option value="180">180&deg;</option>
+                                    <option value="270">90&deg; counter-clockwise</option>
+                                </select>
+                            </div>
+                            <div class="ve-field">
+                                <label for="ve-crop">Aspect ratio (crop)</label>
+                                <select id="ve-crop" title="Aspect ratio">
+                                    <option value="original" selected>Original</option>
+                                    <option value="16/9">16:9 (wide)</option>
+                                    <option value="9/16">9:16 (vertical)</option>
+                                    <option value="1/1">1:1 (square)</option>
+                                    <option value="4/5">4:5</option>
+                                    <option value="4/3">4:3</option>
+                                    <option value="3/4">3:4</option>
+                                </select>
+                            </div>
+                            <div class="ve-field">
+                                <label for="ve-res">Max resolution</label>
+                                <select id="ve-res" title="Resolution">
+                                    <option value="original" selected>Original</option>
+                                    <option value="1080">1080p (1920px)</option>
+                                    <option value="720">720p (1280px)</option>
+                                    <option value="480">480p (854px)</option>
+                                </select>
+                            </div>
+                            <div class="ve-field">
+                                <label>Flip</label>
+                                <div class="ve-chk"><input type="checkbox" id="ve-fliph" aria-label="Flip horizontal"><span>Horizontal</span></div>
+                                <div class="ve-chk" style="margin-top:4px;"><input type="checkbox" id="ve-flipv" aria-label="Flip vertical"><span>Vertical</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ve-panel">
+                        <h2>Color Filters</h2>
+                        <div class="ve-grid">
+                            <div class="ve-field">
+                                <label>Brightness <span id="ve-bright-val" class="ve-range-val">0</span></label>
+                                <input type="range" id="ve-bright" min="-50" max="50" value="0" step="1" aria-label="0 Brightness" title="Brightness">
+                            </div>
+                            <div class="ve-field">
+                                <label>Contrast <span id="ve-contrast-val" class="ve-range-val">100%</span></label>
+                                <input type="range" id="ve-contrast" min="50" max="150" value="100" step="1" aria-label="100 Contrast" title="Contrast">
+                            </div>
+                            <div class="ve-field">
+                                <label>Saturation <span id="ve-sat-val" class="ve-range-val">100%</span></label>
+                                <input type="range" id="ve-sat" min="0" max="200" value="100" step="1" aria-label="100 Saturation" title="Saturation">
+                            </div>
+                            <div class="ve-field">
+                                <label>Hue rotate <span id="ve-hue-val" class="ve-range-val">0&deg;</span></label>
+                                <input type="range" id="ve-hue" min="0" max="360" value="0" step="5" aria-label="0 Hue" title="Hue">
+                            </div>
+                            <div class="ve-field">
+                                <label>Effects</label>
+                                <div class="ve-chk"><input type="checkbox" id="ve-gray" aria-label="Grayscale"><span>Grayscale</span></div>
+                                <div class="ve-chk" style="margin-top:4px;"><input type="checkbox" id="ve-sepia" aria-label="Sepia"><span>Sepia</span></div>
+                                <div class="ve-chk" style="margin-top:4px;"><input type="checkbox" id="ve-invert" aria-label="Invert"><span>Invert</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ve-panel">
+                        <h2>Text Overlay</h2>
+                        <div class="ve-grid">
+                            <div class="ve-field" style="grid-column:1 / -1;">
+                                <div class="ve-chk" style="margin-bottom:6px;"><input type="checkbox" id="ve-texton" aria-label="Enable text"><span>Add text on video</span></div>
+                            </div>
+                            <div class="ve-field">
+                                <label>Text</label>
+                                <input type="text" id="ve-text" value="HELLO WORLD" maxlength="60" aria-label="Text to overlay" placeholder="Type your text">
+                            </div>
+                            <div class="ve-field">
+                                <label>Font size</label>
+                                <input type="number" id="ve-tsize" min="8" max="200" value="28" step="1" aria-label="Font size">
+                            </div>
+                            <div class="ve-field">
+                                <label>Color</label>
+                                <input type="color" id="ve-tcolor" value="#ffffff" aria-label="#ffffff Text color" title="Text color">
+                            </div>
+                            <div class="ve-field">
+                                <label for="ve-tpos">Position</label>
+                                <select id="ve-tpos" title="Text position">
+                                    <option value="tl">Top left</option>
+                                    <option value="tc">Top center</option>
+                                    <option value="tr">Top right</option>
+                                    <option value="ml">Middle left</option>
+                                    <option value="mc" selected>Middle center</option>
+                                    <option value="mr">Middle right</option>
+                                    <option value="bl">Bottom left</option>
+                                    <option value="bc">Bottom center</option>
+                                    <option value="br">Bottom right</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ve-panel">
+                        <h2>Audio</h2>
+                        <div class="ve-grid">
+                            <div class="ve-field">
+                                <label>Volume <span id="ve-volume-val" class="ve-range-val">100%</span></label>
+                                <input type="range" id="ve-volume" min="0" max="200" value="100" step="5" aria-label="100 Volume" title="Volume">
+                            </div>
+                            <div class="ve-field">
+                                <label>Sound</label>
+                                <div class="ve-chk"><input type="checkbox" id="ve-mute" aria-label="Mute audio"><span>Mute (remove audio)</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ve-btn-row">
+                        <button type="button" class="ve-btn ve-btn-primary" id="ve-export" data-testid="ve-export" onclick="doExport()">Export MP4</button>
+                        <button type="button" class="ve-btn" id="ve-reset" onclick="resetControls()">Reset Settings</button>
+                    </div>
+
+                    <div id="ve-progress" class="ve-progress">
+                        <div id="ve-status">Preparing...</div>
+                        <div class="ve-bar"><div id="ve-bar-fill" class="ve-bar-fill"></div></div>
+                    </div>
+
+                    <div id="ve-result" class="ve-result" data-testid="ve-result">
+                        <p style="color:#fff; font-size:1.1rem;">&#9989; Video exported successfully!</p>
+                        <video id="ve-output-video" controls style="max-width:100%;" data-testid="ve-output-video"></video><br>
+                        <a id="ve-download" class="ve-btn ve-btn-success" download="edited-video.mp4" aria-label="Download Edited Video" data-testid="ve-download-link">Download Edited Video</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>Free Online Video Editor That Runs In Your Browser</h2>
+                <p>Trim clips, change playback speed, crop to square or vertical, rotate, flip, brighten, add filters and put text on your video — then export a clean MP4. The whole editor uses the FFmpeg engine compiled to WebAssembly and runs locally on your device. No video is ever uploaded, so you can edit private recordings, raw camera footage, or anything you do not want on a third-party server.</p>
+                <h2>Why chatbots and AI video generators can't replace this tool</h2>
+                <p>An AI assistant can generate new footage from a prompt, but it cannot open the video file sitting on your machine, remove a shaky intro, fix a dark clip, speed up a section, or place text over your exact frames. Editing your own media is a private, file-level job — no text prompt can reference your local file. This page does that work deterministically, in your browser, with no guesswork and no watermark.</p>
+                <h2>How It Works</h2>
+                <p>1. Drop or select a video file (MP4, WebM, MOV, AVI, MKV)<br>2. Adjust trim, speed, rotation, crop, filters, text and audio<br>3. Click "Export MP4" — FFmpeg.wasm encodes locally, showing real progress<br>4. Download the finished H.264 video that plays everywhere</p>
+                <p><strong>Privacy:</strong> 100% of processing happens in your browser. Nothing is uploaded. Files never leave your device.</p>
+                <h2>What you can do</h2>
+                <div class="faq-list">
+                    <p><strong>Trim</strong> — cut the start and end to keep only the part you need.<br><strong>Speed</strong> — slow clips down to 0.25x or speed them up to 2x; audio pitch is corrected automatically.<br><strong>Rotate &amp; flip</strong> — fix sideways phone footage, mirror or rotate 180&deg;.<br><strong>Square / vertical crop</strong> — export 1:1 or 9:16 ready for Instagram, TikTok and Reels, or 16:9 for YouTube.<br><strong>Resolution</strong> — downscale to 1080p, 720p or 480p to shrink file size.<br><strong>Filters</strong> — brightness, contrast, saturation, hue rotation, grayscale, sepia, invert.<br><strong>Text overlay</strong> — add captions or titles in any color, size and position.<br><strong>Audio</strong> — adjust volume or remove audio completely.</p>
+                </div>
+                <h2>Limits &amp; formats</h2>
+                <p>Input: any video FFmpeg can decode (MP4, WebM, MOV, AVI, MKV, and more), as long as your browser can also preview it. Output: MP4 with H.264 video and AAC audio — the most compatible format for phones, social media, and the web. Browser memory is the practical limit for file size; clips up to a few hundred MB work well on modern desktop browsers. Long, high-resolution videos simply take longer to encode.</p>
+                <details class="faq-item"><summary>Is my video uploaded to a server?</summary><p>No. The FFmpeg.wasm engine runs entirely in your browser tab. Your video file never leaves your device, which is why this tool works offline-capable and handles sensitive footage safely.</p></details>
+                <details class="faq-item"><summary>What does the free export include?</summary><p>Everything. No watermarks, no ads, no signup, no file count limit, no resolution cap for the free version because there is only one version — it is free.</p></details>
+                <details class="faq-item"><summary>Can I edit a video without audio or that has no sound?</summary><p>Yes. If the source has no audio track, the export simply keeps the video-only result. Unchecking "Mute" and leaving other audio settings untouched preserves whatever audio your file has.</p></details>
+                <details class="faq-item"><summary>How long does encoding take?</summary><p>Speed depends on your processor, file resolution and length. A 10-second clip encodes in a few seconds on a modern laptop. Longer 4K footage will take noticeably longer; a progress bar shows the status.</p></details>
+                <details class="faq-item"><summary>What happens if I select a resolution bigger than my video?</summary><p>It is never enlarged. The editor only downscales, preserving the original sharpness when your clip is already smaller than the chosen resolution.</p></details>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a> | <a href="/tools/video-cutter/">Video Cutter</a> | <a href="/tools/video-compressor/">Video Compressor</a></p>
+    </footer>
+    <script src="/ffmpeg/ffmpeg.js"></script>
+    <script src="/ffmpeg/ffmpeg-util.js"></script>
+    <script>
+    let ffmpeg = null;
+    let inputFile = null;
+    let inputName = 'ved_input';
+    let metadata = { duration: 0, vw: 0, vh: 0, hasAudio: null };
+    let fontBytes = null;
+
+    const { fetchFile, toBlobURL } = FFmpegUtil;
+
+    function $(id) { return document.getElementById(id); }
+
+    function handleFile(file) {
+        if (!file) return;
+        if (!file.type.startsWith('video/')) { alert('Please select a video file'); return; }
+        inputFile = file;
+        inputName = 'ved_input_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        $('ve-filename').textContent = file.name;
+        $('ve-filesize').textContent = (file.size / 1048576).toFixed(2) + ' MB';
+        $('ve-info').classList.add('visible');
+        const url = URL.createObjectURL(file);
+        const video = $('ve-video');
+        video.src = url;
+        video.onloadedmetadata = () => {
+            metadata.duration = video.duration || 0;
+            metadata.vw = video.videoWidth || 0;
+            metadata.vh = video.videoHeight || 0;
+            $('ve-duration').textContent = metadata.duration.toFixed(1) + ' s';
+            $('ve-dims').textContent = metadata.vw + 'x' + metadata.vh;
+            $('ve-end').value = metadata.duration.toFixed(2);
+            $('ve-end').max = metadata.duration;
+            $('ve-start').max = metadata.duration;
+            $('ve-start').value = '0';
+            $('ve-controls').style.display = 'block';
+            const st = getStageSize();
+            $('ve-stage').style.aspectRatio = (metadata.vw && metadata.vh) ? (metadata.vw / metadata.vh) : '16/9';
+        };
+        $('ve-stage-wrap').classList.add('visible');
+        $('ve-dropzone').classList.add('has-file');
+        $('ve-result').classList.remove('visible');
+        resetControlsSilent();
+        refreshPreview();
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        e.target.classList.remove('dragover');
+        if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    }
+
+    function getStageSize() {
+        const r = $('ve-stage').getBoundingClientRect();
+        return { w: r.width, h: r.height };
+    }
+
+    function previewTextStyle() {
+        const enabled = $('ve-texton').checked;
+        const el = $('ve-overlay');
+        el.style.display = enabled ? 'block' : 'none';
+        if (!enabled) return;
+        const tsize = parseFloat($('ve-tsize').value) || 28;
+        const st = getStageSize();
+        const px = Math.max(10, Math.round(tsize * st.w / 640));
+        el.textContent = $('ve-text').value || '';
+        el.style.fontSize = px + 'px';
+        el.style.color = $('ve-tcolor').value;
+        el.style.lineHeight = '1.2';
+        const pos = $('ve-tpos').value;
+        const map = {
+            tl: ['left', '2%', 'top', '3%'], tc: ['left', '50%', 'top', '3%'], tr: ['right', '2%', 'top', '3%'],
+            ml: ['left', '2%', 'top', '50%'], mc: ['left', '50%', 'top', '50%'], mr: ['right', '2%', 'top', '50%'],
+            bl: ['left', '2%', 'bottom', '4%'], bc: ['left', '50%', 'bottom', '4%'], br: ['right', '2%', 'bottom', '4%']
+        };
+        const m = map[pos];
+        el.style.left = ''; el.style.right = ''; el.style.top = ''; el.style.bottom = '';
+        el.style.translate = '';
+        if (m[0] === 'left' || m[0] === 'right') { el.style[m[0]] = m[1]; } else { el.style.right = m[1]; }
+        if (m[2] === 'top' || m[2] === 'bottom') { el.style[m[2]] = m[3]; } else { el.style.top = m[3]; }
+        const cx = (m[0] === 'left' || m[0] === 'right') && m[0] === 'left' ? 0 : (m[0] === 'right' ? 0 : 1);
+        const cy = (m[2] === 'top' || m[2] === 'bottom') ? 0 : 1;
+        el.style.translate = (m[0] === 'left' && cx ? '50% 0' : (m[0] === 'right' ? '-50% 0' : (m[0] === 'left' ? '0 0' : '-50% 0')));
+    }
+
+    function refreshPreview() {
+        const video = $('ve-video');
+        if (!metadata.vw) return;
+        const parts = [];
+        const b = (parseInt($('ve-bright').value) || 0) / 100;
+        const c = (parseInt($('ve-contrast').value) || 100) / 100;
+        const s = (parseInt($('ve-sat').value) || 100) / 100;
+        const h = (parseInt($('ve-hue').value) || 0);
+        if (b !== 0) parts.push('brightness(' + (1 + b).toFixed(2) + ')');
+        if (c !== 1) parts.push('contrast(' + c.toFixed(2) + ')');
+        if (s !== 1) parts.push('saturate(' + s.toFixed(2) + ')');
+        if (h !== 0) parts.push('hue-rotate(' + h + 'deg)');
+        if ($('ve-gray').checked) parts.push('grayscale(1)');
+        if ($('ve-sepia').checked) parts.push('sepia(1)');
+        if ($('ve-invert').checked) parts.push('invert(1)');
+        video.style.filter = parts.join(' ') || 'none';
+        let tf = '';
+        const rot = parseInt($('ve-rotate').value) || 0;
+        if (rot) tf += ' rotate(' + rot + 'deg)';
+        if ($('ve-fliph').checked) tf += ' scaleX(-1)';
+        if ($('ve-flipv').checked) tf += ' scaleY(-1)';
+        video.style.transform = tf || 'none';
+        const crop = $('ve-crop').value;
+        if (crop !== 'original') {
+            const [aw, ah] = crop.split('/').map(Number);
+            $('ve-stage').style.aspectRatio = aw + '/' + ah;
+        } else {
+            $('ve-stage').style.aspectRatio = (metadata.vw && metadata.vh) ? (metadata.vw / metadata.vh) : '16/9';
+        }
+        const spd = parseFloat($('ve-speed').value) || 1;
+        video.playbackRate = spd;
+        video.volume = Math.min(1, (parseInt($('ve-volume').value) || 100) / 100);
+        video.muted = $('ve-mute').checked || true;
+        previewTextStyle();
+    }
+
+    $('ve-bright').addEventListener('input', e => { $('ve-bright-val').textContent = e.target.value; refreshPreview(); });
+    $('ve-contrast').addEventListener('input', e => { $('ve-contrast-val').textContent = e.target.value + '%'; refreshPreview(); });
+    $('ve-sat').addEventListener('input', e => { $('ve-sat-val').textContent = e.target.value + '%'; refreshPreview(); });
+    $('ve-hue').addEventListener('input', e => { $('ve-hue-val').textContent = e.target.value + '°'; refreshPreview(); });
+    $('ve-volume').addEventListener('input', e => { $('ve-volume-val').textContent = e.target.value + '%'; refreshPreview(); });
+    ['ve-rotate', 've-crop', 've-res', 've-speed', 've-gray', 've-sepia', 've-invert', 've-fliph', 've-flipv', 've-mute', 've-texton', 've-tsize', 've-tcolor', 've-tpos', 've-text', 've-start', 've-end'].forEach(id => {
+        const el = $(id);
+        if (el) el.addEventListener(el.type === 'checkbox' ? 'change' : (el.tagName === 'SELECT' ? 'change' : 'input'), refreshPreview);
+    });
+    window.addEventListener('resize', refreshPreview);
+
+    function resetControlsSilent() {
+        $('ve-speed').value = '1';
+        $('ve-rotate').value = '0';
+        $('ve-crop').value = 'original';
+        $('ve-res').value = 'original';
+        $('ve-fliph').checked = false;
+        $('ve-flipv').checked = false;
+        $('ve-bright').value = 0; $('ve-bright-val').textContent = '0';
+        $('ve-contrast').value = 100; $('ve-contrast-val').textContent = '100%';
+        $('ve-sat').value = 100; $('ve-sat-val').textContent = '100%';
+        $('ve-hue').value = 0; $('ve-hue-val').textContent = '0°';
+        $('ve-gray').checked = false; $('ve-sepia').checked = false; $('ve-invert').checked = false;
+        $('ve-texton').checked = false;
+        $('ve-text').value = 'HELLO WORLD';
+        $('ve-tsize').value = 28;
+        $('ve-tcolor').value = '#ffffff';
+        $('ve-tpos').value = 'mc';
+        $('ve-volume').value = 100; $('ve-volume-val').textContent = '100%';
+        $('ve-mute').checked = false;
+        if (metadata.duration > 0) {
+            $('ve-start').value = '0';
+            $('ve-end').value = metadata.duration.toFixed(2);
+        }
+    }
+
+    function resetControls() { resetControlsSilent(); refreshPreview(); }
+
+    function getExportDims() {
+        let w = metadata.vw, h = metadata.vh;
+        const rot = parseInt($('ve-rotate').value) || 0;
+        if (rot % 180 !== 0) { const t = w; w = h; h = t; }
+        const crop = $('ve-crop').value;
+        let cw = w, ch = h;
+        if (crop !== 'original') {
+            const [aw, ah] = crop.split('/').map(Number);
+            const frameRatio = w / h;
+            const wantRatio = aw / ah;
+            if (frameRatio > wantRatio) { cw = h * wantRatio; ch = h; }
+            else { cw = w; ch = w / wantRatio; }
+            cw = Math.floor(cw / 2) * 2;
+            ch = Math.floor(ch / 2) * 2;
+        }
+        const res = $('ve-res').value;
+        let ow = cw, oh = ch;
+        if (res !== 'original') {
+            const maxW = parseInt(res, 10);
+            if (cw > maxW) {
+                ow = maxW;
+                oh = Math.round(ow * ch / cw);
+                oh = Math.floor(oh / 2) * 2;
+            }
+        }
+        return { w, h, cw, ch, ow, oh };
+    }
+
+    function buildVideoFilter(dims) {
+        const parts = [];
+        const start = parseFloat($('ve-start').value) || 0;
+        const end = parseFloat($('ve-end').value) || metadata.duration;
+        const ball = typeof end === 'number' && isFinite(end) && end > start;
+        if (ball) {
+            parts.push('trim=start=' + start.toFixed(3) + ':end=' + end.toFixed(3));
+            parts.push('setpts=PTS-STARTPTS');
+        }
+        const spd = parseFloat($('ve-speed').value) || 1;
+        if (Math.abs(spd - 1) > 0.001) {
+            parts.push('setpts=PTS/' + spd);
+        }
+        let eq = '';
+        const b = (parseInt($('ve-bright').value) || 0) / 100;
+        const c = (parseInt($('ve-contrast').value) || 100) / 100;
+        const s = (parseInt($('ve-sat').value) || 100) / 100;
+        if (b !== 0) eq += 'brightness=' + b.toFixed(2) + ':';
+        if (c !== 1) eq += 'contrast=' + c.toFixed(2) + ':';
+        if (s !== 1) eq += 'saturation=' + s.toFixed(2) + ':';
+        if (eq) parts.push('eq=' + eq.replace(/:$/, ''));
+        const h = parseInt($('ve-hue').value) || 0;
+        if (h !== 0) parts.push('hue=h=' + h);
+        if ($('ve-gray').checked) parts.push('hue=s=0');
+        if ($('ve-sepia').checked) parts.push('colorchannelmixer=rr=.393:rg=.769:rb=.189:gr=.349:gg=.686:gb=.168:br=.272:bg=.534:bb=.131');
+        if ($('ve-invert').checked) parts.push('negate');
+        if ($('ve-fliph').checked) parts.push('hflip');
+        if ($('ve-flipv').checked) parts.push('vflip');
+        const rot = parseInt($('ve-rotate').value) || 0;
+        if (rot === 90) parts.push('transpose=1');
+        else if (rot === 270) parts.push('transpose=2');
+        else if (rot === 180) parts.push('transpose=2,transpose=2');
+        if (dims.cw !== dims.w || dims.ch !== dims.h) {
+            parts.push('crop=' + dims.cw + ':' + dims.ch + ':(iw-ow)/2:(ih-oh)/2');
+        }
+        if (dims.ow !== dims.cw || dims.oh !== dims.ch) {
+            parts.push('scale=' + dims.ow + ':' + dims.oh + ':flags=lanczos');
+        }
+        if ($('ve-texton').checked && ($('ve-text').value || '').trim()) {
+            const tsize = Math.max(8, Math.min(300, Math.round((parseFloat($('ve-tsize').value) || 28) * dims.ow / 640)));
+            const color = ($('ve-tcolor').value || '#ffffff').replace('#', '');
+            const border = parseInt($('ve-bright').value, 10) === -50 ? 'bordercolor=black:borderw=2' : 'bordercolor=black:borderw=3';
+            const posmap = {
+                tl: ['x=20:y=20'], tc: ['x=(w-text_w)/2:y=20'], tr: ['x=w-text_w-20:y=20'],
+                ml: ['x=20:y=(h-text_h)/2'], mc: ['x=(w-text_w)/2:y=(h-text_h)/2'], mr: ['x=w-text_w-20:y=(h-text_h)/2'],
+                bl: ['x=20:y=h-text_h-20'], bc: ['x=(w-text_w)/2:y=h-text_h-20'], br: ['x=w-text_w-20:y=h-text_h-20']
+            };
+            parts.push('drawtext=fontfile=font.ttf:textfile=text.txt:fontcolor=' + color + ':fontsize=' + tsize + ':' + border + ':' + posmap[$('ve-tpos').value || 'mc'][0]);
+        }
+        return parts.join(',');
+    }
+
+    function buildAudioFilter() {
+        const start = parseFloat($('ve-start').value) || 0;
+        const end = parseFloat($('ve-end').value) || metadata.duration;
+        const ball = typeof end === 'number' && isFinite(end) && end > start;
+        const spd = parseFloat($('ve-speed').value) || 1;
+        const vol = (parseInt($('ve-volume').value) || 100) / 100;
+        const f = [];
+        if (ball) { f.push('atrim=start=' + start.toFixed(3) + ':end=' + end.toFixed(3)); f.push('asetpts=PTS-STARTPTS'); }
+        if (Math.abs(spd - 1) > 0.001) {
+            let factor = spd;
+            while (factor > 2) { f.push('atempo=2'); factor /= 2; }
+            while (factor < 0.5) { f.push('atempo=0.5'); factor *= 2; }
+            f.push('atempo=' + (Math.round(factor * 100) / 100));
+        }
+        if (Math.abs(vol - 1) > 0.001) f.push('volume=' + vol.toFixed(2));
+        return f.length ? f.join(',') : '';
+    }
+
+    async function loadFFmpeg() {
+        if (ffmpeg) return ffmpeg;
+        ffmpeg = new window.FFmpegWASM.FFmpeg();
+        ffmpeg.on('log', ({ message }) => { if (message && message.toLowerCase().includes('error')) console.log('[ve]', message); });
+        ffmpeg.on('progress', ({ progress }) => {
+            const p = Math.round(progress * 100);
+            $('ve-bar-fill').style.width = Math.min(p, 99) + '%';
+            $('ve-status').textContent = 'Encoding... ' + p + '%';
+        });
+        const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/umd';
+        await ffmpeg.load({
+            coreURL: await toBlobURL(baseURL + '/ffmpeg-core.js', 'text/javascript'),
+            wasmURL: await toBlobURL(baseURL + '/ffmpeg-core.wasm', 'application/wasm')
+        });
+        if (!fontBytes) {
+            const r = await fetch('https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSans.ttf', { cache: 'no-cache' });
+            fontBytes = new Uint8Array(await r.arrayBuffer());
+        }
+        await ffmpeg.writeFile('font.ttf', fontBytes);
+        return ffmpeg;
+    }
+
+    async function doExport() {
+        if (!inputFile) { alert('Please select a video first'); return; }
+        const btn = $('ve-export');
+        btn.disabled = true;
+        const progress = $('ve-progress');
+        progress.classList.add('visible');
+        $('ve-result').classList.remove('visible');
+        const status = $('ve-status');
+        $('ve-bar-fill').style.width = '0%';
+        const dims = getExportDims();
+        const mute = $('ve-mute').checked;
+        const af = mute ? '' : buildAudioFilter();
+        const vf = buildVideoFilter(dims);
+        const hasVisual = vf !== '';
+        const usedInput = inputName;
+        try {
+            status.textContent = 'Loading FFmpeg engine...';
+            await loadFFmpeg();
+            status.textContent = 'Reading video file...';
+            await ffmpeg.writeFile(usedInput, await fetchFile(inputFile));
+            await ffmpeg.writeFile('text.txt', await fetchFile(new Blob([($('ve-text').value || ' ').trim() || ' '])));
+            const args = ['-i', usedInput];
+            if (vf) args.push('-vf', vf);
+            if (!mute && af) args.push('-af', af);
+            args.push('-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '23', '-preset', 'fast');
+            if (mute || !af) args.push('-an');
+            else args.push('-c:a', 'aac', '-b:a', '128k');
+            args.push('-movflags', '+faststart', '-y', 'output.mp4');
+            status.textContent = 'Encoding...';
+            await ffmpeg.exec(args);
+            const data = await ffmpeg.readFile('output.mp4');
+            const blob = new Blob([data.buffer], { type: 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+            $('ve-output-video').src = url;
+            const dl = $('ve-download');
+            dl.href = url;
+            dl.download = 'edited-' + inputFile.name.replace(/\.[^.]+$/, '') + '.mp4';
+            status.textContent = 'Done! ' + (data.length / 1048576).toFixed(2) + ' MB';
+            $('ve-bar-fill').style.width = '100%';
+            $('ve-result').classList.add('visible');
+            try { await ffmpeg.deleteFile(usedInput); } catch (e) {}
+            try { await ffmpeg.deleteFile('output.mp4'); } catch (e) {}
+            try { await ffmpeg.deleteFile('text.txt'); } catch (e) {}
+        } catch (e) {
+            status.textContent = 'Error: ' + (e.message || e).slice(0, 160);
+            console.error(e);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    window.__veTest = {
+        state() {
+            return {
+                file: inputFile ? { name: inputFile.name, size: inputFile.size } : null,
+                duration: metadata.duration, dims: [metadata.vw, metadata.vh],
+                start: $('ve-start').value, end: $('ve-end').value,
+                speed: $('ve-speed').value, rotate: $('ve-rotate').value, crop: $('ve-crop').value, res: $('ve-res').value,
+                flipH: $('ve-fliph').checked, flipV: $('ve-flipv').checked,
+                bright: $('ve-bright').value, contrast: $('ve-contrast').value, sat: $('ve-sat').value, hue: $('ve-hue').value,
+                gray: $('ve-gray').checked, sepia: $('ve-sepia').checked, invert: $('ve-invert').checked,
+                textOn: $('ve-texton').checked, text: $('ve-text').value, tsize: $('ve-tsize').value, tcolor: $('ve-tcolor').value, tpos: $('ve-tpos').value,
+                volume: $('ve-volume').value, mute: $('ve-mute').checked,
+                exportDims: getExportDims()
+            };
+        },
+        set(patch) {
+            const map = { start: 've-start', end: 've-end', speed: 've-speed', rotate: 've-rotate', crop: 've-crop', res: 've-res', flipH: 've-fliph', flipV: 've-flipv', bright: 've-bright', contrast: 've-contrast', sat: 've-sat', hue: 've-hue', gray: 've-gray', sepia: 've-sepia', invert: 've-invert', textOn: 've-texton', text: 've-text', tsize: 've-tsize', tcolor: 've-tcolor', tpos: 've-tpos', volume: 've-volume', mute: 've-mute' };
+            for (const k in patch) {
+                const id = map[k];
+                if (!id || !$(id)) continue;
+                const el = $(id);
+                if (el.type === 'checkbox') el.checked = !!patch[k];
+                else el.value = patch[k];
+            }
+            ['ve-bright-val', 've-contrast-val', 've-sat-val', 've-hue-val', 've-volume-val'].forEach(id => { const el = $(id); if (el) el.textContent = el.id === 've-bright-val' ? $('ve-bright').value : el.id === 've-hue-val' ? $('ve-hue').value + '°' : $('ve-' + el.id.replace('-val', '').replace('contrast', 'contrast').replace('sat', 'sat').replace('volume', 'volume')).value + '%'; });
+            $('ve-bright-val').textContent = $('ve-bright').value;
+            $('ve-contrast-val').textContent = $('ve-contrast').value + '%';
+            $('ve-sat-val').textContent = $('ve-sat').value + '%';
+            $('ve-hue-val').textContent = $('ve-hue').value + '°';
+            $('ve-volume-val').textContent = $('ve-volume').value + '%';
+            refreshPreview();
+            return this.state();
+        },
+        async export() {
+            await doExport();
+            const r = $('ve-result');
+            const dl = $('ve-download');
+            return {
+                resultVisible: r.classList.contains('visible'),
+                downloadHrefSet: dl.href && dl.href.indexOf('blob:') === 0,
+                downloadName: dl.download || '',
+                status: $('ve-status').textContent
+            };
+        },
+        reset() { resetControls(); return this.state(); }
+    };
+    </script>
+</body>
+</html>

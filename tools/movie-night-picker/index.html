@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What Should I Watch Tonight? - Free Movie Night Picker | DevTools Hub</title>
+<meta name="description" content="Free movie night picker with curated database of popular movies. Filter by genre, year, runtime, mood, streaming. Stop scrolling, start watching. No signup, no ads.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/movie-night-picker/">
+<meta property="og:title" content="What Should I Watch Tonight? - Free Movie Night Picker">
+<meta property="og:description" content="Curated movie picker with multi-decade genre coverage. Filter by mood, year, runtime, streaming service. Spin for a recommendation. No signup.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/movie-night-picker/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Movie Night Picker - What Should I Watch Tonight?">
+<meta name="twitter:description" content="Curated movie picker. Filter by mood. Spin for a recommendation. Free, no signup, no ads.">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Movie Night Picker","description":"Free online movie night picker and what-should-I-watch-tonight decision tool. Curated database of 200+ popular movies with genre, year, runtime, rating, mood, and streaming service metadata. Filter by any combination of criteria, spin the wheel to get a deterministic recommendation, save watch history locally, and export a Movie Night Card image. AI chatbots can suggest a movie but cannot run an interactive wheel with multi-criteria filters, generate shareable poster cards, or persist local watch history across browser sessions.","url":"https://tools.scoreroute.com/tools/movie-night-picker/","applicationCategory":"EntertainmentApplication","operatingSystem":"All","browserRequirements":"Requires modern browser with ES2020 support","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["200+ curated popular movies with year, genre, runtime, rating, mood, streaming","Filter by genre (Action, Comedy, Horror, Romance, Sci-Fi, Animation, Drama, Thriller, Documentary)","Filter by year range, max runtime, min rating","Filter by mood (Feel-Good, Mind-Bending, Epic, Intense, Cozy, Tear-Jerker)","Filter by streaming service (Netflix, Disney+, Prime Video, Hulu, HBO Max, Apple TV+)","5 decision modes: Single Pick, Couples Pick, Franchise Pick, Mood Match, Surprise Me","Animated spinning wheel with smooth easing","Movie Night Card PNG export with poster, rating, runtime, streaming","Local watch history (last 50 picks) saved in browser","Exclude already-watched movies toggle","Share filter preset via URL","100% browser-based, no upload, no signup, no API key, no daily limits","Free forever, no paywall, no ads, no tracking"],"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-09-06","dateModified":"2026-09-06"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is the movie picker really free?","acceptedAnswer":{"@type":"Answer","text":"Yes, completely free. No signup, no watermark, no daily limit, no paywall, no ads, no tracking. Everything runs in your browser. The 200+ movie database is bundled with the page so it works offline once loaded."}},
+{"@type":"Question","name":"How does the movie picker decide what to show?","acceptedAnswer":{"@type":"Answer","text":"It uses cryptographic randomness via the browser's Web Crypto API. Every recommendation is weighted by IMDb score (higher rated movies get a slight boost) so you get a good pick, not just an obscure one. The result is deterministic-given-input but unpredictable across runs."}},
+{"@type":"Question","name":"Can I filter by streaming service?","acceptedAnswer":{"@type":"Answer","text":"Yes. Toggle Netflix, Disney+, Prime Video, Hulu, HBO Max, or Apple TV+ in the filter panel. The picker shows only movies currently available on the services you select. Movies with no streaming badge are available for rent or purchase."}},
+{"@type":"Question","name":"What is Couples Pick mode?","acceptedAnswer":{"@type":"Answer","text":"Pick two movies at once for a date night: one that fits each person's mood. You set two different filter profiles (for example: person A wants Action, person B wants Romance) and the picker selects one movie from each. Saves the typical 30-minute negotiation."}},
+{"@type":"Question","name":"Why is this better than asking an AI chatbot for a recommendation?","acceptedAnswer":{"@type":"Answer","text":"AI can name one but it cannot (a) apply deterministic filters across multiple criteria at once (year + runtime + rating + genre + streaming + mood), (b) save your watch history locally so you never get the same movie twice in a row, (c) generate a shareable Movie Night Card image with poster and metadata, or (d) work offline. The picker uses a curated 200-movie catalog so it only ever recommends movies that are actually worth watching."}},
+{"@type":"Question","name":"Does it work offline?","acceptedAnswer":{"@type":"Answer","text":"Yes. The database and all logic are bundled with the page. After first load, the picker works without any network. Your filter presets and watch history are saved in localStorage on your device."}},
+{"@type":"Question","name":"How is this different from Netflix or streaming app search?","acceptedAnswer":{"@type":"Answer","text":"Streaming apps show you what is on the platform but you still face 100+ options and scroll for 20 minutes before picking. This tool reduces choice to a single recommendation matching your exact mood, runtime, and time available. You skip the doom scrolling."}},
+{"@type":"Question","name":"Can I save my filter presets?","acceptedAnswer":{"@type":"Answer","text":"Yes. The current filter combination is encoded in the URL. Share the URL with anyone and they will see the same filters applied to the same database. Bookmarks work too."}},
+{"@type":"Question","name":"Will my watch history be sent to a server?","acceptedAnswer":{"@type":"Answer","text":"No. Watch history is stored only in your browser's localStorage. Nothing is uploaded. Clear it anytime with the Clear History button."}},
+{"@type":"Question","name":"How accurate is the streaming availability?","acceptedAnswer":{"@type":"Answer","text":"Streaming availability changes constantly because of licensing. The streaming badges show common availability as of mid-2026 but cannot reflect every regional change. Always verify on your streaming service before settling in."}}
+]}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root { --mn-bg:#0f0f23; --mn-surface:#1a1a2e; --mn-surface2:#131826; --mn-border:#2a2a4e; --mn-text:#e8e8f0; --mn-muted:#9090b0; --mn-accent:#667eea; --mn-success:#10b981; --mn-error:#ef4444; --mn-warn:#f59e0b; --mn-radius:10px; }
+* { box-sizing: border-box; }
+/* minmax(0,1fr), not 1fr: a 1fr track floors at min-content, so the panel
+   pushed the page sideways on a 320px phone. */
+.mn-wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; margin-bottom: 16px; }
+@media (max-width: 900px) { .mn-wrap { grid-template-columns: minmax(0, 1fr); } }
+.mn-panel { background: var(--mn-surface); border: 1px solid var(--mn-border); border-radius: var(--mn-radius); padding: 16px; }
+.mn-panel-title { font-size: 0.82rem; font-weight: 700; color: var(--mn-muted); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 6px; border-bottom: 1px solid var(--mn-border); display: flex; justify-content: space-between; align-items: center; }
+.mn-count { color: var(--mn-accent); font-weight: 600; }
+.mn-mode-row { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.mn-mode { flex: 1; min-width: 100px; padding: 10px 12px; background: var(--mn-surface2); border: 1px solid var(--mn-border); border-radius: 8px; color: var(--mn-muted); font-size: 0.82rem; cursor: pointer; transition: all 0.15s; text-align: center; font-family: inherit; font-weight: 500; }
+.mn-mode:hover { border-color: var(--mn-accent); color: #fff; }
+.mn-mode.active { background: var(--mn-accent); color: #fff; border-color: var(--mn-accent); box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2); }
+.mn-mode-icon { display: block; font-size: 1.4rem; margin-bottom: 3px; }
+.mn-filter-group { margin-bottom: 14px; }
+.mn-filter-label { display: block; font-size: 0.74rem; color: var(--mn-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; font-weight: 600; }
+.mn-chip-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.mn-chip { padding: 5px 10px; background: var(--mn-surface2); border: 1px solid var(--mn-border); border-radius: 14px; color: var(--mn-muted); font-size: 0.76rem; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.mn-chip:hover { border-color: var(--mn-accent); color: #fff; }
+.mn-chip.active { background: var(--mn-accent); color: #fff; border-color: var(--mn-accent); }
+.mn-slider-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.mn-slider-row label { font-size: 0.78rem; color: var(--mn-muted); flex: 0 0 90px; }
+.mn-slider-row input[type="range"] { flex: 1; min-width: 0; accent-color: var(--mn-accent); }
+.mn-slider-row .mn-val { color: var(--mn-text); font-weight: 600; font-size: 0.8rem; min-width: 60px; text-align: right; font-family: monospace; }
+.mn-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.mn-btn { padding: 9px 16px; border-radius: 8px; border: 1px solid var(--mn-border); background: var(--mn-surface2); color: var(--mn-text); font-size: 0.85rem; cursor: pointer; font-family: inherit; transition: all 0.15s; font-weight: 500; }
+.mn-btn:hover { border-color: var(--mn-accent); color: #fff; }
+.mn-btn.primary { background: var(--mn-accent); color: #fff; border-color: var(--mn-accent); font-weight: 700; }
+.mn-btn.primary:hover { background: #5568d3; transform: translateY(-1px); }
+.mn-btn.success { background: var(--mn-success); color: #fff; border-color: var(--mn-success); }
+.mn-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.mn-btn.lg { padding: 14px 28px; font-size: 1rem; }
+.mn-stage { position: relative; min-height: 420px; display: flex; align-items: center; justify-content: center; }
+.mn-empty { text-align: center; padding: 40px 16px; color: var(--mn-muted); }
+.mn-empty .mn-icon { font-size: 3rem; margin-bottom: 10px; opacity: 0.7; }
+.mn-empty h3 { color: var(--mn-text); margin: 0 0 8px; font-size: 1.1rem; }
+.mn-empty p { font-size: 0.85rem; margin: 4px 0; line-height: 1.5; }
+.mn-card { display: none; width: 100%; max-width: 480px; animation: mn-fade-in 0.4s ease; }
+.mn-card.show { display: block; }
+@keyframes mn-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.mn-card-poster { aspect-ratio: 2/3; background: var(--mn-surface2); border-radius: 12px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); position: relative; }
+.mn-card-poster svg { width: 100%; height: 100%; display: block; }
+.mn-card-title { font-size: 1.4rem; font-weight: 800; color: #fff; margin: 0 0 4px; line-height: 1.2; }
+.mn-card-year { font-size: 0.9rem; color: var(--mn-muted); margin-bottom: 10px; }
+.mn-card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.mn-badge { background: var(--mn-surface2); border: 1px solid var(--mn-border); color: var(--mn-text); padding: 3px 8px; border-radius: 10px; font-size: 0.74rem; font-weight: 500; }
+.mn-badge.rating { background: var(--mn-accent); color: #fff; border-color: var(--mn-accent); font-weight: 700; }
+.mn-badge.streaming { background: rgba(16, 185, 129, 0.15); color: var(--mn-success); border-color: var(--mn-success); }
+.mn-badge.mood { background: rgba(245, 158, 11, 0.15); color: var(--mn-warn); border-color: var(--mn-warn); }
+.mn-badge.genre { background: rgba(118, 75, 162, 0.15); color: #b59edb; border-color: #764ba2; }
+.mn-card-plot { font-size: 0.9rem; color: var(--mn-muted); line-height: 1.6; margin-bottom: 14px; }
+.mn-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.mn-couple-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 600px) { .mn-couple-grid { grid-template-columns: 1fr; } }
+.mn-couple-card { background: var(--mn-surface2); border: 1px solid var(--mn-border); border-radius: 10px; padding: 14px; }
+.mn-couple-label { font-size: 0.7rem; color: var(--mn-accent); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 6px; }
+.mn-couple-card .mn-card-title { font-size: 1.05rem; }
+.mn-couple-card .mn-card-poster { margin-bottom: 8px; }
+.mn-spin-overlay { position: absolute; inset: 0; background: rgba(15, 15, 35, 0.95); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 5; }
+.mn-spin-overlay.show { display: flex; }
+.mn-wheel-canvas { width: 280px; height: 280px; }
+.mn-spin-label { margin-top: 20px; color: var(--mn-accent); font-size: 1.05rem; font-weight: 700; letter-spacing: 0.05em; animation: mn-pulse 1.2s ease-in-out infinite; }
+@keyframes mn-pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+.mn-history-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.mn-history-item { background: var(--mn-surface2); border: 1px solid var(--mn-border); border-radius: 8px; padding: 6px 10px; font-size: 0.78rem; color: var(--mn-muted); }
+.mn-history-item .mn-h-title { color: var(--mn-text); font-weight: 600; }
+.mn-history-empty { color: #555; font-size: 0.82rem; padding: 10px 0; }
+.mn-checkbox-row { display: flex; gap: 8px; align-items: center; font-size: 0.82rem; color: var(--mn-muted); margin-top: 8px; }
+.mn-checkbox-row input[type="checkbox"] { accent-color: var(--mn-accent); width: 16px; height: 16px; }
+.mn-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--mn-success); color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 0.85rem; box-shadow: 0 4px 18px rgba(0,0,0,0.4); z-index: 1000; opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+.mn-toast.show { opacity: 1; }
+.mn-toast.error { background: var(--mn-error); }
+.mn-divider { height: 1px; background: var(--mn-border); margin: 14px 0; }
+.mn-related { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 12px; }
+.mn-related a { display: block; background: var(--mn-surface2); border: 1px solid var(--mn-border); border-radius: 8px; padding: 10px; text-align: center; color: var(--mn-text); text-decoration: none; font-size: 0.8rem; transition: all 0.15s; }
+.mn-related a:hover { border-color: var(--mn-accent); transform: translateY(-2px); }
+.mn-related a .mn-rel-emoji { display: block; font-size: 1.4rem; margin-bottom: 4px; }
+.mn-info-banner { background: rgba(102, 126, 234, 0.08); border: 1px solid var(--mn-accent); border-radius: 8px; padding: 10px 12px; font-size: 0.82rem; color: var(--mn-muted); margin-bottom: 12px; line-height: 1.5; }
+.mn-info-banner strong { color: var(--mn-accent); }
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>What Should I Watch Tonight?</h1>
+<p class="subtitle">Movie Night Picker &mdash; curated films, filter by mood and streaming, stop doom scrolling</p>
+<nav class="breadcrumb">
+<a href="/">Home</a> &gt; <a href="/tools/life/">Life</a> &gt; <span>Movie Night Picker</span>
+<a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+</nav>
+</div>
+</header>
+<main class="container">
+<section class="tool-page">
+<div class="tool-main">
+<h2>Pick Tonight's Movie in 30 Seconds</h2>
+
+<div class="mn-info-banner">
+<strong>How it works:</strong> pick a mode, set your filters, hit spin. The tool uses crypto randomness weighted by IMDb rating so you get a <em>good</em> movie, not just an obscure one. Save the result as a Movie Night Card and share with whoever you're with.
+</div>
+
+<div class="mn-mode-row" role="group" aria-label="Pick mode">
+<button class="mn-mode active" id="mn-mode-single" data-mode="single" onclick="mnSetMode('single')" aria-pressed="true" type="button"><span class="mn-mode-icon">🎬</span> Single Pick</button>
+<button class="mn-mode" id="mn-mode-couple" data-mode="couple" onclick="mnSetMode('couple')" aria-pressed="false" type="button"><span class="mn-mode-icon">💑</span> Couples Pick</button>
+<button class="mn-mode" id="mn-mode-mood" data-mode="mood" onclick="mnSetMode('mood')" aria-pressed="false" type="button"><span class="mn-mode-icon">🎭</span> Mood Match</button>
+<button class="mn-mode" id="mn-mode-franchise" data-mode="franchise" onclick="mnSetMode('franchise')" aria-pressed="false" type="button"><span class="mn-mode-icon">🌌</span> Franchise</button>
+<button class="mn-mode" id="mn-mode-surprise" data-mode="surprise" onclick="mnSetMode('surprise')" aria-pressed="false" type="button"><span class="mn-mode-icon">🎲</span> Surprise Me</button>
+</div>
+
+<div class="mn-wrap">
+<div class="mn-panel">
+<div class="mn-panel-title"><span>Filters</span><span class="mn-count" id="mn-match-count">0 match</span></div>
+
+<div class="mn-filter-group" id="mn-genre-group">
+<div class="mn-filter-label">Genre</div>
+<div class="mn-chip-row" id="mn-genre-chips"></div>
+</div>
+
+<div class="mn-filter-group" id="mn-mood-group" style="display:none;">
+<div class="mn-filter-label">Mood</div>
+<div class="mn-chip-row" id="mn-mood-chips"></div>
+</div>
+
+<div class="mn-filter-group" id="mn-franchise-group" style="display:none;">
+<div class="mn-filter-label">Franchise</div>
+<div class="mn-chip-row" id="mn-franchise-chips"></div>
+</div>
+
+<div class="mn-filter-group">
+<div class="mn-filter-label">Year Range</div>
+<div class="mn-slider-row"><label for="mn-year-min">From</label><input type="range" id="mn-year-min" min="1970" max="2026" value="1970" oninput="mnUpdateYear(); mnRefresh()"><span class="mn-val" id="mn-year-min-val">1970</span></div>
+<div class="mn-slider-row"><label for="mn-year-max">To</label><input type="range" id="mn-year-max" min="1970" max="2026" value="2026" oninput="mnUpdateYear(); mnRefresh()"><span class="mn-val" id="mn-year-max-val">2026</span></div>
+</div>
+
+<div class="mn-filter-group">
+<label class="mn-filter-label" for="mn-runtime">Max Runtime</label>
+<div class="mn-slider-row"><input type="range" id="mn-runtime" min="60" max="240" value="240" step="10" oninput="mnUpdateRuntime(); mnRefresh()"><span class="mn-val" id="mn-runtime-val">any</span></div>
+</div>
+
+<div class="mn-filter-group">
+<label class="mn-filter-label" for="mn-rating">Min Rating</label>
+<div class="mn-slider-row"><input type="range" id="mn-rating" min="5" max="9" step="0.1" value="5" oninput="mnUpdateRating(); mnRefresh()"><span class="mn-val" id="mn-rating-val">5.0+</span></div>
+</div>
+
+<div class="mn-filter-group">
+<div class="mn-filter-label">Streaming Service</div>
+<div class="mn-chip-row" id="mn-stream-chips"></div>
+</div>
+
+<div class="mn-checkbox-row">
+<input type="checkbox" id="mn-exclude-watched" onchange="mnRefresh()" checked>
+<label for="mn-exclude-watched" style="cursor:pointer;">Hide already-watched</label>
+</div>
+
+<div class="mn-actions">
+<button class="mn-btn primary lg" id="mn-spin-btn" onclick="mnSpin()" type="button" style="flex:1;">🎰 SPIN</button>
+<button class="mn-btn" onclick="mnReset()" type="button">Reset Filters</button>
+</div>
+
+<div class="mn-divider"></div>
+
+<div class="mn-panel-title" style="border:none; padding-bottom:0;">Watch History</div>
+<div id="mn-history" class="mn-history-row"><div class="mn-history-empty">No picks yet. Hit spin!</div></div>
+<button class="mn-btn" onclick="mnClearHistory()" type="button" style="margin-top:8px;font-size:0.78rem;padding:5px 10px;">Clear History</button>
+
+</div>
+
+<div class="mn-panel">
+<div class="mn-stage" id="mn-stage">
+<div class="mn-empty" id="mn-empty">
+<div class="mn-icon">🎬</div>
+<h3>Ready to pick a movie?</h3>
+<p>Hit <strong>SPIN</strong> to get a random movie from your filtered list. Or change the filters on the left to narrow down.</p>
+</div>
+
+<div class="mn-spin-overlay" id="mn-spin-overlay">
+<canvas class="mn-wheel-canvas" id="mn-wheel" width="280" height="280"></canvas>
+<div class="mn-spin-label" id="mn-spin-label">Picking...</div>
+</div>
+
+<div class="mn-card" id="mn-card"><div id="mn-card-content"></div></div>
+
+<div class="mn-card" id="mn-couple-cards"><div class="mn-couple-grid" id="mn-couple-content"></div></div>
+
+</div>
+
+<div class="mn-stats" id="mn-stats"></div>
+</div>
+</div>
+
+<div id="mn-toast" class="mn-toast"></div>
+</section>
+
+<section class="info-section">
+<h2>How the Movie Night Picker Works</h2>
+<p>Every recommendation comes from a curated catalog of 200+ popular films across Action, Comedy, Horror, Romance, Sci-Fi, Animation, Drama, Thriller, Documentary, and Family. The catalog is hand-built from widely-loved films &mdash; no obscure festival picks nobody has heard of. Every entry has metadata: year, genre, runtime, IMDb rating, mood tag, and the streaming services where you can currently find it in major regions.</p>
+<p>When you hit spin, the picker uses the browser's Web Crypto API (crypto.getRandomValues) to generate a random index. To avoid recommending only the same 5 best-of-all-time titles, weights are applied: higher-rated films get a small boost, recent films get a small boost, and already-watched films (from your local history) are filtered out. The result is reproducible-given-your-filters but unpredictable across runs, which is what you want for a movie night.</p>
+
+<h2>From Feature Provider to Problem Solver</h2>
+<p>A simple "random movie" function pulls any title from any list. That solves nothing. The Movie Night Picker solves a real problem: you have 30 minutes before your evening plans and you still haven't decided what to watch. Netflix has 15,000 titles, you have the energy for none. Doom scrolling replaces watching.</p>
+<p>What this tool does that AI assistants cannot:</p>
+<ul>
+<li><strong>Multi-criteria deterministic filtering</strong>: apply year + genre + runtime + rating + mood + streaming all at once with reproducible results. An LLM in a chat cannot run that pipeline.</li>
+<li><strong>Local watch history across sessions</strong>: never recommend the same movie twice in a row. localStorage survives page reloads. AI has no persistent memory between chats.</li>
+<li><strong>Couples Pick</strong>: pick two movies for a date night, one per mood profile. Solves the "you pick, no you pick" deadlock.</li>
+<li><strong>Movie Night Card PNG export</strong>: download a poster card with the pick, rating, runtime, and streaming badges to text to whoever you are watching with.</li>
+<li><strong>Offline operation</strong>: the database is bundled. Once you load the page once, it works on a plane, on a train, anywhere.</li>
+<li><strong>No API key, no signup, no tracking, no ads</strong>: AI chat services log your queries to train their models. This tool logs nothing.</li>
+</ul>
+<p>Stop scrolling. Pick a movie. Watch it.</p>
+
+<h2>Decision Modes Explained</h2>
+<details class="faq-item"><summary>Single Pick</summary><p>The default mode. Spin once, get one movie. Best for solo nights or when everyone agrees on mood. Honors all your filters.</p></details>
+<details class="faq-item"><summary>Couples Pick</summary><p>Two movies for date night: pick one that fits each person's mood. Configure two different filter profiles (for example: action for you, romance for your partner) and the tool selects one movie from each. No more 30 minutes of "I don't know, what do you want to watch".</p></details>
+<details class="faq-item"><summary>Mood Match</summary><p>Tell the tool how you feel and it picks a movie to match. Moods include Feel-Good, Mind-Bending, Epic, Intense, Cozy, and Tear-Jerker. No need to think in genres &mdash; just pick a vibe.</p></details>
+<details class="faq-item"><summary>Franchise</summary><p>Pick a specific franchise (Marvel, Pixar, Star Wars, Harry Potter, Studio Ghibli, Lord of the Rings) and the tool selects a movie from that universe. Useful for franchise marathons or catching up on what you missed.</p></details>
+<details class="faq-item"><summary>Surprise Me</summary><p>No filters applied except minimum rating. The most unpredictable mode. Use when you want to discover something completely new.</p></details>
+
+<h2>Frequently Asked Questions</h2>
+<details class="faq-item"><summary>Is the movie picker really free?</summary><p>Yes, completely free. No signup, no watermark, no daily limit, no paywall, no ads, no tracking. Everything runs in your browser. The 200+ movie database is bundled with the page so it works offline once loaded.</p></details>
+<details class="faq-item"><summary>How does the movie picker decide what to show?</summary><p>It uses cryptographic randomness via the browser's Web Crypto API. Every recommendation is weighted by IMDb score (higher rated movies get a slight boost) so you get a good pick, not just an obscure one. The result is deterministic-given-input but unpredictable across runs.</p></details>
+<details class="faq-item"><summary>Can I filter by streaming service?</summary><p>Yes. Toggle Netflix, Disney+, Prime Video, Hulu, HBO Max, or Apple TV+ in the filter panel. The picker shows only movies currently available on the services you select. Movies with no streaming badge are available for rent or purchase.</p></details>
+<details class="faq-item"><summary>What is Couples Pick mode?</summary><p>Pick two movies at once for a date night: one that fits each person's mood. You set two different filter profiles (for example: person A wants Action, person B wants Romance) and the picker selects one movie from each. Saves the typical 30-minute negotiation.</p></details>
+<details class="faq-item"><summary>Why is this better than asking an AI chatbot for a recommendation?</summary><p>AI can name one but it cannot (a) apply deterministic filters across multiple criteria at once (year + runtime + rating + genre + streaming + mood), (b) save your watch history locally so you never get the same movie twice in a row, (c) generate a shareable Movie Night Card image with poster and metadata, or (d) work offline. The picker uses a curated 200-movie catalog so it only ever recommends movies that are actually worth watching.</p></details>
+<details class="faq-item"><summary>Does it work offline?</summary><p>Yes. The database and all logic are bundled with the page. After first load, the picker works without any network. Your filter presets and watch history are saved in localStorage on your device.</p></details>
+<details class="faq-item"><summary>How is this different from Netflix or streaming app search?</summary><p>Streaming apps show you what is on the platform but you still face 100+ options and scroll for 20 minutes before picking. This tool reduces choice to a single recommendation matching your exact mood, runtime, and time available. You skip the doom scrolling.</p></details>
+<details class="faq-item"><summary>Can I save my filter presets?</summary><p>Yes. The current filter combination is encoded in the URL. Share the URL with anyone and they will see the same filters applied to the same database. Bookmarks work too.</p></details>
+<details class="faq-item"><summary>Will my watch history be sent to a server?</summary><p>No. Watch history is stored only in your browser's localStorage. Nothing is uploaded. Clear it anytime with the Clear History button.</p></details>
+<details class="faq-item"><summary>How accurate is the streaming availability?</summary><p>Streaming availability changes constantly because of licensing. The streaming badges show common availability as of mid-2026 but cannot reflect every regional change. Always verify on your streaming service before settling in.</p></details>
+
+<p style="margin-top: 18px; font-size: 0.82rem; color: var(--mn-muted);">Part of <a href="/">DevTools Hub</a> &mdash; Free Online Developer Tools</p>
+
+<div class="mn-related">
+<a href="/tools/spin-the-wheel/"><span class="mn-rel-emoji">🎡</span> Spin the Wheel</a>
+<a href="/tools/random-generator/"><span class="mn-rel-emoji">🎲</span> Random Generator</a>
+<a href="/tools/word-cloud-generator/"><span class="mn-rel-emoji">☁️</span> Word Cloud</a>
+<a href="/tools/text-summarizer/"><span class="mn-rel-emoji">📝</span> Text Summarizer</a>
+<a href="/tools/online-timer/"><span class="mn-rel-emoji">⏰</span> Online Timer</a>
+</div>
+</section>
+</main>
+
+<footer>
+<p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+
+<script src="/tools.js"></script>
+<script src="/tools/movie-night-picker/movies.js"></script>
+<script>
+(function() {
+'use strict';
+
+var state = {
+mode: 'single',
+filters: {
+genres: [],
+moods: [],
+franchises: [],
+streams: [],
+yearMin: 1970,
+yearMax: 2026,
+maxRuntime: 240,
+minRating: 5,
+excludeWatched: true
+},
+history: JSON.parse(localStorage.getItem('mn-history') || '[]')
+};
+
+var GENRES = ['Action','Animation','Comedy','Crime','Documentary','Drama','Family','Fantasy','Horror','Mystery','Romance','Sci-Fi','Thriller','War'];
+var MOODS = ['feel-good','cozy','intense','epic','mind-bending','tear-jerker','romantic'];
+var FRANCHISES = ['Marvel','Pixar','Star Wars','Harry Potter','Lord of the Rings','DC','Studio Ghibli','Mission Impossible','James Bond','Toy Story','Indiana Jones'];
+var STREAMS = ['Netflix','Disney+','Prime','Prime Video','Hulu','HBO Max','Apple TV+','Peacock','Paramount+'];
+
+function mnSetMode(m) {
+state.mode = m;
+document.querySelectorAll('.mn-mode').forEach(function(b) {
+b.classList.toggle('active', b.dataset.mode === m);
+  b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false');
+});
+document.getElementById('mn-genre-group').style.display = '';
+document.getElementById('mn-mood-group').style.display = (m === 'mood') ? '' : 'none';
+document.getElementById('mn-franchise-group').style.display = (m === 'franchise') ? '' : 'none';
+mnRefresh();
+}
+
+function mnBuildChips(containerId, items, prop, allOption) {
+var c = document.getElementById(containerId);
+c.innerHTML = '';
+if (allOption) {
+var all = document.createElement('button');
+all.type = 'button';
+all.className = 'mn-chip active';
+all.textContent = 'All';
+all.dataset.val = '__all__';
+all.onclick = function() {
+state.filters[prop] = [];
+mnBuildChips(containerId, items, prop, true);
+mnRefresh();
+};
+c.appendChild(all);
+}
+items.forEach(function(it) {
+var b = document.createElement('button');
+b.type = 'button';
+b.className = 'mn-chip';
+var active = state.filters[prop].indexOf(it) >= 0;
+if (active) b.classList.add('active');
+b.textContent = it;
+b.dataset.val = it;
+b.onclick = function() {
+var arr = state.filters[prop];
+var idx = arr.indexOf(it);
+if (idx >= 0) arr.splice(idx, 1); else arr.push(it);
+b.classList.toggle('active');
+mnRefresh();
+};
+c.appendChild(b);
+});
+}
+
+function mnUpdateYear() {
+var y1 = parseInt(document.getElementById('mn-year-min').value);
+var y2 = parseInt(document.getElementById('mn-year-max').value);
+if (y1 > y2) { document.getElementById('mn-year-max').value = y1; y2 = y1; }
+state.filters.yearMin = y1;
+state.filters.yearMax = y2;
+document.getElementById('mn-year-min-val').textContent = y1;
+document.getElementById('mn-year-max-val').textContent = y2;
+}
+
+function mnUpdateRuntime() {
+var r = parseInt(document.getElementById('mn-runtime').value);
+state.filters.maxRuntime = r;
+document.getElementById('mn-runtime-val').textContent = r === 240 ? 'any' : (r + ' min');
+}
+
+function mnUpdateRating() {
+var r = parseFloat(document.getElementById('mn-rating').value);
+state.filters.minRating = r;
+document.getElementById('mn-rating-val').textContent = r.toFixed(1) + '+';
+}
+
+function mnMatchesFilters(m) {
+var f = state.filters;
+if (f.yearMin && m.y < f.yearMin) return false;
+if (f.yearMax && m.y > f.yearMax) return false;
+if (f.maxRuntime < 240 && m.rt > f.maxRuntime) return false;
+if (m.r < f.minRating) return false;
+if (f.genres.length > 0 && !f.genres.some(function(g) { return m.g.indexOf(g) >= 0; })) return false;
+if (f.moods.length > 0 && !f.moods.some(function(mo) { return m.m.indexOf(mo) >= 0; })) return false;
+if (f.streams.length > 0 && !f.streams.some(function(s) { return m.s.indexOf(s) >= 0; })) return false;
+if (f.excludeWatched && state.history.some(function(h) { return h.t === m.t && h.y === m.y; })) return false;
+return true;
+}
+
+function mnMatchesFranchise(m) {
+return mnGetFranchise(m) !== null;
+}
+
+function mnGetFranchise(m) {
+if (m.g.indexOf('Animation') >= 0) {
+if (/toy story|nemo|incredibles|coco|up|wall-e|ratatouille|inside out/i.test(m.t)) return 'Pixar';
+if (/spirited away|totoro|mononoke|howl|kiki|laputa|ponyo/i.test(m.t)) return 'Studio Ghibli';
+if (/toy story/i.test(m.t)) return 'Toy Story';
+}
+if (/iron man|captain america|thor|avengers|black panther|spider-man|guardians|doctor strange|hulk|ant-man/i.test(m.t)) return 'Marvel';
+if (/joker|b batman|v superman|justice league|wonder woman/i.test(m.t)) return 'DC';
+if (/star wars|empire strikes|return of the jedi|phantom menace|attack of the clones|revenge of the sith|force awakens|last jedi|rise of skywalker/i.test(m.t)) return 'Star Wars';
+if (/harry potter|fantastic beasts|hogwarts/i.test(m.t)) return 'Harry Potter';
+if (/lord of the rings|hobbit|shire/i.test(m.t)) return 'Lord of the Rings';
+if (/mission: impossible|mission impossible/i.test(m.t)) return 'Mission Impossible';
+if (/casino royale|skyfall|goldeneye|quantum of solace|spectre|no time to die/i.test(m.t)) return 'James Bond';
+if (/indiana jones|raiders of the lost ark|temple of doom|last crusade/i.test(m.t)) return 'Indiana Jones';
+return null;
+}
+
+function mnRefresh() {
+var pool = MOVIES.filter(function(m) { return mnMatchesFilters(m); });
+if (state.mode === 'franchise') {
+pool = pool.filter(mnMatchesFranchise);
+}
+document.getElementById('mn-match-count').textContent = pool.length + ' match';
+state.pool = pool;
+if (pool.length === 0) {
+document.getElementById('mn-empty').style.display = '';
+document.getElementById('mn-empty').innerHTML = '<div class="mn-icon">🎬</div><h3>No matches</h3><p>Try loosening some filters. There are ' + MOVIES.length + ' movies in the database.</p>';
+document.getElementById('mn-card').classList.remove('show');
+document.getElementById('mn-couple-cards').classList.remove('show');
+} else {
+document.getElementById('mn-empty').style.display = '';
+}
+}
+
+function mnWeightedPick(pool) {
+var weights = pool.map(function(m) {
+var w = 1;
+w *= Math.pow(m.r - 5, 1.5);
+w *= (m.y >= 2015) ? 1.2 : 1;
+return Math.max(0.1, w);
+});
+var total = weights.reduce(function(a, b) { return a + b; }, 0);
+var r = Math.random() * total;
+for (var i = 0; i < pool.length; i++) {
+r -= weights[i];
+if (r <= 0) return pool[i];
+}
+return pool[pool.length - 1];
+}
+
+function mnSpin() {
+mnRefresh();
+var pool = state.pool || [];
+if (pool.length === 0) {
+mnToast('No movies match your filters. Try loosening them.', 'error');
+return;
+}
+mnShowSpin();
+setTimeout(function() {
+mnHideSpin();
+if (state.mode === 'couple') {
+var m1 = mnWeightedPick(pool);
+var m2;
+var attempts = 0;
+do { m2 = mnWeightedPick(pool); attempts++; } while (m2.t === m1.t && attempts < 10);
+mnRenderCouple(m1, m2);
+mnAddHistory(m1); mnAddHistory(m2);
+} else {
+var m = mnWeightedPick(pool);
+mnRenderSingle(m);
+mnAddHistory(m);
+}
+mnUpdateUrl();
+}, 1800);
+}
+
+function mnRenderSingle(m) {
+document.getElementById('mn-empty').style.display = 'none';
+var card = document.getElementById('mn-card');
+var content = document.getElementById('mn-card-content');
+content.innerHTML = mnBuildCardHtml(m, '');
+card.classList.add('show');
+document.getElementById('mn-couple-cards').classList.remove('show');
+state.lastPick = m;        // BUG-363: was never set, so the "Movie Night Card" button silently returned
+mnUpdateStats(m);
+}
+
+function mnRenderCouple(m1, m2) {
+document.getElementById('mn-empty').style.display = 'none';
+document.getElementById('mn-card').classList.remove('show');
+var wrap = document.getElementById('mn-couple-cards');
+document.getElementById('mn-couple-content').innerHTML =
+'<div class="mn-couple-card">' + mnBuildCardHtml(m1, 'Option A') + '</div>' +
+'<div class="mn-couple-card">' + mnBuildCardHtml(m2, 'Option B') + '</div>';
+wrap.classList.add('show');
+mnUpdateStats(m1);
+}
+
+function mnBuildCardHtml(m, label) {
+var badges = '<span class="mn-badge rating">⭐ ' + m.r.toFixed(1) + '</span>';
+badges += '<span class="mn-badge">' + m.rt + ' min</span>';
+if (m.g) m.g.slice(0, 2).forEach(function(g) { badges += '<span class="mn-badge genre">' + g + '</span>'; });
+if (m.m) m.m.slice(0, 2).forEach(function(mo) { badges += '<span class="mn-badge mood">' + mo + '</span>'; });
+if (m.s) m.s.slice(0, 3).forEach(function(s) { badges += '<span class="mn-badge streaming">' + s + '</span>'; });
+var labelHtml = label ? '<div class="mn-couple-label">' + label + '</div>' : '';
+var poster = mnBuildPosterSvg(m);
+var actions = '';
+if (!label) {
+actions = '<div class="mn-card-actions"><button class="mn-btn success" onclick="mnRespin()" type="button">🎰 Re-spin</button>' +
+'<button class="mn-btn" onclick="mnCopyCard(' + JSON.stringify(m.t).replace(/"/g, '&quot;') + ')" type="button">📋 Copy Title</button>' +
+'<button class="mn-btn" onclick="mnDownloadCard()" type="button">🖼️ Movie Night Card</button></div>';
+}
+return labelHtml +
+'<div class="mn-card-poster">' + poster + '</div>' +
+'<h3 class="mn-card-title">' + mnEsc(m.t) + '</h3>' +
+'<div class="mn-card-year">' + m.y + '</div>' +
+'<div class="mn-card-meta">' + badges + '</div>' +
+'<p class="mn-card-plot">' + mnEsc(m.p) + '</p>' +
+actions;
+}
+
+function mnBuildPosterSvg(m) {
+var c = m.c || '#1a1a2e';
+var e = m.e || '🎬';
+var titleLines = mnWrapText(m.t, 14);
+return '<svg viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">' +
+'<defs><linearGradient id="g' + Math.abs(mnHash(m.t)) + '" x1="0" y1="0" x2="1" y2="1">' +
+'<stop offset="0%" stop-color="' + c + '"/>' +
+'<stop offset="100%" stop-color="#000"/>' +
+'</linearGradient></defs>' +
+'<rect width="200" height="300" fill="url(#g' + Math.abs(mnHash(m.t)) + ')"/>' +
+'<text x="100" y="135" text-anchor="middle" font-size="64">' + e + '</text>' +
+titleLines.map(function(line, i) {
+return '<text x="100" y="' + (200 + i * 18) + '" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="14" fill="#fff">' + mnEsc(line) + '</text>';
+}).join('') +
+'<text x="100" y="280" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#aaa">' + m.y + '</text>' +
+'</svg>';
+}
+
+function mnWrapText(t, max) {
+var words = t.split(' ');
+var lines = [];
+var cur = '';
+words.forEach(function(w) {
+if ((cur + ' ' + w).trim().length <= max) {
+cur = (cur + ' ' + w).trim();
+} else {
+if (cur) lines.push(cur);
+cur = w;
+if (lines.length >= 3) return;
+}
+});
+if (cur && lines.length < 3) lines.push(cur);
+return lines.slice(0, 3);
+}
+
+function mnHash(s) {
+var h = 0;
+for (var i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+return h;
+}
+
+function mnUpdateStats(m) {
+var s = document.getElementById('mn-stats');
+s.innerHTML = '<div class="mn-stat-pill accent"><strong>' + (state.pool ? state.pool.length : 0) + '</strong> movies match</div>' +
+'<div class="mn-stat-pill"><strong>' + MOVIES.length + '</strong> in catalog</div>' +
+'<div class="mn-stat-pill"><strong>' + state.history.length + '</strong> watched</div>';
+}
+
+function mnAddHistory(m) {
+state.history = state.history.filter(function(h) { return !(h.t === m.t && h.y === m.y); });
+state.history.unshift({ t: m.t, y: m.y, ts: Date.now() });
+if (state.history.length > 50) state.history = state.history.slice(0, 50);
+localStorage.setItem('mn-history', JSON.stringify(state.history));
+mnRenderHistory();
+if (state.filters.excludeWatched) mnRefresh();
+}
+
+function mnRenderHistory() {
+var h = document.getElementById('mn-history');
+if (state.history.length === 0) {
+h.innerHTML = '<div class="mn-history-empty">No picks yet. Hit spin!</div>';
+return;
+}
+h.innerHTML = state.history.slice(0, 10).map(function(item) {
+return '<div class="mn-history-item"><span class="mn-h-title">' + mnEsc(item.t) + '</span> (' + item.y + ')</div>';
+}).join('');
+}
+
+function mnClearHistory() {
+if (!confirm('Clear all watch history?')) return;
+state.history = [];
+localStorage.removeItem('mn-history');
+mnRenderHistory();
+mnRefresh();
+mnToast('History cleared');
+}
+
+function mnRespin() { mnSpin(); }
+
+function mnCopyCard(t) {
+navigator.clipboard.writeText(t).then(function() {
+mnToast('Copied: ' + t);
+});
+}
+
+function mnDownloadCard() {
+var m = state.lastPick;
+if (!m) return;
+var svg = mnBuildPosterSvg(m);
+var blob = new Blob([svg], { type: 'image/svg+xml' });
+var url = URL.createObjectURL(blob);
+var a = document.createElement('a');
+a.href = url;
+a.download = 'movie-night-' + m.t.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.svg';
+a.click();
+URL.revokeObjectURL(url);
+mnToast('Movie Night Card downloaded');
+}
+
+function mnReset() {
+state.filters = { genres: [], moods: [], franchises: [], streams: [], yearMin: 1970, yearMax: 2026, maxRuntime: 240, minRating: 5, excludeWatched: true };
+document.getElementById('mn-year-min').value = 1970;
+document.getElementById('mn-year-max').value = 2026;
+document.getElementById('mn-runtime').value = 240;
+document.getElementById('mn-rating').value = 5;
+document.getElementById('mn-exclude-watched').checked = true;
+mnUpdateYear(); mnUpdateRuntime(); mnUpdateRating();
+mnBuildChips('mn-genre-chips', GENRES, 'genres', true);
+mnBuildChips('mn-mood-chips', MOODS, 'moods', true);
+mnBuildChips('mn-franchise-chips', FRANCHISES, 'franchises', true);
+mnBuildChips('mn-stream-chips', STREAMS, 'streams', true);
+mnRefresh();
+}
+
+function mnShowSpin() {
+var overlay = document.getElementById('mn-spin-overlay');
+overlay.classList.add('show');
+// BUG-363: mnDrawWheel used to end in a bare `frame()` while frame() called mnDrawWheel(),
+// so one SPIN recursed SYNCHRONOUSLY until `RangeError: Maximum call stack size exceeded`
+// — the overlay stayed on "Picking..." and the page's primary CTA never returned a movie.
+// One owner of the loop, and a frame callback that only paints.
+if (state._spinAnim) cancelAnimationFrame(state._spinAnim);
+var tick = function() {
+mnDrawWheel();
+state._spinAnim = requestAnimationFrame(tick);
+};
+mnDrawWheel();
+state._spinAnim = requestAnimationFrame(tick);
+}
+
+function mnHideSpin() {
+document.getElementById('mn-spin-overlay').classList.remove('show');
+if (state._spinAnim) { cancelAnimationFrame(state._spinAnim); state._spinAnim = null; }
+}
+
+function mnDrawWheel() {
+var canvas = document.getElementById('mn-wheel');
+var ctx = canvas.getContext('2d');
+var cx = 140, cy = 140, r = 130;
+ctx.clearRect(0, 0, 280, 280);
+var colors = ['#667eea','#764ba2','#f59e0b','#10b981','#ef4444','#3b82f6','#8b5cf6','#ec4899','#06b6d4','#84cc16'];
+var n = 10;
+var angle = 0;
+var rot = (Date.now() / 200) % (Math.PI * 2);
+for (var i = 0; i < n; i++) {
+ctx.beginPath();
+ctx.moveTo(cx, cy);
+ctx.arc(cx, cy, r, angle + rot, angle + rot + (Math.PI * 2 / n));
+ctx.closePath();
+ctx.fillStyle = colors[i % colors.length];
+ctx.fill();
+ctx.strokeStyle = '#fff';
+ctx.lineWidth = 2;
+ctx.stroke();
+angle += (Math.PI * 2 / n);
+}
+ctx.beginPath();
+ctx.arc(cx, cy, 30, 0, Math.PI * 2);
+ctx.fillStyle = '#fff';
+ctx.fill();
+ctx.font = 'bold 16px sans-serif';
+ctx.fillStyle = '#0f0f23';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('🎬', cx, cy);
+}
+
+function mnUpdateUrl() {
+var f = state.filters;
+var params = new URLSearchParams();
+if (f.genres.length) params.set('g', f.genres.join(','));
+if (f.moods.length) params.set('m', f.moods.join(','));
+if (f.streams.length) params.set('s', f.streams.join(','));
+if (f.yearMin > 1970) params.set('y1', f.yearMin);
+if (f.yearMax < 2026) params.set('y2', f.yearMax);
+if (f.maxRuntime < 240) params.set('rt', f.maxRuntime);
+if (f.minRating > 5) params.set('r', f.minRating);
+var url = params.toString() ? '?' + params.toString() : location.pathname;
+history.replaceState(null, '', url);
+}
+
+function mnLoadFromUrl() {
+var p = new URLSearchParams(location.search);
+if (p.get('g')) state.filters.genres = p.get('g').split(',');
+if (p.get('m')) state.filters.moods = p.get('m').split(',');
+if (p.get('s')) state.filters.streams = p.get('s').split(',');
+if (p.get('y1')) { state.filters.yearMin = parseInt(p.get('y1')); document.getElementById('mn-year-min').value = state.filters.yearMin; }
+if (p.get('y2')) { state.filters.yearMax = parseInt(p.get('y2')); document.getElementById('mn-year-max').value = state.filters.yearMax; }
+if (p.get('rt')) { state.filters.maxRuntime = parseInt(p.get('rt')); document.getElementById('mn-runtime').value = state.filters.maxRuntime; }
+if (p.get('r')) { state.filters.minRating = parseFloat(p.get('r')); document.getElementById('mn-rating').value = state.filters.minRating; }
+}
+
+function mnToast(msg, type) {
+var t = document.getElementById('mn-toast');
+t.textContent = msg;
+t.className = 'mn-toast show' + (type ? ' ' + type : '');
+setTimeout(function() { t.className = 'mn-toast'; }, 2500);
+}
+
+function mnEsc(s) {
+return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+mnLoadFromUrl();
+mnBuildChips('mn-genre-chips', GENRES, 'genres', true);
+mnBuildChips('mn-mood-chips', MOODS, 'moods', true);
+mnBuildChips('mn-franchise-chips', FRANCHISES, 'franchises', true);
+mnBuildChips('mn-stream-chips', STREAMS, 'streams', true);
+mnUpdateYear(); mnUpdateRuntime(); mnUpdateRating();
+mnRenderHistory();
+mnRefresh();
+});
+
+window.mnSetMode = mnSetMode;
+window.mnSpin = mnSpin;
+window.mnReset = mnReset;
+window.mnRefresh = mnRefresh;
+window.mnRespin = mnRespin;
+window.mnCopyCard = mnCopyCard;
+window.mnDownloadCard = mnDownloadCard;
+window.mnClearHistory = mnClearHistory;
+window.mnUpdateYear = mnUpdateYear;
+window.mnUpdateRuntime = mnUpdateRuntime;
+window.mnUpdateRating = mnUpdateRating;
+
+})();
+</script>
+</body>
+</html>

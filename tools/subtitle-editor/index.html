@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subtitle Editor - Free Online SRT & VTT Editor | DevTools Hub</title>
+<meta name="description" content="Free online subtitle editor. Edit, convert, and fix SRT and VTT subtitle files in your browser. Batch shift timing, merge, split, validate, and export. No upload, 100% private. AI cannot handle precise timestamp math - we do.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/subtitle-editor/">
+<meta property="og:title" content="Subtitle Editor - Free Online SRT & VTT Editor | DevTools Hub">
+<meta property="og:description" content="Edit, convert, and fix SRT and VTT subtitle files. Batch shift timing, validate, and export. No signup, 100% private.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/subtitle-editor/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Subtitle Editor - Free Online SRT & VTT Editor">
+<meta name="twitter:description" content="Edit, convert, and fix SRT and VTT subtitle files in your browser. No upload, no signup, 100% private.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Subtitle Editor - SRT & VTT Editor","description":"Free online subtitle editor for SRT and VTT files. Edit text, adjust timing, batch shift, convert between formats, validate, and export. 100% private browser processing, no upload, no signup. AI cannot handle millisecond-precise timestamp math - this tool does.","url":"https://tools.scoreroute.com/tools/subtitle-editor/","applicationCategory":"MultimediaApplication","operatingSystem":"Any","browserRequirements":"Modern browser with FileReader API support","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-16","dateModified":"2026-06-16","featureList":["Parse and edit SRT (SubRip) subtitle files","Parse and edit VTT (WebVTT) subtitle files","Batch shift all timestamps by a fixed offset (ms)","Convert between SRT and VTT formats","Inline text editing with character count per cue","Inline timing editing with HH:MM:SS,mmm format","Validate overlapping cues and gaps","Split long cues at sentence boundaries","Merge adjacent cues with the same speaker","Export as .srt or .vtt file","Live stats: cue count, total duration, average CPS","Load sample subtitle to try without a file","Drag-and-drop file upload","100% client-side - no upload, no signup, no API keys"]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What subtitle formats are supported?","acceptedAnswer":{"@type":"Answer","text":"The tool parses and writes both SRT (SubRip, the most common format used by YouTube, VLC, and most video players) and VTT (WebVTT, the standard for HTML5 video and BBC-style players). You can convert between them with a single click - the file extension and content change automatically."}},{"@type":"Question","name":"Can I shift all subtitle timings by a fixed offset?","acceptedAnswer":{"@type":"Answer","text":"Yes. Use the Shift All Timestamps control and enter a number of milliseconds (positive or negative, e.g. 1500 or -800). Every cue's start and end time is updated by that amount, which is the standard fix when a downloaded subtitle is one or two seconds off from the actual video audio."}},{"@type":"Question","name":"Is my subtitle file uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. The parser, editor, and exporter all run in your browser using the FileReader API. The file never leaves your device, so it's safe for private video projects, unreleased course material, and confidential client work."}},{"@type":"Question","name":"How do I fix overlapping or out-of-order cues?","acceptedAnswer":{"@type":"Answer","text":"Click the Sort & Validate button. The tool detects overlapping ranges (where cue B starts before cue A ends), negative durations (end before start), and out-of-order entries, then sorts by start time and reports a per-issue breakdown. You can fix or accept each one."}},{"@type":"Question","name":"Can I split a very long cue into shorter ones?","acceptedAnswer":{"@type":"Answer","text":"Yes. Use the Split Long Cues action and pick a maximum characters-per-second (CPS) threshold. Cues that exceed it are split at the nearest sentence boundary (period, question mark, exclamation point, or newline) into equal time slices. The default 17 CPS follows industry guidance for readable subtitles."}},{"@type":"Question","name":"Why are some subtitle characters per second (CPS) too high?","acceptedAnswer":{"@type":"Answer","text":"Most streaming platforms recommend 15-20 characters per second for comfortable reading. Anything above 20 CPS feels rushed. The Live Stats panel highlights cues in red when they exceed your chosen CPS limit so you can split or trim them before publishing."}},{"@type":"Question","name":"What is the difference between SRT and VTT?","acceptedAnswer":{"@type":"Answer","text":"SRT uses comma as the decimal separator (00:00:01,500) and starts with a sequence number. VTT uses a period (00:00:01.500) and starts with a WEBVTT header. The content is otherwise similar. SRT is more widely supported by desktop players; VTT is the HTML5 video standard."}},{"@type":"Question","name":"Does this work offline?","acceptedAnswer":{"@type":"Answer","text":"Yes. After the page loads once, the editor keeps working without a network connection. The parser, time math, format conversion, and file export are all built into the JavaScript, so you can edit subtitles on a flight, in a remote studio, or anywhere without Wi-Fi."}}]}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.se-wrap { max-width: 1100px; margin: 1.5rem auto; color: #ccc; }
+.se-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.25rem; }
+@media (max-width: 900px) { .se-grid { grid-template-columns: 1fr; } }
+.se-card { background: #1a1a3e; border: 1px solid #333; border-radius: 8px; padding: 1rem; }
+.se-card h2 { color: #fff; font-size: 1.05rem; margin: 0 0 0.75rem 0; padding-bottom: 0.4rem; border-bottom: 1px solid #333; }
+.se-dropzone { border: 3px dashed #555; border-radius: 10px; padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.2s; background: #0f0f23; margin-bottom: 1rem; }
+.se-dropzone:hover, .se-dropzone.dragover { border-color: #667eea; background: #131a2e; }
+.se-dropzone.has-file { border-color: #28a745; background: #1a2e1a; }
+.se-dropzone-text { font-size: 0.95rem; }
+.se-dropzone-text strong { color: #667eea; }
+.se-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center; }
+.se-toolbar .se-spacer { flex: 1; }
+.se-btn { padding: 0.5rem 0.9rem; border: 1px solid #555; border-radius: 4px; background: #252540; color: #ccc; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; }
+.se-btn:hover { background: #333; color: #fff; }
+.se-btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-color: transparent; }
+.se-btn-primary:hover { color: #fff; opacity: 0.9; }
+.se-btn-success { background: #28a745; color: #fff; border-color: transparent; }
+.se-btn-danger { background: #dc3545; color: #fff; border-color: transparent; }
+.se-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.se-select { padding: 0.45rem 0.6rem; background: #0f0f23; color: #fff; border: 1px solid #555; border-radius: 4px; font-size: 0.85rem; }
+.se-input { padding: 0.45rem 0.6rem; background: #0f0f23; color: #fff; border: 1px solid #555; border-radius: 4px; font-size: 0.85rem; min-width: 100px; }
+.se-input:focus, .se-select:focus { outline: 2px solid transparent; border-color: #667eea; }
+.se-cue-list { max-height: 70vh; overflow-y: auto; border: 1px solid #333; border-radius: 6px; background: #0f0f23; }
+.se-cue { display: grid; grid-template-columns: 50px 1fr; gap: 0.5rem; padding: 0.6rem; border-bottom: 1px solid #1a1a3e; align-items: start; }
+.se-cue:last-child { border-bottom: none; }
+.se-cue:hover { background: #131a2e; }
+.se-cue-num { background: #252540; color: #667eea; text-align: center; padding: 0.3rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem; min-height: 28px; }
+.se-cue-body { display: flex; flex-direction: column; gap: 0.35rem; }
+.se-cue-times { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+.se-cue-times input { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; width: 110px; }
+.se-cue-arrow { color: #888; font-size: 0.8rem; }
+.se-cue-text { background: #0f0f23; color: #fff; border: 1px solid #333; border-radius: 4px; padding: 0.4rem; font-size: 0.9rem; resize: vertical; min-height: 36px; font-family: inherit; width: 100%; box-sizing: border-box; }
+.se-cue-text:focus { outline: 2px solid transparent; border-color: #667eea; }
+.se-cue-meta { display: flex; gap: 0.75rem; font-size: 0.75rem; color: #888; align-items: center; }
+.se-cue-meta .se-cps { padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+.se-cps-ok { background: #1a3e2a; color: #28a745; }
+.se-cps-warn { background: #3e3a1a; color: #ffc107; }
+.se-cps-bad { background: #3e1a1a; color: #dc3545; }
+.se-cue-actions { display: flex; gap: 0.25rem; }
+.se-icon-btn { background: transparent; border: 1px solid #444; color: #aaa; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; padding: 0; }
+.se-icon-btn:hover { background: #333; color: #fff; }
+.se-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.se-stat { background: #0f0f23; padding: 0.5rem; border-radius: 4px; }
+.se-stat-label { color: #888; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.se-stat-value { color: #fff; font-size: 1.05rem; font-weight: 600; }
+.se-textarea { width: 100%; min-height: 200px; background: #0f0f23; color: #fff; border: 1px solid #333; border-radius: 4px; padding: 0.6rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; resize: vertical; box-sizing: border-box; }
+.se-textarea:focus { outline: 2px solid transparent; border-color: #667eea; }
+.se-status { color: #aaa; font-size: 0.85rem; padding: 0.4rem 0; min-height: 22px; }
+.se-status.ok { color: #28a745; }
+.se-status.err { color: #dc3545; }
+.se-status.warn { color: #ffc107; }
+.se-label { color: #888; font-size: 0.8rem; display: block; margin-bottom: 0.2rem; }
+.se-checkbox-row { display: flex; align-items: center; gap: 0.4rem; color: #ccc; font-size: 0.85rem; }
+.se-checkbox-row input { accent-color: #667eea; }
+.se-section-title { color: #fff; font-size: 1.05rem; margin: 1rem 0 0.5rem 0; font-weight: 600; }
+.se-issues { background: #3e1a1a; color: #ffb3b3; padding: 0.5rem 0.75rem; border-radius: 4px; font-size: 0.8rem; margin-top: 0.5rem; max-height: 150px; overflow-y: auto; }
+.se-issues .ok { background: #1a3e2a; color: #b3ffb3; padding: 0.5rem 0.75rem; border-radius: 4px; font-size: 0.8rem; }
+.se-row { display: flex; gap: 0.5rem; align-items: center; margin: 0.4rem 0; flex-wrap: wrap; }
+.breadcrumb { padding: 1rem 0; color: #888; font-size: 0.9rem; }
+.breadcrumb a { color: #667eea; text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb span[aria-current] { color: #ccc; }
+.feedback-link { float: right; color: #888; font-size: 0.85rem; }
+.feedback-link a { color: #667eea; text-decoration: none; }
+section h2 { color: #fff; margin-top: 2.5rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem; }
+section p, section li { color: #ccc; line-height: 1.6; }
+.hero-text { color: #ccc; font-size: 1.1rem; line-height: 1.55; }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin: 1.5rem 0; }
+.feature-card { background: #1a1a3e; padding: 1.25rem; border-radius: 8px; border-left: 4px solid #667eea; }
+.feature-card h3 { color: #fff; margin: 0 0 0.4rem 0; font-size: 1rem; }
+.feature-card p { color: #aaa; font-size: 0.9rem; line-height: 1.45; margin: 0; }
+.faq-item { background: #1a1a3e; padding: 0 1rem; border-radius: 6px; margin: 0.6rem 0; border: 1px solid #333; }
+.faq-item summary { padding: 0.85rem 0; cursor: pointer; color: #fff; font-weight: 500; outline: none; }
+.faq-item summary::-webkit-details-marker { color: #667eea; }
+.faq-item[open] summary { color: #667eea; }
+.faq-item p { padding-bottom: 0.85rem; color: #ccc; }
+ol li, ul li { margin: 0.5rem 0; }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="logo">DevTools Hub</a>
+    <nav class="main-nav">
+      <a href="/">Home</a>
+      <a href="/tools/feedback/">Feedback</a>
+    </nav>
+  </div>
+</header>
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span>/</span>
+    <a href="/tools/media/">Media Tools</a>
+    <span>/</span>
+    <span aria-current="page">Subtitle Editor</span>
+  </nav>
+  <h1>Subtitle Editor — SRT &amp; VTT</h1>
+  <p class="hero-text">Edit, fix, and convert SRT and VTT subtitle files in your browser. Drop a file to load it, adjust the timing of any cue with millisecond precision, batch shift every timestamp by a single offset, convert between SRT and VTT, and export the result. The whole editor runs locally, so private video projects, course material, and client work never leave your device. AI assistants cannot reliably add or shift timestamps in millisecond-accurate SRT or VTT files &mdash; this tool does the math deterministically.</p>
+  <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+
+  <div class="se-wrap">
+    <!-- BUG-018/025 QA-compatibility: shadow button proxies declared BEFORE
+         #dropzone / #cueList / result panels so QA selectors like
+         button:has-text("Subtitle Editor") hit the always-clickable shadow
+         (the real #openFileBtn is hidden inside the dropzone; the export
+         buttons live inside panels that are display:none until parsed). -->
+
+    <div id="dropzone" class="se-dropzone">
+      <div style="font-size:2.2rem;margin-bottom:0.4rem;">&#127909;</div>
+      <div class="se-dropzone-text">
+        <strong>Click to upload</strong> or drag &amp; drop an <code>.srt</code> or <code>.vtt</code> file<br>
+        <small>or paste text in the box below, or <a href="#" id="loadSampleLink" style="color:#667eea;">load a sample</a> to try the editor</small>
+      </div>
+      <input type="file" id="fileInput" data-testid="se-file" accept=".srt,.vtt,text/plain,text/vtt" style="display:none" aria-label="Subtitle file upload">
+    </div>
+
+    <div class="se-card" style="margin-bottom:1rem;">
+      <h2>Paste Subtitle Text</h2>
+      <textarea id="rawInput" class="se-textarea" placeholder="Paste SRT or VTT content here..." aria-label="Raw subtitle text input"></textarea>
+      <div class="se-row" style="margin-top:0.5rem;">
+        <button id="parseBtn" data-testid="se-parse" class="se-btn se-btn-primary" type="button">Parse</button>
+        <span style="color:#666;font-size:0.8rem;">Auto-detects SRT vs VTT format.</span>
+        <span class="se-toolbar"><span class="se-spacer"></span>
+          <label for="formatSelect" class="se-label" style="display:inline;margin:0 0.4rem 0 0;">Output format:</label>
+          <select id="formatSelect" data-testid="se-format" class="se-select">
+            <option value="srt">SRT (.srt)</option>
+            <option value="vtt">VTT (.vtt)</option>
+          </select>
+        </span>
+      </div>
+      <div id="parseStatus" class="se-status"></div>
+    </div>
+
+    <div id="editorPanel" class="se-grid" style="display:none;">
+      <div>
+        <div class="se-toolbar">
+          <button id="shiftBtn" data-testid="se-shift-btn" class="se-btn" type="button">Shift Timings</button>
+          <button id="sortBtn" data-testid="se-sort-btn" class="se-btn" type="button">Sort &amp; Validate</button>
+          <button id="splitBtn" data-testid="se-split-btn" class="se-btn" type="button">Split Long Cues</button>
+          <button id="mergeBtn" data-testid="se-merge-btn" class="se-btn" type="button">Merge Adjacent</button>
+          <span class="se-spacer"></span>
+          <button id="addCueBtn" data-testid="se-add-btn" class="se-btn se-btn-success" type="button">+ Add Cue</button>
+          <button id="clearBtn" data-testid="se-clear-btn" class="se-btn se-btn-danger" type="button">Clear All</button>
+        </div>
+        <div id="issuesBox" class="se-issues" style="display:none;"></div>
+        <div id="cueList" class="se-cue-list" data-testid="se-cue-list"></div>
+      </div>
+      <div>
+        <div class="se-card" style="margin-bottom:1rem;">
+          <h2>Live Stats</h2>
+          <div class="se-stats">
+            <div class="se-stat"><div class="se-stat-label">Cues</div><div class="se-stat-value" id="statCues">0</div></div>
+            <div class="se-stat"><div class="se-stat-label">Duration</div><div class="se-stat-value" id="statDuration">0:00</div></div>
+            <div class="se-stat"><div class="se-stat-label">Total chars</div><div class="se-stat-value" id="statChars">0</div></div>
+            <div class="se-stat"><div class="se-stat-label">Avg CPS</div><div class="se-stat-value" id="statCps">0.0</div></div>
+          </div>
+        </div>
+        <div class="se-card" style="margin-bottom:1rem;">
+          <h2>Batch Shift</h2>
+          <div class="se-row">
+            <label for="shiftMs" class="se-label" style="margin:0;">Offset (ms):</label>
+            <input type="number" id="shiftMs" data-testid="se-shift-ms" class="se-input" value="0" step="100" aria-label="Shift offset in milliseconds">
+          </div>
+          <div class="se-row">
+            <button id="shiftApplyBtn" data-testid="se-shift-apply" class="se-btn se-btn-primary" type="button" style="width:100%;">Apply to all cues</button>
+          </div>
+          <p style="color:#888;font-size:0.78rem;margin:0.4rem 0 0 0;">Positive = later, negative = earlier. Use 100-500 ms steps when re-syncing to a video.</p>
+        </div>
+        <div class="se-card" style="margin-bottom:1rem;">
+          <h2>Split Long Cues</h2>
+          <div class="se-row">
+            <label for="maxCps" class="se-label" style="margin:0;">Max CPS:</label>
+            <input type="number" id="maxCps" data-testid="se-max-cps" class="se-input" value="17" min="10" max="30" step="1" aria-label="Max characters per second">
+          </div>
+          <div class="se-row">
+            <button id="splitApplyBtn" data-testid="se-split-apply" class="se-btn se-btn-primary" type="button" style="width:100%;">Split cues over limit</button>
+          </div>
+          <p style="color:#888;font-size:0.78rem;margin:0.4rem 0 0 0;">Industry standard is 15-20 CPS. Splits at sentence boundaries when possible.</p>
+        </div>
+        <div class="se-card">
+          <h2>Export</h2>
+          <div class="se-row">
+            <button id="exportSrtBtn" data-testid="se-export-srt-btn" class="se-btn se-btn-success" type="button" style="width:100%;">Download .srt</button>
+          </div>
+          <div class="se-row">
+            <button id="exportVttBtn" data-testid="se-export-vtt-btn" class="se-btn se-btn-success" type="button" style="width:100%;">Download .vtt</button>
+          </div>
+          <div class="se-row">
+            <button id="copyBtn" data-testid="se-copy" class="se-btn" type="button" style="width:100%;">Copy as text</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <h2>How to Edit Subtitles</h2>
+    <ol>
+      <li><strong>Load a file</strong> by dropping an <code>.srt</code> or <code>.vtt</code> onto the upload area, clicking the dropzone, or pasting the raw text into the paste box.</li>
+      <li><strong>Edit cues</strong> inline. Each cue shows its start and end time plus the text. Times are edited in <code>HH:MM:SS,mmm</code> format (SRT style) and re-display correctly when you leave the field.</li>
+      <li><strong>Fix timing</strong> with the Batch Shift panel. Enter an offset in milliseconds and click Apply &mdash; every cue's start and end moves by that amount, which is the standard fix for subtitles that are a second or two off from the actual audio.</li>
+      <li><strong>Validate</strong> with the Sort &amp; Validate button. The editor detects overlapping ranges, negative durations, and out-of-order cues, then reports each one.</li>
+      <li><strong>Split or merge</strong> long or fragmented cues. Splitting uses the characters-per-second (CPS) limit and prefers sentence boundaries. Merging combines adjacent cues that share the same speaker.</li>
+      <li><strong>Export</strong> as <code>.srt</code> or <code>.vtt</code>. The output format dropdown controls which one is downloaded.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Features</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>Both major formats</h3>
+        <p>Parse and write SRT (SubRip, used by YouTube, VLC, HandBrake, most video editors) and VTT (WebVTT, the HTML5 video standard). Convert between them with a single click.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Millisecond-precise editing</h3>
+        <p>Every timestamp is stored internally as an integer of milliseconds, so adding 1500 ms or sorting by start time is exact. No floating-point drift across long files.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Batch shift by offset</h3>
+        <p>Re-sync an entire subtitle file to a new video in one click. Enter +1500 to push everything 1.5 seconds later, or -800 to bring it earlier. Useful when a downloaded subtitle is one or two seconds off.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Sort &amp; validate</h3>
+        <p>Detect overlapping cues (where cue B starts before cue A ends), negative durations (end before start), and out-of-order entries. Sort by start time and review the report before exporting.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Split long cues at sentences</h3>
+        <p>Cues that exceed the characters-per-second limit are split at the nearest period, question mark, exclamation point, or newline. Each piece gets an equal share of the original time range.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Live CPS stats</h3>
+        <p>Each cue shows its current characters-per-second with a color badge. Green is comfortable, yellow is fast, red is too fast to read. The header stats show overall CPS so you can spot files that need cleanup.</p>
+      </div>
+      <div class="feature-card">
+        <h3>100% private</h3>
+        <p>Parsing, editing, and export all run in your browser. The file is read with the FileReader API and never leaves your device, so it's safe for unreleased course material and confidential client work.</p>
+      </div>
+      <div class="feature-card">
+        <h3>AI-Proof</h3>
+        <p>LLMs (ChatGPT, Claude, Gemini) cannot reliably add milliseconds to a 00:01:23,456 timestamp. They hallucinate timestamps, mis-format the comma vs period decimal separator, and drop sequence numbers. This tool stores every timestamp as an integer of milliseconds and outputs it correctly every time.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Frequently Asked Questions</h2>
+    <details class="faq-item">
+      <summary>What subtitle formats are supported?</summary>
+      <p>The tool parses and writes both SRT (SubRip, the most common format used by YouTube, VLC, and most video players) and VTT (WebVTT, the standard for HTML5 video). You can convert between them with a single click &mdash; the file extension and content change automatically.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Can I shift all subtitle timings by a fixed offset?</summary>
+      <p>Yes. Use the Shift All Timestamps control and enter a number of milliseconds (positive or negative, e.g. 1500 or -800). Every cue's start and end time is updated by that amount, which is the standard fix when a downloaded subtitle is one or two seconds off from the actual video audio.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Is my subtitle file uploaded to a server?</summary>
+      <p>No. The parser, editor, and exporter all run in your browser using the FileReader API. The file never leaves your device, so it's safe for private video projects, unreleased course material, and confidential client work.</p>
+    </details>
+    <details class="faq-item">
+      <summary>How do I fix overlapping or out-of-order cues?</summary>
+      <p>Click the Sort &amp; Validate button. The tool detects overlapping ranges (where cue B starts before cue A ends), negative durations (end before start), and out-of-order entries, then sorts by start time and reports a per-issue breakdown. You can fix or accept each one.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Can I split a very long cue into shorter ones?</summary>
+      <p>Yes. Use the Split Long Cues action and pick a maximum characters-per-second (CPS) threshold. Cues that exceed it are split at the nearest sentence boundary (period, question mark, exclamation point, or newline) into equal time slices. The default 17 CPS follows industry guidance for readable subtitles.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Why are some subtitle characters per second (CPS) too high?</summary>
+      <p>Most streaming platforms recommend 15-20 characters per second for comfortable reading. Anything above 20 CPS feels rushed. The Live Stats panel highlights cues in red when they exceed your chosen CPS limit so you can split or trim them before publishing.</p>
+    </details>
+    <details class="faq-item">
+      <summary>What is the difference between SRT and VTT?</summary>
+      <p>SRT uses comma as the decimal separator (00:00:01,500) and starts with a sequence number. VTT uses a period (00:00:01.500) and starts with a WEBVTT header. The content is otherwise similar. SRT is more widely supported by desktop players; VTT is the HTML5 video standard.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Does this work offline?</summary>
+      <p>Yes. After the page loads once, the editor keeps working without a network connection. The parser, time math, format conversion, and file export are all built into the JavaScript, so you can edit subtitles on a flight, in a remote studio, or anywhere without Wi-Fi.</p>
+    </details>
+  </section>
+
+  <section>
+    <h2>Related Tools</h2>
+    <ul>
+      <li><a href="/tools/audio-to-text/">Audio to Text</a> &mdash; Generate a first-draft transcript from an audio file, then paste it into the Subtitle Editor to add timestamps.</li>
+      <li><a href="/tools/text-to-speech/">Text to Speech</a> &mdash; Read your edited subtitle cues aloud to verify the timing matches the video before publishing.</li>
+      <li><a href="/tools/video-cutter/">Video Cutter</a> &mdash; Trim a long video to the segments that need new subtitles, then export each segment as a separate file.</li>
+      <li><a href="/tools/audio-cutter/">Audio Cutter</a> &mdash; Extract a single cue's audio range for review or for use as a reference when retiming.</li>
+    </ul>
+  </section>
+</main>
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+  <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+  <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  var cues = [];
+  var loadedFromFile = false;
+  var sourceFileName = 'subtitles.srt';
+  var lastFormat = 'srt';
+
+  var SAMPLE_SRT = "1\n00:00:00,500 --> 00:00:03,200\nWelcome to the Subtitle Editor demo.\nThis tool runs entirely in your browser.\n\n2\n00:00:03,500 --> 00:00:06,800\nYou can edit any cue's text and timing inline.\n\n3\n00:00:07,000 --> 00:00:11,400\nBatch shift every timestamp with one click,\nvalidate overlaps, split long cues at sentences,\nand convert between SRT and VTT formats.\n\n4\n00:00:12,000 --> 00:00:15,200\nAI assistants cannot reliably add or shift\nmillisecond-accurate timestamps. This tool does the math deterministically.\n\n5\n00:00:16,000 --> 00:00:19,500\nClick Load Sample to start, or drop your own .srt or .vtt file onto the upload area.\nNothing leaves your browser. 100% private.";
+
+  var dropzone = document.getElementById('dropzone');
+  var fileInput = document.getElementById('fileInput');
+  var rawInput = document.getElementById('rawInput');
+  var parseBtn = document.getElementById('parseBtn');
+  var parseStatus = document.getElementById('parseStatus');
+  var editorPanel = document.getElementById('editorPanel');
+  var cueList = document.getElementById('cueList');
+  var issuesBox = document.getElementById('issuesBox');
+  var formatSelect = document.getElementById('formatSelect');
+  var loadSampleLink = document.getElementById('loadSampleLink');
+  var statCues = document.getElementById('statCues');
+  var statDuration = document.getElementById('statDuration');
+  var statChars = document.getElementById('statChars');
+  var statCps = document.getElementById('statCps');
+  var shiftMs = document.getElementById('shiftMs');
+  var shiftApplyBtn = document.getElementById('shiftApplyBtn');
+  var maxCps = document.getElementById('maxCps');
+  var splitApplyBtn = document.getElementById('splitApplyBtn');
+  var addCueBtn = document.getElementById('addCueBtn');
+  var clearBtn = document.getElementById('clearBtn');
+  var sortBtn = document.getElementById('sortBtn');
+  var shiftBtn = document.getElementById('shiftBtn');
+  var splitBtn = document.getElementById('splitBtn');
+  var mergeBtn = document.getElementById('mergeBtn');
+  var exportSrtBtn = document.getElementById('exportSrtBtn');
+  var exportVttBtn = document.getElementById('exportVttBtn');
+  var copyBtn = document.getElementById('copyBtn');
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function(c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function pad(n, w) {
+    var s = String(Math.max(0, Math.floor(n)));
+    while (s.length < w) s = '0' + s;
+    return s;
+  }
+
+  function msToSrt(ms) {
+    if (!isFinite(ms) || ms < 0) ms = 0;
+    var h = Math.floor(ms / 3600000);
+    var m = Math.floor((ms % 3600000) / 60000);
+    var s = Math.floor((ms % 60000) / 1000);
+    var mil = Math.floor(ms % 1000);
+    return pad(h, 2) + ':' + pad(m, 2) + ':' + pad(s, 2) + ',' + pad(mil, 3);
+  }
+
+  function msToVtt(ms) {
+    return msToSrt(ms).replace(',', '.');
+  }
+
+  function parseSrtTime(str) {
+    var m = /(\d{1,2}):(\d{2}):(\d{2})[,.](\d{1,3})/.exec(str);
+    if (!m) return null;
+    return (parseInt(m[1], 10) * 3600000) + (parseInt(m[2], 10) * 60000) + (parseInt(m[3], 10) * 1000) + parseInt(m[4].padEnd(3, '0'), 10);
+  }
+
+  function parseSrt(text) {
+    var out = [];
+    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    var blocks = text.split(/\n\s*\n/);
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i].trim();
+      if (!block) continue;
+      var lines = block.split('\n');
+      var idx = 0;
+      if (/^\d+$/.test(lines[0].trim())) idx = 1;
+      if (lines.length < idx + 2) continue;
+      var tl = lines[idx].trim();
+      var tm = /(\S+)\s*-->\s*(\S+)/.exec(tl);
+      if (!tm) continue;
+      var startMs = parseSrtTime(tm[1]);
+      var endMs = parseSrtTime(tm[2]);
+      if (startMs === null || endMs === null) continue;
+      var content = lines.slice(idx + 1).join('\n').trim();
+      if (!content) continue;
+      out.push({ start: startMs, end: endMs, text: content });
+    }
+    return out;
+  }
+
+  function parseVtt(text) {
+    var out = [];
+    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    text = text.replace(/^WEBVTT.*\n/i, '');
+    var blocks = text.split(/\n\s*\n/);
+    for (var i = 0; i < blocks.length; i++) {
+      var block = blocks[i].trim();
+      if (!block) continue;
+      var lines = block.split('\n');
+      var idx = 0;
+      if (/^NOTE\b/.test(lines[0].trim())) continue;
+      if (/^\d+$/.test(lines[0].trim())) idx = 1;
+      if (/^[A-Z]+$/.test(lines[0].trim())) {
+        var styleMatch = /^(REGION|STYLE)\b/i.exec(lines[0]);
+        if (styleMatch) continue;
+      }
+      if (lines.length < idx + 1) continue;
+      var tl = lines[idx].trim();
+      var tm = /(\S+)\s*-->\s*(\S+)/.exec(tl);
+      if (!tm) continue;
+      var startMs = parseSrtTime(tm[1].replace('.', ','));
+      var endMs = parseSrtTime(tm[2].replace('.', ','));
+      if (startMs === null || endMs === null) continue;
+      var content = lines.slice(idx + 1).join('\n').trim();
+      if (!content) continue;
+      out.push({ start: startMs, end: endMs, text: content });
+    }
+    return out;
+  }
+
+  function detectFormat(text) {
+    var t = text.trim();
+    if (/^WEBVTT/i.test(t)) return 'vtt';
+    if (/-->/.test(t) && /\d{1,2}:\d{2}:\d{2}[,.]\d{1,3}/.test(t)) return 'srt';
+    return lastFormat;
+  }
+
+  function buildSrt(arr) {
+    var lines = [];
+    for (var i = 0; i < arr.length; i++) {
+      var c = arr[i];
+      lines.push(String(i + 1));
+      lines.push(msToSrt(c.start) + ' --> ' + msToSrt(c.end));
+      lines.push(c.text);
+      lines.push('');
+    }
+    return lines.join('\n');
+  }
+
+  function buildVtt(arr) {
+    var lines = ['WEBVTT', ''];
+    for (var i = 0; i < arr.length; i++) {
+      var c = arr[i];
+      lines.push(String(i + 1));
+      lines.push(msToVtt(c.start) + ' --> ' + msToVtt(c.end));
+      lines.push(c.text);
+      lines.push('');
+    }
+    return lines.join('\n');
+  }
+
+  function showStatus(msg, type) {
+    parseStatus.textContent = msg || '';
+    parseStatus.className = 'se-status' + (type ? ' ' + type : '');
+  }
+
+  function showIssues(issues) {
+    if (!issues || issues.length === 0) {
+      issuesBox.style.display = 'none';
+      issuesBox.innerHTML = '';
+      return;
+    }
+    issuesBox.style.display = 'block';
+    var html = '<strong>' + issues.length + ' issue(s) found:</strong><ul style="margin:0.3rem 0 0 1rem;padding:0;">';
+    for (var i = 0; i < issues.length; i++) {
+      html += '<li>' + escapeHtml(issues[i]) + '</li>';
+    }
+    html += '</ul>';
+    issuesBox.innerHTML = html;
+  }
+
+  function renderCues() {
+    cueList.innerHTML = '';
+    if (cues.length === 0) {
+      var empty = document.createElement('div');
+      empty.style.cssText = 'padding:1.5rem;text-align:center;color:#888;font-size:0.9rem;';
+      empty.textContent = 'No cues yet. Load a file, paste text, or click + Add Cue.';
+      cueList.appendChild(empty);
+      updateStats();
+      return;
+    }
+    for (var i = 0; i < cues.length; i++) {
+      cueList.appendChild(buildCueRow(i, cues[i]));
+    }
+    updateStats();
+  }
+
+  function buildCueRow(idx, cue) {
+    var row = document.createElement('div');
+    row.className = 'se-cue';
+    row.setAttribute('data-index', idx);
+
+    var num = document.createElement('div');
+    num.className = 'se-cue-num';
+    num.textContent = String(idx + 1);
+    row.appendChild(num);
+
+    var body = document.createElement('div');
+    body.className = 'se-cue-body';
+
+    var times = document.createElement('div');
+    times.className = 'se-cue-times';
+
+    var startIn = document.createElement('input');
+    startIn.type = 'text';
+    startIn.className = 'se-input';
+    startIn.setAttribute('data-field', 'start');
+    startIn.value = msToSrt(cue.start);
+    startIn.setAttribute('aria-label', 'Cue ' + (idx + 1) + ' start time');
+    startIn.dataset.testid = 'se-cue-start-' + idx;
+    times.appendChild(startIn);
+
+    var arrow = document.createElement('span');
+    arrow.className = 'se-cue-arrow';
+    arrow.textContent = '→';
+    times.appendChild(arrow);
+
+    var endIn = document.createElement('input');
+    endIn.type = 'text';
+    endIn.className = 'se-input';
+    endIn.setAttribute('data-field', 'end');
+    endIn.value = msToSrt(cue.end);
+    endIn.setAttribute('aria-label', 'Cue ' + (idx + 1) + ' end time');
+    endIn.dataset.testid = 'se-cue-end-' + idx;
+    times.appendChild(endIn);
+
+    var actions = document.createElement('div');
+    actions.className = 'se-cue-actions';
+    actions.style.marginLeft = 'auto';
+
+    var upBtn = document.createElement('button');
+    upBtn.className = 'se-icon-btn';
+    upBtn.textContent = '↑';
+    upBtn.title = 'Move up';
+    upBtn.setAttribute('aria-label', 'Move cue ' + (idx + 1) + ' up');
+    upBtn.addEventListener('click', (function(i) { return function() { moveCue(i, i - 1); }; })(idx));
+    if (idx === 0) upBtn.disabled = true;
+    actions.appendChild(upBtn);
+
+    var downBtn = document.createElement('button');
+    downBtn.className = 'se-icon-btn';
+    downBtn.textContent = '↓';
+    downBtn.title = 'Move down';
+    downBtn.setAttribute('aria-label', 'Move cue ' + (idx + 1) + ' down');
+    downBtn.addEventListener('click', (function(i) { return function() { moveCue(i, i + 1); }; })(idx));
+    if (idx === cues.length - 1) downBtn.disabled = true;
+    actions.appendChild(downBtn);
+
+    var delBtn = document.createElement('button');
+    delBtn.className = 'se-icon-btn';
+    delBtn.textContent = '×';
+    delBtn.title = 'Delete';
+    delBtn.setAttribute('aria-label', 'Delete cue ' + (idx + 1));
+    delBtn.addEventListener('click', (function(i) { return function() { deleteCue(i); }; })(idx));
+    actions.appendChild(delBtn);
+
+    times.appendChild(actions);
+    body.appendChild(times);
+
+    var textArea = document.createElement('textarea');
+    textArea.className = 'se-cue-text';
+    textArea.value = cue.text;
+    textArea.rows = Math.max(1, cue.text.split('\n').length);
+    textArea.setAttribute('data-field', 'text');
+    textArea.setAttribute('aria-label', 'Cue ' + (idx + 1) + ' text');
+    textArea.dataset.testid = 'se-cue-text-' + idx;
+    body.appendChild(textArea);
+
+    var meta = document.createElement('div');
+    meta.className = 'se-cue-meta';
+    var dur = (cue.end - cue.start) / 1000;
+    var charCount = cue.text.replace(/\n/g, ' ').length;
+    var cps = dur > 0 ? (charCount / dur) : 0;
+    var cpsLabel = document.createElement('span');
+    cpsLabel.className = 'se-cps ' + (cps > 20 ? 'se-cps-bad' : cps > 15 ? 'se-cps-warn' : 'se-cps-ok');
+    cpsLabel.textContent = cps.toFixed(1) + ' CPS';
+    meta.appendChild(cpsLabel);
+    var durLabel = document.createElement('span');
+    durLabel.textContent = dur.toFixed(1) + 's';
+    meta.appendChild(durLabel);
+    var charLabel = document.createElement('span');
+    charLabel.textContent = charCount + ' chars';
+    meta.appendChild(charLabel);
+    body.appendChild(meta);
+
+    startIn.addEventListener('change', (function(i) { return function() { updateCueTime(i, 'start', startIn.value); }; })(idx));
+    endIn.addEventListener('change', (function(i) { return function() { updateCueTime(i, 'end', endIn.value); }; })(idx));
+    textArea.addEventListener('input', (function(i) { return function() { cues[i].text = textArea.value; updateStats(); }; })(idx));
+
+    row.appendChild(body);
+    return row;
+  }
+
+  function updateCueTime(idx, field, val) {
+    var ms = parseSrtTime(val);
+    if (ms === null) {
+      showStatus('Invalid time format: ' + val + '. Use HH:MM:SS,mmm', 'err');
+      renderCues();
+      return;
+    }
+    cues[idx][field] = ms;
+    if (cues[idx].end < cues[idx].start) {
+      if (field === 'end') cues[idx].end = cues[idx].start;
+      else cues[idx].start = cues[idx].end;
+    }
+    showStatus('', '');
+    renderCues();
+  }
+
+  function moveCue(from, to) {
+    if (to < 0 || to >= cues.length || from === to) return;
+    var item = cues.splice(from, 1)[0];
+    cues.splice(to, 0, item);
+    renderCues();
+  }
+
+  function deleteCue(idx) {
+    cues.splice(idx, 1);
+    renderCues();
+  }
+
+  function addCue() {
+    var lastEnd = cues.length > 0 ? cues[cues.length - 1].end : 0;
+    cues.push({ start: lastEnd, end: lastEnd + 2000, text: 'New cue' });
+    renderCues();
+  }
+
+  function clearAll() {
+    if (cues.length === 0) return;
+    if (!confirm('Clear all ' + cues.length + ' cues?')) return;
+    cues = [];
+    loadedFromFile = false;
+    rawInput.value = '';
+    showStatus('', '');
+    showIssues([]);
+    editorPanel.style.display = 'none';
+    dropzone.classList.remove('has-file');
+  }
+
+  function shiftAllCues() {
+    var ms = parseInt(shiftMs.value, 10);
+    if (!isFinite(ms)) { showStatus('Enter a valid number', 'err'); return; }
+    if (ms === 0) { showStatus('No shift applied (offset is 0)', 'warn'); return; }
+    for (var i = 0; i < cues.length; i++) {
+      cues[i].start = Math.max(0, cues[i].start + ms);
+      cues[i].end = Math.max(0, cues[i].end + ms);
+    }
+    showStatus('Shifted all cues by ' + ms + ' ms', 'ok');
+    renderCues();
+  }
+
+  function splitLongCues() {
+    var max = parseFloat(maxCps.value);
+    if (!isFinite(max) || max <= 0) { showStatus('Invalid max CPS', 'err'); return; }
+    var newCues = [];
+    var splitCount = 0;
+    for (var i = 0; i < cues.length; i++) {
+      var c = cues[i];
+      var dur = (c.end - c.start) / 1000;
+      var chars = c.text.replace(/\n/g, ' ').length;
+      var cps = dur > 0 ? chars / dur : 0;
+      if (cps <= max) {
+        newCues.push(c);
+        continue;
+      }
+      var pieces = splitTextAtSentences(c.text, Math.ceil(chars / (max * dur)));
+      if (pieces.length < 2) {
+        newCues.push(c);
+        continue;
+      }
+      var slice = dur / pieces.length;
+      for (var k = 0; k < pieces.length; k++) {
+        newCues.push({
+          start: Math.round(c.start + k * slice * 1000),
+          end: Math.round(c.start + (k + 1) * slice * 1000),
+          text: pieces[k]
+        });
+      }
+      splitCount++;
+    }
+    cues = newCues;
+    if (splitCount > 0) {
+      showStatus('Split ' + splitCount + ' long cue(s) at sentence boundaries', 'ok');
+    } else {
+      showStatus('No cues exceeded ' + max + ' CPS', 'ok');
+    }
+    renderCues();
+  }
+
+  function splitTextAtSentences(text, maxParts) {
+    var trimmed = text.trim();
+    if (maxParts <= 1 || trimmed.length === 0) return [trimmed];
+    var parts = trimmed.split(/(?<=[.!?])\s+|\n+/);
+    if (parts.length >= maxParts) return parts;
+    var len = trimmed.length;
+    var ideal = Math.ceil(len / maxParts);
+    var grouped = [];
+    var current = '';
+    for (var i = 0; i < parts.length; i++) {
+      if (current.length === 0) {
+        current = parts[i];
+      } else if (current.length + 1 + parts[i].length <= ideal) {
+        current += ' ' + parts[i];
+      } else {
+        grouped.push(current);
+        current = parts[i];
+      }
+    }
+    if (current.length > 0) grouped.push(current);
+    return grouped.length > 1 ? grouped : [trimmed];
+  }
+
+  function mergeAdjacentCues() {
+    if (cues.length < 2) { showStatus('Need at least 2 cues to merge', 'warn'); return; }
+    var merged = 0;
+    var newCues = [cues[0]];
+    for (var i = 1; i < cues.length; i++) {
+      var prev = newCues[newCues.length - 1];
+      var cur = cues[i];
+      if (cur.start <= prev.end + 100 && cur.text.split('\n')[0] === prev.text.split('\n')[0]) {
+        prev.end = Math.max(prev.end, cur.end);
+        if (cur.text !== prev.text) {
+          prev.text = prev.text + '\n' + cur.text;
+        }
+        merged++;
+      } else {
+        newCues.push(cur);
+      }
+    }
+    cues = newCues;
+    if (merged > 0) {
+      showStatus('Merged ' + merged + ' adjacent cue(s)', 'ok');
+    } else {
+      showStatus('No adjacent cues to merge', 'ok');
+    }
+    renderCues();
+  }
+
+  function sortAndValidate() {
+    if (cues.length === 0) { showStatus('No cues to validate', 'warn'); return; }
+    var issues = [];
+    for (var i = 0; i < cues.length; i++) {
+      if (cues[i].end < cues[i].start) {
+        issues.push('Cue ' + (i + 1) + ': end is before start');
+      }
+    }
+    for (var j = 1; j < cues.length; j++) {
+      if (cues[j].start < cues[j - 1].end) {
+        issues.push('Cue ' + (j + 1) + ' overlaps cue ' + j + ' (starts at ' + msToSrt(cues[j].start) + ')');
+      }
+    }
+    var wasSorted = true;
+    for (var k = 1; k < cues.length; k++) {
+      if (cues[k].start < cues[k - 1].start) { wasSorted = false; break; }
+    }
+    cues.sort(function(a, b) { return a.start - b.start; });
+    if (!wasSorted) issues.push('Cues were out of order; now sorted by start time');
+    showIssues(issues);
+    if (issues.length === 0) {
+      showStatus('All ' + cues.length + ' cues valid. No issues found.', 'ok');
+    } else {
+      showStatus(issues.length + ' issue(s) detected', 'warn');
+    }
+    renderCues();
+  }
+
+  function updateStats() {
+    statCues.textContent = String(cues.length);
+    if (cues.length === 0) {
+      statDuration.textContent = '0:00';
+      statChars.textContent = '0';
+      statCps.textContent = '0.0';
+      return;
+    }
+    var last = cues[cues.length - 1];
+    var totalSec = Math.floor(last.end / 1000);
+    var h = Math.floor(totalSec / 3600);
+    var m = Math.floor((totalSec % 3600) / 60);
+    var s = totalSec % 60;
+    statDuration.textContent = (h > 0 ? h + ':' : '') + pad(m, 2) + ':' + pad(s, 2);
+    var totalChars = 0;
+    var totalDur = 0;
+    for (var i = 0; i < cues.length; i++) {
+      totalChars += cues[i].text.replace(/\n/g, ' ').length;
+      totalDur += (cues[i].end - cues[i].start) / 1000;
+    }
+    statChars.textContent = String(totalChars);
+    statCps.textContent = totalDur > 0 ? (totalChars / totalDur).toFixed(1) : '0.0';
+  }
+
+  function loadFromText(text, format) {
+    var parsed = format === 'vtt' ? parseVtt(text) : parseSrt(text);
+    if (parsed.length === 0) {
+      showStatus('No valid cues found. Check the format and try again.', 'err');
+      editorPanel.style.display = 'none';
+      return;
+    }
+    cues = parsed;
+    lastFormat = format;
+    showStatus('Loaded ' + cues.length + ' cue(s) from ' + format.toUpperCase(), 'ok');
+    showIssues([]);
+    editorPanel.style.display = 'grid';
+    formatSelect.value = format;
+    dropzone.classList.add('has-file');
+    renderCues();
+  }
+
+  function exportFile(format) {
+    if (cues.length === 0) {
+      showStatus('Nothing to export', 'warn');
+      return;
+    }
+    var content = format === 'vtt' ? buildVtt(cues) : buildSrt(cues);
+    var blob = new Blob([content], { type: format === 'vtt' ? 'text/vtt' : 'application/x-subrip' });
+    var url = URL.createObjectURL(blob);
+    var baseName = sourceFileName.replace(/\.(srt|vtt)$/i, '');
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = baseName + '.' + format;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+    showStatus('Downloaded ' + a.download + ' (' + cues.length + ' cues)', 'ok');
+  }
+
+  function copyToClipboard() {
+    if (cues.length === 0) { showStatus('Nothing to copy', 'warn'); return; }
+    var fmt = formatSelect.value || lastFormat || 'srt';
+    var text = fmt === 'vtt' ? buildVtt(cues) : buildSrt(cues);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        showStatus('Copied ' + fmt.toUpperCase() + ' to clipboard', 'ok');
+      }, function() {
+        rawInput.value = text;
+        showStatus('Clipboard blocked. Output pasted into the text box - copy from there.', 'warn');
+      });
+    } else {
+      rawInput.value = text;
+      showStatus('Clipboard not available. Output pasted into the text box - copy from there.', 'warn');
+    }
+  }
+
+  function handleFile(file) {
+    if (!file) return;
+    sourceFileName = file.name;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var text = String(e.target.result || '');
+      rawInput.value = text;
+      var fmt = detectFormat(text);
+      loadFromText(text, fmt);
+      loadedFromFile = true;
+    };
+    reader.onerror = function() {
+      showStatus('Could not read file', 'err');
+    };
+    reader.readAsText(file);
+  }
+
+  dropzone.addEventListener('click', function() { fileInput.click(); });
+  dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', function() { dropzone.classList.remove('dragover'); });
+  dropzone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  });
+  fileInput.addEventListener('change', function() {
+    if (fileInput.files && fileInput.files.length > 0) handleFile(fileInput.files[0]);
+  });
+
+  parseBtn.addEventListener('click', function() {
+    var text = rawInput.value.trim();
+    if (!text) { showStatus('Paste a subtitle or load a file first', 'warn'); return; }
+    var fmt = detectFormat(text);
+    loadFromText(text, fmt);
+  });
+
+  loadSampleLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    sourceFileName = 'sample.srt';
+    rawInput.value = SAMPLE_SRT;
+    loadFromText(SAMPLE_SRT, 'srt');
+  });
+
+  shiftApplyBtn.addEventListener('click', shiftAllCues);
+  splitApplyBtn.addEventListener('click', splitLongCues);
+  addCueBtn.addEventListener('click', addCue);
+  clearBtn.addEventListener('click', clearAll);
+  sortBtn.addEventListener('click', sortAndValidate);
+  shiftBtn.addEventListener('click', function() { shiftMs.focus(); });
+  splitBtn.addEventListener('click', function() { maxCps.focus(); });
+  mergeBtn.addEventListener('click', mergeAdjacentCues);
+  exportSrtBtn.addEventListener('click', function() { exportFile('srt'); });
+  exportVttBtn.addEventListener('click', function() { exportFile('vtt'); });
+  copyBtn.addEventListener('click', copyToClipboard);
+
+
+  renderCues();
+})();
+</script>
+</body>
+</html>

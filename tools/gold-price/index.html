@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gold Price Tracker | DevTools Hub</title>
+<meta name="description" content="Track live gold spot prices (XAU/USD). Free real-time gold price tracker with interactive charts. Updated every minute. No signup required.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/gold-price/">
+    <meta property="og:title" content="Gold Price Tracker | DevTools Hub">
+    <meta property="og:description" content="Track live gold spot prices (XAU/USD). Free real-time gold price tracker with interactive charts. Updated every minute. No signup required.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/gold-price/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+"@context":"https://schema.org","@type":"WebApplication",
+"name":"Gold Price Tracker","url":"https://tools.scoreroute.com/tools/gold-price/",
+"description":"Track live gold spot prices (XAU/USD) with real-time charts and multi-currency support.",
+"datePublished":"2026-06-01","dateModified":"2026-06-01",
+"author":{"@type":"Person","name":"BAOMING"},
+"applicationCategory":"Finance","operatingSystem":"All",
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"featureList":["Live gold spot price","Multi-currency support","30-day price chart","Price change indicators","Silver price tracking"]
+}
+</script>
+<style>
+.gp-page { max-width: 800px; margin: 0 auto; }
+.gp-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+.gp-price-display { background: linear-gradient(135deg, #1a1a2e, #252545); border: 1px solid #2a2a4a; border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 24px; }
+.gp-price { font-size: 3rem; font-weight: 700; color: #fff; letter-spacing: -1px; }
+.gp-price-currency { font-size: 1.2rem; color: #888; }
+.gp-change { font-size: 1.1rem; margin-top: 8px; }
+.gp-change.positive { color: #10b981; }
+.gp-change.negative { color: #ef4444; }
+.gp-change.neutral { color: #888; }
+.gp-label { color: #888; font-size: 0.85rem; margin-bottom: 4px; }
+.gp-meta { display: flex; justify-content: center; gap: 32px; margin-top: 16px; flex-wrap: wrap; }
+.gp-meta-item { text-align: center; }
+.gp-meta-label { color: #666; font-size: 0.75rem; text-transform: uppercase; }
+.gp-meta-value { color: #ccc; font-size: 0.9rem; font-weight: 500; }
+.gp-ctl-label { font-size: 0.85rem; color: #b3b8c0; font-weight: 600; }
+.gp-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 24px; }
+.gp-controls select, .gp-controls button { padding: 10px 16px; background: #1a1a2e; border: 1px solid #2a2a4a; color: #fff; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+.gp-controls select:hover, .gp-controls button:hover { border-color: #667eea; }
+.gp-controls button.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); border: none; }
+.gp-controls button.btn-primary:hover { background: linear-gradient(135deg, #7a8ff0, #8a5cb5); }
+.gp-chart-container { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 16px; padding: 24px; margin-bottom: 24px; position: relative; }
+.gp-chart-container h3 { color: #667eea; margin-bottom: 16px; font-size: 1.1rem; }
+.gp-chart-container canvas { width: 100% !important; max-height: 300px; }
+.gp-currencies { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 24px; }
+.gp-currency-card { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 10px; padding: 14px; text-align: center; cursor: pointer; transition: all 0.2s; }
+.gp-currency-card:hover { border-color: #667eea; background: #1a1a2e; }
+.gp-currency-card.active { border-color: #667eea; background: rgba(102,126,234,0.1); }
+.gp-currency-card .ccy { color: #fff; font-weight: 600; font-size: 0.9rem; }
+.gp-currency-card .val { color: #aaa; font-size: 0.85rem; margin-top: 4px; }
+.gp-silver { margin-top: 12px; padding-top: 16px; border-top: 1px solid #2a2a4a; }
+.gp-silver-label { color: #666; font-size: 0.8rem; }
+.gp-silver-price { color: #aaa; font-size: 1rem; font-weight: 500; }
+.loading-dots::after { content: ''; animation: dots 1.5s steps(4, end) infinite; }
+@keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } 100% { content: ''; } }
+.spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #2a2a4a; border-top: 2px solid #667eea; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.gp-status { text-align: center; color: #888; font-size: 0.85rem; padding: 8px; min-height: 24px; }
+.gp-error { text-align: center; color: #ef4444; font-size: 0.9rem; padding: 12px; }
+@media (max-width: 600px) {
+.gp-price { font-size: 2.2rem; }
+.gp-price-display { padding: 24px 16px; }
+.gp-meta { gap: 16px; }
+.gp-currencies { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>Gold Price Tracker</h1>
+<p class="subtitle">Live Gold Spot Price (XAU/USD) - Updated Every Minute</p>
+<nav class="breadcrumb">
+<a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Gold Price Tracker</span>
+<a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+</nav>
+</div>
+</header>
+<main class="container">
+<section class="tool-page">
+<div class="gp-page">
+<div class="gp-price-display" id="price-display">
+<div class="gp-label">Gold Spot Price (XAU/<span id="display-ccy-label">USD</span>)</div>
+<div class="gp-price"><span id="gp-price">--</span> <span class="gp-price-currency" id="gp-currency">USD</span></div>
+<div class="gp-change" id="gp-change">Loading...</div>
+<div class="gp-meta">
+<div class="gp-meta-item">
+<div class="gp-meta-label">Previous Close</div>
+<div class="gp-meta-value" id="gp-prev-close">--</div>
+</div>
+<div class="gp-meta-item">
+<div class="gp-meta-label">Day High</div>
+<div class="gp-meta-value" id="gp-high">--</div>
+</div>
+<div class="gp-meta-item">
+<div class="gp-meta-label">Day Low</div>
+<div class="gp-meta-value" id="gp-low">--</div>
+</div>
+<div class="gp-meta-item">
+<div class="gp-meta-label">Last Updated</div>
+<div class="gp-meta-value" id="gp-updated">--</div>
+</div>
+</div>
+<div class="gp-silver" id="silver-section" style="display:none;">
+<div class="gp-silver-label">Silver Spot Price (XAG/USD)</div>
+<div class="gp-silver-price" id="silver-price">--</div>
+</div>
+</div>
+
+<div class="gp-controls">
+<label class="gp-ctl-label" for="currency-select">Display currency</label>
+<select id="currency-select" onchange="changeCurrency(this.value)">
+<option value="USD">USD</option>
+<option value="EUR">EUR</option>
+<option value="GBP">GBP</option>
+<option value="INR">INR</option>
+<option value="JPY">JPY</option>
+<option value="CNY">CNY</option>
+<option value="AUD">AUD</option>
+<option value="CAD">CAD</option>
+<option value="CHF">CHF</option>
+</select>
+<button onclick="refreshData()" class="btn btn-primary">Refresh</button>
+<button onclick="toggleAutoRefresh()" class="btn" id="auto-refresh-btn">Auto Refresh: ON</button>
+</div>
+
+<div class="gp-currencies" id="currency-grid"></div>
+
+<div class="gp-chart-container">
+<h2>30-Day Gold Price History</h2>
+<canvas id="gold-chart"></canvas>
+<div id="chart-loading" style="text-align:center;padding:60px 0;"><span class="spinner"></span> Loading chart...</div>
+</div>
+
+<div class="gp-status" id="gp-status"></div>
+</div>
+</section>
+
+<div class="info-section">
+<h3>Gold Price Tracker</h3>
+<p>Track live gold spot prices (XAU/USD) with real-time updates, interactive 30-day charts, and support for 9 major currencies. Gold prices are sourced from official market data and updated every minute.</p>
+
+<h4>Why Use This Tool?</h4>
+<ul>
+<li><strong>Real-time prices</strong> - Live gold spot prices updated automatically</li>
+<li><strong>Multi-currency</strong> - View gold prices in USD, EUR, GBP, INR, JPY, CNY, AUD, CAD, CHF</li>
+<li><strong>Interactive charts</strong> - 30-day price history with clear visual trends</li>
+<li><strong>AI cannot do this</strong> - AI chatbots cannot fetch live gold prices or show real-time charts</li>
+<li><strong>Free & private</strong> - No signup, no tracking, 100% free</li>
+</ul>
+
+<h4>How It Works</h4>
+<p>The tool fetches live gold spot prices from global market data sources via our API proxy. Prices reflect the current market value of gold per troy ounce. The chart shows 30 days of historical price data to help you identify trends.</p>
+
+<h4>Frequently Asked Questions</h4>
+<details class="faq-item"><summary>What is XAU?</summary><p>XAU is the ISO 4217 standard code for one troy ounce of gold. XAU/USD represents the price of one troy ounce of gold in US Dollars.</p></details>
+<details class="faq-item"><summary>How often is the price updated?</summary><p>The price updates every 60 seconds automatically. You can also click the Refresh button for an immediate update.</p></details>
+<details class="faq-item"><summary>Is this data reliable?</summary><p>Data is sourced from goldprice.org (official market data) with Yahoo Finance as a backup. Prices are indicative market rates and may not reflect exact trading prices.</p></details>
+<details class="faq-item"><summary>Can I see historical gold prices?</summary><p>Yes, the interactive chart shows 30 days of historical gold price data. You can see daily price movements and trends.</p></details>
+<details class="faq-item"><summary>Why is this better than asking AI?</summary><p>AI chatbots cannot fetch real-time market data and have knowledge cutoffs. This tool provides live gold prices updated every minute with interactive charts.</p></details>
+</div>
+</main>
+<footer>
+<p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+
+<script src="/tools.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+var state = {
+currency: 'USD',
+autoRefresh: true,
+refreshInterval: null,
+chart: null,
+priceData: null,
+historyData: null,
+lastPrice: 0
+};
+
+function fmtPrice(n) {
+if (n == null || isNaN(n)) return '--';
+if (n >= 1000) return n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+if (n >= 1) return n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 4});
+return n.toLocaleString('en-US', {minimumFractionDigits: 4, maximumFractionDigits: 6});
+}
+
+function fmtChange(n, suffix) {
+if (n == null || isNaN(n)) return '--';
+var s = (n >= 0 ? '+' : '') + n.toFixed(2) + (suffix || '');
+return s;
+}
+
+function fmtDate(ts) {
+if (!ts) return '--';
+try {
+var d = new Date(ts);
+return d.toLocaleTimeString();
+} catch(e) { return ts; }
+}
+
+async function fetchSpot(currency) {
+var r = await fetch('/api/gold-price?action=spot&currency=' + encodeURIComponent(currency));
+if (!r.ok) throw new Error('API error ' + r.status);
+return await r.json();
+}
+
+async function fetchHistory(currency) {
+var r = await fetch('/api/gold-price?action=history&currency=' + encodeURIComponent(currency));
+if (!r.ok) throw new Error('History API error ' + r.status);
+return await r.json();
+}
+
+function showStatus(msg, type) {
+var el = document.getElementById('gp-status');
+el.textContent = msg;
+el.className = 'gp-status' + (type ? ' gp-' + type : '');
+}
+
+async function refreshData() {
+showStatus('Updating...');
+try {
+var spotData = await fetchSpot(state.currency);
+state.priceData = spotData;
+state.lastPrice = spotData.price;
+
+if (spotData.error) {
+document.getElementById('gp-price').textContent = 'Error';
+document.getElementById('gp-change').textContent = 'Unable to fetch data';
+showStatus(spotData.error, 'error');
+return;
+}
+
+var price = spotData.price || 0;
+var prevClose = spotData.previousClose || price;
+var change = spotData.change || 0;
+var changePct = spotData.changePercent || 0;
+
+document.getElementById('gp-price').textContent = fmtPrice(price);
+document.getElementById('display-ccy-label').textContent = state.currency;
+document.getElementById('gp-currency').textContent = state.currency;
+document.getElementById('gp-prev-close').textContent = fmtPrice(prevClose);
+
+var changeEl = document.getElementById('gp-change');
+var changeText = fmtChange(change, '') + ' (' + fmtChange(changePct, '%') + ')';
+changeEl.textContent = changeText;
+changeEl.className = 'gp-change';
+if (change > 0) changeEl.classList.add('positive');
+else if (change < 0) changeEl.classList.add('negative');
+else changeEl.classList.add('neutral');
+
+document.getElementById('gp-updated').textContent = fmtDate(spotData.timestamp);
+
+if (spotData.allCurrencies) {
+renderCurrencyGrid(spotData.allCurrencies);
+}
+
+var silverPrice = spotData.results && spotData.results.USD ? spotData.results.USD.xagPrice : null;
+if (silverPrice && silverPrice > 0) {
+document.getElementById('silver-section').style.display = 'block';
+document.getElementById('silver-price').textContent = '$' + fmtPrice(silverPrice);
+}
+
+showStatus('Updated at ' + new Date().toLocaleTimeString(), 'success');
+setTimeout(function() { showStatus(''); }, 3000);
+
+if (!state.historyData) {
+loadHistory();
+}
+
+} catch(e) {
+document.getElementById('gp-price').textContent = 'Error';
+document.getElementById('gp-change').textContent = e.message;
+showStatus('Error: ' + e.message, 'error');
+}
+}
+
+function renderCurrencyGrid(allCurrencies) {
+var grid = document.getElementById('currency-grid');
+grid.innerHTML = '';
+var currencies = ['USD', 'EUR', 'GBP', 'INR', 'JPY', 'CNY', 'AUD', 'CAD', 'CHF'];
+for (var i = 0; i < currencies.length; i++) {
+var ccy = currencies[i];
+var data = allCurrencies[ccy];
+var card = document.createElement('div');
+card.className = 'gp-currency-card' + (ccy === state.currency ? ' active' : '');
+card.dataset.currency = ccy;
+var val = data ? fmtPrice(data.xauPrice) : '--';
+card.innerHTML = '<div class="ccy">' + ccy + '</div><div class="val">' + val + '</div>';
+card.onclick = function() { changeCurrency(this.dataset.currency); };
+grid.appendChild(card);
+}
+}
+
+async function loadHistory() {
+document.getElementById('chart-loading').style.display = 'block';
+try {
+var histData = await fetchHistory(state.currency);
+state.historyData = histData.history || [];
+renderChart();
+} catch(e) {
+console.error('History error:', e);
+}
+document.getElementById('chart-loading').style.display = 'none';
+}
+
+function renderChart() {
+var chartEl = document.getElementById('gold-chart');
+if (!state.historyData || state.historyData.length === 0) return;
+
+if (state.chart) {
+state.chart.destroy();
+state.chart = null;
+}
+
+var labels = state.historyData.map(function(h) { return h.date; });
+var prices = state.historyData.map(function(h) { return h.price; });
+var minPrice = Math.min.apply(null, prices);
+var maxPrice = Math.max.apply(null, prices);
+var padding = (maxPrice - minPrice) * 0.1 || 10;
+
+state.chart = new Chart(chartEl, {
+type: 'line',
+data: {
+labels: labels,
+datasets: [{
+label: 'Gold Price (' + state.currency + ')',
+data: prices,
+borderColor: '#d4a84b',
+backgroundColor: 'rgba(212, 168, 75, 0.1)',
+borderWidth: 2,
+fill: true,
+tension: 0.3,
+pointRadius: 2,
+pointHoverRadius: 5,
+pointBackgroundColor: '#d4a84b'
+}]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {
+legend: { display: false },
+tooltip: {
+backgroundColor: '#1a1a2e',
+titleColor: '#fff',
+bodyColor: '#d4a84b',
+borderColor: '#2a2a4a',
+borderWidth: 1,
+callbacks: {
+label: function(ctx) { return state.currency + ' ' + fmtPrice(ctx.parsed.y); }
+}
+}
+},
+scales: {
+x: {
+display: true,
+grid: { color: 'rgba(255,255,255,0.05)' },
+ticks: { color: '#666', maxTicksLimit: 10, font: { size: 10 } }
+},
+y: {
+display: true,
+grid: { color: 'rgba(255,255,255,0.05)' },
+ticks: { color: '#666', font: { size: 10 } },
+min: Math.floor(minPrice - padding),
+max: Math.ceil(maxPrice + padding)
+}
+},
+interaction: { intersect: false, mode: 'index' }
+}
+});
+}
+
+function changeCurrency(currency) {
+state.currency = currency;
+document.getElementById('currency-select').value = currency;
+document.querySelectorAll('.gp-currency-card').forEach(function(c) {
+c.classList.toggle('active', c.dataset.currency === currency);
+});
+state.historyData = null;
+refreshData();
+}
+
+function toggleAutoRefresh() {
+state.autoRefresh = !state.autoRefresh;
+var btn = document.getElementById('auto-refresh-btn');
+if (state.autoRefresh) {
+btn.textContent = 'Auto Refresh: ON';
+btn.className = 'btn btn-primary';
+startAutoRefresh();
+} else {
+btn.textContent = 'Auto Refresh: OFF';
+btn.className = 'btn';
+stopAutoRefresh();
+}
+}
+
+function startAutoRefresh() {
+stopAutoRefresh();
+state.refreshInterval = setInterval(function() {
+refreshData();
+}, 60000);
+}
+
+function stopAutoRefresh() {
+if (state.refreshInterval) {
+clearInterval(state.refreshInterval);
+state.refreshInterval = null;
+}
+}
+
+window.addEventListener('resize', function() {
+if (state.chart) state.chart.resize();
+});
+
+initPage();
+refreshData();
+
+function initPage() {
+startAutoRefresh();
+}
+</script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

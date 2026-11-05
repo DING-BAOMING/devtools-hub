@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sitemap Audit - Sitemap Errors &amp; Noindex | DevTools Hub</title>
+<meta name="description" content="Free sitemap audit. Finds the errors Google reports: 404s, redirects, noindex pages, blocked URLs, bad lastmod, duplicates. Gets you a clean sitemap.xml.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/sitemap-audit/">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/sitemap-audit/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sitemap Audit - Sitemap Errors &amp; Noindex | DevTools Hub">
+<meta property="og:description" content="Free sitemap audit. Finds the errors Google reports: 404s, redirects, noindex pages, blocked URLs, bad lastmod, duplicates. Gets you a clean sitemap.xml.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sitemap Audit - Sitemap Errors &amp; Noindex | DevTools Hub">
+<meta name="twitter:description" content="Free sitemap audit. Finds the errors Google reports: 404s, redirects, noindex pages, blocked URLs, bad lastmod, duplicates. Gets you a clean sitemap.xml.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:url" content="https://tools.scoreroute.com/tools/sitemap-audit/">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Sitemap Audit",
+  "description": "Fetches a site's sitemap, then fetches the pages inside it. Reports the sitemap-level errors Search Console lists, and the per-URL reasons a valid sitemap still produces zero indexed pages: 404s, redirects, meta and header noindex, a canonical pointing elsewhere, and URLs robots.txt blocks.",
+  "url": "https://tools.scoreroute.com/tools/sitemap-audit/",
+  "applicationCategory": "NetworkApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript. No signup, no upload, nothing stored.",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@id": "https://tools.scoreroute.com/#author"},
+  "featureList": [
+    "Locates the sitemap from robots.txt, or by probing six common paths",
+    "Follows one redirect hop so a www-only sitemap is still found",
+    "Sitemap-level checks against Google's documented rules: 50MB, 50,000 URLs, absolute loc, W3C lastmod, namespace, nesting",
+    "Per-URL live checks: status, X-Robots-Tag, meta noindex, canonical target, robots.txt",
+    "Every finding carries the exact label Search Console uses for that class of problem",
+    "Downloads a cleaned sitemap.xml with the dead URLs removed"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "My sitemap is valid. Why is nothing indexed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because a valid sitemap only means the file parses. Google still decides per page whether to index it. The usual causes are a meta robots noindex on the page, a canonical tag pointing at a different URL, a Disallow rule in robots.txt covering that path, a redirect, or a 404. All five return HTTP 200 or 3xx and are invisible to a validator that only reads the XML. This tool fetches the pages, not just the file, and reports which of these is happening to which URL."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does a sitemap get my pages indexed?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No, and Google is explicit about it. Submitting a sitemap is a hint. It does not guarantee Google downloads it, and a URL listed in a sitemap is not guaranteed to be crawled or indexed. What a sitemap reliably does is speed up discovery of pages that are already indexable. If a page is blocked, redirected or marked noindex, adding it to the sitemap changes nothing."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does lastmod in a sitemap help my rankings?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not directly. Google states it uses the lastmod value when it is consistently and verifiably accurate, for example when compared against the actual modification time of the file. That condition is the whole catch. One identical timestamp on every URL in a large sitemap is the signature of a build time, not a modification date, and it teaches the crawler nothing. Set lastmod per page to the date that page last changed, or drop the tag rather than fill it with today's date."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Should I keep priority and changefreq in my sitemap?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "They are valid, and Google states plainly that it ignores both values. They add bytes to every entry and buy nothing. The common belief that priority 1.0 gets a page crawled first is not how it works. Drop them and put the effort into lastmod, which is at least read."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many URLs should one sitemap hold?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A single sitemap by Google is limited to 50,000 URLs and 50MB uncompressed data. Beyond that, it needs to be segmented, with the components documented in a sitemap index file. An index file can contain 50,000 entries, must have sitemaps referenced in its own directory or less, and is not authorized to list other index files, including itself. Google limits users to a maximum of 500 index files per site."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why are two of my URLs flagged as duplicates when they look different?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A crawler treats a trailing slash, a www prefix and tracking parameters as the same page. /product and /product/ are one URL, and so are example.com/x?utm_source=a and example.com/x?utm_source=b. Listing them twice splits your signals, Google picks the version it prefers, and the other is reported as a duplicate without a user-selected canonical. Fix it at the source: one URL in the sitemap, and a rel=canonical on the page pointing at the version you want."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many URLs does this actually check?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The whole file is parsed, so every URL is checked against the structural rules. A sample of the pages is then fetched live, spread evenly across the file rather than taken from the front, because on a real site the first entries are the homepage and its immediate children. The sample size is on the control above, up to 35. That ceiling is a limit of free Cloudflare Pages Functions, which allow 50 outbound requests per request. Every page not fetched is listed without a live verdict rather than assumed fine."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the domain I check stored or logged?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The request is answered with a no-store cache header, the files are read and discarded, and nothing is written to storage or to disk. We do not keep a list of the sites people audit."
+      }
+    }
+  ]
+}</script>
+<style>
+.sa-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+.sa-row input[type="text"] { flex: 1; min-width: 220px; padding: 14px 18px; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; font-size: 1rem; font-family: monospace; }
+.sa-row input[type="text"]:focus { outline: 2px solid transparent; border-color: #667eea; }
+.sa-row input[type="text"]::placeholder { color: #555; }
+.sa-opt { color: #888; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+.sa-opt select { background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 8px; padding: 8px 10px; font-size: 0.9rem; }
+.sa-opt select:focus { outline: 2px solid transparent; border-color: #667eea; }
+.sa-label { color: #888; font-size: 0.85rem; margin: 4px 0; }
+.sa-quick { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 8px 0 20px; }
+.sa-quick-item { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 10px 12px; cursor: pointer; text-align: center; transition: border-color 0.2s; }
+.sa-quick-item:hover { border-color: #667eea; background: #0f0f23; }
+.sa-quick-item .sa-q-domain { color: #667eea; font-weight: 600; font-size: 0.9rem; word-break: break-all; }
+.sa-quick-item .sa-q-desc { color: #777; font-size: 0.78rem; margin-top: 2px; }
+.sa-loading { text-align: center; padding: 40px 20px; display: none; }
+.sa-loading.visible { display: block; }
+.sa-spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #2a2a4a; border-top: 4px solid #667eea; border-radius: 50%; animation: sa-spin 0.8s linear infinite; margin-bottom: 12px; }
+@keyframes sa-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.sa-loading p { color: #888; font-size: 0.95rem; }
+.sa-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 16px 20px; color: #f87171; margin-bottom: 20px; display: none; }
+.sa-out { display: none; }
+.sa-out.visible { display: block; }
+.sa-score { text-align: center; padding: 26px 20px; border-radius: 16px; margin-bottom: 20px; }
+.sa-score.a { background: rgba(16,185,129,0.12); border: 2px solid rgba(16,185,129,0.3); }
+.sa-score.b { background: rgba(59,130,246,0.12); border: 2px solid rgba(59,130,246,0.3); }
+.sa-score.c, .sa-score.d { background: rgba(234,179,8,0.12); border: 2px solid rgba(234,179,8,0.3); }
+.sa-score.e, .sa-score.f { background: rgba(239,68,68,0.12); border: 2px solid rgba(239,68,68,0.3); }
+.sa-grade { font-size: 3.2rem; font-weight: 800; line-height: 1; }
+.sa-score.a .sa-grade, .sa-score.b .sa-grade { color: #4ade80; }
+.sa-score.c .sa-grade, .sa-score.d .sa-grade { color: #fbbf24; }
+.sa-score.e .sa-grade, .sa-score.f .sa-grade { color: #f87171; }
+.sa-score-title { font-size: 1.2rem; color: #fff; margin: 8px 0 4px; font-weight: 700; }
+.sa-score-sub { color: #b3b8c0; font-size: 0.92rem; }
+.sa-tally { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+.sa-tally-item { background: rgba(0,0,0,0.25); border-radius: 20px; padding: 5px 14px; font-size: 0.82rem; color: #ccc; }
+.sa-card { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.sa-card-head { display: flex; align-items: center; gap: 10px; padding: 15px 18px; cursor: pointer; user-select: none; background: none; border: 0; width: 100%; text-align: left; font: inherit; color: inherit; }
+.sa-card-head:hover { background: rgba(102,126,234,0.05); }
+.sa-card-title { flex: 1; font-size: 1.02rem; font-weight: 600; color: #fff; }
+.sa-badge { font-size: 0.78rem; padding: 3px 11px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+.sa-badge.ok { background: rgba(16,185,129,0.15); color: #4ade80; }
+.sa-badge.warn { background: rgba(234,179,8,0.15); color: #fbbf24; }
+.sa-badge.bad { background: rgba(239,68,68,0.15); color: #f87171; }
+.sa-arrow { color: #555; font-size: 0.75rem; transition: transform 0.2s; }
+.sa-card-head.open .sa-arrow { transform: rotate(180deg); }
+.sa-card-body { display: none; padding: 4px 18px 18px; border-top: 1px solid #2a2a4a; }
+.sa-card-body.open { display: block; }
+.sa-finding { padding: 12px 0; border-bottom: 1px solid #1f1f3a; }
+.sa-finding:last-child { border-bottom: none; }
+.sa-f-level { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 3px; }
+.sa-f-level.error { color: #f87171; }
+.sa-f-level.warn { color: #fbbf24; }
+.sa-f-level.info { color: #93c5fd; }
+.sa-f-title { color: #fff; font-weight: 600; font-size: 0.94rem; margin-bottom: 4px; }
+.sa-f-msg { color: #b3b8c0; font-size: 0.9rem; line-height: 1.55; }
+.sa-f-fix { color: #9ae6b4; font-size: 0.88rem; line-height: 1.55; margin-top: 6px; }
+.sa-gsc { display: inline-block; font-size: 0.74rem; font-family: monospace; background: rgba(147,51,234,0.16); color: #c4b5fd; border-radius: 5px; padding: 2px 8px; margin-top: 6px; word-break: break-word; }
+.sa-gsc-note { color: #777; font-size: 0.76rem; margin-top: 3px; }
+.sa-clean { color: #4ade80; font-size: 0.92rem; padding: 12px 0; }
+.sa-stats { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 4px; }
+.sa-stat { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 8px; padding: 8px 13px; font-size: 0.8rem; color: #999; }
+.sa-stat b { color: #fff; font-size: 1rem; display: block; }
+.sa-note { background: #0f0f23; border-left: 3px solid #667eea; padding: 10px 14px; border-radius: 6px; color: #bbb; font-size: 0.87rem; line-height: 1.55; margin: 8px 0; }
+.sa-table-wrap { overflow-x: auto; margin-top: 10px; }
+.sa-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.sa-table th { text-align: left; color: #888; font-weight: 600; padding: 9px 10px; border-bottom: 1px solid #2a2a4a; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+.sa-table td { padding: 9px 10px; border-bottom: 1px solid #1f1f3a; color: #ccc; vertical-align: top; }
+.sa-url { font-family: monospace; font-size: 0.76rem; word-break: break-all; }
+.sa-code { font-family: monospace; font-weight: 700; white-space: nowrap; }
+.sa-code.s2 { color: #4ade80; }
+.sa-code.s3 { color: #fbbf24; }
+.sa-code.s4 { color: #f87171; }
+.sa-code.s5 { color: #f87171; }
+.sa-code.s0 { color: #888; }
+.sa-code.sx { color: #777; }
+.sa-row-issue { color: #b3b8c0; font-size: 0.8rem; margin-top: 3px; }
+.sa-row-issue b { color: #f87171; font-weight: 600; }
+.sa-xml { background: #0f0f23; padding: 14px 16px; border-radius: 8px; overflow-x: auto; color: #9ae6b4; font-size: 0.78rem; line-height: 1.5; font-family: monospace; white-space: pre-wrap; word-break: break-all; margin: 10px 0 0; max-height: 300px; }
+.sa-privacy { margin-top: 16px; font-size: 0.85rem; color: #777; text-align: center; }
+@media (max-width: 600px) {
+  .sa-row { flex-direction: column; align-items: stretch; }
+  .sa-row input[type="text"] { min-width: unset; }
+  .sa-grade { font-size: 2.4rem; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Sitemap Audit</h1>
+    <p class="subtitle">Find the Errors Google Reports, and the Pages That Cannot Be Indexed</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/tools/network/">Network</a> &gt; <span>Sitemap Audit</span>
+      <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <h2>Audit a Sitemap</h2>
+      <div class="sa-row">
+        <input type="url" id="sa-url" placeholder="example.com or example.com/sitemap.xml" autocomplete="url" spellcheck="false" aria-label="Enter a domain or sitemap URL to audit">
+        <span class="sa-opt">Fetch
+          <label class="sr-only" for="sa-sample">How many pages to fetch and check live</label>
+          <select id="sa-sample">
+            <option value="10">10 pages</option>
+            <option value="20" selected>20 pages</option>
+            <option value="35">35 pages</option>
+          </select>
+        </span>
+        <button class="btn btn-primary" onclick="runAudit()" id="sa-btn">Audit</button>
+      </div>
+
+      <p class="sa-label">Try one:</p>
+      <div class="sa-quick">
+        <div class="sa-quick-item" onclick="quick('tools.scoreroute.com')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')quick('tools.scoreroute.com')"><div class="sa-q-domain">tools.scoreroute.com</div><div class="sa-q-desc">This site</div></div>
+        <div class="sa-quick-item" onclick="quick('sitemaps.org')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')quick('sitemaps.org')"><div class="sa-q-domain">sitemaps.org</div><div class="sa-q-desc">The protocol</div></div>
+        <div class="sa-quick-item" onclick="quick('w3.org')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')quick('w3.org')"><div class="sa-q-domain">w3.org</div><div class="sa-q-desc">Standards body</div></div>
+        <div class="sa-quick-item" onclick="quick('example.com')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')quick('example.com')"><div class="sa-q-domain">example.com</div><div class="sa-q-desc">No sitemap</div></div>
+      </div>
+
+      <div id="sa-loading" class="sa-loading">
+        <div class="sa-spinner"></div>
+        <p id="sa-loading-text">Finding the sitemap...</p>
+      </div>
+
+      <div id="sa-error" class="sa-error"></div>
+
+      <div id="sa-out" class="sa-out">
+        <div id="sa-score" class="sa-score"></div>
+        <div id="sa-cards"></div>
+        <div class="btn-group" style="margin-top:16px;">
+          <button class="btn btn-secondary" onclick="resetTool()">Audit Another Site</button>
+        </div>
+        <p class="sa-privacy">Nothing is stored. The files are read, checked and discarded.</p>
+      </div>
+      <div id="sa-feedback" class="status" role="status" aria-live="polite" style="margin-top:14px;"></div>
+    </div>
+
+    <div class="info-section">
+      <h3>Why a Valid Sitemap Can Still Index Nothing</h3>
+      <p>Ask a chatbot why your pages are not indexed and it will give you a confident answer about sitemap quality. The problem is that a valid sitemap says nothing about whether a single page is indexable. Validating the XML is like checking that a letter is addressed correctly. It says nothing about whether the door is locked, whether the recipient moved house last year, or whether the postman was told to skip that street.</p>
+      <p>Those are the real failures, and every one of them is invisible to a file validator. A page can return 200, sit inside a perfectly formed urlset, and still be dropped from the index because its head carries a meta robots noindex. It can be dropped because a rel=canonical tag points somewhere else, in which case Google keeps the other URL and files yours as an alternate. It can be dropped because robots.txt disallows that path, which means the sitemap is asking for something the crawl rules forbid. It can be dropped because it redirects, because it 404s, or because the server sends an X-Robots-Tag header that says noindex before the HTML is even read.</p>
+      <p>This tool fetches the pages, not just the file. It takes the sitemap, spreads a sample evenly across it, and requests each URL without following redirects so a 301 stays visible as a 301. For every page it reports the status, the header, the meta tag and the canonical target, and pairs each verdict with the label Search Console uses for that class of problem so you can match it against the report you already have.</p>
+
+      <h3>What You Get</h3>
+      <ul>
+        <li><strong>Sitemap discovery</strong> — reads the Sitemap: line in robots.txt first, and falls back to probing six common paths. One redirect hop is followed, so a sitemap that only exists on the www host is still found instead of being reported as missing.</li>
+        <li><strong>The structural rules Google actually enforces</strong> — 50MB uncompressed, 50,000 URLs, fully-qualified absolute loc values, the W3C datetime formats for lastmod, the required namespace, leading whitespace, duplicate tags, nested index files, and URLs that sit on a different site than the file they are listed in.</li>
+        <li><strong>Per-page indexability</strong> — status code without following redirects, X-Robots-Tag, meta robots noindex, a canonical pointing at another URL, and a robots.txt Disallow resolved with the same RFC 9309 precedence a crawler uses, so a path cannot be reported as blocked in one place and allowed in another.</li>
+        <li><strong>Duplicates that do not look like duplicates</strong> — a trailing slash, a www prefix or a stray utm parameter makes two entries the same page to a crawler. The audit names the pair so you can fix it in the generator rather than in the file.</li>
+        <li><strong>A cleaned sitemap.xml</strong> — the audited file with every URL proven to be dead removed, ready to download.</li>
+        <li><strong>JSON output</strong> — the full report as a copyable object, for piping into your own tooling or an agent.</li>
+      </ul>
+
+      <h3>What This Tool Will Not Tell You</h3>
+      <p>Google is direct about what a sitemap is worth. Submitting one is a hint. It does not guarantee Google downloads it, and a URL listed in a sitemap is not guaranteed to be crawled or indexed. A sitemap makes discovery faster for pages that are already eligible. It does not make an ineligible page eligible.</p>
+      <p>The per-page results are also a sample, and the ceiling is a hard one. Free Cloudflare Pages Functions allow 50 outbound requests per request, and the run already spends some of them finding the file. The sample is spread evenly across the whole sitemap rather than taken from the front, because the first twenty entries on a real site are the homepage and its immediate children, and a front-of-list sample reports a clean bill of health on a site that is broken further in. Every page that was not fetched is listed without a live verdict. It is never marked as fine.</p>
+
+      <h3>Frequently Asked</h3>
+      <details class="faq-item">
+        <summary>My sitemap is valid. Why is nothing indexed?</summary>
+        <p>Because a valid sitemap only means the file parses. Google still decides per page whether to index it. The usual causes are a meta robots noindex on the page, a canonical tag pointing at a different URL, a Disallow rule in robots.txt covering that path, a redirect, or a 404. All five return HTTP 200 or 3xx and are invisible to a validator that only reads the XML. This tool fetches the pages, not just the file, and reports which of these is happening to which URL.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does a sitemap get my pages indexed?</summary>
+        <p>No, and Google is explicit about it. Submitting a sitemap is a hint. It does not guarantee Google downloads it, and a URL listed in a sitemap is not guaranteed to be crawled or indexed. What a sitemap reliably does is speed up discovery of pages that are already indexable. If a page is blocked, redirected or marked noindex, adding it to the sitemap changes nothing.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does lastmod in a sitemap help my rankings?</summary>
+        <p>Not directly. Google states it uses the lastmod value when it is consistently and verifiably accurate, for example when compared against the actual modification time of the file. That condition is the whole catch. One identical timestamp on every URL in a large sitemap is the signature of a build time, not a modification date, and it teaches the crawler nothing. Set lastmod per page to the date that page last changed, or drop the tag rather than fill it with today's date.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Should I keep priority and changefreq in my sitemap?</summary>
+        <p>They are valid, and Google states plainly that it ignores both values. They add bytes to every entry and buy nothing. The common belief that priority 1.0 gets a page crawled first is not how it works. Drop them and put the effort into lastmod, which is at least read.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How many URLs should one sitemap hold?</summary>
+        <p>A single sitemap by Google is limited to 50,000 URLs and 50MB uncompressed data. Beyond that, it needs to be segmented, with the components documented in a sitemap index file. An index file can contain 50,000 entries, must have sitemaps referenced in its own directory or less, and is not authorized to list other index files, including itself. Google limits users to a maximum of 500 index files per site.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why are two of my URLs flagged as duplicates when they look different?</summary>
+        <p>A crawler treats a trailing slash, a www prefix and tracking parameters as the same page. /product and /product/ are one URL, and so are example.com/x?utm_source=a and example.com/x?utm_source=b. Listing them twice splits your signals, Google picks the version it prefers, and the other is reported as a duplicate without a user-selected canonical. Fix it at the source: one URL in the sitemap, and a rel=canonical on the page pointing at the version you want.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How many URLs does this actually check?</summary>
+        <p>The whole file is parsed, so every URL is checked against the structural rules. A sample of the pages is then fetched live, spread evenly across the file rather than taken from the front, because on a real site the first entries are the homepage and its immediate children. The sample size is on the control above, up to 35. That ceiling is a limit of free Cloudflare Pages Functions, which allow 50 outbound requests per request. Every page not fetched is listed without a live verdict rather than assumed fine.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is the domain I check stored or logged?</summary>
+        <p>No. The request is answered with a no-store cache header, the files are read and discarded, and nothing is written to storage or to disk. We do not keep a list of the sites people audit.</p>
+      </details>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <ul>
+          <li><a href="/tools/ai-crawler-checker/">AI Crawler Access Checker</a></li>
+          <li><a href="/tools/http-status-checker/">HTTP Status &amp; Header Checker</a></li>
+          <li><a href="/tools/url-metadata-extractor/">URL Metadata Extractor</a></li>
+          <li><a href="/tools/website-down-checker/">Website Down Checker</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+var FINDING_ICON = { error: '\u274C', warn: '\u26A0\uFE0F', info: '\u2139\uFE0F' };
+
+function esc(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function quick(u) {
+  document.getElementById('sa-url').value = u;
+  runAudit();
+}
+
+function setLoading(on, text) {
+  document.getElementById('sa-loading').className = on ? 'sa-loading visible' : 'sa-loading';
+  if (text) document.getElementById('sa-loading-text').textContent = text;
+  document.getElementById('sa-btn').disabled = on;
+}
+
+function showError(msg) {
+  setLoading(false);
+  var box = document.getElementById('sa-error');
+  box.style.display = 'block';
+  box.innerHTML = '<strong>Could not audit that.</strong><br>' + esc(msg);
+  document.getElementById('sa-out').className = 'sa-out';
+}
+
+async function runAudit() {
+  var input = document.getElementById('sa-url').value.trim();
+  if (!input) { showError('Enter a domain such as example.com, or the full URL of a sitemap file.'); return; }
+  var sample = document.getElementById('sa-sample').value;
+  document.getElementById('sa-error').style.display = 'none';
+  document.getElementById('sa-out').className = 'sa-out';
+  setLoading(true, 'Finding the sitemap, then fetching pages...');
+
+  try {
+    var res = await fetch('/api/sitemap-audit?url=' + encodeURIComponent(input) + '&sample=' + encodeURIComponent(sample));
+    var data = await res.json();
+    setLoading(false);
+    if (data.error) { showError(data.error); return; }
+    if (!data.sitemap || !data.sitemap.found) { renderMissing(data); return; }
+    render(data);
+  } catch (e) {
+    setLoading(false);
+    showError('The request failed: ' + (e && e.message ? e.message : 'network error'));
+  }
+}
+
+function renderMissing(r) {
+  var html = '<div class="sa-card"><div class="sa-card-head open" style="cursor:default"><div class="sa-card-title">No sitemap found</div><span class="sa-badge bad">0 URLs</span></div><div class="sa-card-body open">';
+  html += '<div class="sa-finding"><div class="sa-f-title">' + esc(r.message) + '</div>';
+  if (r.robotsFound && r.robotsStatus === 200) {
+    html += '<div class="sa-f-msg">robots.txt was read and it contains no Sitemap: line.</div>';
+  } else if (r.robotsStatus) {
+    html += '<div class="sa-f-msg">robots.txt returned ' + esc(r.robotsStatus) + ', so there is no Sitemap: line to follow either.</div>';
+  }
+  if (r.declaredSitemaps && r.declaredSitemaps.length) {
+    html += '<div class="sa-f-msg">Declared but not fetchable: ' + r.declaredSitemaps.map(function (s) { return esc(s); }).join(', ') + '</div>';
+  }
+  if (r.discovered && r.discovered.length) {
+    html += '<div class="sa-f-msg">Paths checked:</div><div class="sa-stats">';
+    r.discovered.forEach(function (d) {
+      html += '<div class="sa-stat"><b>' + esc(d.url.replace(/^https?:\/\//, '')) + '</b>' + esc(d.note) + '</div>';
+    });
+    html += '</div>';
+  }
+  if (r.fixes) {
+    html += '<div class="sa-f-fix">To fix it: ' + r.fixes.map(function (f) { return esc(f); }).join(' ') + '</div>';
+  }
+  html += '</div></div></div>';
+  document.getElementById('sa-cards').innerHTML = html;
+  document.getElementById('sa-out').className = 'sa-out visible';
+}
+
+function statusClass(code) {
+  if (code === null || code === undefined) return 'sx';
+  if (code === 0) return 's0';
+  return 's' + String(code).charAt(0);
+}
+
+function issueHtml(issues) {
+  return issues.map(function (i) {
+    var h = '<div class="sa-f-level ' + esc(i.level) + '">' + FINDING_ICON[i.level] + ' ' + esc(i.level) + '</div>';
+    h += '<div class="sa-f-title">' + esc(i.title) + '</div>';
+    h += '<div class="sa-f-msg">' + esc(i.msg) + '</div>';
+    if (i.fix) h += '<div class="sa-f-fix">Fix: ' + esc(i.fix) + '</div>';
+    if (i.gsc) {
+      h += '<span class="sa-gsc">Search Console: ' + esc(i.gsc) + '</span>';
+      h += '<div class="sa-gsc-note">The label Google Search Console uses for this class of problem.</div>';
+    }
+    return '<div class="sa-finding">' + h + '</div>';
+  }).join('');
+}
+
+function card(title, badge, body, startOpen) {
+  var b = badge ? '<span class="sa-badge ' + badge.cls + '">' + esc(badge.text) + '</span>' : '';
+  return '<div class="sa-card">' +
+    '<button class="sa-card-head' + (startOpen ? ' open' : '') + '" onclick="toggleCard(this)">' +
+      '<span class="sa-card-title">' + esc(title) + '</span>' + b + '<span class="sa-arrow">&#9662;</span>' +
+    '</button>' +
+    '<div class="sa-card-body' + (startOpen ? ' open' : '') + '">' + body + '</div>' +
+  '</div>';
+}
+
+function toggleCard(head) {
+  head.classList.toggle('open');
+  head.nextElementSibling.classList.toggle('open');
+}
+
+function statTiles(pairs) {
+  return '<div class="sa-stats">' + pairs.map(function (p) {
+    return '<div class="sa-stat"><b>' + esc(p[1]) + '</b>' + esc(p[0]) + '</div>';
+  }).join('') + '</div>';
+}
+
+function render(r) {
+  var errors = (r.issues || []).filter(function (i) { return i.level === 'error'; }).length;
+  var warns = (r.issues || []).filter(function (i) { return i.level === 'warn'; }).length;
+  var infos = (r.issues || []).filter(function (i) { return i.level === 'info'; }).length;
+  var urlErr = (r.urls || []).reduce(function (n, u) {
+    return n + u.issues.filter(function (i) { return i.level === 'error'; }).length;
+  }, 0);
+
+  var verdict = r.score >= 95 ? 'Nothing blocking indexing that this tool can see'
+    : r.score >= 72 ? 'Usable, with fixable problems'
+    : r.score >= 45 ? 'Real indexability problems'
+    : 'This sitemap is working against you';
+  var cls = r.grade.toLowerCase();
+
+  var s = '<div class="sa-score ' + cls + '">';
+  s += '<div class="sa-grade">' + esc(r.grade) + '</div>';
+  s += '<div class="sa-score-title">' + esc(verdict) + '</div>';
+  s += '<div class="sa-score-sub">' + esc(r.sitemapUrl) + '</div>';
+  s += '<div class="sa-tally">';
+  s += '<span class="sa-tally-item">' + errors + ' sitemap errors</span>';
+  s += '<span class="sa-tally-item">' + warns + ' warnings</span>';
+  s += '<span class="sa-tally-item">' + urlErr + ' page errors</span>';
+  s += '<span class="sa-tally-item">' + r.sampled + ' of ' + r.stats.total + ' fetched</span>';
+  s += '</div></div>';
+  document.getElementById('sa-score').innerHTML = s;
+
+  var cards = '';
+
+  // What was found
+  var found = '<div class="sa-stats">';
+  found += '<div class="sa-stat"><b>' + esc(r.sitemap.kind) + '</b>type</div>';
+  found += '<div class="sa-stat"><b>' + r.stats.total.toLocaleString() + '</b>URLs listed</div>';
+  found += '<div class="sa-stat"><b>' + r.stats.unique.toLocaleString() + '</b>unique</div>';
+  found += '<div class="sa-stat"><b>' + r.stats.duplicates + '</b>exact duplicates</div>';
+  found += '<div class="sa-stat"><b>' + r.stats.withLastmod + '</b>with lastmod</div>';
+  found += '<div class="sa-stat"><b>' + (r.sitemap.bytes / 1024).toFixed(1) + ' KB</b>file size</div>';
+  found += '</div>';
+  found += '<div class="sa-note">Located via <strong>' + esc(r.source || 'the path you gave') + '</strong>. robots.txt ' +
+    (r.robots.found ? 'was read' : 'was not found') + ', and it ' +
+    (r.robots.declaredSitemaps.length ? 'names ' + r.robots.declaredSitemaps.length + ' sitemap(s)' : 'names no sitemap') + '.';
+  if (r.robots.blocksSitemap) found += ' <strong>It also blocks Googlebot from this sitemap path, so the file is never read.</strong>';
+  found += '</div>';
+  if (r.sitemap.isIndex) {
+    found += '<div class="sa-note">This is a <strong>sitemap index</strong> with ' + r.sitemap.indexEntries + ' entries';
+    if (r.indexChild) {
+      found += '. The table below is from the first child, ' + esc(r.activeSitemapUrl) +
+        (r.indexChild.total ? ' (' + r.indexChild.total + ' URLs)' : '') + '.';
+    }
+    found += '</div>';
+  }
+  (r.notes || []).forEach(function (n) { found += '<div class="sa-note">' + esc(n) + '</div>'; });
+  cards += card('The sitemap itself', { cls: 'ok', text: r.stats.total + ' URLs' }, found, true);
+
+  // Structural findings
+  var body;
+  if (!r.issues.length) {
+    body = '<div class="sa-clean">No structural problems. The file parses, the namespace is right, and every entry is a fully-qualified absolute URL.</div>';
+  } else {
+    body = issueHtml(r.issues);
+  }
+  var badge = errors ? { cls: 'bad', text: errors + ' errors' } : warns ? { cls: 'warn', text: warns + ' to fix' } : { cls: 'ok', text: 'clean' };
+  cards += card('Sitemap-level findings', badge, body, errors > 0);
+
+  // Per-URL table
+  var rows = (r.urls || []).slice(0, 300);
+  var tb = '';
+  if (!rows.length) {
+    tb = '<div class="sa-clean">No individual URLs to show.</div>';
+  } else {
+    tb = '<p style="color:#888;font-size:0.85rem;margin:8px 0 0">Rows are every page that was fetched live, plus every URL carrying a finding. Other entries are not shown and are not assumed healthy.</p>';
+    if (r.rowsOmitted) tb += '<p style="color:#fbbf24;font-size:0.85rem;margin:6px 0 0">' + r.rowsOmitted + ' further rows were omitted to keep the report readable.</p>';
+    tb += '<div class="sa-table-wrap"><table class="sa-table"><thead><tr><th>Status</th><th>URL</th><th>Findings</th></tr></thead><tbody>';
+    rows.forEach(function (u) {
+      var st = u.live.checked ? u.live.status : null;
+      tb += '<tr><td><span class="sa-code ' + statusClass(st) + '">' + (st === null ? 'not fetched' : st) + '</span></td>';
+      tb += '<td><span class="sa-url">' + esc(u.loc || '(no loc)') + '</span>' + (u.lastmod ? '<div class="sa-row-issue">lastmod ' + esc(u.lastmod) + '</div>' : '') + '</td><td>';
+      if (!u.issues.length) {
+        tb += '<span style="color:#4ade80">indexable</span>';
+      } else {
+        u.issues.forEach(function (i) {
+          tb += '<div class="sa-row-issue"><b>' + esc(i.level.toUpperCase()) + '</b> ' + esc(i.title) +
+            (i.gsc ? ' <span class="sa-gsc">' + esc(i.gsc) + '</span>' : '') +
+            (i.fix ? '<br>Fix: ' + esc(i.fix) : '') + '</div>';
+        });
+      }
+      tb += '</td></tr>';
+    });
+    tb += '</tbody></table></div>';
+  }
+  var shownRows = rows.length;
+  cards += card('Page by page', { cls: urlErr ? 'bad' : 'ok', text: urlErr ? urlErr + ' errors' : shownRows + ' shown' }, tb, urlErr > 0);
+
+  // Clean sitemap
+  var cl = r.clean;
+  var cb = '';
+  cb += '<p style="color:#b3b8c0;font-size:0.88rem;margin:10px 0 0">The audited file with every URL proven to be dead or unindexable removed. ' + cl.kept + ' URL' + (cl.kept === 1 ? '' : 's') + ' kept';
+  if (!cl.fullCoverage) {
+    cb += ' out of ' + cl.examined + ' in the file, because only the sampled pages could be fetched. Unfetched URLs are kept, not verified.';
+  } else {
+    cb += ', the whole file.';
+  }
+  cb += '</p>';
+  cb += '<pre class="sa-xml" id="sa-clean-xml">' + esc(cl.xml) + '</pre>';
+  cb += '<div class="btn-group" style="margin-top:10px;">';
+  cb += '<button class="btn" onclick="copyClean()">Copy XML</button>';
+  cb += '<button class="btn" onclick="downloadClean()">Download sitemap.xml</button>';
+  cb += '<button class="btn" onclick="copyJson()">Copy JSON report</button>';
+  cb += '</div>';
+  // Open by default: the cleaned file is the deliverable, and burying it behind an
+  // accordion is how the one output that turns a report into a fix gets missed.
+  cards += card('Cleaned sitemap.xml', { cls: cl.fullCoverage ? 'ok' : 'warn', text: cl.kept + ' URLs' }, cb, true);
+
+  document.getElementById('sa-cards').innerHTML = cards;
+  window.__saClean = cl.xml;
+  window.__saJson = JSON.stringify(r, null, 2);
+  document.getElementById('sa-out').className = 'sa-out visible';
+}
+
+function copyClean() {
+  copyToClipboard('sa-clean-xml');
+  showStatus('sa-feedback', 'Cleaned sitemap copied', 'success');
+}
+
+function copyJson() {
+  navigator.clipboard.writeText(window.__saJson).then(function () {
+    showStatus('sa-feedback', 'JSON report copied', 'success');
+  }, function () {
+    showStatus('sa-feedback', 'Copy failed, select the text manually', 'error');
+  });
+}
+
+function downloadClean() {
+  var blob = new Blob([window.__saClean], { type: 'application/xml' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sitemap.xml';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  showStatus('sa-feedback', 'sitemap.xml downloaded', 'success');
+}
+
+function resetTool() {
+  document.getElementById('sa-out').className = 'sa-out';
+  document.getElementById('sa-error').style.display = 'none';
+  document.getElementById('sa-url').value = '';
+  document.getElementById('sa-url').focus();
+}
+
+document.getElementById('sa-url').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') runAudit();
+});
+</script>
+<script src="/tools.js"></script>
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+  <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+</footer>
+</body>
+</html>

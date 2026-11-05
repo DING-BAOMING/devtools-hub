@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Metronome - Free BPM Beat &amp; Practice Tool | DevTools Hub</title>
+<meta name="description" content="Free online metronome with tap tempo, time signatures, subdivisions, and visual beat indicator. Practice with precision timing for any instrument.">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/metronome/">
+<meta property="og:title" content="Online Metronome - Free BPM Beat &amp; Practice Tool">
+<meta property="og:description" content="Free online metronome with tap tempo, time signatures, subdivisions, and visual beat indicator. Practice with precision for any instrument.">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/metronome/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Online Metronome",
+  "url": "https://tools.scoreroute.com/tools/metronome/",
+  "description": "Free online metronome with tap tempo, time signatures, subdivisions, and visual beat indicator for musicians and practice.",
+  "applicationCategory": "Multimedia",
+  "operatingSystem": "All",
+  "browserRequirement": "Requires JavaScript and Web Audio API",
+  "author": {
+    "@type": "Organization",
+    "name": "DevTools Hub"
+  },
+  "datePublished": "2026-07-01",
+  "dateModified": "2026-07-01",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.metro-container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+.metro-display {
+  text-align: center;
+  padding: 30px 0 20px;
+}
+.metro-bpm-display {
+  font-size: 4rem;
+  font-weight: 800;
+  color: #fff;
+  font-family: monospace;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+.metro-tempo-label {
+  font-size: 1rem;
+  color: #667eea;
+  margin-top: 6px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  min-height: 1.5em;
+}
+.metro-slider-section {
+  padding: 20px 0;
+  text-align: center;
+}
+.metro-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.metro-slider-row span {
+  color: #888;
+  font-size: 0.85rem;
+  min-width: 36px;
+  text-align: right;
+}
+.metro-slider {
+  flex: 1;
+  /* min-width: 0 — a range input floors at its default width, which pushed the
+     row (and the page) sideways on a 320px phone. */
+  min-width: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: #2a2a4a;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+.metro-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.metro-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+.metro-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  border: none;
+}
+.metro-slider-section input[type="number"] {
+  width: 70px;
+  min-width: 0;
+  background: #0f0f23;
+  border: 1px solid #2a2a4a;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  font-family: monospace;
+}
+.metro-slider-section input[type="number"]:focus {
+  outline: 2px solid transparent;
+  border-color: #667eea;
+}
+.metro-beat-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px 0 10px;
+}
+.metro-beat-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1a1a2e;
+  border: 2px solid #2a2a4a;
+  transition: all 0.08s ease;
+  flex-shrink: 0;
+}
+.metro-beat-dot.active {
+  background: #667eea;
+  border-color: #667eea;
+  transform: scale(1.15);
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+}
+.metro-beat-dot.accent {
+  border-color: #f87171;
+}
+.metro-beat-dot.active.accent {
+  background: #f87171;
+  border-color: #f87171;
+  box-shadow: 0 0 20px rgba(248, 113, 113, 0.5);
+}
+.metro-progress-bar {
+  height: 4px;
+  background: #1a1a2e;
+  border-radius: 2px;
+  margin: 8px 0 20px;
+  overflow: hidden;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.metro-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #667eea, #f87171);
+  border-radius: 2px;
+  transition: width 0.05s linear;
+}
+.metro-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+}
+.metro-btn {
+  background: #252545;
+  color: #fff;
+  border: 1px solid #3a3a5a;
+  padding: 12px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  min-width: 110px;
+}
+.metro-btn:hover {
+  background: #2d2d55;
+  border-color: #667eea;
+}
+.metro-btn-primary {
+  background: #667eea;
+  color: #fff;
+  border: none;
+}
+.metro-btn-primary:hover {
+  background: #7b93ff;
+  transform: translateY(-1px);
+}
+.metro-btn-primary.running {
+  background: #ef4444;
+}
+.metro-btn-primary.running:hover {
+  background: #f87171;
+}
+.metro-btn-tap {
+  background: #1f2d4a;
+  border-color: #3a5a8a;
+}
+.metro-btn-tap:hover {
+  background: #2d4a6a;
+}
+.metro-btn-small {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  min-width: auto;
+}
+.metro-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 16px 0;
+  max-width: 550px;
+  margin: 0 auto;
+}
+.metro-setting-group {
+  text-align: center;
+}
+.metro-setting-group label {
+  display: block;
+  color: #888;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.metro-setting-group select {
+  width: 100%;
+  background: #0f0f23;
+  border: 1px solid #2a2a4a;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  appearance: auto;
+}
+.metro-setting-group select:focus {
+  outline: 2px solid transparent;
+  border-color: #667eea;
+}
+.metro-presets {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+}
+.metro-preset-btn {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  color: #aaa;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+.metro-preset-btn:hover {
+  border-color: #667eea;
+  color: #fff;
+}
+.metro-tap-status {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #888;
+  min-height: 1.5em;
+  padding: 4px 0;
+}
+.metro-volume-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+.metro-volume-row label {
+  color: #888;
+  font-size: 0.8rem;
+}
+.metro-volume-slider {
+  width: 120px;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #2a2a4a;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.metro-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+}
+.metro-volume-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  border: none;
+}
+.metro-faq-extra {
+  margin-top: 16px;
+}
+.faq-item {
+  background: #0f0f23;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border: 1px solid #2a2a4a;
+  transition: border-color 0.2s;
+}
+.faq-item:hover {
+  border-color: #3a3a5a;
+}
+.faq-item summary {
+  color: #ddd;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.faq-item p {
+  color: #aaa;
+  margin-top: 12px;
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+@media (max-width: 600px) {
+  .metro-bpm-display {
+    font-size: 3rem;
+  }
+  .metro-beat-dot {
+    width: 30px;
+    height: 30px;
+  }
+  .metro-settings {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .metro-btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    min-width: 90px;
+  }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Online Metronome</h1>
+    <p class="subtitle">Precision Beat Timing with Visual Indicator &amp; Tap Tempo</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Online Metronome</span>
+      <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+    </nav>
+  </div>
+</header>
+<main class="container metro-container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <div class="metro-display">
+        <div class="metro-bpm-display" id="bpmDisplay">120</div>
+        <div class="metro-tempo-label" id="tempoLabel">Moderato</div>
+      </div>
+      <div class="metro-slider-section">
+        <div class="metro-slider-row">
+          <span aria-hidden="true">20</span>
+          <input type="range" id="bpmSlider" class="metro-slider" min="20" max="300" value="120" step="1" aria-label="Tempo (BPM)">
+          <span aria-hidden="true">300</span>
+          <input aria-label="Tempo (BPM)" type="number" id="bpmInput" value="120" min="20" max="300" step="1">
+        </div>
+      </div>
+      <div class="metro-beat-indicator" id="beatIndicator"></div>
+      <div class="metro-progress-bar">
+        <div class="metro-progress-fill" id="progressFill"></div>
+      </div>
+      <div class="metro-controls">
+        <button class="metro-btn metro-btn-primary" id="startStopBtn" onclick="toggleMetronome()">Start</button>
+        <button class="metro-btn metro-btn-tap" id="tapBtn" onclick="tapTempo()">Tap Tempo</button>
+      </div>
+      <div class="metro-tap-status" id="tapStatus"></div>
+      <div class="metro-settings">
+        <div class="metro-setting-group">
+          <label for="timeSig">Time Signature</label>
+          <select id="timeSig" onchange="updateBeatCount()">
+            <option value="2|2">2/2</option>
+            <option value="2|4">2/4</option>
+            <option value="3|4">3/4</option>
+            <option value="4|4" selected>4/4</option>
+            <option value="5|4">5/4</option>
+            <option value="6|8">6/8</option>
+            <option value="7|8">7/8</option>
+            <option value="9|8">9/8</option>
+            <option value="12|8">12/8</option>
+          </select>
+        </div>
+        <div class="metro-setting-group">
+          <label for="subdivision">Subdivision</label>
+          <select id="subdivision" onchange="updateBeatCount()">
+            <option value="1">Quarter</option>
+            <option value="2">Eighth</option>
+            <option value="3">Triplet</option>
+            <option value="4">Sixteenth</option>
+          </select>
+        </div>
+        <div class="metro-setting-group">
+          <label for="soundType">Sound</label>
+          <select id="soundType">
+            <option value="click" selected>Click</option>
+            <option value="beep">Beep</option>
+            <option value="wood">Woodblock</option>
+            <option value="cowbell">Cowbell</option>
+          </select>
+        </div>
+      </div>
+      <div class="metro-volume-row">
+        <label for="volumeSlider">Volume</label>
+        <input type="range" id="volumeSlider" class="metro-volume-slider" min="0" max="100" value="80">
+      </div>
+      <div class="metro-presets" id="presetContainer">
+        <button class="metro-preset-btn" onclick="setPreset(40)">Largo</button>
+        <button class="metro-preset-btn" onclick="setPreset(66)">Adagio</button>
+        <button class="metro-preset-btn" onclick="setPreset(80)">Andante</button>
+        <button class="metro-preset-btn" onclick="setPreset(108)">Moderato</button>
+        <button class="metro-preset-btn" onclick="setPreset(120)">Allegro</button>
+        <button class="metro-preset-btn" onclick="setPreset(160)">Vivace</button>
+        <button class="metro-preset-btn" onclick="setPreset(200)">Presto</button>
+      </div>
+    </div>
+    <div class="info-section">
+      <h2>Free Online Metronome with Visual Beat Indicator</h2>
+      <p>Practice your instrument with this <strong>precision online metronome</strong> featuring <strong>tap tempo</strong>, multiple <strong>time signatures</strong>, <strong>subdivisions</strong>, and a real-time <strong>visual beat indicator</strong>. No downloads, no signups, no ads.</p>
+
+      <h3>Why AI Cannot Replace This Tool</h3>
+      <p>AI chatbots can describe a metronome or suggest practice tempos, but they <strong>cannot generate real-time audio clicks with precise millisecond timing</strong>. Steady beat generation requires continuous browser execution and Web Audio API scheduling that AI models cannot provide. This is a pure problem-solver for musicians who need actual timing, not just advice about timing.</p>
+
+      <h3>How to Use</h3>
+      <ul>
+        <li><strong>Start / Stop</strong> — Press Start (or the Spacebar) to begin the beat. Press again to stop. The metronome uses your browser's Web Audio API for precise timing.</li>
+        <li><strong>Adjust Tempo</strong> — Drag the BPM slider or type a value (20–300) in the number box. The Italian tempo marking updates automatically.</li>
+        <li><strong>Tap Tempo</strong> — Tap the Tap Tempo button at least 3 times at your desired speed. The metronome calculates the average BPM and updates automatically.</li>
+        <li><strong>Time Signature</strong> — Choose from 2/2, 2/4, 3/4, 4/4, 5/4, 6/8, 7/8, 9/8, or 12/8. The first beat of each measure is accented (red dot).</li>
+        <li><strong>Subdivisions</strong> — Select quarter, eighth, triplet, or sixteenth notes. Subdivisions add extra clicks between main beats.</li>
+        <li><strong>Sound</strong> — Choose between Click, Beep, Woodblock, or Cowbell sounds, all synthesized via Web Audio.</li>
+        <li><strong>Volume</strong> — Use the volume slider or type a percentage.</li>
+        <li><strong>Presets</strong> — Click any Italian tempo name (Largo through Presto) to jump to that tempo range.</li>
+      </ul>
+
+      <h3>Keyboard Shortcuts</h3>
+      <table class="info-table">
+        <caption class="sr-only">Keyboard shortcuts</caption>
+        <tr><th>Key</th><th>Action</th></tr>
+        <tr><td><kbd>Space</kbd></td><td>Start / Stop the metronome</td></tr>
+        <tr><td><kbd>T</kbd></td><td>Tap tempo (tap repeatedly)</td></tr>
+        <tr><td><kbd>↑</kbd></td><td>Increase BPM by 1</td></tr>
+        <tr><td><kbd>↓</kbd></td><td>Decrease BPM by 1</td></tr>
+      </table>
+
+      <h3>Tempo Marking Reference</h3>
+      <table class="info-table">
+        <caption class="sr-only">Italian tempo marking reference</caption>
+        <tr><th>Italian</th><th>BPM Range</th><th>Meaning</th></tr>
+        <tr><td>Largo</td><td>40–60</td><td>Very slow and broad</td></tr>
+        <tr><td>Larghetto</td><td>60–66</td><td>Slow but flowing</td></tr>
+        <tr><td>Adagio</td><td>66–76</td><td>Slow and stately</td></tr>
+        <tr><td>Andante</td><td>76–108</td><td>Walking pace</td></tr>
+        <tr><td>Moderato</td><td>108–120</td><td>Moderate speed</td></tr>
+        <tr><td>Allegro</td><td>120–156</td><td>Fast and bright</td></tr>
+        <tr><td>Vivace</td><td>156–176</td><td>Lively and fast</td></tr>
+        <tr><td>Presto</td><td>176–200</td><td>Very fast</td></tr>
+        <tr><td>Prestissimo</td><td>200+</td><td>As fast as possible</td></tr>
+      </table>
+
+      <h3>Use Cases</h3>
+      <table class="info-table">
+        <caption class="sr-only">What a metronome is used for</caption>
+        <tr><th>Scenario</th><th>How Metronome Helps</th></tr>
+        <tr><td>Instrument Practice</td><td>Develop steady rhythm and timing for piano, guitar, drums, violin, and more</td></tr>
+        <tr><td>Songwriting</td><td>Establish and maintain a consistent tempo while composing or arranging</td></tr>
+        <tr><td>Recording Sessions</td><td>Play to a click track for precise multitrack recording</td></tr>
+        <tr><td>Audition Preparation</td><td>Practice pieces at gradually increasing tempos with the exact BPM required</td></tr>
+        <tr><td>Music Education</td><td>Learn to feel and maintain steady time as a fundamental musical skill</td></tr>
+        <tr><td>Physical Rehab</td><td>Use steady rhythmic cues for gait training, exercise pacing, or movement therapy</td></tr>
+      </table>
+
+      <h3>Frequently Asked Questions</h3>
+      <details class="faq-item">
+        <summary>How does the online metronome work?</summary>
+        <p>It uses the Web Audio API built into your browser to generate precise audio clicks. A scheduler runs every 25 milliseconds, computing exactly when each beat should occur and scheduling audio events ahead of time for accurate timing regardless of system load.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is this metronome as accurate as a physical one?</summary>
+        <p>Yes, the Web Audio API provides sample-level audio timing precision (measured in microseconds), which is more accurate than most mechanical metronomes. The schedule-ahead technique ensures clicks arrive at the exact millisecond regardless of browser tab focus.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why might the metronome stop clicking?</summary>
+        <p>The metronome may stop if you close the browser tab, navigate away, or if your device's CPU is overloaded. Most browsers also pause audio when the tab is backgrounded to conserve resources.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I use subdivisions?</summary>
+        <p>Yes. Use the Subdivision dropdown to add eighth notes (2 ticks per beat), triplets (3 ticks), or sixteenth notes (4 ticks). Subdivisions help practice faster passages and complex rhythms.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is tap tempo?</summary>
+        <p>Tap tempo lets you find the BPM of a song or your ideal practice speed by tapping a button in time. After 3 or more taps, the metronome calculates the average interval and sets the BPM automatically.</p>
+      </details>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <ul>
+          <li><a href="/tools/stopwatch/">Stopwatch</a></li>
+          <li><a href="/tools/online-timer/">Online Timer</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>
+  <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+let audioCtx = null;
+let isRunning = false;
+let schedulerId = null;
+let nextBeatTime = 0;
+let currentBeat = 0;
+let currentMeasure = 0;
+let scheduleAhead = 0.1;
+let lookAhead = 25;
+let tapTimes = [];
+let lastTapTime = 0;
+
+const TEMPO_LABELS = [
+  { min: 20, max: 40, label: 'Grave' },
+  { min: 40, max: 60, label: 'Largo' },
+  { min: 60, max: 66, label: 'Larghetto' },
+  { min: 66, max: 76, label: 'Adagio' },
+  { min: 76, max: 80, label: 'Adagietto' },
+  { min: 80, max: 108, label: 'Andante' },
+  { min: 108, max: 120, label: 'Moderato' },
+  { min: 120, max: 156, label: 'Allegro' },
+  { min: 156, max: 176, label: 'Vivace' },
+  { min: 176, max: 200, label: 'Presto' },
+  { min: 200, max: 301, label: 'Prestissimo' }
+];
+
+function getTempoLabel(bpm) {
+  for (let t of TEMPO_LABELS) {
+    if (bpm >= t.min && bpm < t.max) return t.label;
+  }
+  return 'Moderato';
+}
+
+function getBeatsPerMeasure() {
+  const val = document.getElementById('timeSig').value;
+  return parseInt(val.split('|')[0]);
+}
+
+function getAccentBeats() {
+  const val = document.getElementById('timeSig').value;
+  const beats = parseInt(val.split('|')[0]);
+  const bottom = parseInt(val.split('|')[1]);
+  if (bottom === 8) {
+    let accents = [0];
+    if (beats === 6) accents.push(3);
+    else if (beats === 9) accents.push(3, 6);
+    else if (beats === 12) accents.push(3, 6, 9);
+    return accents;
+  }
+  return [0];
+}
+
+function getSubdivision() {
+  return parseInt(document.getElementById('subdivision').value);
+}
+
+function getSubBeatCount() {
+  return getBeatsPerMeasure() * getSubdivision();
+}
+
+function getBPM() {
+  return parseInt(document.getElementById('bpmSlider').value);
+}
+
+function setBPM(val) {
+  val = Math.max(20, Math.min(300, Math.round(val)));
+  document.getElementById('bpmSlider').value = val;
+  document.getElementById('bpmInput').value = val;
+  document.getElementById('bpmDisplay').textContent = val;
+  document.getElementById('tempoLabel').textContent = getTempoLabel(val);
+}
+
+document.getElementById('bpmSlider').addEventListener('input', function() {
+  setBPM(parseInt(this.value));
+  if (!isRunning && tapTimes.length > 0) { tapTimes = []; document.getElementById('tapStatus').textContent = ''; }
+});
+
+document.getElementById('bpmInput').addEventListener('change', function() {
+  let val = parseInt(this.value);
+  if (isNaN(val) || val < 20) val = 20;
+  if (val > 300) val = 300;
+  setBPM(val);
+  if (!isRunning && tapTimes.length > 0) { tapTimes = []; document.getElementById('tapStatus').textContent = ''; }
+});
+
+document.getElementById('volumeSlider').addEventListener('input', function() {
+  document.getElementById('volumeSlider').title = this.value + '%';
+});
+
+function updateBeatCount() {
+  const count = getSubBeatCount();
+  const container = document.getElementById('beatIndicator');
+  const accentBeats = getAccentBeats();
+  const sub = getSubdivision();
+  container.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'metro-beat-dot';
+    const beatIdx = Math.floor(i / sub);
+    if (accentBeats.includes(beatIdx) && i % sub === 0) {
+      dot.classList.add('accent');
+    }
+    dot.dataset.index = i;
+    container.appendChild(dot);
+  }
+  currentBeat = 0;
+  updateBeatVisuals(-1);
+  updateProgress(0);
+}
+
+function updateBeatVisuals(activeIndex) {
+  const dots = document.querySelectorAll('.metro-beat-dot');
+  dots.forEach((dot, i) => {
+    dot.classList.remove('active');
+    if (i === activeIndex) dot.classList.add('active');
+  });
+}
+
+function updateProgress(pct) {
+  document.getElementById('progressFill').style.width = Math.min(100, Math.max(0, pct * 100)) + '%';
+}
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function playClick(beatTime, isAccent) {
+  if (!audioCtx) return;
+  const vol = parseInt(document.getElementById('volumeSlider').value) / 100;
+  if (vol <= 0) return;
+  const type = document.getElementById('soundType').value;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  let freq, duration;
+  switch (type) {
+    case 'beep':
+      freq = isAccent ? 1200 : 900;
+      duration = isAccent ? 0.08 : 0.05;
+      osc.type = 'sine';
+      break;
+    case 'wood':
+      freq = isAccent ? 600 : 400;
+      duration = 0.03;
+      osc.type = 'square';
+      break;
+    case 'cowbell':
+      freq = isAccent ? 1200 : 800;
+      duration = 0.1;
+      osc.type = 'sawtooth';
+      break;
+    default:
+      freq = isAccent ? 1200 : 900;
+      duration = isAccent ? 0.03 : 0.02;
+      osc.type = 'square';
+  }
+  osc.frequency.setValueAtTime(freq, beatTime);
+  gain.gain.setValueAtTime(vol * 0.3, beatTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, beatTime + duration);
+  osc.start(beatTime);
+  osc.stop(beatTime + duration);
+}
+
+function scheduler() {
+  if (!isRunning) return;
+  const bpm = getBPM();
+  const sub = getSubdivision();
+  const beatInterval = 60 / bpm;
+  const subInterval = beatInterval / sub;
+  const totalBeats = getSubBeatCount();
+  const accentBeats = getAccentBeats();
+  while (nextBeatTime < audioCtx.currentTime + scheduleAhead) {
+    const beatIdx = Math.floor(currentBeat / sub);
+    const isAccent = accentBeats.includes(beatIdx) && currentBeat % sub === 0;
+    playClick(nextBeatTime, isAccent);
+    const pct = (currentBeat % totalBeats) / totalBeats;
+    updateBeatVisuals(currentBeat % totalBeats);
+    updateProgress(pct);
+    currentBeat++;
+    nextBeatTime += subInterval;
+    if (currentBeat >= totalBeats) {
+      currentBeat = 0;
+      currentMeasure++;
+    }
+  }
+}
+
+function toggleMetronome() {
+  const btn = document.getElementById('startStopBtn');
+  if (!isRunning) {
+    initAudio();
+    if (!audioCtx) return;
+    isRunning = true;
+    btn.textContent = 'Stop';
+    btn.classList.add('running');
+    nextBeatTime = audioCtx.currentTime + 0.05;
+    currentBeat = 0;
+    tapTimes = [];
+    document.getElementById('tapStatus').textContent = '';
+    scheduler();
+    schedulerId = setInterval(scheduler, lookAhead);
+  } else {
+    isRunning = false;
+    btn.textContent = 'Start';
+    btn.classList.remove('running');
+    if (schedulerId) { clearInterval(schedulerId); schedulerId = null; }
+    updateBeatVisuals(-1);
+    updateProgress(0);
+  }
+}
+
+function tapTempo() {
+  const now = Date.now();
+  if (!isRunning) {
+    if (tapTimes.length > 0 && now - lastTapTime > 3000) {
+      tapTimes = [];
+      document.getElementById('tapStatus').textContent = '';
+    }
+    tapTimes.push(now);
+    lastTapTime = now;
+    if (tapTimes.length >= 3) {
+      const intervals = [];
+      for (let i = 1; i < tapTimes.length; i++) {
+        intervals.push(tapTimes[i] - tapTimes[i - 1]);
+      }
+      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      const bpm = Math.round(60000 / avgInterval);
+      if (bpm >= 20 && bpm <= 300) {
+        setBPM(bpm);
+        document.getElementById('tapStatus').textContent = 'Detected: ' + bpm + ' BPM';
+        document.getElementById('tapStatus').style.color = '#10b981';
+      }
+    } else {
+      document.getElementById('tapStatus').textContent = 'Tap ' + (3 - tapTimes.length) + ' more time(s)...';
+      document.getElementById('tapStatus').style.color = '#888';
+    }
+  }
+}
+
+function setPreset(bpm) {
+  setBPM(bpm);
+  if (!isRunning) {
+    tapTimes = [];
+    document.getElementById('tapStatus').textContent = '';
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === ' ' || e.code === 'Space') {
+    e.preventDefault();
+    toggleMetronome();
+  } else if (e.key === 't' || e.key === 'T') {
+    e.preventDefault();
+    tapTempo();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    setBPM(getBPM() + 1);
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    setBPM(getBPM() - 1);
+  }
+});
+
+updateBeatCount();
+</script>
+</body>
+</html>

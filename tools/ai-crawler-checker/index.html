@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Crawler Access Checker - GPTBot | DevTools Hub</title>
+<meta name="description" content="Free AI crawler access checker. Audit robots.txt against 19 AI bots and validate llms.txt to spec. See the exact rule that blocks GPTBot. No signup.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/ai-crawler-checker/">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/ai-crawler-checker/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AI Crawler Access Checker - GPTBot | DevTools Hub">
+<meta property="og:description" content="Free AI crawler access checker. Audit robots.txt against 19 AI bots and validate llms.txt to spec. See the exact rule that blocks GPTBot. No signup.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI Crawler Access Checker - GPTBot | DevTools Hub">
+<meta name="twitter:description" content="Free AI crawler access checker. Audit robots.txt against 19 AI bots and validate llms.txt to spec. See the exact rule that blocks GPTBot. No signup.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:url" content="https://tools.scoreroute.com/tools/ai-crawler-checker/">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "AI Crawler Access Checker",
+  "description": "Free AI crawler access checker. Fetches a domain's live robots.txt, llms.txt and llms-full.txt, resolves which AI crawlers can reach each file using the real RFC 9309 precedence rules, validates llms.txt against the llmstxt.org spec, and reports the contradictions that make an AI visibility setup look correct while being ignored.",
+  "url": "https://tools.scoreroute.com/tools/ai-crawler-checker/",
+  "applicationCategory": "NetworkApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript. No signup, no upload, nothing stored.",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "BAOMING"},
+  "datePublished": "2026-10-02",
+  "dateModified": "2026-10-02",
+  "featureList": [
+    "Live fetch of robots.txt, llms.txt and llms-full.txt",
+    "19 documented AI crawlers resolved against your real rules",
+    "RFC 9309 group precedence and longest-path-match engine",
+    "The exact Allow or Disallow rule that decided each verdict",
+    "llms.txt validation against the llmstxt.org spec",
+    "Empty section, relative URL, duplicate link and HTML-as-markdown detection",
+    "Contradiction report: published but unreachable, training blocked but search allowed",
+    "Copy-paste robots.txt AI group and llms.txt starter template"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does llms.txt actually affect Google or ChatGPT rankings?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No, and anyone selling you a tool that promises otherwise is selling you something. llms.txt is a community convention proposed on llmstxt.org, not a standard any engine has adopted as a ranking input. Google has stated that it does not use llms.txt for indexing or ranking. The file is worth publishing because it is cheap, it tells an agent which of your pages matter, and several smaller crawlers and agent frameworks do read it. It is not a switch you flip to appear in ChatGPT. What does have an effect today is robots.txt, because that is the one file every crawler already obeys, and it is where sites most often get the decision backwards by accident."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between GPTBot and OAI-SearchBot?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "They are separate crawlers with separate jobs and separate robots.txt user-agent tokens. GPTBot is the training crawler: it reads pages to build and improve models. OAI-SearchBot is the search crawler: it is what makes your pages eligible to appear in ChatGPT search results. ChatGPT-User is a third one, fetched when a user pastes a link into a chat. Blocking GPTBot while allowing OAI-SearchBot is the most common setup on the web and it is usually deliberate at large sites. The mistake is doing it the other way round, which allows training but silently removes you from answers."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "My robots.txt has Disallow: / in the wildcard group. Are AI bots blocked?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not necessarily, and this is where most advice goes wrong. A crawler first looks for a group whose user-agent token matches its own name exactly. Only if it finds no such group does it fall back to the wildcard group. So a site with a blanket Disallow: / plus a named group for GPTBot is open to GPTBot and closed to everything else. This tool resolves that per bot and shows you the specific line that decided it, rather than asking you to work it out by hand."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Will blocking Google-Extended hurt my Google Search rankings?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Googlebot controls Google Search, and Google-Extended is a separate token that covers Gemini training and grounding. Blocking Google-Extended leaves your Google Search and AI Overviews visibility untouched. The reverse is not true: if you block Googlebot you are out of Google entirely, and no amount of llms.txt work brings that back. If you see a site claiming Google-Extended is required for AI search results, that claim is wrong."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the current Anthropic crawler token, ClaudeBot or anthropic-ai?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ClaudeBot is the current token and it covers both training and retrieval. anthropic-ai was the earlier agent token and is still found in a lot of robots.txt files. A file that only names anthropic-ai is not naming ClaudeBot, so ClaudeBot falls through to the wildcard group and gets whatever that says. This tool lists both and reports which group each one is actually being judged by."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my llms.txt report an error when it clearly loads in my browser?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Three usual causes. The URL returns your 404 page with a 200 status, so the file is really an HTML page and an agent reading it gets markup instead of content. The file was uploaded as JSON or YAML when the convention expects plain markdown. Or the file has no H1 line, which is the one part of the spec that is not optional. All three load fine in a browser and all three are invisible to an agent."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need llms-full.txt as well as llms.txt?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It is optional, and the split exists for a reason. llms.txt is meant to be a short index a model can read cheaply. llms-full.txt holds the actual content for agents willing to spend the tokens. A one-line llms.txt with no full version gives an agent a title and nothing to act on, which is why this tool flags the missing file rather than passing it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the domain I type stored or logged anywhere?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The request is answered from the Worker with a no-store cache header, the three files are read and discarded, and nothing is written to KV or to disk. We do not keep a list of the sites people audit."
+      }
+    }
+  ]
+}
+</script>
+<style>
+.ac-row { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.ac-row input[type="text"] { flex: 1; min-width: 240px; padding: 14px 18px; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; font-size: 1rem; font-family: monospace; }
+.ac-row input[type="text"]:focus { outline: 2px solid transparent; border-color: #667eea; }
+.ac-row input[type="text"]::placeholder { color: #555; }
+.ac-quick { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin: 10px 0 20px; }
+.ac-quick-item { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 10px 12px; cursor: pointer; text-align: center; transition: border-color 0.2s; }
+.ac-quick-item:hover { border-color: #667eea; background: #0f0f23; }
+.ac-quick-item .ac-q-domain { color: #667eea; font-weight: 600; font-size: 0.9rem; word-break: break-all; }
+.ac-quick-item .ac-q-desc { color: #777; font-size: 0.78rem; margin-top: 2px; }
+.ac-label { color: #888; font-size: 0.85rem; margin-bottom: 4px; }
+.ac-loading { text-align: center; padding: 40px 20px; display: none; }
+.ac-loading.visible { display: block; }
+.ac-spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #2a2a4a; border-top: 4px solid #667eea; border-radius: 50%; animation: ac-spin 0.8s linear infinite; margin-bottom: 12px; }
+@keyframes ac-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.ac-loading p { color: #888; font-size: 0.95rem; }
+.ac-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 16px 20px; color: #f87171; margin-bottom: 20px; display: none; }
+.ac-out { display: none; }
+.ac-out.visible { display: block; }
+.ac-score { text-align: center; padding: 28px 20px; border-radius: 16px; margin-bottom: 22px; }
+.ac-score.a { background: rgba(16,185,129,0.12); border: 2px solid rgba(16,185,129,0.3); }
+.ac-score.b { background: rgba(59,130,246,0.12); border: 2px solid rgba(59,130,246,0.3); }
+.ac-score.c, .ac-score.d { background: rgba(234,179,8,0.12); border: 2px solid rgba(234,179,8,0.3); }
+.ac-score.e, .ac-score.f { background: rgba(239,68,68,0.12); border: 2px solid rgba(239,68,68,0.3); }
+.ac-grade { font-size: 3.4rem; font-weight: 800; line-height: 1; }
+.ac-score.a .ac-grade, .ac-score.b .ac-grade { color: #4ade80; }
+.ac-score.c .ac-grade, .ac-score.d .ac-grade { color: #fbbf24; }
+.ac-score.e .ac-grade, .ac-score.f .ac-grade { color: #f87171; }
+.ac-score-title { font-size: 1.25rem; color: #fff; margin: 8px 0 4px; font-weight: 700; }
+.ac-score-sub { color: #b3b8c0; font-size: 0.95rem; }
+.ac-tally { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+.ac-tally-item { background: rgba(0,0,0,0.25); border-radius: 20px; padding: 5px 14px; font-size: 0.82rem; color: #ccc; }
+.ac-card { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.ac-card-head { display: flex; align-items: center; gap: 10px; padding: 15px 18px; cursor: pointer; user-select: none; }
+.ac-card-head:hover { background: rgba(102,126,234,0.05); }
+.ac-card-title { flex: 1; font-size: 1.05rem; font-weight: 600; color: #fff; }
+.ac-badge { font-size: 0.78rem; padding: 3px 11px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+.ac-badge.ok { background: rgba(16,185,129,0.15); color: #4ade80; }
+.ac-badge.warn { background: rgba(234,179,8,0.15); color: #fbbf24; }
+.ac-badge.bad { background: rgba(239,68,68,0.15); color: #f87171; }
+.ac-arrow { color: #555; font-size: 0.75rem; transition: transform 0.2s; }
+.ac-card-head.open .ac-arrow { transform: rotate(180deg); }
+.ac-card-body { display: none; padding: 4px 18px 18px; border-top: 1px solid #2a2a4a; }
+.ac-card-body.open { display: block; }
+.ac-finding { display: flex; gap: 10px; padding: 12px 0; border-bottom: 1px solid #1f1f3a; }
+.ac-finding:last-child { border-bottom: none; }
+.ac-f-icon { flex-shrink: 0; font-size: 1rem; }
+.ac-f-title { color: #fff; font-weight: 600; font-size: 0.95rem; margin-bottom: 3px; }
+.ac-f-msg { color: #b3b8c0; font-size: 0.9rem; line-height: 1.55; }
+.ac-clean { color: #4ade80; font-size: 0.92rem; padding: 12px 0; }
+.ac-table-wrap { overflow-x: auto; margin-top: 10px; }
+.ac-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.ac-table th { text-align: left; color: #888; font-weight: 600; padding: 9px 10px; border-bottom: 1px solid #2a2a4a; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+.ac-table td { padding: 9px 10px; border-bottom: 1px solid #1f1f3a; color: #ccc; vertical-align: top; }
+.ac-table tr:hover td { background: rgba(102,126,234,0.04); }
+.ac-token { font-family: monospace; color: #667eea; font-weight: 600; white-space: nowrap; }
+.ac-use { font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+.ac-use.search { background: rgba(59,130,246,0.15); color: #93c5fd; }
+.ac-use.training { background: rgba(147,51,234,0.15); color: #c4b5fd; }
+.ac-verdict { font-weight: 700; white-space: nowrap; }
+.ac-verdict.yes { color: #4ade80; }
+.ac-verdict.no { color: #f87171; }
+.ac-rule { font-family: monospace; font-size: 0.75rem; color: #777; word-break: break-all; }
+.ac-rule.specific { color: #fbbf24; }
+.ac-note { color: #888; font-size: 0.82rem; margin-top: 2px; }
+.ac-stats { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 4px; }
+.ac-stat { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 8px; padding: 8px 13px; font-size: 0.82rem; color: #999; }
+.ac-stat b { color: #fff; font-size: 1rem; display: block; }
+.ac-fix { margin-top: 12px; }
+.ac-fix pre { background: #0f0f23; padding: 14px 16px; border-radius: 8px; overflow-x: auto; color: #9ae6b4; font-size: 0.8rem; line-height: 1.55; font-family: monospace; white-space: pre-wrap; word-break: break-all; margin: 0; }
+.ac-fix-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+.ac-fix-title { font-size: 0.92rem; color: #fff; font-weight: 600; flex: 1; }
+.ac-fix-head p { margin: 0; color: #888; font-size: 0.8rem; }
+.ac-raw { background: #0f0f23; padding: 14px 16px; border-radius: 8px; overflow-x: auto; color: #999; font-size: 0.8rem; line-height: 1.5; font-family: monospace; white-space: pre-wrap; word-break: break-all; margin: 12px 0 0; max-height: 320px; }
+.ac-privacy { margin-top: 18px; font-size: 0.85rem; color: #777; text-align: center; }
+@media (max-width: 600px) {
+  .ac-row { flex-direction: column; }
+  .ac-row input[type="text"] { min-width: unset; }
+  .ac-grade { font-size: 2.6rem; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>AI Crawler Access Checker</h1>
+    <p class="subtitle">Who Can Read Your Site, and What Breaks llms.txt</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/tools/network/">Network</a> &gt; <span>AI Crawler Checker</span>
+      <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <h2>Audit a Domain</h2>
+      <div class="ac-row">
+        <input type="text" id="ac-domain" placeholder="example.com" autocomplete="off" spellcheck="false" aria-label="Enter a domain to audit">
+        <button class="btn btn-primary" onclick="runAudit()" id="ac-btn">Audit</button>
+      </div>
+
+      <p class="ac-label">Try one:</p>
+      <div class="ac-quick">
+        <div class="ac-quick-item" onclick="quick('tools.scoreroute.com')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')quick('tools.scoreroute.com')"><div class="ac-q-domain">tools.scoreroute.com</div><div class="ac-q-desc">This site</div></div>
+        <div class="ac-quick-item" onclick="quick('llmstxt.org')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')quick('llmstxt.org')"><div class="ac-q-domain">llmstxt.org</div><div class="ac-q-desc">The proposal</div></div>
+        <div class="ac-quick-item" onclick="quick('openai.com')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')quick('openai.com')"><div class="ac-q-domain">openai.com</div><div class="ac-q-desc">OpenAI</div></div>
+        <div class="ac-quick-item" onclick="quick('anthropic.com')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')quick('anthropic.com')"><div class="ac-q-domain">anthropic.com</div><div class="ac-q-desc">Anthropic</div></div>
+        <div class="ac-quick-item" onclick="quick('example.com')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')quick('example.com')"><div class="ac-q-domain">example.com</div><div class="ac-q-desc">Plain site</div></div>
+      </div>
+
+      <div id="ac-loading" class="ac-loading">
+        <div class="ac-spinner"></div>
+        <p id="ac-loading-text">Fetching robots.txt and llms.txt...</p>
+      </div>
+
+      <div id="ac-error" class="ac-error"></div>
+
+      <div id="ac-out" class="ac-out">
+        <div id="ac-score" class="ac-score"></div>
+        <div id="ac-cards"></div>
+        <div class="btn-group" style="margin-top:16px;">
+          <button class="btn btn-secondary" onclick="resetTool()">Audit Another Domain</button>
+        </div>
+        <p class="ac-privacy">Nothing is stored. The three files are read, checked and discarded.</p>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>Why ChatGPT's Answer About Your Own Robots.txt Is Usually Wrong</h3>
+      <p>Ask a chatbot whether GPTBot can read your site and it will give you a confident answer built from general knowledge. The problem is that the answer depends on three things no language model can look up for you: the exact contents of a file on your server, the group and path rules in it, and whether the second file your setup depends on is even reachable.</p>
+      <p>robots.txt precedence is the part people get wrong most often. A crawler only falls back to the <code>User-agent: *</code> group when it finds no group named after it. A named group beats the wildcard every time, whatever the wildcard says. Inside a group, the longest matching path wins, and when an Allow and a Disallow tie on length, Allow wins. A site with a blanket <code>Disallow: /</code> and a named GPTBot group is open to GPTBot. A site with <code>Disallow: /</code> and <code>Allow: /</code> in the same group is open to everything, because the Disallow does nothing.</p>
+      <p>Then there is the file the second half of your setup depends on. Publishing <code>/llms.txt</code> does nothing at all if the AI crawlers you care about are blocked from fetching it, and the most common way that happens is a <code>Disallow: /</code> in the wildcard group that nobody thought about because the file loads fine in a browser.</p>
+      <p>This tool fetches your three files and resolves the rules the way a compliant crawler would, then shows you the specific line responsible for each verdict.</p>
+
+      <h3>What You Get</h3>
+      <ul>
+        <li><strong>Per-crawler verdicts for 19 documented AI bots</strong> — GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-SearchBot, Claude-User, anthropic-ai, PerplexityBot, Perplexity-User, Googlebot, Google-Extended, Bingbot, Applebot-Extended, meta-externalagent, CCBot, Amazonbot, cohere-ai, Bytespider and MistralAI-User, each marked as search or training so the two are never confused again.</li>
+        <li><strong>The deciding rule, not a yes or no</strong> — every verdict carries the exact Allow or Disallow line that produced it, and whether it came from that crawler's own group or the wildcard.</li>
+        <li><strong>llms.txt spec validation</strong> — single H1, summary blockquote, sections that contain links, absolute URLs, no duplicates, no empty sections, and a check for the mistake that hides everything else: an HTML page served as llms.txt with a 200 status.</li>
+        <li><strong>A contradiction report</strong> — a published llms.txt that no search crawler can reach, a site that blocks OpenAI training but allows its search bot (and the reverse, which is the mistake), a blocked Googlebot, a missing llms-full.txt, or an H1 that does not match the domain.</li>
+        <li><strong>Copy-paste fixes</strong> — a ready robots.txt AI crawler group and an llms.txt starter built for your domain, both in a textarea you can copy straight out.</li>
+      </ul>
+
+      <h3>What This Tool Will Not Tell You</h3>
+      <p>llms.txt is a community convention from llmstxt.org. It is not a standard, and no engine has adopted it as a ranking input. Google has said plainly that it does not use llms.txt for indexing or ranking. Publishing one is cheap and it does give an agent a curated map of your site, but it is not a switch that makes you appear in ChatGPT, and any tool that tells you otherwise is selling you a promise it cannot keep.</p>
+      <p>What this audit does tell you is the part that is real today: whether the crawlers that already exist are permitted to read you, and whether the file you published can actually be reached by the agents you had in mind. Fixing an access problem is worthwhile on its own. Expecting a traffic jump from it is not.</p>
+
+      <h3>Frequently Asked</h3>
+      <details class="faq-item">
+        <summary>Does llms.txt actually affect Google or ChatGPT rankings?</summary>
+        <p>No, and anyone selling you a tool that promises otherwise is selling you something. llms.txt is a community convention proposed on llmstxt.org, not a standard any engine has adopted as a ranking input. Google has stated that it does not use llms.txt for indexing or ranking. The file is worth publishing because it is cheap, it tells an agent which of your pages matter, and several smaller crawlers and agent frameworks do read it. It is not a switch you flip to appear in ChatGPT. What does have an effect today is robots.txt, because that is the one file every crawler already obeys, and it is where sites most often get the decision backwards by accident.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is the difference between GPTBot and OAI-SearchBot?</summary>
+        <p>They are separate crawlers with separate jobs and separate robots.txt user-agent tokens. GPTBot is the training crawler: it reads pages to build and improve models. OAI-SearchBot is the search crawler: it is what makes your pages eligible to appear in ChatGPT search results. ChatGPT-User is a third one, fetched when a user pastes a link into a chat. Blocking GPTBot while allowing OAI-SearchBot is the most common setup on the web and it is usually deliberate at large sites. The mistake is doing it the other way round, which allows training but silently removes you from answers.</p>
+      </details>
+      <details class="faq-item">
+        <summary>My robots.txt has Disallow: / in the wildcard group. Are AI bots blocked?</summary>
+        <p>Not necessarily, and this is where most advice goes wrong. A crawler first looks for a group whose user-agent token matches its own name exactly. Only if it finds no such group does it fall back to the wildcard group. So a site with a blanket Disallow: / plus a named group for GPTBot is open to GPTBot and closed to everything else. This tool resolves that per bot and shows you the specific line that decided it, rather than asking you to work it out by hand.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Will blocking Google-Extended hurt my Google Search rankings?</summary>
+        <p>No. Googlebot controls Google Search, and Google-Extended is a separate token that covers Gemini training and grounding. Blocking Google-Extended leaves your Google Search and AI Overviews visibility untouched. The reverse is not true: if you block Googlebot you are out of Google entirely, and no amount of llms.txt work brings that back. If you see a site claiming Google-Extended is required for AI search results, that claim is wrong.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is the current Anthropic crawler token, ClaudeBot or anthropic-ai?</summary>
+        <p>ClaudeBot is the current token and it covers both training and retrieval. anthropic-ai was the earlier agent token and is still found in a lot of robots.txt files. A file that only names anthropic-ai is not naming ClaudeBot, so ClaudeBot falls through to the wildcard group and gets whatever that says. This tool lists both and reports which group each one is actually being judged by.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why does my llms.txt report an error when it clearly loads in my browser?</summary>
+        <p>Three usual causes. The URL returns your 404 page with a 200 status, so the file is really an HTML page and an agent reading it gets markup instead of content. The file was uploaded as JSON or YAML when the convention expects plain markdown. Or the file has no H1 line, which is the one part of the spec that is not optional. All three load fine in a browser and all three are invisible to an agent.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do I need llms-full.txt as well as llms.txt?</summary>
+        <p>It is optional, and the split exists for a reason. llms.txt is meant to be a short index a model can read cheaply. llms-full.txt holds the actual content for agents willing to spend the tokens. A one-line llms.txt with no full version gives an agent a title and nothing to act on, which is why this tool flags the missing file rather than passing it.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is the domain I type stored or logged anywhere?</summary>
+        <p>No. The request is answered from the Worker with a no-store cache header, the three files are read and discarded, and nothing is written to KV or to disk. We do not keep a list of the sites people audit.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why does my domain fail to audit?</summary>
+        <p>Three common reasons. The site only answers on one scheme and the other request timed out, in which case re-running usually gets through. The host blocks requests that do not look like a browser, and the file is never delivered. Or the site does not exist at that name, which is reported as unreachable rather than as a clean bill of health, so an unreachable domain never scores well by accident.</p>
+      </details>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <ul>
+          <li><a href="/tools/http-status-checker/">HTTP Status &amp; Header Checker</a></li>
+          <li><a href="/tools/website-down-checker/">Website Down Checker</a></li>
+          <li><a href="/tools/ssl-checker/">SSL Certificate Checker</a></li>
+          <li><a href="/tools/url-metadata-extractor/">URL Metadata Extractor</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+var FINDING_ICON = { error: '\u274C', warn: '\u26A0\uFE0F', info: '\u2139\uFE0F' };
+
+function esc(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function quick(domain) {
+  document.getElementById('ac-domain').value = domain;
+  runAudit();
+}
+
+async function runAudit() {
+  var input = document.getElementById('ac-domain');
+  var btn = document.getElementById('ac-btn');
+  var raw = input.value.trim();
+  if (!raw) {
+    showError('Enter a domain such as example.com');
+    return;
+  }
+  var domain = raw.toLowerCase().replace(/^[a-z]+:\/\//, '').split('/')[0].split('?')[0].split('#')[0];
+  input.value = domain;
+  btn.disabled = true;
+  btn.textContent = 'Auditing...';
+  document.getElementById('ac-error').style.display = 'none';
+  document.getElementById('ac-out').className = 'ac-out';
+  var loading = document.getElementById('ac-loading');
+  loading.className = 'ac-loading visible';
+  document.getElementById('ac-loading-text').textContent = 'Fetching /robots.txt, /llms.txt and /llms-full.txt for ' + domain + '...';
+
+  try {
+    var res = await fetch('/api/ai-crawler-checker?domain=' + encodeURIComponent(domain));
+    var data = await res.json();
+    if (data.error) {
+      showError(data.error);
+      return;
+    }
+    render(data);
+  } catch (err) {
+    showError('Could not reach the audit service: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Audit';
+    loading.className = 'ac-loading';
+  }
+}
+
+function showError(msg) {
+  document.getElementById('ac-loading').className = 'ac-loading';
+  document.getElementById('ac-out').className = 'ac-out';
+  var el = document.getElementById('ac-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  var btn = document.getElementById('ac-btn');
+  btn.disabled = false;
+  btn.textContent = 'Audit';
+}
+
+function resetTool() {
+  document.getElementById('ac-domain').value = '';
+  document.getElementById('ac-out').className = 'ac-out';
+  document.getElementById('ac-error').style.display = 'none';
+  var btn = document.getElementById('ac-btn');
+  btn.disabled = false;
+  btn.textContent = 'Audit';
+}
+
+function render(r) {
+  var errors = r.findings.filter(function (f) { return f.level === 'error'; }).length;
+  var warns = r.findings.filter(function (f) { return f.level === 'warn'; }).length;
+  var infos = r.findings.filter(function (f) { return f.level === 'info'; }).length;
+  var blockedSearch = r.crawlers.filter(function (c) { return c.use === 'search' && !c.llmsAllowed; }).length;
+  var totalSearch = r.crawlers.filter(function (c) { return c.use === 'search'; }).length;
+
+  var scoreEl = document.getElementById('ac-score');
+  var grade = r.grade.toLowerCase();
+  scoreEl.className = 'ac-score ' + grade;
+  var verdict;
+  if (!r.reachable) verdict = 'The domain did not resolve, so nothing below was verified.';
+  else if (errors > 0) verdict = errors + ' problem' + (errors > 1 ? 's' : '') + ' will keep AI agents from reading this site the way you intended.';
+  else if (warns > 0) verdict = 'No blockers, but ' + warns + ' thing' + (warns > 1 ? 's' : '') + ' to tighten up.';
+  else verdict = 'AI crawlers can read this site and the AI files are well formed.';
+  scoreEl.innerHTML =
+    '<div class="ac-grade">' + esc(r.grade) + '</div>' +
+    '<div class="ac-score-title">' + r.score + ' out of 100 for ' + esc(r.domain) + '</div>' +
+    '<div class="ac-score-sub">' + esc(verdict) + '</div>' +
+    '<div class="ac-tally">' +
+      '<span class="ac-tally-item">' + errors + ' blocking</span>' +
+      '<span class="ac-tally-item">' + warns + ' to fix</span>' +
+      '<span class="ac-tally-item">' + infos + ' context</span>' +
+      (r.crawlers.length ? '<span class="ac-tally-item">' + (totalSearch - blockedSearch) + '/' + totalSearch + ' AI search crawlers can read /llms.txt</span>' : '<span class="ac-tally-item">no domain to check</span>') +
+    '</div>';
+
+  // An unresolvable domain has no matrix, no llms.txt and nothing to fix but the spelling.
+  // Rendering empty tables for it would be worse than saying so.
+  if (!r.reachable) {
+    document.getElementById('ac-cards').innerHTML = card('What This Means For You', r.findings.length, { cls: 'bad', text: 'Nothing to audit' }, findingsHtml(r.findings), true);
+    document.getElementById('ac-out').className = 'ac-out visible';
+    return;
+  }
+
+  document.getElementById('ac-cards').innerHTML =
+    card('What This Means For You', r.findings.length, r.findings.length ? badgeFor(r.findings) : { cls: 'ok', text: 'Nothing to fix' }, findingsHtml(r.findings), true) +
+    card('AI Crawler Access', r.crawlers.length, null, crawlersHtml(r), false) +
+    card('llms.txt Validation', r.llms.validation ? r.llms.validation.issues.length : 0, r.llms.found ? llmsBadge(r.llms) : { cls: 'bad', text: 'Not published' }, llmsHtml(r), false) +
+    card('Ready-Made Fixes', 2, null, fixesHtml(r), false);
+  document.getElementById('ac-out').className = 'ac-out visible';
+}
+
+function badgeFor(findings) {
+  if (findings.some(function (f) { return f.level === 'error'; })) return { cls: 'bad', text: findings.filter(function (f) { return f.level === 'error'; }).length + ' blocking' };
+  if (findings.some(function (f) { return f.level === 'warn'; })) return { cls: 'warn', text: findings.filter(function (f) { return f.level === 'warn'; }).length + ' to fix' };
+  return { cls: 'ok', text: 'All clear' };
+}
+
+function llmsBadge(llms) {
+  var issues = llms.validation.issues;
+  var errs = issues.filter(function (i) { return i.level === 'error'; }).length;
+  var warns = issues.filter(function (i) { return i.level === 'warn'; }).length;
+  if (errs > 0) return { cls: 'bad', text: errs + ' spec error' + (errs > 1 ? 's' : '') };
+  if (warns > 0) return { cls: 'warn', text: warns + ' spec warning' + (warns > 1 ? 's' : '') };
+  return { cls: 'ok', text: 'Spec clean' };
+}
+
+function card(title, count, badge, body, startOpen) {
+  var b = badge ? '<span class="ac-badge ' + badge.cls + '">' + esc(badge.text) + '</span>' : '<span class="ac-badge ok">' + count + ' rows</span>';
+  var open = startOpen === true;
+  return '<div class="ac-card">' +
+    '<div class="ac-card-head' + (open ? ' open' : '') + '" onclick="toggleCard(this)" role="button" tabindex="0" aria-expanded="' + (open ? 'true' : 'false') + '" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleCard(this);}">' +
+      '<span class="ac-card-title">' + esc(title) + '</span>' + b + '<span class="ac-arrow">\u25BC</span>' +
+    '</div>' +
+    '<div class="ac-card-body' + (open ? ' open' : '') + '">' + body + '</div>' +
+  '</div>';
+}
+
+function toggleCard(head) {
+  var body = head.nextElementSibling;
+  var open = body.classList.toggle('open');
+  head.classList.toggle('open', open);
+  head.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+function findingsHtml(findings) {
+  if (!findings.length) return '<div class="ac-clean">Nothing to report. Every AI crawler we track can reach the site and no contradictions were found.</div>';
+  var out = '';
+  for (var i = 0; i < findings.length; i++) {
+    var f = findings[i];
+    out += '<div class="ac-finding">' +
+      '<span class="ac-f-icon">' + FINDING_ICON[f.level] + '</span>' +
+      '<div><div class="ac-f-title">' + esc(f.title) + '</div><div class="ac-f-msg">' + esc(f.msg) + '</div></div>' +
+    '</div>';
+  }
+  return out;
+}
+
+function crawlersHtml(r) {
+  var out = '<p class="ac-note">Each row is the verdict a compliant crawler reaches after applying group precedence and longest-path matching to your live robots.txt. The rule column is the line that decided it.</p>';
+  out += '<div class="ac-table-wrap"><table class="ac-table"><caption class="ac-note" style="text-align:left;padding:4px 0;">AI crawler access resolved from ' + esc(r.domain) + (r.robots.found ? '' : ' (no robots.txt, nothing blocked)') + '</caption>' +
+    '<thead><tr><th scope="col">Crawler</th><th scope="col">Vendor</th><th scope="col">Used for</th><th scope="col">/llms.txt</th><th scope="col">Site root</th><th scope="col">Deciding rule</th></tr></thead><tbody>';
+  for (var i = 0; i < r.crawlers.length; i++) {
+    var c = r.crawlers[i];
+    var rule = c.rule ? (c.llmsAllowed ? 'Allow: ' : 'Disallow: ') + esc(c.rule) : 'no rule matched, so allowed by default';
+    var source = c.source === 'agent' ? 'own group' : (c.source === 'wildcard' ? 'wildcard * group' : 'no groups at all');
+    out += '<tr>' +
+      '<td><span class="ac-token">' + esc(c.token) + '</span><div class="ac-note">' + esc(c.note) + '</div></td>' +
+      '<td>' + esc(c.vendor) + '</td>' +
+      '<td><span class="ac-use ' + esc(c.use) + '">' + esc(c.use) + '</span></td>' +
+      '<td class="ac-verdict ' + (c.llmsAllowed ? 'yes' : 'no') + '">' + (c.llmsAllowed ? 'Allowed' : 'Blocked') + '</td>' +
+      '<td class="ac-verdict ' + (c.rootAllowed ? 'yes' : 'no') + '">' + (c.rootAllowed ? 'Allowed' : 'Blocked') + '</td>' +
+      '<td class="ac-rule' + (c.source === 'agent' ? ' specific' : '') + '">' + rule + '<div class="ac-note">from ' + source + '</div></td>' +
+    '</tr>';
+  }
+  out += '</tbody></table></div>';
+  if (r.robots.found) {
+    out += '<p class="ac-note" style="margin-top:14px;">robots.txt as served (' + r.robots.bytes + ' bytes, ' + r.robots.groups + ' group' + (r.robots.groups === 1 ? '' : 's') + '):</p><pre class="ac-raw">' + esc(r.robots.content) + '</pre>';
+  }
+  return out;
+}
+
+function llmsHtml(r) {
+  if (!r.llms.found) {
+    return '<div class="ac-finding"><span class="ac-f-icon">' + FINDING_ICON.error + '</span><div><div class="ac-f-title">No llms.txt published</div>' +
+      '<div class="ac-f-msg">The request to /llms.txt came back with status ' + esc(r.llms.status) + '. A ready-made starter for this domain is in the fixes section below.</div></div></div>';
+  }
+  var v = r.llms.validation;
+  var out = '<div class="ac-stats">' +
+    '<div class="ac-stat"><b>' + esc(v.stats.sections) + '</b>sections</div>' +
+    '<div class="ac-stat"><b>' + esc(v.stats.links) + '</b>links</div>' +
+    '<div class="ac-stat"><b>' + esc(v.stats.words) + '</b>words</div>' +
+    '<div class="ac-stat"><b>' + esc(Math.round(v.stats.bytes / 1024)) + ' KB</b>size</div>' +
+    '<div class="ac-stat"><b>' + (r.llms.fullFound ? 'yes' : 'no') + '</b>llms-full.txt</div>' +
+  '</div>';
+  if (v.stats.h1) out += '<p class="ac-note" style="margin-top:10px;">H1: <strong style="color:#fff;">' + esc(v.stats.h1) + '</strong></p>';
+  if (!v.issues.length) {
+    out += '<div class="ac-clean">This file passes every structural check in the spec. H1, summary, sections and links are all well formed.</div>';
+  } else {
+    for (var i = 0; i < v.issues.length; i++) {
+      var is = v.issues[i];
+      out += '<div class="ac-finding"><span class="ac-f-icon">' + FINDING_ICON[is.level] + '</span><div><div class="ac-f-title">' +
+        (is.occurrences ? is.occurrences + ' occurrences' : 'Line ' + (is.line || 1)) + '</div><div class="ac-f-msg">' + esc(is.msg) + '</div></div></div>';
+    }
+  }
+  out += '<p class="ac-note" style="margin-top:14px;">Served as ' + esc(r.llms.contentType || 'unknown content type') + ' with status ' + esc(r.llms.status) + '. File contents:</p><pre class="ac-raw">' + esc(r.llms.content) + '</pre>';
+  return out;
+}
+
+function fixesHtml(r) {
+  return '<div class="ac-fix">' +
+    '<div class="ac-fix-head"><div class="ac-fix-title">AI crawler groups for robots.txt</div><p>Add at the end of the file, before any Sitemap: line.</p></div>' +
+    '<pre id="ac-fix-robots">' + esc(r.fixes.robotsGroup) + '</pre>' +
+    '<div class="btn-group" style="margin-top:8px;"><button class="btn" onclick="copyFix(\'ac-fix-robots\')">Copy robots.txt block</button></div>' +
+  '</div>' +
+  '<div class="ac-fix">' +
+    '<div class="ac-fix-head"><div class="ac-fix-title">llms.txt starter for ' + esc(r.domain) + '</div><p>Save as /llms.txt at the domain root.</p></div>' +
+    '<pre id="ac-fix-llms">' + esc(r.fixes.llmsTemplate) + '</pre>' +
+    '<div class="btn-group" style="margin-top:8px;"><button class="btn" onclick="copyFix(\'ac-fix-llms\')">Copy llms.txt</button></div>' +
+  '</div>';
+}
+
+function copyFix(id) {
+  copyToClipboard(id);
+  showStatus('ac-feedback', 'Copied to clipboard', 'success');
+}
+
+document.getElementById('ac-domain').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') runAudit();
+});
+</script>
+<div id="ac-feedback" class="status" role="status" aria-live="polite" style="margin-top:14px;"></div>
+<script src="/tools.js"></script>
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+  <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+</footer>
+</body>
+</html>

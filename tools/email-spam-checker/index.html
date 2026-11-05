@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Spam Checker - Spam Score &amp; Deliverability Analyzer | DevTools Hub</title>
+<meta name="description" content="Free email spam checker. Score your subject line and body against 552 weighted spam triggers, find why it lands in junk, and get a fixed rewrite. Nothing uploaded.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/email-spam-checker/">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/email-spam-checker/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Email Spam Checker - Spam Score &amp; Deliverability Analyzer">
+<meta property="og:description" content="Score your email against 552 weighted spam triggers and get a fixed rewrite. Free, no signup, nothing uploaded.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Email Spam Checker - Spam Score &amp; Deliverability Analyzer">
+<meta name="twitter:description" content="Score your email against 552 weighted spam triggers and get a fixed rewrite. Free, no signup, nothing uploaded.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:url" content="https://tools.scoreroute.com/tools/email-spam-checker/">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Email Spam Checker",
+  "description": "Free email spam checker and deliverability analyzer. Scores a subject line, preheader and body against 552 weighted spam triggers across 16 categories, checks deceptive subject lines, hidden text, link and image signals, and CAN-SPAM compliance, then rewrites the flagged phrases.",
+  "url": "https://tools.scoreroute.com/tools/email-spam-checker/",
+  "applicationCategory": "BusinessApplication",
+  "featureList": [
+    "SpamAssassin-style 0-10 spam score with 5.0 threshold",
+    "552 weighted spam trigger phrases in 16 categories",
+    "Subject line scored separately at double weight",
+    "Preheader and inbox preview text analysis",
+    "Deceptive subject line detection (fake Re: and Fwd:)",
+    "Hidden text, image-only and bare URL detection",
+    "Link anchor text versus destination mismatch check",
+    "CAN-SPAM, GDPR and CASL compliance checklist",
+    "One-click rewrite of every flagged phrase",
+    "Runs entirely in the browser, nothing is uploaded"
+  ],
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+}
+</script>
+<style>
+.esc-form { margin-bottom: 22px; }
+.esc-field { margin-bottom: 16px; }
+.esc-field label { display: block; font-size: 0.85rem; color: #b3b8c0; margin-bottom: 6px; font-weight: 600; }
+.esc-field input[type="text"], .esc-field textarea {
+  width: 100%; box-sizing: border-box; padding: 12px 14px; background: #0f0f23;
+  border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; font-size: 0.95rem; font-family: inherit;
+}
+.esc-field textarea { font-family: monospace; line-height: 1.5; min-height: 220px; resize: vertical; }
+.esc-field input[type="text"]::placeholder, .esc-field textarea::placeholder { color: #555; }
+.esc-hint { font-size: 0.78rem; color: #888; margin-top: 5px; }
+.esc-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 14px 18px; color: #f87171; margin-bottom: 20px; display: none; }
+.esc-results { display: none; }
+.esc-results.visible { display: block; }
+.esc-verdict { text-align: center; padding: 26px 20px; border-radius: 16px; margin-bottom: 20px; }
+.esc-verdict.clean { background: rgba(16,185,129,0.12); border: 2px solid rgba(16,185,129,0.3); }
+.esc-verdict.warn { background: rgba(234,179,8,0.12); border: 2px solid rgba(234,179,8,0.3); }
+.esc-verdict.bad { background: rgba(239,68,68,0.12); border: 2px solid rgba(239,68,68,0.3); }
+.esc-verdict.worst { background: rgba(190,18,60,0.16); border: 2px solid rgba(190,18,60,0.4); }
+.esc-score { font-size: 3.2rem; font-weight: 800; line-height: 1; }
+.esc-verdict.clean .esc-score { color: #4ade80; }
+.esc-verdict.warn .esc-score { color: #fbbf24; }
+.esc-verdict.bad .esc-score { color: #fb923c; }
+.esc-verdict.worst .esc-score { color: #f87171; }
+.esc-verdict-label { font-size: 1.2rem; font-weight: 700; margin-top: 8px; color: #fff; }
+.esc-verdict-sub { color: #b3b8c0; font-size: 0.9rem; margin-top: 6px; }
+.esc-gauge { position: relative; height: 10px; background: #0f0f23; border-radius: 6px; margin: 18px auto 6px; max-width: 420px; border: 1px solid #2a2a4a; }
+.esc-gauge-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; }
+.esc-gauge-mark { position: absolute; top: -5px; bottom: -5px; width: 2px; background: #fbbf24; }
+.esc-gauge-cap { display: flex; justify-content: space-between; max-width: 420px; margin: 0 auto; font-size: 0.72rem; color: #888; }
+.esc-parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 22px; }
+.esc-part { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 10px; padding: 12px 14px; }
+.esc-part-name { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.04em; }
+.esc-part-score { font-size: 1.5rem; font-weight: 800; margin-top: 2px; }
+.esc-part-note { font-size: 0.75rem; color: #888; margin-top: 2px; }
+.esc-s0 .esc-part-score, .esc-p0 { color: #4ade80; }
+.esc-s1 .esc-part-score, .esc-p1 { color: #fbbf24; }
+.esc-s2 .esc-part-score, .esc-p2 { color: #fb923c; }
+.esc-s3 .esc-part-score, .esc-p3 { color: #f87171; }
+.esc-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.esc-tab { background: #1a1a2e; border: 1px solid #2a2a4a; color: #b3b8c0; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+.esc-tab[aria-selected="true"] { background: #667eea; border-color: #667eea; color: #fff; font-weight: 600; }
+.esc-panel { display: none; }
+.esc-panel.on { display: block; }
+.esc-finding { background: #1a1a2e; border: 1px solid #2a2a4a; border-left-width: 4px; border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; }
+.esc-finding.f-high { border-left-color: #f87171; }
+.esc-finding.f-medium { border-left-color: #fbbf24; }
+.esc-finding.f-low { border-left-color: #7eb3ff; }
+.esc-finding.f-info { border-left-color: #6b7280; }
+.esc-f-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.esc-f-sev { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 20px; }
+.esc-finding.f-high .esc-f-sev { background: rgba(248,113,113,0.15); color: #f87171; }
+.esc-finding.f-medium .esc-f-sev { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.esc-finding.f-low .esc-f-sev { background: rgba(126,179,255,0.15); color: #7eb3ff; }
+.esc-finding.f-info .esc-f-sev { background: rgba(107,114,128,0.2); color: #9ca3af; }
+.esc-f-where { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+.esc-f-title { font-weight: 600; color: #fff; font-size: 0.95rem; }
+.esc-f-body { color: #b3b8c0; font-size: 0.88rem; margin-top: 6px; }
+.esc-f-fix { color: #4ade80; font-size: 0.85rem; margin-top: 6px; }
+.esc-f-fix code, .esc-f-body code { background: #0f0f23; padding: 1px 5px; border-radius: 4px; font-size: 0.85em; }
+.esc-f-terms { margin-top: 8px; font-size: 0.8rem; color: #888; }
+.esc-f-terms span { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 4px; padding: 2px 7px; margin: 2px 4px 2px 0; display: inline-block; }
+.esc-empty { color: #4ade80; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 10px; padding: 16px 18px; font-size: 0.9rem; }
+.esc-hl { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 10px; padding: 14px 16px; white-space: pre-wrap; word-break: break-word; font-family: monospace; font-size: 0.85rem; line-height: 1.6; color: #ccc; max-height: 460px; overflow-y: auto; }
+.esc-hl mark { background: rgba(251,191,36,0.28); color: #fde68a; border-bottom: 1px solid #fbbf24; border-radius: 2px; padding: 0 1px; }
+.esc-hl mark.f-high { background: rgba(248,113,113,0.3); color: #fecaca; border-color: #f87171; }
+.esc-out { width: 100%; box-sizing: border-box; min-height: 220px; font-family: monospace; font-size: 0.85rem; line-height: 1.5; }
+@media (max-width: 600px) {
+  .esc-score { font-size: 2.6rem; }
+  .esc-tabs { gap: 4px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Email Spam Checker</h1>
+    <p class="subtitle">Score Your Subject Line and Body Before You Send</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/tools/">Tools</a> &gt; <span>Email Spam Checker</span>
+      <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <h2>Check an Email for Spam Triggers</h2>
+      <p style="color:#b3b8c0;font-size:0.92rem;">Paste a subject line and body. You can paste the rendered HTML of an email and the tool will read the links, images and hidden text out of it. Nothing leaves your browser.</p>
+
+      <form class="esc-form" id="esc-form" onsubmit="return false;">
+        <div class="esc-field">
+          <label for="esc-subject">Subject line</label>
+          <input type="text" id="esc-subject" autocomplete="off" spellcheck="false" placeholder="Don't miss our AMAZING limited time offer!!">
+          <p class="esc-hint">Scored on its own, and trigger words count double here.</p>
+        </div>
+        <div class="esc-field">
+          <label for="esc-preheader">Preheader (inbox preview text, optional)</label>
+          <input type="text" id="esc-preheader" autocomplete="off" spellcheck="false" placeholder="The line that shows next to the subject in the inbox list">
+          <p class="esc-hint">Often the only part of a long subject that gets read on a phone.</p>
+        </div>
+        <div class="esc-field">
+          <label for="esc-body">Email body (plain text or HTML source)</label>
+          <textarea id="esc-body" spellcheck="false" placeholder="Hi there,&#10;&#10;Our FREE trial gives you unlimited access...&#10;ACT NOW before this limited time offer expires!"></textarea>
+          <p class="esc-hint">Paste raw HTML to also analyse links, images and hidden text.</p>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" id="esc-run" type="button">Check Email</button>
+          <button class="btn" id="esc-sample" type="button">Load Sample</button>
+          <button class="btn btn-secondary" id="esc-clear" type="button">Clear</button>
+        </div>
+      </form>
+
+      <div id="esc-error" class="esc-error" role="alert"></div>
+
+      <div id="esc-results" class="esc-results">
+        <div id="esc-verdict" class="esc-verdict"></div>
+        <div id="esc-parts" class="esc-parts"></div>
+        <div class="esc-tabs" role="tablist">
+          <button class="esc-tab" type="button" role="tab" id="esc-tab-findings" aria-selected="true" aria-controls="esc-panel-findings">Findings</button>
+          <button class="esc-tab" type="button" role="tab" id="esc-tab-highlight" aria-selected="false" aria-controls="esc-panel-highlight">Highlighted copy</button>
+          <button class="esc-tab" type="button" role="tab" id="esc-tab-fix" aria-selected="false" aria-controls="esc-panel-fix">Fixed rewrite</button>
+        </div>
+
+        <div class="esc-panel on" id="esc-panel-findings" role="tabpanel" aria-labelledby="esc-tab-findings"></div>
+        <div class="esc-panel" id="esc-panel-highlight" role="tabpanel" aria-labelledby="esc-tab-highlight">
+          <div id="esc-hl" class="esc-hl"></div>
+        </div>
+        <div class="esc-panel" id="esc-panel-fix" role="tabpanel" aria-labelledby="esc-tab-fix">
+          <h3>Fixed rewrite</h3>
+          <p style="color:#b3b8c0;font-size:0.88rem;">Every flagged phrase replaced with the wording the industry recommends. Review it before you send, and keep anything that is load-bearing for your offer.</p>
+          <div class="esc-field">
+            <label for="esc-fixed">Rewritten email, ready to paste back</label>
+            <textarea id="esc-fixed" class="esc-out" readonly spellcheck="false"></textarea>
+          </div>
+          <div class="btn-group" style="margin-top:12px;">
+            <button class="btn btn-primary" id="esc-copy-fixed" type="button">Copy Fixed Copy</button>
+          </div>
+          <p class="status" id="esc-status" role="status"></p>
+        </div>
+
+        <h3>What this tool cannot check</h3>
+        <ul>
+          <li><strong>Sending IP reputation and blocklists.</strong> Only a real seed test with Gmail, Outlook and Yahoo reveals that.</li>
+          <li><strong>SPF, DKIM and DMARC records.</strong> Those are DNS records on your domain, not properties of your copy.</li>
+          <li><strong>Actual inbox placement.</strong> Every score here is a model of the filter, not the filter itself.</li>
+        </ul>
+        <p style="margin:10px 0 0;font-size:0.85rem;"><a href="/tools/email-auth-checker/" style="color:#7eb3ff;">Check SPF, DKIM and DMARC for your domain</a> &middot; <a href="/tools/email-verifier/" style="color:#7eb3ff;">Verify an email address</a></p>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>Problem: Why Did My Email Land in Junk?</h3>
+      <p>Mail servers do not decide what is spam by reading your message and forming an opinion. They score it. Every commercial filter runs a rule engine over the raw message and adds up points, and once the total crosses a threshold the message goes to the junk folder no matter how good the offer is. The classic example is SpamAssassin, which has shipped with a pass mark of 5.0 out of 10 for twenty years. Gmail, Outlook and Yahoo all run heavier, machine-learned versions of the same idea now, but the underlying mechanic has not changed: you accumulate risk, and then a line is drawn. This tool runs that same accounting on your copy before you send it, so the score is something you can argue with instead of something you discover afterwards in a seed test.</p>
+
+      <h3>Why the Subject Line Is Scored Separately</h3>
+      <p>Two things make a subject line more dangerous than the body. It is the only part most recipients read before deciding whether to delete, so filters weigh it harder, and it is deliberately deceptive in a specific, legally recognised way. Writing a reply prefix you never earned is listed as a deceptive subject line under CAN-SPAM, and it is the single most reliable marker of bulk spam. On top of that, a subject that opens with a dollar sign or a percentage gets cut short on a phone, so the words that sell the email are the words a reader never sees. This tool therefore scores the subject on its own, applies the trigger words at double weight there, and separately checks the hidden preview text that fills the gap next to it in the inbox list.</p>
+
+      <h3>What It Does Not Know</h3>
+      <p>There is a limit to what a page can know, and it is worth being precise about it. This tool reads the copy you paste. It cannot see the sending IP, so it cannot check blocklists, and it cannot judge how many complaint reports your domain has collected. It also cannot open your DNS, so SPF, DKIM and DMARC are outside its reach, and a real inbox placement test means actually sending a message to a seed list and waiting for Gmail to sort it. All of that is server-side work. What is genuinely reachable from a browser is the copy, and the copy is where most of the damage is done, because it is the part you actually control and the part you can change today.</p>
+
+      <h3>Every Finding Comes With a Fix</h3>
+      <p>A finding without a rewrite is just criticism. Every phrase this tool flags ships with the wording the industry recommends instead, and the fix button rewrites the whole message in one pass so you can paste the corrected version straight back into your campaign. It is worth expecting a couple of hits even on copy you are happy with. Trade language is what marketers use, and filters are deliberately blunt about money and urgency because the overwhelming majority of email using those words is fraud. A finding is a question, not a verdict, and the score is a temperature reading rather than a judgement.</p>
+
+      <h3>Specificity Is the Whole Trick</h3>
+      <p>Filters reward specificity, and that is the whole trick. A newsletter that says the seminar runs on the fourteenth at nine in the morning Eastern gets read, because there is nothing in that sentence for a rule engine to object to. The same newsletter rewritten as do not miss this amazing limited time opportunity gets scored on sight. Nothing about the offer changed, but one version sounds like a person and the other sounds like a list. Keeping numbers, dates and names in place of adjectives is the cheapest lift available to anyone who sends email, and it costs nothing but a rewrite.</p>
+
+      <h3>How the Score Is Built</h3>
+      <ul>
+        <li><strong>552 trigger phrases in 16 categories</strong>, each carrying a weight taken from the risk rating the phrase is published with: high, medium or low.</li>
+        <li><strong>Double weight in the subject line</strong>, because that is where filters look first.</li>
+        <li><strong>Per-category caps</strong>, so one repeated word cannot push a message over the line on its own.</li>
+        <li><strong>Structural rules</strong> for things no word list can catch: hidden text, fake reply prefixes, ALL-CAPS runs, bare URLs, anchor text pointing somewhere other than where it claims, and images with no alt text.</li>
+        <li><strong>Compliance checks</strong> for the CAN-SPAM elements that get businesses fined, which is the part most free checkers leave out entirely.</li>
+      </ul>
+
+      <h3>Frequently Asked Questions</h3>
+      <details class="faq-item">
+        <summary>What score should I be aiming for?</summary>
+        <p>Below 2.0 is clean. Between 2.0 and 4.9 is borderline, which is where a lot of legitimate marketing email sits and where you should look at the top findings rather than the number. 5.0 and above is the classic SpamAssassin pass mark and means a filter running that rule set would treat the message as spam. Above 8.0 the message is almost certainly being bulked before anyone reads it.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is a high score a guarantee it will be filtered?</summary>
+        <p>No, and the reverse is not a guarantee either. This is a transparent model of how rule-based filters score, not the filter itself. Gmail and Outlook both add machine-learned models on top that weigh engagement history, sender reputation and recipient behaviour, none of which a page can see. Treat the score as a floor: get it down, and you remove the part you can actually control.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why does the word "free" cost so much when my newsletter mentions it once?</summary>
+        <p>Because a rule engine cannot tell your one innocent mention from the several hundred marketing emails that use "free" as the entire pitch, so it charges the same either way. The fix is rarely to delete the word. It is to put something specific next to it, so the sentence stops reading like an advert, for example "your first 30 days free, no card needed".</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does this send my email anywhere?</summary>
+        <p>No. There is no network request in this tool. The scoring runs in JavaScript in your browser and nothing is stored, logged or sent. That is the main practical difference from a seed tester such as Mail-tester or GlockApps, where you hand a copy of your email to a third party so they can watch where it lands.</p>
+      </details>
+      <details class="faq-item">
+        <summary>My email already passed in a seed test. Why is this higher?</summary>
+        <p>Two reasons. A seed test usually scores the delivered message after the receiving server has added its own headers, which is a different input from your raw copy. And seed tests report the filter's final verdict, not its arithmetic, so a passing 4.8 and a failing 5.1 look identical from outside. If you want the reasoning rather than the verdict, this is the tool.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I paste HTML instead of plain text?</summary>
+        <p>Yes, and you should if you have it. Paste the raw HTML of the email and the tool reads the visible text, the links with their anchor text, the images and their alt attributes, and flags anything hidden with display:none, zero font size or white text on a white background. Hidden text is treated as a deceptive practice rather than a style choice, because that is what it almost always is.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does it check CAN-SPAM compliance?</summary>
+        <p>It checks the elements that live in the copy: a valid sender identification, a non-deceptive subject line, a working unsubscribe path and a physical postal address. It cannot check that your unsubscribe link actually processes the request, which is the part that matters most in practice. Under CAN-SPAM each separate email that fails is subject to a fine, and enforcement since 2024 has been carried out largely by universities rather than the FTC.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How large is the trigger list, and where does it come from?</summary>
+        <p>552 phrases across 16 categories, each with the risk rating it is published under and a recommended alternative. The list is embedded in this page as a static data block, so the tool works offline and the scoring is identical for every user and every run. Nothing about it changes between visits, which is what makes the number comparable over time.</p>
+      </details>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <ul>
+          <li><a href="/tools/email-auth-checker/">Email Authentication Checker (SPF, DKIM, DMARC)</a></li>
+          <li><a href="/tools/email-verifier/">Email Verifier</a></li>
+          <li><a href="/tools/grammar-checker/">Grammar Checker</a></li>
+          <li><a href="/tools/readability-score/">Readability Score</a></li>
+          <li><a href="/tools/word-counter/">Word Counter</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+  <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+  <p style="font-size:0.8rem;color:#666;">Free online developer tools. No signup. Browser-based. 100% private.</p>
+</footer>
+
+<script src="/tools.js"></script>
+<script>
+/* ============================================================
+   EMAIL SPAM CHECKER
+   Pure, dependency-free scoring engine. No network calls.
+   analyze() is deterministic: same input -> same report.
+   ============================================================ */
+
+/* ---- 1. Trigger data: name|||t1\x01w1\x01alt1|t2\x01w2\x01alt2 ... §§ ... */
+var TRIGGERS = 'Urgency and pressure|||Act now1.00When you\'re ready|Urgent1.00Time-sensitive|Immediately1.00At your earliest convenience|Hurry1.00Soon|Limited time1.00Available until [date]|Expires0.45Valid through|Don\'t delay1.00Whenever works for you|Now or never1.00Worth considering|Last chance1.00Final reminder|Before it\'s too late1.00While spots remain|Do it today0.45Try it this week|Only [X] left0.45Limited availability|Act immediately1.00Take a look|What are you waiting for0.45Here\'s the next step|Don\'t hesitate0.45Feel free to|Apply now0.45Learn more|Get started now0.45Get started|Instant0.45Quick|Call now1.00Book a call|Deadline0.15Timeline|Time is running out1.00Wrapping up soon|Final call0.45Quick follow-up|Once in a lifetime1.00Rare opportunity|Supply is limited0.45We have a few openings|Order now1.00Place your order|Offer expires1.00Available until [date]|Today only1.00This week|Respond immediately1.00When you have a moment|Running out0.45Going fast|Only hours left1.00Closing soon|Urgent response needed1.00Would appreciate your thoughts|Right now0.45At your convenience|For instant access1.00To get access|Don\'t wait0.45Take your time|Tick-tock0.45Timeline update§§Financial and money|||Make money1.00Grow revenue|Earn extra cash1.00Increase income|Double your income1.00Improve your results|$$$ / $$$1.00Avoid entirely|Millions1.00Significant results|Cash bonus1.00Incentive|Credit card1.00Payment method|Investment0.45Commitment|Mortgage1.00Home financing|Loan0.45Financing option|Financial freedom1.00Financial stability|Get rich1.00Build wealth|Money back0.45Full refund available|No cost1.00Included|Cheap0.45Affordable|Bargain0.45Good value|Price0.15Investment level|Save big1.00Reduce costs|Earn money1.00Generate revenue|Extra income1.00Additional revenue|Profit0.45Returns|Income from home1.00Remote work opportunity|Fast cash1.00Quick results|Big bucks1.00Strong returns|Money-making1.00Revenue-generating|No fees0.45No extra charges|Jackpot1.00Avoid entirely|Hidden charges1.00Transparent pricing|Pre-approved1.00Qualified|Refinance1.00Restructure|Work from home1.00Remote position|Debt0.45Balance|Collect0.45Receive|Payday1.00Payment date|Instant cash1.00Quick payout|Cash flow0.15Revenue cycle|No credit check1.00Simplified application|Insurance0.45Coverage|Bankruptcy1.00Financial restructuring|Crypto1.00Digital assets|Bitcoin1.00Avoid entirely|Forex1.00Currency trading|Trading0.45Market activity|Get paid1.00Earn|Prize1.00Reward|Unsecured1.00Flexible terms|0% risk1.00Low-risk|No interest1.00Deferred payment|Commission0.45Referral fee|Compound interest0.45Growth rate|Dividend0.45Returns|Easy terms1.00Flexible terms|Fixed income0.45Steady returns|Get out of debt1.00Financial planning|Money transfer1.00Payment|Monthly payment0.15Monthly plan|Net worth0.45Financial position|No deposit1.00No upfront cost|Outstanding values0.45Strong value|Penny stocks1.00Avoid entirely|Pure profit1.00Net returns|Stock alert1.00Avoid entirely|Stock pick1.00Avoid entirely|Substantial income1.00Strong revenue|Transaction0.15Payment|Wealth0.45Financial growth§§Free and discount|||Free1.00Complimentary / No charge|Free trial0.45Try it out / Test drive|Free access1.00Open access|Free gift1.00Bonus / Included perk|Free consultation0.45Intro call|100% free1.00At no cost|Risk-free1.00No commitment|Buy one get one1.00Bundle deal|Discount0.45Savings / Special rate|Percent off0.45Reduced rate|50% off1.00Half-price|Save up to0.45Reduce costs by|Best price0.45Competitive rate|Lowest price1.00Most affordable option|Special promotion0.45Current offer|Exclusive deal0.45Private offer|Unbeatable offer1.00Strong offer|Gift certificate0.45Voucher|Coupon0.45Promo code|Clearance0.45Final inventory|Free sample1.00Try before you buy|Free membership1.00Join at no cost|No obligation0.45No strings attached|Free preview0.45Sneak peek|Giveaway0.45Contest|Free download1.00Download included|Free installation0.45Setup included|Free hosting0.45Hosting included|Free bonus1.00Extra included|Free quote0.45Get a quote|Free shipping0.45Shipping included|Double your1.00Improve your|Huge discount1.00Reduced pricing|Prize1.00Reward|Free investment1.00Avoid entirely|No purchase necessary0.45No commitment needed|Free info0.45Details available|Trial0.15Test drive§§Clickbait and hype|||Amazing0.45Effective / Solid|Incredible0.45Notable|Unbelievable1.00Surprising|Miracle1.00Breakthrough|Revolutionary0.45New approach|Guaranteed1.00Proven / Backed by data|Promise0.45Commit|Secret0.45Little-known|Shocking1.00Unexpected|You won\'t believe1.00You may be surprised|One weird trick1.00One useful method|Mind-blowing0.45Impressive|Life-changing1.00Impactful|Exclusive0.45Selected / Invited|Congratulations1.00Good news|You\'ve been selected1.00You qualify|Winner1.00Avoid entirely|You have been chosen1.00We\'d like to invite you|Once in a lifetime1.00Rare opportunity|Explosive0.45Rapid|Sensational0.45Outstanding|Fantastic deal0.45Strong offer|No catch1.00Straightforward|As seen on0.45Featured in|Scientifically proven0.45Research-backed|Jaw-dropping0.45Notable|Groundbreaking0.45New|Unprecedented0.45First of its kind|Transformative0.45Worth trying|Insane0.45Strong|Crazy0.45Unexpected|Huge0.15Significant|Massive0.15Large-scale|Epic0.15Major|Breakthrough0.45New development|100% satisfaction1.00Backed by results|Phenomenal0.45Strong|Extraordinary0.45Remarkable|Outperform0.15Deliver better results§§Pressure and manipulation|||Don\'t delete1.00Worth a look|This isn\'t spam1.00Remove entirely|Not junk1.00Remove entirely|Read this0.45Quick thought|You need this0.45This might help|Don\'t miss out1.00Worth checking out|You can\'t afford to miss1.00You might find this useful|Take action0.45Next step|Click here1.00Learn more / See details|Click below1.00Check it out below|Buy now1.00Get started|Order today1.00Place an order|Sign up free0.45Create an account|Subscribe now0.45Join the list|Call immediately1.00Schedule a call|While supplies last0.45Limited availability|Opt in0.45Join|Cancel at any time0.45Flexible commitment|No questions asked0.45Simple process|What are you waiting for0.45Ready to start?|Do it now1.00Give it a try|Open this1.00Take a look|You must act1.00Something to consider|Exclusive access0.45Early access|Instant access1.00Get access|Download now0.45Download|Register now0.45Register|Join now0.45Join us|Compare rates0.45See pricing|Don\'t miss this1.00Worth a look|Please read0.45Quick thought§§Health and weight loss|||Lose weight1.00Reach your goals|Weight loss1.00Wellness journey|Lose belly fat1.00Get in shape|Diet0.45Nutrition plan|Cure1.00Treatment / Remedy|Viagra1.00Avoid entirely|Pharmacy1.00Health provider|Prescription0.45Recommended by doctor|Anti-aging0.45Skin health|Supplement0.45Nutritional support|Testosterone1.00Hormone health|CBD1.00Wellness product|Detox0.45Cleanse program|Miracle cure1.00Effective solution|No side effects1.00Well-tolerated|Doctor approved0.45Clinically reviewed|Fast weight loss1.00Steady progress|Burn fat1.00Improve fitness|Slim down0.45Feel your best|Body transformation0.45Health improvement|Keto0.45Nutrition approach|Medical breakthrough1.00New research finding|Pain relief0.45Comfort improvement|Stop aging1.00Skin care routine|Human growth hormone1.00Avoid entirely|Herbal remedy0.45Natural option|No medical exam1.00Simplified process|Plastic surgery1.00Cosmetic procedure|Remove wrinkles1.00Skin rejuvenation|Belly fat1.00Core fitness|Pounds0.15Progress|Online pharmacy1.00Avoid entirely|No prescription1.00Avoid entirely|Ozempic1.00Avoid entirely§§Scam and phishing|||Nigerian prince1.00Avoid entirely|Wire transfer1.00Payment|Western Union1.00Avoid entirely|Inheritance1.00Avoid entirely|Beneficiary1.00Recipient|Verify your account1.00Confirm your details|Confirm your identity1.00Quick verification|Social security number1.00Avoid entirely|Password reset1.00Account recovery|Account suspended1.00Account update needed|Dear friend1.00Use the person\'s name|Dear sir/madam0.45Hi [First Name]|Undisclosed recipient1.00Avoid entirely|This is not a scam1.00Avoid entirely|100% legitimate1.00Avoid entirely|Legal notice1.00Important update|Confidential0.45Private|For your eyes only1.00Shared with you|Multi-level marketing1.00Partner program|MLM1.00Referral program|Pyramid scheme1.00Avoid entirely|Ponzi1.00Avoid entirely|Debit card required1.00Payment details needed|Money order1.00Payment|Offshore1.00International|Bank transfer1.00Payment transfer|Please help1.00Looking for input|Urgent business proposal1.00Avoid entirely|Spam free1.00Avoid entirely|Not a scam1.00Avoid entirely|Information you requested0.45Following up|Winner notification1.00Avoid entirely|Claim now1.00Avoid entirely|Billing address0.45Mailing address§§Marketing buzzwords|||Buy0.45Get / Try|Clearance sale1.00Special pricing|Order status0.45Your recent purchase|Shopping spree1.00Avoid entirely|Direct marketing0.45Outreach|Mass email1.00Avoid entirely|Bulk email1.00Avoid entirely|Dear valued customer1.00Hi [Name]|Special offer0.45Something for you|Limited offer0.45Current availability|One time offer1.00New opportunity|Satisfaction guaranteed0.45Results-backed|No strings attached0.45Simple terms|Not spam1.00Remove entirely|Opt-in0.45Subscribe / Join|Performance0.15Results|Solution0.15Approach / Tool|Opportunity0.15Possibility|Leverage0.15Use|Synergy0.15Collaboration|Best-in-class0.15Top-performing|World-class0.45High-quality|Cutting-edge0.15Modern / Latest|Turnkey0.15Ready-to-use|ROI0.15Return|As seen on TV1.00Avoid entirely|Call free1.00Reach out|Compare0.15See how it stacks up|Double your1.00Grow your|Earn0.45Receive|Join millions1.00Join other teams|No hidden costs0.45Transparent pricing|Promise you1.00Our commitment|Certified0.15Verified|All-new0.15Updated|Brand new0.15Just released|Best ever0.45Our strongest yet|Eliminate0.45Reduce|Act fast1.00Worth a look|Automate0.15Streamline|Breakthrough0.45New development|Billion0.45Avoid in cold emails|Cancel now0.45Manage subscription|Dear [Name], you have been1.00Write naturally|Drastically reduced1.00Lower pricing|Explode0.45Grow|For free1.00Included|Give it away0.45Share it|Increase sales0.15Grow revenue|Incredible deal1.00Good offer|Limited supply0.45While available|Lowest rate1.00Competitive rate|No gimmick1.00Straightforward|Open rate0.15Engagement rate|Opt out0.45Unsubscribe|Sale ends0.45Offer available until|Spam1.00Avoid the word itself|Traffic0.15Visitors|Unlimited0.45Generous / Uncapped|Unsolicited1.00Avoid entirely|While you sleep1.00Automated|Why pay more0.45Better value§§Deceptive subject lines|||Re: (fake reply)1.00Write a real subject|Fwd: (fake forward)1.00Write a real subject|Important!0.45Quick update on [topic]|Help0.45Quick question about [topic]|Reminder0.15Following up on|Congratulations1.00Good news|You\'ve won1.00Avoid entirely|Claim your prize1.00Avoid entirely|Open immediately1.00Quick question|Information you requested0.45Following up on our chat|Dear [blank]0.45Hi [First name]|Account alert1.00Update about your account|Action required0.45Quick step needed|Verify0.45Confirm|Test0.15Avoid in production sends|Hello (alone)0.45Add context: Hello [Name], quick Q|FREE (all caps)1.00Complimentary|$$$ in subject1.00Avoid entirely|% off in subject0.45Special rate|Emojis (excessive)0.45One max or none|Winning1.00Succeeding|Urgent matter1.00Quick question|RSVP0.15Let me know|Hello friend1.00Hi [First Name]|Greetings0.45Hi [Name]|Dear customer1.00Hi [Name]|Notification0.45Update|Alert0.45Heads up|Warning0.45Note§§Gambling and lottery|||Casino1.00Avoid entirely|Bet now1.00Avoid entirely|Big win1.00Strong result|Blackjack1.00Avoid entirely|Casino bonus1.00Avoid entirely|Click to win1.00Avoid entirely|Free chips1.00Avoid entirely|Free spins1.00Avoid entirely|Gamble online1.00Avoid entirely|Jackpot winner1.00Avoid entirely|Live dealer1.00Avoid entirely|Lottery1.00Avoid entirely|Lottery winner1.00Avoid entirely|Lucky draw1.00Avoid entirely|Online betting1.00Avoid entirely|Online casino1.00Avoid entirely|Poker tournament1.00Avoid entirely|Slot machine1.00Avoid entirely|Sports betting1.00Avoid entirely|Wager1.00Avoid entirely|You\'re a winner1.00Avoid entirely|Play now1.00Avoid entirely|Sweepstakes1.00Avoid entirely|Scratch and win1.00Avoid entirely|7771.00Avoid entirely|Double or nothing1.00Avoid entirely|High roller1.00Avoid entirely|Roulette1.00Avoid entirely|Free bet1.00Avoid entirely|Payout1.00Return§§Tech and security|||Access your account1.00Log in to your dashboard|Account update1.00Profile change|Action required0.45Quick step|Antivirus1.00Security software|Change password1.00Update your credentials|Data breach1.00Security update|Free antivirus1.00Avoid entirely|Important update0.45What\'s new|Immediate action required1.00Needs your attention|Install now1.00Set up|Log in now1.00Sign in when ready|Password reset1.00Credential update|Security breach1.00Security notice|Security update0.45Platform update|Update account1.00Review your settings|Verify identity1.00Confirm your details|Malware detected1.00Avoid entirely|Virus alert1.00Avoid entirely|System alert1.00System notice|Unauthorized access1.00Unusual activity|Suspicious activity0.45Activity notice|Click to verify1.00Confirm in your dashboard|Update required0.45New version available|Software update0.15New release|Cyber Monday0.45Seasonal pricing|Click this link1.00Check it out|Confirm your email1.00Verify your address|Deactivation notice1.00Account update|Download attachment1.00Link to hosted file|Enable macros1.00Avoid entirely|Failed login attempt1.00Security notice|IP address0.45Network details|Two-factor authentication0.15Login verification|Your account has been1.00Update on your account|Your computer1.00Your device§§Legal and compliance|||Legal notice1.00Important update|Lawsuit1.00Avoid entirely|Subpoena1.00Avoid entirely|Court order1.00Avoid entirely|Final warning1.00Friendly reminder|Penalty0.45Consequence|Collections1.00Balance follow-up|Terms and conditions0.15Our agreement|According to law1.00Per our policy|Bill 16181.00Avoid entirely|Section 3011.00Avoid entirely|In compliance with0.45Following|Legally binding0.45Formal agreement|Under penalty of law1.00Avoid entirely|Regulatory compliance0.15Standards|Tax deduction0.45Tax benefit|IRS1.00Tax authority|Cease and desist1.00Avoid entirely|Statute of limitations1.00Avoid entirely|Pending litigation1.00Avoid entirely|Attorney0.45Legal advisor|Claim0.45Request|Dispute0.45Issue|GDPR compliance0.15Privacy standards|Indictment1.00Avoid entirely|Judgment0.45Decision|Legal action1.00Avoid entirely|Liability0.45Responsibility|Per CAN-SPAM0.45Per email regulations|Settlement0.45Resolution§§Employment and opportunity|||Work from home1.00Remote role|Be your own boss1.00Independent work|Home-based business1.00Remote business|No experience needed1.00Training provided|Earn from home1.00Remote opportunity|Passive income1.00Recurring revenue|Unlimited income1.00Uncapped earnings|Join our team0.15We\'re hiring|Hiring now0.45Open positions|Make money online1.00Online business|Part-time income1.00Flexible role|Residual income1.00Ongoing revenue|Full-time pay, part-time work1.00Avoid entirely|Home employment1.00Remote position|No selling required1.00Avoid entirely|Internet business1.00Online company|Easy money1.00Avoid entirely|Side hustle0.45Side project|Financial independence1.00Financial stability|Quit your job1.00Avoid entirely|$$$$ per week1.00Competitive compensation|Apply online0.45See the listing|Cash in on1.00Benefit from|Dream job0.45Great opportunity|Earn while you sleep1.00Passive revenue|Extra money1.00Additional income|Home business1.00Online business|Income opportunity1.00Revenue opportunity|Money from home1.00Remote income|Potential earnings0.45Expected results|Serious cash1.00Strong revenue|Six-figure1.00High-earning|Start your own business0.45Launch your venture|Work at home1.00Remote work§§Adult and dating|||Adult content1.00Avoid entirely|Dating0.45Relationships|Meet singles1.00Avoid entirely|Hot singles1.00Avoid entirely|18+1.00Avoid entirely|XXX1.00Avoid entirely|Discreet0.45Private|Hookup1.00Avoid entirely|Lonely0.45Avoid entirely|Match0.15Connection|Explicit1.00Avoid entirely|Intimate0.45Personal|Affair1.00Avoid entirely|No strings1.00Avoid entirely|Single women/men near you1.00Avoid entirely|Chat now1.00Avoid entirely|Flirt0.45Avoid entirely|Sexy1.00Avoid entirely|Near you0.45In your area|Profile match1.00Avoid entirely§§Generic greetings|||Dear friend1.00Hi [First Name]|Dear sir/madam0.45Hi [First Name]|Dear valued customer1.00Hi [Name]|Dear [blank]0.45Hi [First Name]|Hello friend1.00Hi [First Name]|Dear subscriber0.45Hi [Name]|Dear member0.45Hi [Name]|Dear user0.45Hi [Name]|Dear webmaster1.00Hi [Name]|To whom it may concern1.00Hi [Name] or Hi there|Dear email user1.00Hi [Name]|Dear [Job Title]0.45Hi [First Name]|Valued recipient1.00Hi [Name]|Dear account holder1.00Hi [Name]|Undisclosed recipients1.00Personalize each email§§Social proof and testimonials|||As seen on0.45Featured in|Endorsed by0.45Recommended by|Celebrity0.45Avoid entirely|Testimonials0.15Customer feedback|Thousands of satisfied customers1.00Used by [specific number] teams|Trusted by millions1.00Used by [number] companies|People are talking0.45Worth checking out|Going viral1.00Growing fast|Everyone is buying1.00Popular with teams like yours|Top rated0.15Well-reviewed|Award-winning0.15Recognized|Doctor recommended0.45Clinically reviewed|Proven results0.45Documented results|100% effective1.00Consistently effective|Number one0.45Leading|Best ever made0.45Well-built|Five-star0.15Highly rated|Featured on [TV show]0.45Mentioned in [source]|Industry leader0.15Established player|Real results0.45Documented outcomes';
+
+/* Phrases that are descriptions of a pattern, not literal text.
+   They are handled by the structural rules instead. */
+var PATTERN_PHRASES = {
+  'Re: (fake reply)': 1, 'Fwd: (fake forward)': 1, 'Hello (alone)': 1,
+  'FREE (all caps)': 1, '$$$ in subject': 1, '% off in subject': 1,
+  'Emojis (excessive)': 1
+};
+
+/* Per-category cap: one category cannot dominate the total on its own. */
+var CAT_CAP = 6.0;
+var SUBJECT_MULT = 2;
+var PASS_MARK = 5.0;
+
+var SHORTENERS = ['bit.ly','tinyurl.com','t.co','goo.gl','ow.ly','buff.ly','is.gd','rebrand.ly','cutt.ly','shorturl.at','rb.gy','lnkd.in','t.ly','dlvr.it','s.id'];
+
+/* ---- 2. Build the lookup structures once ---- */
+var CATS = [];
+var MATCHERS = [];
+
+function buildMatchers() {
+  var parts = TRIGGERS.split('§§');
+  for (var p = 0; p < parts.length; p++) {
+    var bits = parts[p].split('|||');
+    if (bits.length < 2) continue;
+    var name = bits[0];
+    var entries = [];
+    var byLongest = [];
+    var item = bits[1].split('|');
+    for (var i = 0; i < item.length; i++) {
+      var f = item[i].split('\x01');
+      if (f.length < 3) continue;
+      var phrase = f[0], w = parseFloat(f[1]), alt = f[2];
+      if (PATTERN_PHRASES[phrase]) continue;
+      entries.push({ phrase: phrase, weight: w, alt: alt });
+      byLongest.push({ phrase: phrase, re: phraseRegex(phrase), w: w, alt: alt });
+    }
+    byLongest.sort(function (a, b) { return b.phrase.length - a.phrase.length; });
+    CATS.push({ name: name, entries: entries });
+    MATCHERS.push(byLongest);
+  }
+}
+
+/* Turn a published phrase into a safe regex.
+   [First Name] style placeholders match any short bracketed token. */
+function phraseRegex(phrase) {
+  var body = '';
+  var stripped = phrase.replace(/\s*\((?:fake reply|fake forward|alone|all caps)\)\s*$/i, '').trim();
+  var src = stripped;
+  var chunks = src.split(/(\[[^\]]{1,24}\])/);
+  for (var i = 0; i < chunks.length; i++) {
+    var c = chunks[i];
+    if (/^\[[^\]]{1,24}\]$/.test(c)) { body += '\\[[^\\]\\n]{1,24}\\]'; }
+    else { body += c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  }
+  var lead = /^[A-Za-z0-9]/.test(body) ? '\\b' : '';
+  var trail = /[A-Za-z0-9]$/.test(body) ? '\\b' : '';
+  try { return new RegExp(lead + body + trail, 'i'); } catch (e) { return null; }
+}
+
+/* ---- 3. HTML handling ---- */
+function parseEmail(body) {
+  var out = { text: '', links: [], images: [], hidden: [], isHtml: false };
+  if (!body) return out;
+  var looksHtml = /<\s*(a|div|p|table|img|span|br|html|body)\b/i.test(body);
+  if (!looksHtml) { out.text = body; return out; }
+  out.isHtml = true;
+  var doc;
+  try { doc = new DOMParser().parseFromString(body, 'text/html'); } catch (e) { out.text = body; return out; }
+
+  var hiddenNodes = doc.querySelectorAll('[style*="display:none"],[style*="display: none"],[hidden]');
+  for (var h = 0; h < hiddenNodes.length; h++) {
+    var ht = (hiddenNodes[h].textContent || '').trim();
+    if (ht) out.hidden.push(ht.slice(0, 200));
+  }
+  var tiny = doc.querySelectorAll('[style*="font-size:0"],[style*="font-size: 0"],[style*="color:#fff"],[style*="color: #fff"],[style*="color:white"],[style*="text-indent:-"]');
+  for (var m = 0; m < tiny.length; m++) {
+    var mt = (tiny[m].textContent || '').trim();
+    if (mt && out.hidden.indexOf(mt.slice(0, 200)) === -1) out.hidden.push(mt.slice(0, 200));
+  }
+
+  var as = doc.querySelectorAll('a[href]');
+  for (var a = 0; a < as.length; a++) {
+    out.links.push({ href: (as[a].getAttribute('href') || '').trim(), text: (as[a].textContent || '').trim() });
+  }
+  var imgs = doc.querySelectorAll('img');
+  for (var g = 0; g < imgs.length; g++) {
+    out.images.push({ src: (imgs[g].getAttribute('src') || '').trim(), alt: (imgs[g].getAttribute('alt') || '').trim() });
+  }
+
+  doc.querySelectorAll('style,script,head').forEach(function (n) { n.remove(); });
+  var t = (doc.body ? doc.body.textContent : doc.documentElement.textContent) || '';
+  out.text = t.replace(/\r\n/g, '\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  return out;
+}
+
+function hostOf(url) {
+  try { return new URL(url).hostname.toLowerCase().replace(/^www\./, ''); } catch (e) { return ''; }
+}
+
+/* ---- 4. The engine ---- */
+function analyze(inp) {
+  var subject = (inp.subject || '').trim();
+  var preheader = (inp.preheader || '').trim();
+  var parsed = parseEmail(inp.body || '');
+  var bodyText = parsed.text;
+  var hay = (subject + '\n' + bodyText).toLowerCase();
+
+  var findings = [];
+  var perCat = {};
+  var marks = [];
+  var fixes = [];
+  var f;
+
+  /* 4a. Trigger phrases, subject at double weight */
+  for (var c = 0; c < MATCHERS.length; c++) {
+    var list = MATCHERS[c];
+    var catName = CATS[c].name;
+    perCat[catName] = 0;
+    var hits = [];
+    for (var m = 0; m < list.length; m++) {
+      var re = list[m].re;
+      if (!re) continue;
+      re.lastIndex = 0;
+      var hit = re.exec(hay);
+      if (!hit) continue;
+      var inSubject = subject.toLowerCase().indexOf(hit[0].toLowerCase()) !== -1;
+      var w = list[m].w * (inSubject ? SUBJECT_MULT : 1);
+      perCat[catName] += w;
+      hits.push({ text: hit[0], weight: w, alt: list[m].alt, inSubject: inSubject, w: list[m].w });
+      marks.push({ text: hit[0], sev: list[m].w >= 0.9 ? 'high' : (list[m].w >= 0.4 ? 'medium' : 'low') });
+      if (!fixes.some(function (x) { return x.from.toLowerCase() === hit[0].toLowerCase(); })) {
+        fixes.push({ from: hit[0], to: list[m].alt, literal: isLiteralAlt(list[m].alt) });
+      }
+    }
+    if (hits.length) {
+      var capped = Math.min(perCat[catName], CAT_CAP);
+      f = {
+        sev: perCat[catName] >= 2 ? 'high' : (perCat[catName] >= 0.5 ? 'medium' : 'low'),
+        where: hits.some(function (x) { return x.inSubject; }) ? 'subject + body' : 'body',
+        cat: catName,
+        title: hits.length + ' trigger' + (hits.length > 1 ? 's' : '') + ' from ' + catName.toLowerCase(),
+        detail: hits.map(function (x) { return '"' + x.text + '"' + (x.inSubject ? ' (in subject, double weight)' : ''); }).join(', '),
+        fix: null,
+        weight: capped,
+        terms: hits.map(function (x) { return x.text; })
+      };
+      var firstAlt = hits.filter(function (x) { return x.alt && isLiteralAlt(x.alt); })[0];
+      if (firstAlt) f.fix = 'Rewrite as: "' + firstAlt.alt + '"';
+      else f.fix = 'No drop-in replacement for this one. Rewrite the sentence around a specific fact, a date or a number.';
+      findings.push(f);
+    }
+  }
+
+  /* 4b. Structural rules */
+  var ex = countEmoji(subject + ' ' + bodyText);
+  ex.invisible = ex.zeroWidth ? 'zero-width' : (ex.homoglyph ? 'homoglyph' : null);
+  var subjEmoji = countSubjectEmoji(subject);
+  var caps = subject.match(/\b[A-Z]{3,}\b/g) || [];
+  var bodyCaps = (bodyText.match(/\b[A-Z]{3,}\b/g) || []);
+  var excl = (subject + bodyText).match(/!/g) || [];
+  var dollars = (subject + bodyText).match(/\${2,}/g) || [];
+  var lines = bodyText.split('\n');
+  var words = bodyText.trim().split(/\s+/).filter(Boolean);
+
+  if (/^\s*(re|fwd|fw|aw|tr|rv|wg)\s*:/i.test(subject)) {
+    findings.push({ sev: 'high', where: 'subject', cat: 'Deceptive subject line', title: 'Fake reply prefix', detail: 'A "' + subject.split(':')[0].trim() + ':" prefix on a message you did not reply to is a deceptive subject line under CAN-SPAM, and the most reliable bulk-spam marker there is.', fix: 'Remove it and write a subject that describes the actual message.', weight: 4.0 });
+  }
+  if (!subject) {
+    findings.push({ sev: 'high', where: 'subject', cat: 'Deceptive subject line', title: 'No subject line', detail: 'A missing subject line is treated as deceptive because it gives the recipient no way to judge the message before opening it.', fix: 'Write a plain, descriptive subject line.', weight: 2.5 });
+  } else {
+    if (subject.length > 60) findings.push({ sev: 'medium', where: 'subject', cat: 'Structure', title: 'Subject is ' + subject.length + ' characters', detail: 'Mobile clients cut the subject around 40 to 60 characters. The selling part is often the part that gets truncated.', fix: 'Front-load the point and keep it under 60 characters.', weight: 0.8 });
+    if (subject.length < 15) findings.push({ sev: 'low', where: 'subject', cat: 'Structure', title: 'Subject is only ' + subject.length + ' characters', detail: 'Very short subjects correlate with bulk mail. Vague one-word subjects are also the ones recipients learn to delete on sight.', fix: 'Say what the message is about in plain words.', weight: 0.5 });
+    if (/^[$%]/.test(subject)) findings.push({ sev: 'medium', where: 'subject', cat: 'Structure', title: 'Subject opens with ' + subject.charAt(0), detail: 'A leading currency or percentage symbol is where bulk mail puts it, and it is also the part a phone truncates first.', fix: 'Start with a word.', weight: 1.0 });
+    if (caps.length) findings.push({ sev: 'high', where: 'subject', cat: 'Formatting', title: 'ALL-CAPS word' + (caps.length > 1 ? 's' : '') + ' in the subject: ' + caps.join(', '), detail: 'Shouting is one of the oldest and cheapest spam signals and still carries weight in every filter.', fix: 'Use normal capitalisation.', weight: 1.6 * Math.min(caps.length, 3) });
+  }
+  if (ex.count > 2) findings.push({ sev: 'medium', where: 'subject + body', cat: 'Formatting', title: ex.count + ' emoji', detail: 'Two or three emoji read as a person. A row of them reads as a template.', fix: 'Keep at most one.', weight: 0.6 * Math.min(ex.count - 2, 4) });
+  if (subjEmoji > 0) findings.push({ sev: 'medium', where: 'subject', cat: 'Formatting', title: 'Emoji in the subject line', detail: 'Some clients render subject emoji as monochrome blocks or boxes, which looks broken and reads as bulk.', fix: 'Move it into the body.', weight: 0.8 });
+  if (ex.invisible) findings.push({ sev: 'medium', where: 'body', cat: 'Formatting', title: 'Invisible characters in the text', detail: ex.invisible === 'homoglyph' ? 'Lookalike characters from another alphabet are mixed into the words. It shows the reader one thing and a filter another.' : 'Zero-width characters are inserted to hide words from filters while still showing them to the reader.', fix: 'Strip them out and use plain text.', weight: 1.5 });
+  if (ex.softHyphen) findings.push({ sev: 'low', where: 'body', cat: 'Formatting', title: 'Soft hyphens in the text', detail: 'A soft hyphen makes one word read as two to anything scanning the text, which is how word-boundary filters get bypassed.', fix: 'Remove them.', weight: 0.8 });
+  if (bodyCaps.length >= 3) findings.push({ sev: 'medium', where: 'body', cat: 'Formatting', title: bodyCaps.length + ' ALL-CAPS words in the body', detail: 'Normal acronyms are fine. Runs of capitalised words are a spam pattern.', fix: 'Keep acronyms, drop the shouting.', weight: 0.7 * Math.min(bodyCaps.length - 2, 4) });
+  if (excl.length > 1) findings.push({ sev: 'medium', where: 'subject + body', cat: 'Formatting', title: excl.length + ' exclamation marks', detail: 'One is punctuation. Several is enthusiasm, and filters read enthusiasm as a pattern.', fix: 'Use one, or none.', weight: 0.5 * Math.min(excl.length - 1, 4) });
+  if (/!{2,}/.test(subject + bodyText)) findings.push({ sev: 'high', where: 'subject + body', cat: 'Formatting', title: 'Repeated exclamation marks', detail: 'Multiple exclamation marks in a row is about as close to a spam signature as plain text gets.', fix: 'Replace with a single one.', weight: 1.2 });
+  if (dollars.length) findings.push({ sev: 'high', where: 'subject + body', cat: 'Formatting', title: 'Repeated dollar signs', detail: 'Money is already a flagged category, and $$$ doubles down on it.', fix: 'Write the amount once, as a number.', weight: 1.4 * Math.min(dollars.length, 2) });
+
+  /* preheader */
+  if (!preheader) {
+    findings.push({ sev: 'medium', where: 'preheader', cat: 'Structure', title: 'No preheader', detail: 'Without preview text, Gmail fills the gap next to your subject with the first words of the body, which is often a greeting or a stray image alt.', fix: 'Add 40 to 90 characters of preview text that continue the subject.', weight: 0.7 });
+  } else {
+    if (preheader.length > 90) findings.push({ sev: 'low', where: 'preheader', cat: 'Structure', title: 'Preheader is ' + preheader.length + ' characters', detail: 'Anything past about 90 characters is cut off in the inbox list.', fix: 'Trim it to one line.', weight: 0.4 });
+    if (preheader.length < 20) findings.push({ sev: 'low', where: 'preheader', cat: 'Structure', title: 'Preheader is very short', detail: 'Too few characters to add information alongside the subject.', fix: 'Say what happens after they open it.', weight: 0.3 });
+    var firstLine = (lines.find(function (l) { return l.trim().length > 0; }) || '').trim().toLowerCase();
+    if (firstLine && preheader.toLowerCase().trim() === firstLine) findings.push({ sev: 'low', where: 'preheader', cat: 'Structure', title: 'Preheader repeats the first body line', detail: 'Repeating the same string wastes the preview line.', fix: 'Write preview text that adds to the subject instead of echoing it.', weight: 0.3 });
+  }
+
+  /* links */
+  var links = parsed.links;
+  var bareUrls = (bodyText.match(/https?:\/\/\S+/g) || []).filter(function (u) { return !parsed.isHtml; });
+  var short = [];
+  var ipLink = [];
+  var mismatch = [];
+  for (var li = 0; li < links.length; li++) {
+    var href = links[li].href, txt = links[li].text;
+    var h = hostOf(href);
+    for (var s2 = 0; s2 < SHORTENERS.length; s2++) { if (h === SHORTENERS[s2] || h.endsWith('.' + SHORTENERS[s2])) { short.push(href); break; } }
+    if (/^https?:\/\/\d{1,3}(\.\d{1,3}){3}/.test(href)) ipLink.push(href);
+    if (txt && h) {
+      var th = (txt.toLowerCase().match(/((?:https?:\/\/)?(?:www\.)?[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)+)/) || [])[1];
+      if (th) {
+        var tHost = th.replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
+        if (tHost.indexOf(h) === -1 && h.indexOf(tHost) === -1) mismatch.push({ text: txt, href: href });
+      }
+    }
+  }
+  if (short.length) findings.push({ sev: 'medium', where: 'body', cat: 'Links', title: short.length + ' shortened link' + (short.length > 1 ? 's' : ''), detail: 'Shorteners hide the destination, which is the exact behaviour a filter looks for on a link you are asking someone to trust.', fix: 'Link directly to the final URL.', weight: 0.7 * Math.min(short.length, 3) });
+  if (ipLink.length) findings.push({ sev: 'high', where: 'body', cat: 'Links', title: 'Link points at a raw IP address', detail: 'Legitimate senders do not link to an IP. It is a phishing marker.', fix: 'Use a domain.', weight: 2.0 });
+  if (bareUrls.length) findings.push({ sev: 'medium', where: 'body', cat: 'Links', title: bareUrls.length + ' bare URL' + (bareUrls.length > 1 ? 's' : '') + ' in the text', detail: 'Unformatted raw URLs make the text read as a form or a warning rather than a message, and they are a classic phishing cue.', fix: 'Turn them into real anchor text.', weight: 0.5 * Math.min(bareUrls.length, 3) });
+  if (mismatch.length) {
+    var mm = mismatch[0];
+    findings.push({ sev: 'high', where: 'body', cat: 'Links', title: 'Link text and destination do not match', detail: 'The link reads "' + mm.text.slice(0, 60) + '" but points to ' + mm.href.slice(0, 90) + '. Mismatched anchor text is the defining feature of phishing.', fix: 'Make the anchor text name the destination, or drop the link.', weight: 3.0 });
+  }
+  if (links.length > 5) findings.push({ sev: 'low', where: 'body', cat: 'Links', title: links.length + ' links in one email', detail: 'A handful is normal. A dozen turns the message into a navigation menu.', fix: 'Keep the important one or two.', weight: 0.3 * Math.min(links.length - 5, 5) });
+  if (words.length > 40 && links.length / words.length > 0.05) findings.push({ sev: 'medium', where: 'body', cat: 'Links', title: 'Link to text ratio is high', detail: 'More links than prose is the shape of a directory listing, not a message.', fix: 'Cut the links down to the ones the reader needs.', weight: 0.6 });
+
+  /* images */
+  var noAlt = parsed.images.filter(function (i) { return !i.alt; });
+  if (noAlt.length) findings.push({ sev: 'low', where: 'body', cat: 'Images', title: noAlt.length + ' image' + (noAlt.length > 1 ? 's have' : ' has') + ' no alt text', detail: 'Missing alt text is an accessibility failure, and inaccessible mail is also more likely to be blocked outright by corporate gateways.', fix: 'Describe every image, or mark it decorative.', weight: 0.4 * Math.min(noAlt.length, 3) });
+  if (words.length < 15 && parsed.images.length >= 2) findings.push({ sev: 'high', where: 'body', cat: 'Images', title: 'Image-only email', detail: 'Mail with almost no text and several images is filtered hard, because that is how most phishing is delivered.', fix: 'Put the message in text as well.', weight: 2.5 });
+  if (parsed.hidden.length) findings.push({ sev: 'high', where: 'body', cat: 'Deceptive content', title: 'Hidden text detected: "' + parsed.hidden[0].slice(0, 80) + '"', detail: 'Text hidden with display:none, zero font size or white-on-white is showing one thing to the reader and another to the filter. That is deceptive by any reading.', fix: 'Delete the hidden text.', weight: 3.0 });
+
+  /* Compliance is reported separately and never enters the spam score.
+     A missing unsubscribe link is a legal risk, not a filter signal: every
+     transactional and personal email lacks one, so folding it in would make
+     the score meaningless for the majority of legitimate mail. */
+  var hasUnsub = /unsubscrib|opt[\s-]?out|remove me|email preferences|manage (your )?(email|subscriptions)/i.test(bodyText);
+  var hasAddress = /\b\d{1,6}\s+[\w.'-]+\s+(street|st|road|rd|avenue|ave|boulevard|blvd|lane|ln|drive|dr|way|court|ct|place|pl|suite|ste|floor|highway|hwy)\b/i.test(bodyText)
+    || /\bP\.?\s?O\.?\s?Box\b/i.test(bodyText) || /\b(post|postal) (address|box)\b/i.test(bodyText);
+  var compliance = [];
+  if (!hasUnsub) compliance.push({ sev: 'high', cat: 'Compliance', title: 'No unsubscribe link or wording', detail: 'CAN-SPAM requires a clear way to opt out in every commercial message. GDPR and CASL add more obligations on top. Transactional mail is exempt, but a marketing email is not.', fix: 'Add a visible unsubscribe link, and honour it within 10 business days.' });
+  if (!hasAddress) compliance.push({ sev: 'medium', cat: 'Compliance', title: 'No physical postal address', detail: 'CAN-SPAM requires a valid physical address in commercial email. It is a low-effort check for recipients and a common reason a message gets reported.', fix: 'Add your postal address to the footer.' });
+  compliance.push({ sev: hasUnsub ? 'low' : 'medium', cat: 'Compliance', title: hasUnsub ? 'Unsubscribe path present in the copy' : 'Unsubscribe cannot be tested from the copy alone', detail: hasUnsub ? 'The wording is there. Whether the link actually processes the request, and within 10 business days, is not something a page can check.' : 'Nothing in the body looks like an opt-out path.', fix: 'Verify the unsubscribe flow end to end in a real inbox before the next send.' });
+  compliance.push({ sev: 'info', cat: 'Compliance', title: 'Sender identification not testable from copy', detail: 'CAN-SPAM also requires accurate header information and a valid From address. Those live in the message headers, not in the body you can paste here.', fix: 'Check the headers in the seed test, not here.' });
+
+  /* ---- score ---- */
+  var parts = { subject: 0, preheader: 0, body: 0, structure: 0 };
+  for (var i2 = 0; i2 < findings.length; i2++) {
+    var fd = findings[i2];
+    if (fd.where === 'subject' || fd.where === 'subject + body') parts.subject += fd.weight;
+    else if (fd.where === 'preheader') parts.preheader += fd.weight;
+    else if (fd.cat === 'Structure' || fd.cat === 'Formatting' || fd.cat === 'Links' || fd.cat === 'Images' || fd.cat === 'Deceptive content') parts.structure += fd.weight;
+    else parts.body += fd.weight;
+  }
+  var raw = parts.subject + parts.preheader + parts.body + parts.structure;
+  var score = Math.round(10 * (1 - Math.exp(-raw / 7)) * 100) / 100;
+
+  var verdict, cls, sub;
+  if (score < 2) { verdict = 'Clean'; cls = 'clean'; sub = 'No meaningful spam signals in this copy.'; }
+  else if (score < PASS_MARK) { verdict = 'Borderline'; cls = 'warn'; sub = 'Under the ' + PASS_MARK.toFixed(1) + ' pass mark, but there is enough here to move. Start at the top findings.'; }
+  else if (score < 8) { verdict = 'Likely filtered'; cls = 'bad'; sub = 'Past the ' + PASS_MARK.toFixed(1) + ' pass mark. A filter running this rule set treats the message as spam.'; }
+  else { verdict = 'Near certain filter'; cls = 'worst'; sub = 'This matches a bulk-mail profile closely. Sending it unchanged is close to a donation.'; }
+
+  findings.sort(function (a, b) { return b.weight - a.weight; });
+
+  return {
+    score: score, raw: Math.round(raw * 100) / 100, verdict: verdict, cls: cls, sub: sub,
+    parts: parts, findings: findings, compliance: compliance, marks: marks, fixes: fixes,
+    subject: subject, preheader: preheader, bodyText: bodyText, rawBody: inp.body || '', hidden: parsed.hidden,
+    stats: { words: words.length, chars: bodyText.length, links: links.length, images: parsed.images.length, isHtml: parsed.isHtml }
+  };
+}
+
+/* Many published "use instead" values are advice to the marketer, not text to
+   paste ("Use normal capitalisation", "Effective / Solid", "Available until
+   [date]"). Substituting those into someone's email produces nonsense, so only
+   genuine replacement phrases are applied by the rewrite. */
+var ADVICE_RE = /^(use|write|keep|avoid|remove|strip|normal|add|move|describe|make|link|turn|change|swap|one|no|always|never|try|consider|drop|stick|separate|personalize|personalise|honour|honor|check|spell|start|end|limit|host|compress|start)/i;
+function isLiteralAlt(alt) {
+  if (!alt) return false;
+  if (/avoid entirely/i.test(alt)) return true;
+  if (ADVICE_RE.test(alt.trim())) return false;
+  if (alt.indexOf('/') !== -1) return false;
+  if (/\[.+\]/.test(alt)) return false;
+  if (alt.length > 32) return false;
+  return true;
+}
+
+/* Invisible-character tricks: zero-width insertion, soft hyphens that make one
+   word read as two, and cross-alphabet lookalikes such as Cyrillic а in "pаypal".
+   ASCII letters only, so a genuinely non-Latin body text is not flagged. */
+var ZERO_WIDTH = /[\u200B-\u200D\uFEFF\u2060]/;
+var HOMOGLYPH = /[a-zA-Z][\u0400-\u04FF]|[Ѐ-ӿ][a-zA-Z]/;
+
+function countEmoji(s) {
+  return {
+    count: (s.match(/\p{Extended_Pictographic}/gu) || []).length,
+    zeroWidth: ZERO_WIDTH.test(s),
+    softHyphen: s.indexOf('\u00AD') !== -1,
+    homoglyph: HOMOGLYPH.test(s)
+  };
+}
+
+function countSubjectEmoji(s) {
+  return (s.match(/\p{Extended_Pictographic}/gu) || []).length;
+}
+
+/* ---- 5. Rendering ---- */
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function sevRank(s) { return s === 'high' ? 3 : (s === 'medium' ? 2 : (s === 'low' ? 1 : 0)); }
+
+function render(rep) {
+  var v = document.getElementById('esc-verdict');
+  v.className = 'esc-verdict ' + rep.cls;
+  v.innerHTML =
+    '<div class="esc-score">' + rep.score.toFixed(1) + '<span style="font-size:1.2rem;color:#888;">/10</span></div>' +
+    '<div class="esc-verdict-label">' + esc(rep.verdict) + '</div>' +
+    '<div class="esc-verdict-sub">' + esc(rep.sub) + '</div>' +
+    '<div class="esc-gauge"><div class="esc-gauge-fill" style="width:' + (rep.score * 10) + '%;background:' + (rep.cls === 'clean' ? '#4ade80' : (rep.cls === 'warn' ? '#fbbf24' : '#f87171')) + ';"></div>' +
+    '<div class="esc-gauge-mark" style="left:' + (PASS_MARK * 10) + '%;" title="SpamAssassin pass mark"></div></div>' +
+    '<div class="esc-gauge-cap"><span>0 clean</span><span>' + PASS_MARK.toFixed(1) + ' pass mark</span><span>10</span></div>';
+
+  var p = rep.parts;
+  var pmax = Math.max(p.subject, p.preheader, p.body, p.structure, 0.001);
+  var cards = [
+    ['Subject line', p.subject], ['Preheader', p.preheader], ['Body copy', p.body], ['Structure', p.structure]
+  ];
+  var html = '';
+  for (var i = 0; i < cards.length; i++) {
+    var band = pmax ? cards[i][1] / pmax : 0;
+    html += '<div class="esc-part esc-s' + sevRank(band > 0.66 ? 'high' : (band > 0.33 ? 'medium' : 'low')) + '">' +
+      '<div class="esc-part-name">' + esc(cards[i][0]) + '</div>' +
+      '<div class="esc-part-score">' + cards[i][1].toFixed(1) + '</div>' +
+      '<div class="esc-part-note">' + (cards[i][1] === 0 ? 'clean' : 'risk points') + '</div></div>';
+  }
+  var compBad = rep.compliance.filter(function (c) { return c.sev === 'high' || c.sev === 'medium'; }).length;
+  html += '<div class="esc-part esc-s' + (compBad ? '2' : '0') + '">' +
+    '<div class="esc-part-name">Compliance</div>' +
+    '<div class="esc-part-score">' + (compBad ? compBad + ' gap' + (compBad > 1 ? 's' : '') : 'OK') + '</div>' +
+    '<div class="esc-part-note">not in the score</div></div>';
+  document.getElementById('esc-parts').innerHTML = html;
+
+  var fh = '';
+  if (!rep.findings.length) {
+    fh = '<div class="esc-empty">No findings. Nothing in this copy matches a known spam pattern, and the structure is clean.</div>';
+  } else {
+    for (var f2 = 0; f2 < rep.findings.length; f2++) {
+      var f = rep.findings[f2];
+      fh += '<div class="esc-finding f-' + f.sev + '">' +
+        '<div class="esc-f-head"><span class="esc-f-sev">' + esc(f.sev) + '</span>' +
+        '<span class="esc-f-where">' + esc(f.where) + '</span>' +
+        '<span class="esc-f-title">' + esc(f.title) + '</span></div>' +
+        '<div class="esc-f-body">' + esc(f.detail) + '</div>' +
+        (f.fix ? '<div class="esc-f-fix">' + esc(f.fix) + '</div>' : '') +
+        (f.terms && f.terms.length ? '<div class="esc-f-terms">' + f.terms.slice(0, 12).map(function (t) { return '<span>' + esc(t) + '</span>'; }).join('') + '</div>' : '') +
+        '</div>';
+    }
+  }
+  fh += '<p style="color:#888;font-size:0.8rem;margin-top:12px;">' + rep.findings.length + ' finding' + (rep.findings.length === 1 ? '' : 's') +
+    ' · ' + rep.stats.words + ' words · ' + rep.stats.links + ' link' + (rep.stats.links === 1 ? '' : 's') +
+    ' · ' + rep.stats.images + ' image' + (rep.stats.images === 1 ? '' : 's') +
+    (rep.stats.isHtml ? ' · HTML source parsed' : ' · plain text') + '</p>';
+
+  var ch = '<h3 style="color:#667eea;font-size:1rem;margin:20px 0 8px;">Compliance, reported separately</h3>';
+  ch += '<p style="color:#888;font-size:0.8rem;margin-bottom:10px;">These are legal exposure, not filter scoring, so they are kept out of the number above.</p>';
+  for (var c2 = 0; c2 < rep.compliance.length; c2++) {
+    var cc = rep.compliance[c2];
+    ch += '<div class="esc-finding f-' + cc.sev + '">' +
+      '<div class="esc-f-head"><span class="esc-f-sev">' + esc(cc.sev) + '</span><span class="esc-f-title">' + esc(cc.title) + '</span></div>' +
+      '<div class="esc-f-body">' + esc(cc.detail) + '</div>' +
+      (cc.fix ? '<div class="esc-f-fix">' + esc(cc.fix) + '</div>' : '') + '</div>';
+  }
+  document.getElementById('esc-panel-findings').innerHTML = fh + ch;
+
+  document.getElementById('esc-hl').innerHTML = highlight(rep);
+
+  document.getElementById('esc-fixed').value = buildFixed(rep);
+  document.getElementById('esc-results').className = 'esc-results visible';
+  document.getElementById('esc-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function highlight(rep) {
+  var text = rep.subject ? rep.subject + '\n\n' + rep.bodyText : rep.bodyText;
+  if (!text) return '<span style="color:#666;">Nothing to highlight.</span>';
+  var seen = [];
+  var re = rep.marks.map(function (m) { seen.push(m.text); return escapeRe(m.text); })
+    .filter(function (v, i, a) { return a.indexOf(v) === i; })
+    .sort(function (a, b) { return b.length - a.length; });
+  if (!re.length) return esc(text);
+  var out = '', last = 0, rx = new RegExp('(' + re.join('|') + ')', 'gi'), m;
+  while ((m = rx.exec(text)) !== null) {
+    if (m[0].length === 0) { rx.lastIndex++; continue; }
+    out += esc(text.slice(last, m.index));
+    var orig = rep.marks.filter(function (x) { return x.text.toLowerCase() === m[0].toLowerCase(); })[0];
+    var sev = orig ? orig.sev : 'medium';
+    out += '<mark class="f-' + sev + '">' + esc(m[0]) + '</mark>';
+    last = m.index + m[0].length;
+  }
+  out += esc(text.slice(last));
+  return out;
+}
+
+function applyFixes(text, list) {
+  for (var i = 0; i < list.length; i++) {
+    if (!list[i].literal) continue;
+    if (/avoid entirely/i.test(list[i].to)) { text = text.replace(new RegExp(escapeRe(list[i].from), 'gi'), '[remove this]'); continue; }
+    text = text.replace(new RegExp(escapeRe(list[i].from), 'gi'), list[i].to);
+  }
+  return text;
+}
+
+function buildFixed(rep) {
+  var list = rep.fixes.slice().sort(function (a, b) { return b.from.length - a.from.length; });
+  var subj = applyFixes(rep.subject, list);
+  var out = rep.subject ? 'Subject: ' + subj + '\n\n' : '';
+  var body = rep.bodyText;
+  /* Hidden text is the one thing the tool says to delete outright, so the
+     rewrite deletes it rather than polishing it. */
+  var hidden = rep.hidden || [];
+  for (var h = 0; h < hidden.length; h++) body = body.split(hidden[h]).join('');
+  out += applyFixes(body, list);
+  return out;
+}
+
+function showError(msg) {
+  var el = document.getElementById('esc-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('esc-results').className = 'esc-results';
+}
+function hideError() { document.getElementById('esc-error').style.display = 'none'; }
+
+function run() {
+  hideError();
+  var rep = analyze({
+    subject: document.getElementById('esc-subject').value,
+    preheader: document.getElementById('esc-preheader').value,
+    body: document.getElementById('esc-body').value
+  });
+  if (!rep.subject && !rep.bodyText) { showError('Paste a subject line or an email body first.'); return; }
+  render(rep);
+}
+
+var SAMPLE = {
+  subject: "Don't miss our AMAZING limited time offer!!",
+  preheader: '',
+  body: '<div style="font-family:Arial">\n<p>Dear friend,</p>\n<p>We are excited to announce our FREE 100% risk-free trial. Click here to claim your exclusive prize and start earning money from home with no experience needed.</p>\n<p style="color:#fff">ACT NOW!!! This offer expires today only $$$ $0 down</p>\n<p><a href="https://bit.ly/x9f2">Click here to claim your reward</a> or visit <a href="https://secure-billing.example.net/login">https://192.168.1.44/verify</a></p>\n<img src="https://cdn.example.com/banner.png">\n<p>Work from home and make money online. No obligation. Guaranteed results or your money back.</p>\n</div>'
+};
+
+function loadSample() {
+  document.getElementById('esc-subject').value = SAMPLE.subject;
+  document.getElementById('esc-preheader').value = SAMPLE.preheader;
+  document.getElementById('esc-body').value = SAMPLE.body;
+  run();
+}
+
+function clearAll() {
+  document.getElementById('esc-subject').value = '';
+  document.getElementById('esc-preheader').value = '';
+  document.getElementById('esc-body').value = '';
+  hideError();
+  document.getElementById('esc-results').className = 'esc-results';
+  document.getElementById('esc-subject').focus();
+}
+
+function switchTab(id) {
+  var tabs = ['findings', 'highlight', 'fix'];
+  for (var i = 0; i < tabs.length; i++) {
+    var t = document.getElementById('esc-tab-' + tabs[i]);
+    var pnl = document.getElementById('esc-panel-' + tabs[i]);
+    var on = tabs[i] === id;
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+    pnl.className = 'esc-panel' + (on ? ' on' : '');
+  }
+}
+
+document.getElementById('esc-run').addEventListener('click', run);
+document.getElementById('esc-sample').addEventListener('click', loadSample);
+document.getElementById('esc-clear').addEventListener('click', clearAll);
+document.getElementById('esc-copy-fixed').addEventListener('click', function () {
+  var ta = document.getElementById('esc-fixed');
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  if (navigator.clipboard) { navigator.clipboard.writeText(ta.value).catch(function () {}); }
+  showStatus('esc-status', 'Fixed copy copied to clipboard', 'success');
+});
+document.getElementById('esc-tab-findings').addEventListener('click', function () { switchTab('findings'); });
+document.getElementById('esc-tab-highlight').addEventListener('click', function () { switchTab('highlight'); });
+document.getElementById('esc-tab-fix').addEventListener('click', function () { switchTab('fix'); });
+document.getElementById('esc-form').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') run();
+});
+
+/* ---- 6. Self check. Deterministic engine, so it can be asserted. ---- */
+function selfCheck() {
+  var fails = [];
+  function ok(cond, msg) { if (!cond) fails.push(msg); }
+
+  var clean = analyze({
+    subject: 'Notes from the Thursday workshop',
+    preheader: 'Three things that changed after we moved the signup step.',
+    body: 'Hi Rosa,\n\nNotes from Thursday are below. The second item is the one that mattered, and the third is a question for you.\n\nThanks,\nBen'
+  });
+  ok(clean.score < 2, 'clean copy scored ' + clean.score + ', expected under 2');
+  ok(clean.findings.filter(function (f) { return f.sev === 'high'; }).length === 0, 'clean copy produced a high finding');
+  ok(clean.compliance.length === 4, 'compliance section should always report 4 items, got ' + clean.compliance.length);
+  ok(clean.parts.compliance === undefined, 'compliance must not be a scored part');
+
+  var spam = analyze({ subject: SAMPLE.subject, preheader: '', body: SAMPLE.body });
+  ok(spam.score >= PASS_MARK, 'spam sample scored ' + spam.score + ', expected >= ' + PASS_MARK);
+  ok(clean.score < spam.score, 'clean and spam samples are not separated');
+  ok(spam.parts.subject > 0, 'spam sample: subject carried no weight');
+  ok(spam.findings.some(function (f) { return f.title === 'Fake reply prefix'; }) === false, 'fake reply prefix reported where there is none');
+  ok(spam.compliance.some(function (c) { return c.title.indexOf('No unsubscribe') === 0; }), 'spam sample: missing unsubscribe not reported');
+  ok(/hidden/i.test(spam.findings.map(function (f) { return f.title; }).join(' ')), 'spam sample: hidden text not detected');
+  ok(!/Use normal capitalisation|Effective \/ Solid|Available until \[date\]/.test(buildFixed(spam)), 'advice text leaked into the rewrite');
+  var avoid = analyze({ subject: 'You have won', preheader: 'A preheader long enough to clear the length checks.', body: 'Claim your prize now. Lottery winner notified.' });
+  ok(/\[remove this\]/.test(buildFixed(avoid)), '"avoid entirely" phrases were not removed');
+  ok(avoid.findings.some(function (x) { return /lottery winner/i.test(x.detail); }), 'avoid-entirely phrase not reported as a finding');
+  var hid = analyze({ subject: 'Notes', preheader: 'A preheader long enough to clear the length checks.', body: '<p>Real text here.</p><p style="color:#fff">secret keyword stuffing</p>' });
+  ok(buildFixed(hid).indexOf('secret keyword stuffing') === -1, 'hidden text survived the rewrite');
+  ok(buildFixed(hid).indexOf('Real text here.') !== -1, 'visible text lost in the rewrite');
+
+  var fake = analyze({ subject: 'Re: your invoice', preheader: 'x', body: 'Hello.' });
+  ok(fake.findings.some(function (f) { return f.title === 'Fake reply prefix'; }), 'Re: prefix not detected');
+
+  ok(countSubjectEmoji('hi 🎉🎉🎉') === 3, 'emoji counter wrong');
+  ok(countEmoji('plain ascii').zeroWidth === false && countEmoji('plain ascii').homoglyph === false, 'ascii wrongly flagged as invisible chars');
+  ok(countEmoji('pаypal').homoglyph === true, 'homoglyph not detected');
+  ok(countEmoji('a­b').softHyphen === true, 'soft hyphen not detected');
+  ok(parseEmail('<p>hi</p>').isHtml === true, 'HTML detection failed');
+  ok(parseEmail('plain').isHtml === false, 'plain text misdetected as HTML');
+  ok(isLiteralAlt('Use normal capitalisation') === false, 'advice phrase accepted as a literal');
+  ok(isLiteralAlt('Time-sensitive') === true, 'real replacement rejected as advice');
+  ok(isLiteralAlt('Avoid entirely') === true, '"avoid entirely" rejected');
+  ok(buildFixed({ subject: 'Free offer', bodyText: 'Get a free trial', fixes: [{ from: 'Free', to: 'Complimentary', literal: true }] })
+      .indexOf('Complimentary trial') !== -1, 'rewrite did not apply to body');
+  ok(buildFixed({ subject: 'Free offer', bodyText: 'x', fixes: [{ from: 'Free', to: 'Complimentary', literal: true }] })
+      .indexOf('Subject: Complimentary offer') === 0, 'rewrite did not apply to subject');
+  ok(buildFixed({ subject: 'Act now', bodyText: 'x', fixes: [{ from: 'Act now', to: 'Use normal capitalisation', literal: false }] })
+      .indexOf('Subject: Act now') === 0, 'non-literal alternative was substituted anyway');
+  var hy = analyze({ subject: '', preheader: 'A preheader long enough to pass the length checks here.', body: '<a href="https://secure.example.net/">yourbank.com</a> visit now' });
+  ok(hy.findings.some(function (x) { return x.title === 'Link text and destination do not match'; }), 'anchor/host mismatch not detected');
+  ok(parseEmail('<div style="display:none">secret offer</div><p>hi</p>').hidden.length === 1, 'display:none text not detected');
+  ok(parseEmail('<img src="a.png"><img src="b.png">').images.length === 2, 'image extraction failed');
+
+  if (fails.length) { console.error('[email-spam-checker] SELF CHECK FAILED:', fails); }
+  return fails;
+}
+
+buildMatchers();
+selfCheck();
+</script>
+</body>
+</html>

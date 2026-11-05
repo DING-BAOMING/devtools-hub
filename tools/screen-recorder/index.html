@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Online Screen Recorder | DevTools Hub</title>
+    <meta name="description" content="Free online screen recorder - no download, no signup, no watermark. Record screen, webcam, and mic in browser. 100% private, stays on your device.">
+    <meta name="keywords" content="screen recorder, online screen recorder, free screen recorder, record screen online, no download screen recorder, no watermark, browser screen recording, screen capture online, webcam recorder, free recording tool">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/screen-recorder/">
+    <meta property="og:title" content="Free Online Screen Recorder | DevTools Hub">
+    <meta property="og:description" content="Record your screen, webcam, and microphone instantly in your browser. No download, no signup, no watermark. 100% private.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/screen-recorder/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            margin-bottom: 24px;
+        }
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .logo span { color: var(--primary); }
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+        nav a:hover { color: var(--text); }
+        .hero {
+            text-align: center;
+            padding: 24px 0 32px;
+        }
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+        .features-banner {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            margin: 16px 0 24px;
+        }
+        .features-banner span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .features-banner svg { width: 18px; height: 18px; color: var(--success); }
+        .recorder-container {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+        }
+        @media (max-width: 800px) {
+            .recorder-container { grid-template-columns: 1fr; }
+        }
+        .preview-area {
+            background: #000;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .preview-area.recording { border-color: var(--danger); }
+        .preview-area.has-content { border-style: solid; }
+        #screenPreview { width: 100%; max-height: 500px; object-fit: contain; display: none; }
+        #recordedVideo { width: 100%; max-height: 500px; object-fit: contain; display: none; background: #000; border-radius: 8px; }
+        .placeholder-state { text-align: center; color: var(--text-muted); padding: 40px; }
+        .placeholder-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+        .placeholder-state p { font-size: 1rem; }
+        .placeholder-state small { font-size: 0.85rem; opacity: 0.7; }
+        .recording-indicator {
+            position: absolute; top: 16px; left: 16px;
+            display: none; align-items: center; gap: 8px;
+            background: rgba(0,0,0,0.75); padding: 8px 14px;
+            border-radius: 8px; font-size: 0.9rem; z-index: 5;
+        }
+        .recording-indicator.visible { display: flex; }
+        .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger); animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
+        .rec-timer { font-variant-numeric: tabular-nums; font-weight: 600; }
+        .countdown-overlay {
+            position: absolute; inset: 0; display: none;
+            align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.7); z-index: 10;
+        }
+        .countdown-overlay.visible { display: flex; }
+        .countdown-number {
+            font-size: 6rem; font-weight: 900; color: white;
+            text-shadow: 0 0 40px rgba(37,99,235,0.6);
+            animation: countPop 0.8s ease-out;
+        }
+        @keyframes countPop {
+            0% { transform: scale(2); opacity: 0; }
+            50% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0; }
+        }
+        .webcam-overlay {
+            position: absolute; bottom: 16px; right: 16px;
+            width: 160px; height: 120px; border: 2px solid var(--border);
+            border-radius: 8px; overflow: hidden; display: none; z-index: 4; background: #000;
+        }
+        .webcam-overlay.visible { display: block; }
+        .webcam-overlay video { width: 100%; height: 100%; object-fit: cover; }
+        .controls-panel { background: var(--surface); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        .control-group label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 10px 16px; border: none; border-radius: 8px;
+            font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .btn svg { width: 18px; height: 18px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-secondary { background: var(--surface-hover); color: var(--text); }
+        .btn-secondary:hover { background: var(--border); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-warning { background: var(--warning); color: #1e293b; }
+        .btn-warning:hover { background: #d97706; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-row .btn { flex: 1; min-width: 80px; }
+        .btn-full { width: 100%; }
+        .toggle-row { display: flex; gap: 12px; align-items: center; }
+        .toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem; color: var(--text); }
+        .toggle input { display: none; }
+        .toggle-slider {
+            width: 40px; height: 22px; background: var(--surface-hover);
+            border-radius: 11px; position: relative; transition: background 0.2s;
+        }
+        .toggle-slider::after {
+            content: ''; position: absolute; width: 18px; height: 18px;
+            border-radius: 50%; background: var(--text-muted); top: 2px; left: 2px; transition: all 0.2s;
+        }
+        .toggle input:checked + .toggle-slider { background: var(--primary); }
+        .toggle input:checked + .toggle-slider::after { background: white; left: 20px; }
+        .status {
+            padding: 12px; border-radius: 8px; background: var(--bg);
+            font-size: 0.8rem; color: var(--text-muted); text-align: center;
+        }
+        .status.success { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+        .status.error { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .status.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .status.info { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+        .hidden { display: none !important; }
+        .browser-warning {
+            background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;
+            font-size: 0.85rem; color: var(--warning);
+        }
+        .browser-warning svg { width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; }
+        .quality-select {
+            padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg); color: var(--text); font-size: 0.875rem; width: 100%;
+        }
+        .quality-select:focus { outline: 2px solid transparent; border-color: var(--primary); }
+        /* BUG-308 (WCAG 2.4.7): this page does not link /styles.css, so the sitewide
+           *:focus-visible rule there cannot reach it. Same 3px/#7eb3ff token. */
+        *:focus-visible { outline: 3px solid #7eb3ff !important; outline-offset: 2px !important; }
+    </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Screen Recorder","url":"https://tools.scoreroute.com/tools/screen-recorder/","description":"Free online screen recorder. Record your screen, webcam, and microphone directly in your browser. No download, no signup, no watermark.","applicationCategory":"Multimedia","operatingSystem":"All","browserRequirements":"Requires Chrome, Edge, or Firefox on desktop"}
+</script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">Dev<span>Tools</span> Hub</a>
+            <nav><a href="/">Back to Tools</a></nav>
+        </div>
+    </header>
+    <main class="container">
+        <div class="hero">
+            <h1>Online Screen Recorder</h1>
+            <p>Record your screen, webcam, and microphone directly in your browser. No software to download, no account to create, no watermarks. Everything stays on your device.</p>
+            <div class="features-banner">
+                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> No Download</span>
+                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> No Signup</span>
+                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> No Watermark</span>
+                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> 100% Private</span>
+                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Unlimited Duration</span>
+            </div>
+        </div>
+
+        <div class="browser-warning" id="browserWarning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            For best results, use Chrome or Edge on a desktop computer. Safari and Firefox have limited audio support.
+        </div>
+
+        <div class="recorder-container">
+            <div class="preview-area" id="previewArea">
+                <div class="placeholder-state" id="placeholderState">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                    <p>Ready to record</p>
+                    <small>Press "Start Recording" and choose what to share</small>
+                </div>
+                <video id="screenPreview" autoplay muted playsinline></video>
+                <video id="recordedVideo" controls playsinline></video>
+
+                <div class="recording-indicator" id="recIndicator">
+                    <span class="rec-dot"></span>
+                    <span class="rec-timer" id="recTimer">00:00</span>
+                </div>
+
+                <div class="countdown-overlay" id="countdownOverlay">
+                    <div class="countdown-number" id="countdownNumber">3</div>
+                </div>
+
+                <div class="webcam-overlay" id="webcamOverlay">
+                    <video id="webcamVideo" autoplay muted playsinline></video>
+                </div>
+            </div>
+
+            <div class="controls-panel">
+                <div class="control-group">
+                    <label>Recording Controls</label>
+                    <button class="btn btn-danger btn-full" id="startBtn">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+                        Start Recording
+                    </button>
+                    <div class="btn-row">
+                        <button class="btn btn-warning hidden" id="pauseBtn" disabled>
+                            <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                            Pause
+                        </button>
+                        <button class="btn btn-danger hidden" id="stopBtn" disabled>
+                            <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
+                            Stop
+                        </button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Audio & Webcam</label>
+                    <div class="toggle-row">
+                        <label class="toggle">
+                            <input type="checkbox" id="micToggle" checked aria-label="Mic Toggle">
+                            <span class="toggle-slider"></span>
+                            Microphone
+                        </label>
+                        <label class="toggle">
+                            <input type="checkbox" id="webcamToggle" aria-label="Webcam Toggle">
+                            <span class="toggle-slider"></span>
+                            Webcam
+                        </label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="qualitySelect">Quality</label>
+                    <select class="quality-select" id="qualitySelect">
+                        <option value="720">720p (Recommended)</option>
+                        <option value="1080">1080p</option>
+                        <option value="480">480p</option>
+                    </select>
+                </div>
+
+                <div class="control-group hidden" id="downloadSection">
+                    <label>Recording Complete</label>
+                    <button class="btn btn-primary btn-full" id="downloadBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        Download Video (WebM)
+                    </button>
+                    <button class="btn btn-secondary btn-full" id="recordAgainBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                        Record Again
+                    </button>
+                </div>
+
+                <div class="status" id="status">Click "Start Recording" to begin</div>
+            </div>
+        </div>
+    </main>
+    <script>
+    (function() {
+        const screenPreview = document.getElementById('screenPreview');
+        const recordedVideo = document.getElementById('recordedVideo');
+        const previewArea = document.getElementById('previewArea');
+        const placeholderState = document.getElementById('placeholderState');
+        const recIndicator = document.getElementById('recIndicator');
+        const recTimer = document.getElementById('recTimer');
+        const countdownOverlay = document.getElementById('countdownOverlay');
+        const countdownNumber = document.getElementById('countdownNumber');
+        const webcamOverlay = document.getElementById('webcamOverlay');
+        const webcamVideo = document.getElementById('webcamVideo');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const recordAgainBtn = document.getElementById('recordAgainBtn');
+        const downloadSection = document.getElementById('downloadSection');
+        const micToggle = document.getElementById('micToggle');
+        const webcamToggle = document.getElementById('webcamToggle');
+        const qualitySelect = document.getElementById('qualitySelect');
+        const status = document.getElementById('status');
+
+        let mediaRecorder = null;
+        let screenStream = null;
+        let micStream = null;
+        let webcamStream = null;
+        let recordedChunks = [];
+        let recordingTimer = null;
+        let startTime = null;
+        let isRecording = false;
+        let isPaused = false;
+        let isCountdownRunning = false;
+
+        function setStatus(msg, type) {
+            status.textContent = msg;
+            status.className = 'status ' + (type || '');
+        }
+
+        function resetUI() {
+            startBtn.classList.remove('hidden');
+            pauseBtn.classList.add('hidden');
+            stopBtn.classList.add('hidden');
+            downloadSection.classList.add('hidden');
+            recIndicator.classList.remove('visible');
+            previewArea.classList.remove('recording');
+            screenPreview.style.display = 'none';
+            recordedVideo.style.display = 'none';
+            placeholderState.style.display = 'flex';
+            pauseBtn.disabled = true;
+            stopBtn.disabled = true;
+            startBtn.disabled = false;
+            isRecording = false;
+            isPaused = false;
+            if (recordingTimer) {
+                clearInterval(recordingTimer);
+                recordingTimer = null;
+            }
+            recTimer.textContent = '00:00';
+            setStatus('Click "Start Recording" to begin');
+        }
+
+        function showPreview(stream) {
+            screenPreview.srcObject = stream;
+            screenPreview.style.display = 'block';
+            placeholderState.style.display = 'none';
+            previewArea.classList.add('has-content');
+            recordedVideo.style.display = 'none';
+        }
+
+        function showRecordedVideo(blob) {
+            const url = URL.createObjectURL(blob);
+            recordedVideo.src = url;
+            recordedVideo.style.display = 'block';
+            screenPreview.style.display = 'none';
+            screenPreview.srcObject = null;
+            downloadSection.classList.remove('hidden');
+            downloadBtn.dataset.blobUrl = url;
+        }
+
+        function formatTime(seconds) {
+            const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+            const s = String(Math.floor(seconds % 60)).padStart(2, '0');
+            return m + ':' + s;
+        }
+
+        function updateTimer() {
+            if (!startTime) return;
+            const elapsed = (Date.now() - startTime) / 1000;
+            recTimer.textContent = formatTime(elapsed);
+        }
+
+        function runCountdown(seconds, callback) {
+            isCountdownRunning = true;
+            countdownOverlay.classList.add('visible');
+            countdownNumber.textContent = String(seconds);
+            countdownNumber.style.animation = 'none';
+            void countdownNumber.offsetWidth;
+            countdownNumber.style.animation = 'countPop 0.8s ease-out';
+
+            if (seconds <= 0) {
+                isCountdownRunning = false;
+                countdownOverlay.classList.remove('visible');
+                callback();
+                return;
+            }
+
+            setTimeout(function() { runCountdown(seconds - 1, callback); }, 800);
+        }
+
+        async function startWebcam() {
+            try {
+                webcamStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 320, height: 240, facingMode: 'user' },
+                    audio: false
+                });
+                webcamVideo.srcObject = webcamStream;
+                webcamOverlay.classList.add('visible');
+                return true;
+            } catch (err) {
+                console.warn('Webcam not available:', err.message);
+                setStatus('Webcam unavailable. Recording without webcam.', 'warning');
+                webcamToggle.checked = false;
+                return false;
+            }
+        }
+
+        function stopWebcam() {
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(function(t) { t.stop(); });
+                webcamStream = null;
+            }
+            webcamOverlay.classList.remove('visible');
+            webcamVideo.srcObject = null;
+        }
+
+        function stopMic() {
+            if (micStream) {
+                micStream.getTracks().forEach(function(t) { t.stop(); });
+                micStream = null;
+            }
+        }
+
+        function stopScreen() {
+            if (screenStream) {
+                screenStream.getTracks().forEach(function(t) { t.stop(); });
+                screenStream = null;
+            }
+        }
+
+        function cleanupStreams() {
+            stopScreen();
+            stopMic();
+            stopWebcam();
+        }
+
+        startBtn.addEventListener('click', async function() {
+            if (isCountdownRunning) return;
+
+            setStatus('Requesting screen access...', 'info');
+
+            try {
+                var displayOptions = {
+                    video: {
+                        width: { ideal: parseInt(qualitySelect.value) },
+                        height: { ideal: Math.round(parseInt(qualitySelect.value) * 9 / 16) }
+                    },
+                    audio: false
+                };
+
+                screenStream = await navigator.mediaDevices.getDisplayMedia(displayOptions);
+
+                screenStream.getVideoTracks()[0].addEventListener('ended', function() {
+                    if (isRecording && !isPaused) {
+                        stopRecording();
+                    }
+                });
+
+                var tracks = [];
+                screenStream.getVideoTracks().forEach(function(t) { tracks.push(t); });
+
+                if (micToggle.checked) {
+                    try {
+                        micStream = await navigator.mediaDevices.getUserMedia({
+                            audio: {
+                                echoCancellation: true,
+                                noiseSuppression: true,
+                                sampleRate: 44100
+                            }
+                        });
+                        micStream.getAudioTracks().forEach(function(t) { tracks.push(t); });
+                    } catch (err) {
+                        console.warn('Mic not available:', err.message);
+                        setStatus('Microphone unavailable. Recording without audio.', 'warning');
+                    }
+                }
+
+                showPreview(screenStream);
+                startBtn.classList.add('hidden');
+                pauseBtn.classList.remove('hidden');
+                stopBtn.classList.remove('hidden');
+                pauseBtn.disabled = true;
+                stopBtn.disabled = true;
+
+                if (webcamToggle.checked) {
+                    await startWebcam();
+                }
+
+                runCountdown(3, function() {
+                    startRecording(tracks);
+                });
+
+            } catch (err) {
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    setStatus('Screen recording permission denied. Please allow screen sharing to record.', 'error');
+                } else if (err.name === 'NotSupportedError') {
+                    setStatus('Screen recording not supported on this browser. Use Chrome or Edge on desktop.', 'error');
+                } else {
+                    setStatus('Error: ' + err.message, 'error');
+                }
+                cleanupStreams();
+                resetUI();
+            }
+        });
+
+        function startRecording(tracks) {
+            try {
+                var combinedStream = new MediaStream(tracks);
+                var mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+                    ? 'video/webm;codecs=vp9,opus'
+                    : MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+                        ? 'video/webm;codecs=vp8,opus'
+                        : 'video/webm';
+
+                mediaRecorder = new MediaRecorder(combinedStream, {
+                    mimeType: mimeType,
+                    videoBitsPerSecond: parseInt(qualitySelect.value) >= 1080 ? 8000000 : 4000000
+                });
+
+                recordedChunks = [];
+                mediaRecorder.ondataavailable = function(e) {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = function() {
+                    var blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    showRecordedVideo(blob);
+                    cleanupStreams();
+                    recIndicator.classList.remove('visible');
+                    previewArea.classList.remove('recording');
+                    if (recordingTimer) {
+                        clearInterval(recordingTimer);
+                        recordingTimer = null;
+                    }
+                    isRecording = false;
+                    isPaused = false;
+                    setStatus('Recording complete! ' + recordedChunks.length + ' segments, ' + (blob.size / 1024 / 1024).toFixed(1) + ' MB', 'success');
+                };
+
+                mediaRecorder.onerror = function() {
+                    setStatus('Recording error occurred', 'error');
+                    cleanupStreams();
+                };
+
+                mediaRecorder.start(1000);
+                isRecording = true;
+                isPaused = false;
+                startTime = Date.now();
+                recIndicator.classList.add('visible');
+                previewArea.classList.add('recording');
+                pauseBtn.disabled = false;
+                stopBtn.disabled = false;
+                pauseBtn.textContent = 'Pause';
+
+                recordingTimer = setInterval(updateTimer, 200);
+
+                setStatus('Recording... Click Stop when done', 'success');
+            } catch (err) {
+                setStatus('Failed to start recording: ' + err.message, 'error');
+                cleanupStreams();
+                resetUI();
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            startBtn.classList.add('hidden');
+            pauseBtn.classList.add('hidden');
+            stopBtn.classList.add('hidden');
+        }
+
+        pauseBtn.addEventListener('click', function() {
+            if (!mediaRecorder || !isRecording) return;
+
+            if (isPaused) {
+                mediaRecorder.resume();
+                isPaused = false;
+                pauseBtn.textContent = 'Pause';
+                startTime = Date.now() - (parseInt(recTimer.textContent.split(':')[0]) * 60 + parseInt(recTimer.textContent.split(':')[1])) * 1000;
+                recordingTimer = setInterval(updateTimer, 200);
+                recIndicator.classList.add('visible');
+                setStatus('Recording resumed', 'success');
+            } else {
+                mediaRecorder.pause();
+                isPaused = true;
+                pauseBtn.textContent = 'Resume';
+                if (recordingTimer) {
+                    clearInterval(recordingTimer);
+                    recordingTimer = null;
+                }
+                recIndicator.classList.remove('visible');
+                setStatus('Recording paused', 'warning');
+            }
+        });
+
+        stopBtn.addEventListener('click', stopRecording);
+
+        downloadBtn.addEventListener('click', function() {
+            var blobUrl = downloadBtn.dataset.blobUrl;
+            if (blobUrl) {
+                var a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = 'screen-recording-' + new Date().toISOString().slice(0,19).replace(/[:-]/g, '') + '.webm';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setStatus('Download started!', 'success');
+            }
+        });
+
+        recordAgainBtn.addEventListener('click', function() {
+            if (downloadBtn.dataset.blobUrl) {
+                URL.revokeObjectURL(downloadBtn.dataset.blobUrl);
+                downloadBtn.dataset.blobUrl = '';
+            }
+            recordedChunks = [];
+            resetUI();
+        });
+
+        webcamToggle.addEventListener('change', function() {
+            if (webcamToggle.checked && isRecording) {
+                startWebcam();
+            } else if (!webcamToggle.checked) {
+                stopWebcam();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (isRecording && !isPaused) {
+                    stopRecording();
+                }
+            }
+        });
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+            setStatus('Screen recording not supported on this browser. Use Chrome or Edge on desktop.', 'error');
+            startBtn.disabled = true;
+        }
+
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            setStatus('Screen recording requires HTTPS. Please use secure version.', 'error');
+            startBtn.disabled = true;
+        }
+    })();
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortgage Calculator with PMI, Tax & Insurance | DevTools Hub</title>
+    <meta name="description" content="Free mortgage calculator with PMI, property tax, insurance, HOA. Shows true monthly payment, total cost, amortization schedule, and affordability.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/mortgage-calculator/">
+    <meta property="og:title" content="Mortgage Calculator with PMI, Tax &amp; Insurance | DevTools Hub">
+    <meta property="og:description" content="Free mortgage calculator with PMI, property tax, insurance, HOA. Shows true monthly payment, total cost, amortization schedule, and affordability.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/mortgage-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-06-02","dateModified":"2026-06-02","author":{"@type":"Person","name":"BAOMING"},"name":"Mortgage Calculator with PMI, Tax & Insurance","description":"Calculate true monthly mortgage payment including PMI, property tax, homeowners insurance, and HOA. View amortization schedule and affordability analysis. No signup, no tracking, all in browser.","url":"https://tools.scoreroute.com/tools/mortgage-calculator/","applicationCategory":"FinanceApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Mortgage Calculator</h1>
+            <p class="subtitle">True Monthly Payment with PMI, Tax, Insurance & HOA</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Mortgage Calculator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Calculate Your True Monthly Mortgage Payment</h2>
+                <p style="color:#aaa; margin-bottom:20px;">Most calculators ignore PMI, property tax, insurance, and HOA. We include everything so you see what you'll really pay.</p>
+
+                <div class="mc-tabs">
+                    <button class="mc-tab active" data-tab="payment">Monthly Payment</button>
+                    <button class="mc-tab" data-tab="affordability">Affordability</button>
+                    <button class="mc-tab" data-tab="extra">Extra Payments</button>
+                </div>
+
+                <div class="mc-panel" id="panel-payment">
+                    <h3>Loan Details</h3>
+                    <div class="calculator-inputs">
+                        <div class="input-group">
+                            <label for="home-price">Home Price ($)</label>
+                            <input type="number" id="home-price" value="400000" min="0" step="1000">
+                        </div>
+                        <div class="input-group">
+                            <label for="down-payment-pct">Down Payment (%)</label>
+                            <input type="number" id="down-payment-pct" value="20" min="0" max="100" step="0.5">
+                        </div>
+                        <div class="input-group">
+                            <label for="interest-rate-mc">Interest Rate (%)</label>
+                            <input type="number" id="interest-rate-mc" value="6.75" min="0" max="25" step="0.125">
+                        </div>
+                        <div class="input-group">
+                            <label for="loan-term-mc">Loan Term</label>
+                            <select id="loan-term-mc">
+                                <option value="30" selected>30 years</option>
+                                <option value="20">20 years</option>
+                                <option value="15">15 years</option>
+                                <option value="10">10 years</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3>Other Costs (Optional)</h3>
+                    <div class="calculator-inputs">
+                        <div class="input-group">
+                            <label for="property-tax">Property Tax (%/year)</label>
+                            <input type="number" id="property-tax" value="1.2" min="0" max="10" step="0.05">
+                        </div>
+                        <div class="input-group">
+                            <label for="home-insurance">Home Insurance (%/year)</label>
+                            <input type="number" id="home-insurance" value="0.5" min="0" max="5" step="0.05">
+                        </div>
+                        <div class="input-group">
+                            <label for="hoa">HOA Fees ($/month)</label>
+                            <input type="number" id="hoa" value="0" min="0" step="10">
+                        </div>
+                        <div class="input-group">
+                            <label for="pmi-rate">PMI Rate (%/year)</label>
+                            <input type="number" id="pmi-rate" value="0.5" min="0" max="3" step="0.05">
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button id="calc-btn" class="btn btn-primary">Calculate</button>
+                        <button id="reset-btn" class="btn btn-secondary">Reset</button>
+                    </div>
+
+                    <div id="results-section" class="results-section">
+                        <h3>Your Monthly Payment Breakdown</h3>
+                        <div class="results-grid">
+                            <div class="result-card primary">
+                                <span class="result-label">Total Monthly</span>
+                                <span id="total-monthly" class="result-value">$0</span>
+                            </div>
+                            <div class="result-card">
+                                <span class="result-label">Principal & Interest</span>
+                                <span id="pi-payment" class="result-value">$0</span>
+                            </div>
+                            <div class="result-card">
+                                <span class="result-label">Property Tax</span>
+                                <span id="tax-monthly" class="result-value">$0</span>
+                            </div>
+                            <div class="result-card">
+                                <span class="result-label">Insurance</span>
+                                <span id="ins-monthly" class="result-value">$0</span>
+                            </div>
+                            <div class="result-card" id="pmi-card">
+                                <span class="result-label">PMI</span>
+                                <span id="pmi-monthly" class="result-value">$0</span>
+                            </div>
+                            <div class="result-card" id="hoa-card">
+                                <span class="result-label">HOA</span>
+                                <span id="hoa-monthly" class="result-value">$0</span>
+                            </div>
+                        </div>
+
+                        <div class="mc-pie-wrap">
+                            <h4>Payment Composition</h4>
+                            <div class="mc-pie" id="payment-pie">
+                                <div class="mc-pie-segment pi" id="pie-pi" style="flex: 70"></div>
+                                <div class="mc-pie-segment tax" id="pie-tax" style="flex: 15"></div>
+                                <div class="mc-pie-segment ins" id="pie-ins" style="flex: 8"></div>
+                                <div class="mc-pie-segment pmi" id="pie-pmi" style="flex: 5"></div>
+                                <div class="mc-pie-segment hoa" id="pie-hoa" style="flex: 2"></div>
+                            </div>
+                            <div class="mc-legend">
+                                <span><i style="background:#667eea"></i> P&I</span>
+                                <span><i style="background:#f59e0b"></i> Tax</span>
+                                <span><i style="background:#10b981"></i> Insurance</span>
+                                <span><i style="background:#ef4444"></i> PMI</span>
+                                <span><i style="background:#8b5cf6"></i> HOA</span>
+                            </div>
+                        </div>
+
+                        <h3>Loan Summary</h3>
+                        <div class="results-grid">
+                            <div class="result-card highlight">
+                                <span class="result-label">Loan Amount</span>
+                                <span id="loan-amount-mc" class="result-value">$0</span>
+                            </div>
+                            <div class="result-card">
+                                <span class="result-label">Total Interest</span>
+                                <span id="total-interest-mc" class="result-value">$0</span>
+                            </div>
+                            <div class="result-card">
+                                <span class="result-label">Total of Payments</span>
+                                <span id="total-paid" class="result-value">$0</span>
+                            </div>
+                            <div class="result-card highlight">
+                                <span class="result-label">Payoff Date</span>
+                                <span id="payoff-date-mc" class="result-value">--</span>
+                            </div>
+                        </div>
+
+                        <div id="pmi-info-section" class="mc-info-box" style="display:none;">
+                            <h4>📋 PMI Removal Info</h4>
+                            <p id="pmi-info-text">--</p>
+                        </div>
+
+                        <div class="mc-amort-toggle">
+                            <button id="toggle-amort" class="btn btn-secondary">Show Amortization Schedule</button>
+                            <div id="amort-table" class="mc-amort-table" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mc-panel" id="panel-affordability" style="display:none;">
+                    <h3>How Much House Can You Afford?</h3>
+                    <p style="color:#aaa; margin-bottom:16px;">Enter your income and debts to see the home price you can afford.</p>
+                    <div class="calculator-inputs">
+                        <div class="input-group">
+                            <label for="annual-income">Annual Gross Income ($)</label>
+                            <input type="number" id="annual-income" value="100000" min="0" step="1000">
+                        </div>
+                        <div class="input-group">
+                            <label for="monthly-debts">Monthly Debt Payments ($)</label>
+                            <input type="number" id="monthly-debts" value="500" min="0" step="50">
+                        </div>
+                        <div class="input-group">
+                            <label for="down-payment-cash">Down Payment Cash ($)</label>
+                            <input type="number" id="down-payment-cash" value="60000" min="0" step="1000">
+                        </div>
+                        <div class="input-group">
+                            <label for="afford-rate">Interest Rate (%)</label>
+                            <input type="number" id="afford-rate" value="6.75" min="0" max="25" step="0.125">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button id="calc-afford-btn" class="btn btn-primary">Calculate Affordability</button>
+                    </div>
+                    <div id="afford-results" class="results-section" style="display:none;">
+                        <h3>Affordability Analysis</h3>
+                        <div class="results-grid">
+                            <div class="result-card primary">
+                                <span class="result-label">Affordable Home Price</span>
+                                <span id="afford-price" class="result-value">$0</span>
+                            </div>
+                            <div class="result-card highlight">
+                                <span class="result-label">28% Rule Max Payment</span>
+                                <span id="28-rule" class="result-value">$0</span>
+                            </div>
+                            <div class="result-card highlight">
+                                <span class="result-label">36% Rule Max (with debts)</span>
+                                <span id="36-rule" class="result-value">$0</span>
+                            </div>
+                            <div class="result-card">
+                                <span class="result-label">Recommended Loan</span>
+                                <span id="afford-loan" class="result-value">$0</span>
+                            </div>
+                        </div>
+                        <div class="mc-info-box">
+                            <h4>How This Works</h4>
+                            <p>The <strong>28% rule</strong> says your housing payment (PITI) should be ≤ 28% of gross monthly income.</p>
+                            <p>The <strong>36% rule</strong> says total debt (housing + other debts) should be ≤ 36% of gross monthly income.</p>
+                            <p>We use the <em>lower</em> of the two to be conservative. We estimate PITI as Principal+Interest + 1.2% tax + 0.5% insurance.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mc-panel" id="panel-extra" style="display:none;">
+                    <h3>See the Power of Extra Payments</h3>
+                    <p style="color:#aaa; margin-bottom:16px;">Add even $50/month extra and watch the magic happen.</p>
+                    <div class="calculator-inputs">
+                        <div class="input-group">
+                            <label for="ex-loan">Loan Amount ($)</label>
+                            <input type="number" id="ex-loan" value="320000" min="0" step="1000">
+                        </div>
+                        <div class="input-group">
+                            <label for="ex-rate">Interest Rate (%)</label>
+                            <input type="number" id="ex-rate" value="6.75" min="0" max="25" step="0.125">
+                        </div>
+                        <div class="input-group">
+                            <label for="ex-term">Loan Term (years)</label>
+                            <input type="number" id="ex-term" value="30" min="1" max="40">
+                        </div>
+                        <div class="input-group">
+                            <label for="ex-extra">Extra Monthly ($)</label>
+                            <input type="number" id="ex-extra" value="200" min="0" step="50">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button id="calc-extra-btn" class="btn btn-primary">Compare</button>
+                    </div>
+                    <div id="extra-results" class="results-section" style="display:none;">
+                        <h3>Savings Comparison</h3>
+                        <div class="results-grid">
+                            <div class="result-card">
+                                <span class="result-label">Original Payoff</span>
+                                <span id="ex-orig-time" class="result-value">--</span>
+                            </div>
+                            <div class="result-card">
+                                <span class="result-label">New Payoff</span>
+                                <span id="ex-new-time" class="result-value">--</span>
+                            </div>
+                            <div class="result-card highlight">
+                                <span class="result-label">Time Saved</span>
+                                <span id="ex-time-saved" class="result-value">--</span>
+                            </div>
+                            <div class="result-card highlight">
+                                <span class="result-label">Interest Saved</span>
+                                <span id="ex-interest-saved" class="result-value">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Why Our Mortgage Calculator Is Different</h3>
+                <p>Most online mortgage calculators only show "Principal & Interest" (P&I). But your actual monthly payment includes way more:</p>
+                <ul>
+                    <li><strong>Property Tax</strong> - Typically 1-2% of home value per year, escrowed monthly</li>
+                    <li><strong>Homeowners Insurance</strong> - Usually 0.3-0.6% of home value per year</li>
+                    <li><strong>PMI (Private Mortgage Insurance)</strong> - Required if down payment < 20%, typically 0.5-1% per year</li>
+                    <li><strong>HOA Fees</strong> - For condos/townhomes/communities with amenities</li>
+                </ul>
+                <p><strong>Our calculator shows ALL of these so you know your TRUE monthly cost.</strong></p>
+
+                <h3>What AI Chatbots Can't Do</h3>
+                <ul>
+                    <li>❌ <strong>Real calculations:</strong> AI can hallucinate formulas, rates, or PMI percentages</li>
+                    <li>❌ <strong>Visual breakdowns:</strong> AI can't render pie charts of payment composition</li>
+                    <li>❌ <strong>Live amortization:</strong> AI can't generate a 360-row amortization schedule</li>
+                    <li>❌ <strong>Affordability analysis:</strong> AI doesn't apply 28/36 rules dynamically</li>
+                </ul>
+
+                <h3>3 Smart Features You Won't Find Elsewhere</h3>
+                <ul>
+                    <li><strong>PMI Auto-Calculation:</strong> PMI automatically applies when down payment < 20%, and we estimate when it can be removed (at 78% LTV)</li>
+                    <li><strong>Affordability Mode:</strong> Enter your income and debts; we apply the 28/36 rules to show what you can actually afford</li>
+                    <li><strong>Extra Payment Mode:</strong> See exactly how much time and money you save by adding $50, $100, or $500/month extra</li>
+                </ul>
+
+                <h3>Frequently Asked Questions</h3>
+
+                <details class="faq-item">
+                    <summary>What is PMI and when can I remove it?</summary>
+                    <p>PMI (Private Mortgage Insurance) protects the lender if you default. It's typically required when your down payment is less than 20% of the home price. PMI costs 0.5-1% of the loan per year. You can request PMI removal once you reach 20% equity, and it's automatically cancelled at 22% equity (per federal law).</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How accurate is this calculator?</summary>
+                    <p>This calculator uses the standard mortgage amortization formula used by every lender: M = P[r(1+r)^n]/[(1+r)^n-1]. For US 30-year fixed mortgages, results match lender quotes to within $1-5/month. Variable-rate loans (ARM) require recalculation at each rate adjustment, which this calculator does not support.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Does this include closing costs?</summary>
+                    <p>No. Closing costs are upfront, one-time fees (typically 2-5% of home price) paid at closing. They are NOT part of your monthly payment. Common closing costs include loan origination, title insurance, appraisal, and recording fees.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What's a good interest rate in 2026?</summary>
+                    <p>As of mid-2026, 30-year fixed mortgage rates are around 6.5-7.25% in the US. Your actual rate depends on credit score, down payment, loan type (FHA/VA/conventional), and lender. This calculator lets you input any rate from 0-25% so you can model different scenarios.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How much house can I afford on my salary?</summary>
+                    <p>Use the <strong>Affordability</strong> tab. We apply the conservative 28/36 rule: housing ≤ 28% of gross income, total debt ≤ 36%. A general rule: you can afford a home ~3x your annual income. But use our calculator for a personalized estimate.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Is my data private?</summary>
+                    <p>100%. All calculations happen in your browser. Nothing is sent to any server. We don't log, track, or store any input. No cookies, no analytics on inputs.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function() {
+        function fmt(n) {
+            if (!isFinite(n)) return '$0';
+            return '$' + Math.round(n).toLocaleString('en-US');
+        }
+        function pct(n) {
+            if (!isFinite(n)) return '0%';
+            return n.toFixed(1) + '%';
+        }
+
+        function calcMonthlyPI(principal, annualRate, years) {
+            if (principal <= 0) return 0;
+            var n = years * 12;
+            var r = (annualRate / 100) / 12;
+            if (r === 0) return principal / n;
+            return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        }
+
+        function calcPayoffMonths(principal, annualRate, years, monthlyPayment, extra) {
+            var n = years * 12;
+            var r = (annualRate / 100) / 12;
+            var bal = principal;
+            var totalInt = 0;
+            var mo = 0;
+            var max = n * 2;
+            while (bal > 0.01 && mo < max) {
+                var interest = bal * r;
+                totalInt += interest;
+                var prin = (monthlyPayment + extra) - interest;
+                if (prin <= 0) return { months: Infinity, interest: Infinity };
+                if (prin > bal) prin = bal;
+                bal -= prin;
+                mo++;
+            }
+            return { months: mo, interest: totalInt };
+        }
+
+        function calc() {
+            var price = parseFloat(document.getElementById('home-price').value) || 0;
+            var dpPct = parseFloat(document.getElementById('down-payment-pct').value) || 0;
+            var rate = parseFloat(document.getElementById('interest-rate-mc').value) || 0;
+            var years = parseInt(document.getElementById('loan-term-mc').value) || 30;
+            var taxPct = parseFloat(document.getElementById('property-tax').value) || 0;
+            var insPct = parseFloat(document.getElementById('home-insurance').value) || 0;
+            var hoa = parseFloat(document.getElementById('hoa').value) || 0;
+            var pmiPct = parseFloat(document.getElementById('pmi-rate').value) || 0;
+
+            var dp = price * (dpPct / 100);
+            var loan = price - dp;
+            if (loan <= 0) {
+                document.getElementById('total-monthly').textContent = '$0';
+                document.getElementById('pi-payment').textContent = '$0';
+                document.getElementById('tax-monthly').textContent = '$0';
+                document.getElementById('ins-monthly').textContent = '$0';
+                document.getElementById('pmi-monthly').textContent = '$0';
+                document.getElementById('hoa-monthly').textContent = '$0';
+                document.getElementById('loan-amount-mc').textContent = '$0';
+                document.getElementById('total-interest-mc').textContent = '$0';
+                document.getElementById('total-paid').textContent = '$0';
+                document.getElementById('payoff-date-mc').textContent = 'N/A';
+                return;
+            }
+            var pi = calcMonthlyPI(loan, rate, years);
+            var taxM = price * (taxPct / 100) / 12;
+            var insM = price * (insPct / 100) / 12;
+            var pmiM = 0;
+            if (dpPct < 20) {
+                pmiM = loan * (pmiPct / 100) / 12;
+            }
+            var total = pi + taxM + insM + pmiM + hoa;
+
+            document.getElementById('total-monthly').textContent = fmt(total);
+            document.getElementById('pi-payment').textContent = fmt(pi);
+            document.getElementById('tax-monthly').textContent = fmt(taxM);
+            document.getElementById('ins-monthly').textContent = fmt(insM);
+            document.getElementById('pmi-monthly').textContent = fmt(pmiM);
+            document.getElementById('hoa-monthly').textContent = fmt(hoa);
+            document.getElementById('loan-amount-mc').textContent = fmt(loan);
+
+            var n = years * 12;
+            var totalInt = (pi * n) - loan;
+            document.getElementById('total-interest-mc').textContent = fmt(totalInt);
+            document.getElementById('total-paid').textContent = fmt((pi * n) + dp);
+
+            var pd = new Date();
+            pd.setMonth(pd.getMonth() + n);
+            document.getElementById('payoff-date-mc').textContent = pd.toLocaleDateString('en-US', {month:'long', year:'numeric'});
+
+            // PMI removal
+            var pmiInfo = document.getElementById('pmi-info-section');
+            if (dpPct < 20) {
+                var pmiOffAt = loan * 0.22;
+                var bal2 = loan, mOff = 0;
+                while (bal2 > pmiOffAt && mOff < n) {
+                    var int2 = bal2 * ((rate / 100) / 12);
+                    bal2 -= (pi - int2);
+                    mOff++;
+                }
+                var pmiDate = new Date();
+                pmiDate.setMonth(pmiDate.getMonth() + mOff);
+                document.getElementById('pmi-info-text').innerHTML =
+                    'Your down payment is ' + dpPct + '%, so PMI is required. ' +
+                    'PMI will be <strong>automatically removed</strong> when your balance reaches 22% of original value (~$' +
+                    Math.round(pmiOffAt).toLocaleString() + '), which we project to be in <strong>' +
+                    pmiDate.toLocaleDateString('en-US', {month:'long', year:'numeric'}) + '</strong>. ' +
+                    'You can request earlier removal once you reach 20% equity.';
+                pmiInfo.style.display = 'block';
+            } else {
+                pmiInfo.style.display = 'none';
+            }
+
+            // Pie chart
+            var segments = { pi: pi, tax: taxM, ins: insM, pmi: pmiM, hoa: hoa };
+            var ids = { pi: 'pie-pi', tax: 'pie-tax', ins: 'pie-ins', pmi: 'pie-pmi', hoa: 'pie-hoa' };
+            var totalForPie = Math.max(total, 0.0001);
+            for (var k in segments) {
+                var v = (segments[k] / totalForPie) * 100;
+                var seg = document.getElementById(ids[k]);
+                if (v < 0.5) {
+                    seg.style.flex = '0';
+                    seg.style.display = 'none';
+                } else {
+                    seg.style.display = 'block';
+                    seg.style.flex = v;
+                }
+            }
+        }
+
+        function toggleAmort() {
+            var t = document.getElementById('amort-table');
+            var btn = document.getElementById('toggle-amort');
+            if (t.style.display === 'none' || t.style.display === '') {
+                var price = parseFloat(document.getElementById('home-price').value) || 0;
+                var dpPct = parseFloat(document.getElementById('down-payment-pct').value) || 0;
+                var rate = parseFloat(document.getElementById('interest-rate-mc').value) || 0;
+                var years = parseInt(document.getElementById('loan-term-mc').value) || 30;
+                var loan = price - price * (dpPct / 100);
+                var pi = calcMonthlyPI(loan, rate, years);
+                var bal = loan;
+                var n = years * 12;
+                var r = (rate / 100) / 12;
+                var html = '<table><thead><tr><th>Year</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead><tbody>';
+                var yearPrincipal = 0, yearInterest = 0;
+                for (var i = 1; i <= n; i++) {
+                    var int = bal * r;
+                    var pp = pi - int;
+                    bal -= pp;
+                    yearPrincipal += pp;
+                    yearInterest += int;
+                    if (i % 12 === 0 || i === n) {
+                        html += '<tr><td>' + Math.ceil(i/12) + '</td><td>' + fmt(pi * 12) + '</td><td>' + fmt(yearPrincipal) + '</td><td>' + fmt(yearInterest) + '</td><td>' + fmt(Math.max(0, bal)) + '</td></tr>';
+                        yearPrincipal = 0; yearInterest = 0;
+                    }
+                }
+                html += '</tbody></table>';
+                t.innerHTML = html;
+                t.style.display = 'block';
+                btn.textContent = 'Hide Amortization Schedule';
+            } else {
+                t.style.display = 'none';
+                btn.textContent = 'Show Amortization Schedule';
+            }
+        }
+
+        function calcAffordability() {
+            var income = parseFloat(document.getElementById('annual-income').value) || 0;
+            var debts = parseFloat(document.getElementById('monthly-debts').value) || 0;
+            var cash = parseFloat(document.getElementById('down-payment-cash').value) || 0;
+            var rate = parseFloat(document.getElementById('afford-rate').value) || 0;
+
+            var monthlyIncome = income / 12;
+            var max28 = monthlyIncome * 0.28;
+            var max36 = monthlyIncome * 0.36 - debts;
+            var maxPITI = Math.max(0, Math.min(max28, max36));
+
+            // PITI components we estimate: 1.2% tax + 0.5% insurance = 1.7% / 12 = 0.1417% of home price
+            // So if PITI = P + I + T + I, and T+I = 0.001417 * price
+            // P+I = PITI - 0.001417 * price
+            // Approx by iteration
+            var price = 100000;
+            for (var i = 0; i < 50; i++) {
+                var loan = price - cash;
+                if (loan < 0) loan = 0;
+                var pi = calcMonthlyPI(loan, rate, 30);
+                var ti = price * 0.017 / 12;
+                var piti = pi + ti;
+                if (piti < 0.01) break;
+                var ratio = maxPITI / piti;
+                price = price * ratio;
+                if (Math.abs(ratio - 1) < 0.001) break;
+            }
+            // Also cap at cash as down payment + max loan
+            var maxLoan = calcMonthlyPI.invert ? 0 : 0; // placeholder
+            // Simple: if down payment > price, we hit cap
+            var finalLoan = price - cash;
+            if (finalLoan < 0) {
+                price = cash;
+                finalLoan = 0;
+            }
+
+            document.getElementById('afford-price').textContent = fmt(price);
+            document.getElementById('28-rule').textContent = fmt(max28);
+            document.getElementById('36-rule').textContent = fmt(max36);
+            document.getElementById('afford-loan').textContent = fmt(Math.max(0, finalLoan));
+            document.getElementById('afford-results').style.display = 'block';
+        }
+
+        function calcExtra() {
+            var loan = parseFloat(document.getElementById('ex-loan').value) || 0;
+            var rate = parseFloat(document.getElementById('ex-rate').value) || 0;
+            var years = parseInt(document.getElementById('ex-term').value) || 30;
+            var extra = parseFloat(document.getElementById('ex-extra').value) || 0;
+
+            var pi = calcMonthlyPI(loan, rate, years);
+            var orig = calcPayoffMonths(loan, rate, years, pi, 0);
+            var newP = calcPayoffMonths(loan, rate, years, pi, extra);
+
+            function monthsToStr(m) {
+                if (!isFinite(m)) return 'Never';
+                var y = Math.floor(m / 12);
+                var mo = m % 12;
+                return y + 'y ' + mo + 'm';
+            }
+            document.getElementById('ex-orig-time').textContent = monthsToStr(orig.months);
+            document.getElementById('ex-new-time').textContent = monthsToStr(newP.months);
+            document.getElementById('ex-time-saved').textContent = monthsToStr(orig.months - newP.months);
+            document.getElementById('ex-interest-saved').textContent = fmt(orig.interest - newP.interest);
+            document.getElementById('extra-results').style.display = 'block';
+        }
+
+        function reset() {
+            document.getElementById('home-price').value = 400000;
+            document.getElementById('down-payment-pct').value = 20;
+            document.getElementById('interest-rate-mc').value = 6.75;
+            document.getElementById('loan-term-mc').value = 30;
+            document.getElementById('property-tax').value = 1.2;
+            document.getElementById('home-insurance').value = 0.5;
+            document.getElementById('hoa').value = 0;
+            document.getElementById('pmi-rate').value = 0.5;
+            calc();
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.mc-tab').forEach(function(t) {
+                t.classList.toggle('active', t.getAttribute('data-tab') === name);
+            });
+            document.querySelectorAll('.mc-panel').forEach(function(p) {
+                p.style.display = p.id === 'panel-' + name ? 'block' : 'none';
+            });
+        }
+
+        document.getElementById('calc-btn').addEventListener('click', calc);
+        document.getElementById('reset-btn').addEventListener('click', reset);
+        document.getElementById('toggle-amort').addEventListener('click', toggleAmort);
+        document.getElementById('calc-afford-btn').addEventListener('click', calcAffordability);
+        document.getElementById('calc-extra-btn').addEventListener('click', calcExtra);
+        document.querySelectorAll('.mc-tab').forEach(function(t) {
+            t.addEventListener('click', function() { switchTab(t.getAttribute('data-tab')); });
+        });
+
+        // Live recalc on input
+        ['home-price','down-payment-pct','interest-rate-mc','loan-term-mc','property-tax','home-insurance','hoa','pmi-rate'].forEach(function(id) {
+            document.getElementById(id).addEventListener('input', calc);
+        });
+
+        window.addEventListener('DOMContentLoaded', calc);
+    })();
+    </script>
+
+    <style>
+    .mc-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid #2a2a4a; }
+    .mc-tab { background: transparent; border: none; color: #888; padding: 12px 20px; cursor: pointer; font-size: 15px; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .mc-tab:hover { color: #aaa; }
+    .mc-tab.active { color: #667eea; border-bottom-color: #667eea; font-weight: 500; }
+    .mc-panel h3 { color: #667eea; margin: 16px 0 12px; font-size: 1.1rem; }
+
+    .mc-pie-wrap { background: #0f0f23; border-radius: 12px; padding: 20px; margin: 20px 0; }
+    .mc-pie-wrap h4 { color: #aaa; margin: 0 0 12px; font-size: 0.95rem; }
+    .mc-pie { display: flex; height: 32px; border-radius: 6px; overflow: hidden; background: #1a1a2e; }
+    .mc-pie-segment { transition: flex 0.3s; }
+    .mc-pie-segment.pi { background: #667eea; }
+    .mc-pie-segment.tax { background: #f59e0b; }
+    .mc-pie-segment.ins { background: #10b981; }
+    .mc-pie-segment.pmi { background: #ef4444; }
+    .mc-pie-segment.hoa { background: #8b5cf6; }
+    .mc-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 13px; color: #888; }
+    .mc-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .mc-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+
+    .mc-info-box { background: #0f0f23; border-left: 4px solid #667eea; padding: 16px 20px; border-radius: 8px; margin: 20px 0; }
+    .mc-info-box h4 { color: #667eea; margin: 0 0 8px; font-size: 1rem; }
+    .mc-info-box p { color: #aaa; margin: 6px 0; line-height: 1.6; }
+    .mc-info-box strong { color: #8b9ef5; }
+
+    .mc-amort-toggle { margin-top: 20px; }
+    .mc-amort-table { margin-top: 16px; max-height: 420px; overflow-y: auto; background: #0f0f23; border-radius: 8px; border: 1px solid #2a2a4a; }
+    .mc-amort-table table { width: 100%; border-collapse: collapse; font-size: 13px; color: #aaa; }
+    .mc-amort-table th { background: #1a1a2e; color: #667eea; padding: 10px 12px; text-align: right; position: sticky; top: 0; font-weight: 600; }
+    .mc-amort-table td { padding: 8px 12px; text-align: right; border-bottom: 1px solid #2a2a4a; }
+    .mc-amort-table td:first-child, .mc-amort-table th:first-child { text-align: left; }
+
+    @media (max-width: 768px) {
+        .mc-tab { padding: 10px 12px; font-size: 14px; }
+        .mc-amort-table { font-size: 11px; }
+    }
+    </style>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inflation Calculator - CPI Dollar Adjuster | DevTools Hub</title>
+    <meta name="description" content="Adjust any dollar amount for real US inflation with official monthly CPI data since 1913. Shows exact indexes used. 100% private.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/inflation-calculator/">
+    <meta property="og:title" content="Inflation Calculator - CPI Dollar Adjuster | DevTools Hub">
+    <meta property="og:description" content="Adjust any dollar amount for real US inflation with official monthly CPI data since 1913. 100% private.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/inflation-calculator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Inflation Calculator - CPI Dollar Adjuster | DevTools Hub">
+    <meta name="twitter:description" content="Adjust any dollar amount for real US inflation with official monthly CPI-U data since 1913.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/inflation-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-08-07","dateModified":"2026-08-07","author":{"@type":"Person","name":"BAOMING"},"name":"Inflation Calculator - CPI Dollar Adjuster","description":"Free US inflation calculator that adjusts dollar amounts for inflation using real monthly CPI-U data (BLS series CUUR0000SA0) from 1913 to present. Shows exact CPI index values used for full transparency.","url":"https://tools.scoreroute.com/tools/inflation-calculator/","applicationCategory":"FinanceApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        :root {
+            --bg: #0f0f23;
+            --card-bg: #1a1a2e;
+            --border: #2a2a4a;
+            --primary: #667eea;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text: #fff;
+            --text-secondary: #888;
+        }
+        .inf-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 20px;
+            background: var(--bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .inf-form .full-width { grid-column: 1 / -1; }
+        .inf-form label { color: var(--text-secondary); font-size: 0.85rem; display: block; margin-bottom: 6px; }
+        .inf-form input, .inf-form select {
+            width: 100%; padding: 10px 14px; background: var(--card-bg);
+            border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+            font-size: 0.9rem; box-sizing: border-box;
+        }
+        .inf-form input:focus, .inf-form select:focus { outline: 2px solid var(--primary); border-color: transparent; }
+        .inf-examples { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .inf-examples button {
+            padding: 6px 14px; border-radius: 20px; border: 1px solid var(--primary);
+            background: transparent; color: var(--primary); cursor: pointer; font-size: 0.8rem;
+        }
+        .inf-examples button:hover { background: var(--primary); color: #fff; }
+        .inf-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .inf-result-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
+        .inf-result-card .label { font-size: 0.8rem; color: var(--text-secondary); }
+        .inf-result-card .value { font-size: 1.35rem; font-weight: 700; color: var(--primary); margin-top: 8px; word-break: break-word; }
+        .inf-result-card .value.green { color: var(--success); }
+        .inf-result-card .value.warn { color: var(--warning); }
+        .inf-note {
+            font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 24px; padding: 12px;
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; line-height: 1.5;
+        }
+        .inf-breakdown { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .inf-breakdown th { background: var(--card-bg); color: var(--text-secondary); padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border); }
+        .inf-breakdown th:first-child, .inf-breakdown td:first-child { text-align: left; }
+        .inf-breakdown th:nth-child(1), .inf-breakdown td:nth-child(1) { text-align: center; }
+        .inf-breakdown td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border); }
+        .inf-breakdown tr:hover { background: var(--card-bg); }
+        .inf-breakdown tr.total td { font-weight: 700; border-top: 2px solid var(--primary); }
+        @media (max-width: 640px) { .inf-form { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Inflation Calculator</h1>
+            <p class="subtitle">Adjust Any Dollar Amount for Real US Inflation</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/finance/">Finance</a> &gt; <span>Inflation Calculator</span>
+              <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" role="main">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Calculate Inflation-Adjusted Value</h2>
+
+                <div class="inf-examples">
+                    <button onclick="loadExample('house')">$100 in 1970</button>
+                    <button onclick="loadExample('college')">College, 2000 to Now</button>
+                    <button onclick="loadExample('retirement')">Retirement, 2020 to Now</button>
+                    <button onclick="loadExample('minimum')">Minimum Wage, 1980</button>
+                </div>
+
+                <div class="inf-form">
+                    <div>
+                        <label for="amount">Amount ($)</label>
+                        <input type="number" id="amount" value="100" min="0" step="1" aria-label="Dollar amount to adjust for inflation">
+                    </div>
+                    <div>
+                        <label for="startYear">Start Year</label>
+                        <select id="startYear"></select>
+                    </div>
+                    <div>
+                        <label for="startMonth">Start Month</label>
+                        <select id="startMonth"></select>
+                    </div>
+                    <div>
+                        <label for="endYear">End Year</label>
+                        <select id="endYear"></select>
+                    </div>
+                    <div>
+                        <label for="endMonth">End Month</label>
+                        <select id="endMonth"></select>
+                    </div>
+                    <div class="btn-group full-width">
+                        <button onclick="calculate()" class="btn btn-primary">Calculate</button>
+                        <button onclick="clearAll()" class="btn btn-secondary">Clear</button>
+                        <button onclick="copyResults()" class="btn">Copy Results</button>
+                    </div>
+                </div>
+
+                <div id="status" class="status"></div>
+
+                <div id="results" style="display:none;">
+                    <div class="inf-results">
+                        <div class="inf-result-card">
+                            <div class="label">Start Value</div>
+                            <div class="value" id="resStart">$0.00</div>
+                        </div>
+                        <div class="inf-result-card">
+                            <div class="label">Inflation-Adjusted Value</div>
+                            <div class="value" id="resEnd">$0.00</div>
+                        </div>
+                        <div class="inf-result-card">
+                            <div class="label">Total % Change</div>
+                            <div class="value green" id="resPercent">0%</div>
+                        </div>
+                        <div class="inf-result-card">
+                            <div class="label">Average Annual Rate</div>
+                            <div class="value warn" id="resAnnual">0%</div>
+                        </div>
+                        <div class="inf-result-card">
+                            <div class="label">Purchasing Power Lost</div>
+                            <div class="value" id="resPower">0%</div>
+                        </div>
+                        <div class="inf-result-card">
+                            <div class="label">Start / End CPI</div>
+                            <div class="value" id="resCpi">0 / 0</div>
+                        </div>
+                    </div>
+
+                    <div class="inf-note" id="dataNote"></div>
+
+                    <h3 style="color:var(--text-secondary);font-weight:600;">How the Value of <span id="tableTitle">$100</span> Changed</h3>
+                    <div class="table-scroll">
+                    <table class="inf-breakdown" id="breakTable">
+<caption class="sr-only">One row per month: the CPI-U index, what your money buys, and the change since the start month</caption>
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>CPI-U Index</th>
+                                <th>Adjusted Value</th>
+                                <th>Purchasing Power vs Start</th>
+                            </tr>
+                        </thead>
+                        <tbody id="breakBody"><tr><td colspan="4">No data yet.</td></tr></tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What Is Inflation?</h2>
+                <p>Inflation is the rate at which the general level of prices for goods and services rises. As prices rise, each dollar you hold buys less. This tool shows the real numbers: if you had $100 in 1970, how much money would you need today to buy the same basket of goods and services, based on the official Consumer Price Index published by the U.S. Bureau of Labor Statistics.</p>
+
+                <h2>How This Calculator Works</h2>
+                <p>This tool uses the official monthly <strong>CPI-U All Items U.S. City Average</strong> series (<strong>CUUR0000SA0</strong>, based 1982&ndash;84 = 100) published by the BLS, covering every month from January 1913 through the most recent available release. The adjusted value is computed as <span style="font-family:monospace;">Amount x (CPI<sub>end</sub> / CPI<sub>start</sub>)</span>. Every index value used is shown in the results table, so the math is fully transparent and verifiable against the BLS.</p>
+                <p style="font-family:monospace;background:var(--card-bg);padding:16px;border-radius:8px;text-align:center;font-size:1.1rem;">
+                    Adjusted = Amount &times; (CPI<sub>end</sub> / CPI<sub>start</sub>)
+                </p>
+                <p>The average annual rate uses the compound annual growth rate formula (CAGR) across the exact number of months between the two dates, not an approximation.</p>
+
+                <h2>Why AI Cannot Replace This Tool</h2>
+                <p>Large language models routinely hallucinate historical prices and CPI index numbers, and they give different answers each time you ask. They cannot reliably recall the exact official CPI-U index for a specific month like March 1980 or May 2025. This tool uses the actual downloaded BLS CPI dataset with bit-exact deterministic arithmetic. You get the same precise, verifiable answer every single time, and you can see every index value used. That is accuracy an LLM conversation cannot provide.</p>
+
+                <h2>Frequently Asked Questions</h2>
+
+                <details class="faq-item">
+                    <summary>What is CPI-U?</summary>
+                    <p>CPI-U is the Consumer Price Index for All Urban Consumers, the headline inflation measure published monthly by the U.S. Bureau of Labor Statistics. It tracks the average price change of a fixed market basket of goods and services for all urban households. The U.S. city average, all items, not seasonally adjusted series is the standard reference used for inflation adjustment.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What does "inflation-adjusted value" mean?</summary>
+                    <p>It is how many dollars you would need at the end date to have the same purchasing power as your amount had at the start date. For example, if prices doubled between the start and end, $100 at the start would be worth the same as $200 at the end. The tool shows this dollar answer, the total percentage change, and the compound annual rate.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How is the average annual rate calculated?</summary>
+                    <p>It is the compound annual growth rate (CAGR) of prices between the two selected months: (CPI<sub>end</sub>/CPI<sub>start</sub>)^(12 / months) - 1. This gives the equivalent constant yearly inflation rate over the whole period, so you can compare it to today's headline inflation number.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What does "purchasing power lost" mean?</summary>
+                    <p>It shows how much of the start value's buying power was lost to inflation by the end date. A 'purchasing power lost' of 50% means your money buys half as much as it did at the start (because prices doubled). If deflation occurred, this number is negative, meaning purchasing power increased.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Is this data current?</summary>
+                    <p>The dataset is the latest monthly CPI-U release available and is updated whenever the BLS publishes a new month. Using the latest release means your end month options always reflect the most recent official index values.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Does this tool work for other countries?</summary>
+                    <p>This tool is built around the U.S. CPI-U index. Other countries publish their own consumer price indices with different base periods, so the numbers here apply to U.S. dollars and U.S. prices only. For rough intuition, global inflation is often broadly similar, but exact figures differ by country.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Does this calculator save my data?</summary>
+                    <p>No. The calculation runs entirely in your browser. The historical CPI dataset is embedded locally in the page and your inputs never leave your device. Nothing is stored, tracked, or transmitted. It is 100% private.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        var INFL_CPI={191301:9.8,191302:9.8,191303:9.8,191304:9.8,191305:9.7,191306:9.8,191307:9.9,191308:9.9,191309:10.0,191310:10.0,191311:10.1,191312:10.0,191401:10.0,191402:9.9,191403:9.9,191404:9.8,191405:9.9,191406:9.9,191407:10.0,191408:10.2,191409:10.2,191410:10.1,191411:10.2,191412:10.1,191501:10.1,191502:10.0,191503:9.9,191504:10.0,191505:10.1,191506:10.1,191507:10.1,191508:10.1,191509:10.1,191510:10.2,191511:10.3,191512:10.3,191601:10.4,191602:10.4,191603:10.5,191604:10.6,191605:10.7,191606:10.8,191607:10.8,191608:10.9,191609:11.1,191610:11.3,191611:11.5,191612:11.6,191701:11.7,191702:12.0,191703:12.0,191704:12.6,191705:12.8,191706:13.0,191707:12.8,191708:13.0,191709:13.3,191710:13.5,191711:13.5,191712:13.7,191801:14.0,191802:14.1,191803:14.0,191804:14.2,191805:14.5,191806:14.7,191807:15.1,191808:15.4,191809:15.7,191810:16.0,191811:16.3,191812:16.5,191901:16.5,191902:16.2,191903:16.4,191904:16.7,191905:16.9,191906:16.9,191907:17.4,191908:17.7,191909:17.8,191910:18.1,191911:18.5,191912:18.9,192001:19.3,192002:19.5,192003:19.7,192004:20.3,192005:20.6,192006:20.9,192007:20.8,192008:20.3,192009:20.0,192010:19.9,192011:19.8,192012:19.4,192101:19.0,192102:18.4,192103:18.3,192104:18.1,192105:17.7,192106:17.6,192107:17.7,192108:17.7,192109:17.5,192110:17.5,192111:17.4,192112:17.3,192201:16.9,192202:16.9,192203:16.7,192204:16.7,192205:16.7,192206:16.7,192207:16.8,192208:16.6,192209:16.6,192210:16.7,192211:16.8,192212:16.9,192301:16.8,192302:16.8,192303:16.8,192304:16.9,192305:16.9,192306:17.0,192307:17.2,192308:17.1,192309:17.2,192310:17.3,192311:17.3,192312:17.3,192401:17.3,192402:17.2,192403:17.1,192404:17.0,192405:17.0,192406:17.0,192407:17.1,192408:17.0,192409:17.1,192410:17.2,192411:17.2,192412:17.3,192501:17.3,192502:17.2,192503:17.3,192504:17.2,192505:17.3,192506:17.5,192507:17.7,192508:17.7,192509:17.7,192510:17.7,192511:18.0,192512:17.9,192601:17.9,192602:17.9,192603:17.8,192604:17.9,192605:17.8,192606:17.7,192607:17.5,192608:17.4,192609:17.5,192610:17.6,192611:17.7,192612:17.7,192701:17.5,192702:17.4,192703:17.3,192704:17.3,192705:17.4,192706:17.6,192707:17.3,192708:17.2,192709:17.3,192710:17.4,192711:17.3,192712:17.3,192801:17.3,192802:17.1,192803:17.1,192804:17.1,192805:17.2,192806:17.1,192807:17.1,192808:17.1,192809:17.3,192810:17.2,192811:17.2,192812:17.1,192901:17.1,192902:17.1,192903:17.0,192904:16.9,192905:17.0,192906:17.1,192907:17.3,192908:17.3,192909:17.3,192910:17.3,192911:17.3,192912:17.2,193001:17.1,193002:17.0,193003:16.9,193004:17.0,193005:16.9,193006:16.8,193007:16.6,193008:16.5,193009:16.6,193010:16.5,193011:16.4,193012:16.1,193101:15.9,193102:15.7,193103:15.6,193104:15.5,193105:15.3,193106:15.1,193107:15.1,193108:15.1,193109:15.0,193110:14.9,193111:14.7,193112:14.6,193201:14.3,193202:14.1,193203:14.0,193204:13.9,193205:13.7,193206:13.6,193207:13.6,193208:13.5,193209:13.4,193210:13.3,193211:13.2,193212:13.1,193301:12.9,193302:12.7,193303:12.6,193304:12.6,193305:12.6,193306:12.7,193307:13.1,193308:13.2,193309:13.2,193310:13.2,193311:13.2,193312:13.2,193401:13.2,193402:13.3,193403:13.3,193404:13.3,193405:13.3,193406:13.4,193407:13.4,193408:13.4,193409:13.6,193410:13.5,193411:13.5,193412:13.4,193501:13.6,193502:13.7,193503:13.7,193504:13.8,193505:13.8,193506:13.7,193507:13.7,193508:13.7,193509:13.7,193510:13.7,193511:13.8,193512:13.8,193601:13.8,193602:13.8,193603:13.7,193604:13.7,193605:13.7,193606:13.8,193607:13.9,193608:14.0,193609:14.0,193610:14.0,193611:14.0,193612:14.0,193701:14.1,193702:14.1,193703:14.2,193704:14.3,193705:14.4,193706:14.4,193707:14.5,193708:14.5,193709:14.6,193710:14.6,193711:14.5,193712:14.4,193801:14.2,193802:14.1,193803:14.1,193804:14.2,193805:14.1,193806:14.1,193807:14.1,193808:14.1,193809:14.1,193810:14.0,193811:14.0,193812:14.0,193901:14.0,193902:13.9,193903:13.9,193904:13.8,193905:13.8,193906:13.8,193907:13.8,193908:13.8,193909:14.1,193910:14.0,193911:14.0,193912:14.0,194001:13.9,194002:14.0,194003:14.0,194004:14.0,194005:14.0,194006:14.1,194007:14.0,194008:14.0,194009:14.0,194010:14.0,194011:14.0,194012:14.1,194101:14.1,194102:14.1,194103:14.2,194104:14.3,194105:14.4,194106:14.7,194107:14.7,194108:14.9,194109:15.1,194110:15.3,194111:15.4,194112:15.5,194201:15.7,194202:15.8,194203:16.0,194204:16.1,194205:16.3,194206:16.3,194207:16.4,194208:16.5,194209:16.5,194210:16.7,194211:16.8,194212:16.9,194301:16.9,194302:16.9,194303:17.2,194304:17.4,194305:17.5,194306:17.5,194307:17.4,194308:17.3,194309:17.4,194310:17.4,194311:17.4,194312:17.4,194401:17.4,194402:17.4,194403:17.4,194404:17.5,194405:17.5,194406:17.6,194407:17.7,194408:17.7,194409:17.7,194410:17.7,194411:17.7,194412:17.8,194501:17.8,194502:17.8,194503:17.8,194504:17.8,194505:17.9,194506:18.1,194507:18.1,194508:18.1,194509:18.1,194510:18.1,194511:18.1,194512:18.2,194601:18.2,194602:18.1,194603:18.3,194604:18.4,194605:18.5,194606:18.7,194607:19.8,194608:20.2,194609:20.4,194610:20.8,194611:21.3,194612:21.5,194701:21.5,194702:21.5,194703:21.9,194704:21.9,194705:21.9,194706:22.0,194707:22.2,194708:22.5,194709:23.0,194710:23.0,194711:23.1,194712:23.4,194801:23.7,194802:23.5,194803:23.4,194804:23.8,194805:23.9,194806:24.1,194807:24.4,194808:24.5,194809:24.5,194810:24.4,194811:24.2,194812:24.1,194901:24.0,194902:23.8,194903:23.8,194904:23.9,194905:23.8,194906:23.9,194907:23.7,194908:23.8,194909:23.9,194910:23.7,194911:23.8,194912:23.6,195001:23.5,195002:23.5,195003:23.6,195004:23.6,195005:23.7,195006:23.8,195007:24.1,195008:24.3,195009:24.4,195010:24.6,195011:24.7,195012:25.0,195101:25.4,195102:25.7,195103:25.8,195104:25.8,195105:25.9,195106:25.9,195107:25.9,195108:25.9,195109:26.1,195110:26.2,195111:26.4,195112:26.5,195201:26.5,195202:26.3,195203:26.3,195204:26.4,195205:26.4,195206:26.5,195207:26.7,195208:26.7,195209:26.7,195210:26.7,195211:26.7,195212:26.7,195301:26.6,195302:26.5,195303:26.6,195304:26.6,195305:26.7,195306:26.8,195307:26.8,195308:26.9,195309:26.9,195310:27.0,195311:26.9,195312:26.9,195401:26.9,195402:26.9,195403:26.9,195404:26.8,195405:26.9,195406:26.9,195407:26.9,195408:26.9,195409:26.8,195410:26.8,195411:26.8,195412:26.7,195501:26.7,195502:26.7,195503:26.7,195504:26.7,195505:26.7,195506:26.7,195507:26.8,195508:26.8,195509:26.9,195510:26.9,195511:26.9,195512:26.8,195601:26.8,195602:26.8,195603:26.8,195604:26.9,195605:27.0,195606:27.2,195607:27.4,195608:27.3,195609:27.4,195610:27.5,195611:27.5,195612:27.6,195701:27.6,195702:27.7,195703:27.8,195704:27.9,195705:28.0,195706:28.1,195707:28.3,195708:28.3,195709:28.3,195710:28.3,195711:28.4,195712:28.4,195801:28.6,195802:28.6,195803:28.8,195804:28.9,195805:28.9,195806:28.9,195807:29.0,195808:28.9,195809:28.9,195810:28.9,195811:29.0,195812:28.9,195901:29.0,195902:28.9,195903:28.9,195904:29.0,195905:29.0,195906:29.1,195907:29.2,195908:29.2,195909:29.3,195910:29.4,195911:29.4,195912:29.4,196001:29.3,196002:29.4,196003:29.4,196004:29.5,196005:29.5,196006:29.6,196007:29.6,196008:29.6,196009:29.6,196010:29.8,196011:29.8,196012:29.8,196101:29.8,196102:29.8,196103:29.8,196104:29.8,196105:29.8,196106:29.8,196107:30.0,196108:29.9,196109:30.0,196110:30.0,196111:30.0,196112:30.0,196201:30.0,196202:30.1,196203:30.1,196204:30.2,196205:30.2,196206:30.2,196207:30.3,196208:30.3,196209:30.4,196210:30.4,196211:30.4,196212:30.4,196301:30.4,196302:30.4,196303:30.5,196304:30.5,196305:30.5,196306:30.6,196307:30.7,196308:30.7,196309:30.7,196310:30.8,196311:30.8,196312:30.9,196401:30.9,196402:30.9,196403:30.9,196404:30.9,196405:30.9,196406:31.0,196407:31.1,196408:31.0,196409:31.1,196410:31.1,196411:31.2,196412:31.2,196501:31.2,196502:31.2,196503:31.3,196504:31.4,196505:31.4,196506:31.6,196507:31.6,196508:31.6,196509:31.6,196510:31.7,196511:31.7,196512:31.8,196601:31.8,196602:32.0,196603:32.1,196604:32.3,196605:32.3,196606:32.4,196607:32.5,196608:32.7,196609:32.7,196610:32.9,196611:32.9,196612:32.9,196701:32.9,196702:32.9,196703:33.0,196704:33.1,196705:33.2,196706:33.3,196707:33.4,196708:33.5,196709:33.6,196710:33.7,196711:33.8,196712:33.9,196801:34.1,196802:34.2,196803:34.3,196804:34.4,196805:34.5,196806:34.7,196807:34.9,196808:35.0,196809:35.1,196810:35.3,196811:35.4,196812:35.5,196901:35.6,196902:35.8,196903:36.1,196904:36.3,196905:36.4,196906:36.6,196907:36.8,196908:37.0,196909:37.1,196910:37.3,196911:37.5,196912:37.7,197001:37.8,197002:38.0,197003:38.2,197004:38.5,197005:38.6,197006:38.8,197007:39.0,197008:39.0,197009:39.2,197010:39.4,197011:39.6,197012:39.8,197101:39.8,197102:39.9,197103:40.0,197104:40.1,197105:40.3,197106:40.6,197107:40.7,197108:40.8,197109:40.8,197110:40.9,197111:40.9,197112:41.1,197201:41.1,197202:41.3,197203:41.4,197204:41.5,197205:41.6,197206:41.7,197207:41.9,197208:42.0,197209:42.1,197210:42.3,197211:42.4,197212:42.5,197301:42.6,197302:42.9,197303:43.3,197304:43.6,197305:43.9,197306:44.2,197307:44.3,197308:45.1,197309:45.2,197310:45.6,197311:45.9,197312:46.2,197401:46.6,197402:47.2,197403:47.8,197404:48.0,197405:48.6,197406:49.0,197407:49.4,197408:50.0,197409:50.6,197410:51.1,197411:51.5,197412:51.9,197501:52.1,197502:52.5,197503:52.7,197504:52.9,197505:53.2,197506:53.6,197507:54.2,197508:54.3,197509:54.6,197510:54.9,197511:55.3,197512:55.5,197601:55.6,197602:55.8,197603:55.9,197604:56.1,197605:56.5,197606:56.8,197607:57.1,197608:57.4,197609:57.6,197610:57.9,197611:58.0,197612:58.2,197701:58.5,197702:59.1,197703:59.5,197704:60.0,197705:60.3,197706:60.7,197707:61.0,197708:61.2,197709:61.4,197710:61.6,197711:61.9,197712:62.1,197801:62.5,197802:62.9,197803:63.4,197804:63.9,197805:64.5,197806:65.2,197807:65.7,197808:66.0,197809:66.5,197810:67.1,197811:67.4,197812:67.7,197901:68.3,197902:69.1,197903:69.8,197904:70.6,197905:71.5,197906:72.3,197907:73.1,197908:73.8,197909:74.6,197910:75.2,197911:75.9,197912:76.7,198001:77.8,198002:78.9,198003:80.1,198004:81.0,198005:81.8,198006:82.7,198007:82.7,198008:83.3,198009:84.0,198010:84.8,198011:85.5,198012:86.3,198101:87.0,198102:87.9,198103:88.5,198104:89.1,198105:89.8,198106:90.6,198107:91.6,198108:92.3,198109:93.2,198110:93.4,198111:93.7,198112:94.0,198201:94.3,198202:94.6,198203:94.5,198204:94.9,198205:95.8,198206:97.0,198207:97.5,198208:97.7,198209:97.9,198210:98.2,198211:98.0,198212:97.6,198301:97.8,198302:97.9,198303:97.9,198304:98.6,198305:99.2,198306:99.5,198307:99.9,198308:100.2,198309:100.7,198310:101.0,198311:101.2,198312:101.3,198401:101.9,198402:102.4,198403:102.6,198404:103.1,198405:103.4,198406:103.7,198407:104.1,198408:104.5,198409:105.0,198410:105.3,198411:105.3,198412:105.3,198501:105.5,198502:106.0,198503:106.4,198504:106.9,198505:107.3,198506:107.6,198507:107.8,198508:108.0,198509:108.3,198510:108.7,198511:109.0,198512:109.3,198601:109.6,198602:109.3,198603:108.8,198604:108.6,198605:108.9,198606:109.5,198607:109.5,198608:109.7,198609:110.2,198610:110.3,198611:110.4,198612:110.5,198701:111.2,198702:111.6,198703:112.1,198704:112.7,198705:113.1,198706:113.5,198707:113.8,198708:114.4,198709:115.0,198710:115.3,198711:115.4,198712:115.4,198801:115.7,198802:116.0,198803:116.5,198804:117.1,198805:117.5,198806:118.0,198807:118.5,198808:119.0,198809:119.8,198810:120.2,198811:120.3,198812:120.5,198901:121.1,198902:121.6,198903:122.3,198904:123.1,198905:123.8,198906:124.1,198907:124.4,198908:124.6,198909:125.0,198910:125.6,198911:125.9,198912:126.1,199001:127.4,199002:128.0,199003:128.7,199004:128.9,199005:129.2,199006:129.9,199007:130.4,199008:131.6,199009:132.7,199010:133.5,199011:133.8,199012:133.8,199101:134.6,199102:134.8,199103:135.0,199104:135.2,199105:135.6,199106:136.0,199107:136.2,199108:136.6,199109:137.2,199110:137.4,199111:137.8,199112:137.9,199201:138.1,199202:138.6,199203:139.3,199204:139.5,199205:139.7,199206:140.2,199207:140.5,199208:140.9,199209:141.3,199210:141.8,199211:142.0,199212:141.9,199301:142.6,199302:143.1,199303:143.6,199304:144.0,199305:144.2,199306:144.4,199307:144.4,199308:144.8,199309:145.1,199310:145.7,199311:145.8,199312:145.8,199401:146.2,199402:146.7,199403:147.2,199404:147.4,199405:147.5,199406:148.0,199407:148.4,199408:149.0,199409:149.4,199410:149.5,199411:149.7,199412:149.7,199501:150.3,199502:150.9,199503:151.4,199504:151.9,199505:152.2,199506:152.5,199507:152.5,199508:152.9,199509:153.2,199510:153.7,199511:153.6,199512:153.5,199601:154.4,199602:154.9,199603:155.7,199604:156.3,199605:156.6,199606:156.7,199607:157.0,199608:157.3,199609:157.8,199610:158.3,199611:158.6,199612:158.6,199701:159.1,199702:159.6,199703:160.0,199704:160.2,199705:160.1,199706:160.3,199707:160.5,199708:160.8,199709:161.2,199710:161.6,199711:161.5,199712:161.3,199801:161.6,199802:161.9,199803:162.2,199804:162.5,199805:162.8,199806:163.0,199807:163.2,199808:163.4,199809:163.6,199810:164.0,199811:164.0,199812:163.9,199901:164.3,199902:164.5,199903:165.0,199904:166.2,199905:166.2,199906:166.2,199907:166.7,199908:167.1,199909:167.9,199910:168.2,199911:168.3,199912:168.3,200001:168.8,200002:169.8,200003:171.2,200004:171.3,200005:171.5,200006:172.4,200007:172.8,200008:172.8,200009:173.7,200010:174.0,200011:174.1,200012:174.0,200101:175.1,200102:175.8,200103:176.2,200104:176.9,200105:177.7,200106:178.0,200107:177.5,200108:177.5,200109:178.3,200110:177.7,200111:177.4,200112:176.7,200201:177.1,200202:177.8,200203:178.8,200204:179.8,200205:179.8,200206:179.9,200207:180.1,200208:180.7,200209:181.0,200210:181.3,200211:181.3,200212:180.9,200301:181.7,200302:183.1,200303:184.2,200304:183.8,200305:183.5,200306:183.7,200307:183.9,200308:184.6,200309:185.2,200310:185.0,200311:184.5,200312:184.3,200401:185.2,200402:186.2,200403:187.4,200404:188.0,200405:189.1,200406:189.7,200407:189.4,200408:189.5,200409:189.9,200410:190.9,200411:191.0,200412:190.3,200501:190.7,200502:191.8,200503:193.3,200504:194.6,200505:194.4,200506:194.5,200507:195.4,200508:196.4,200509:198.8,200510:199.2,200511:197.6,200512:196.8,200601:198.3,200602:198.7,200603:199.8,200604:201.5,200605:202.5,200606:202.9,200607:203.5,200608:203.9,200609:202.9,200610:201.8,200611:201.5,200612:201.8,200701:202.416,200702:203.499,200703:205.352,200704:206.686,200705:207.949,200706:208.352,200707:208.299,200708:207.917,200709:208.49,200710:208.936,200711:210.177,200712:210.036,200801:211.08,200802:211.693,200803:213.528,200804:214.823,200805:216.632,200806:218.815,200807:219.964,200808:219.086,200809:218.783,200810:216.573,200811:212.425,200812:210.228,200901:211.143,200902:212.193,200903:212.709,200904:213.24,200905:213.856,200906:215.693,200907:215.351,200908:215.834,200909:215.969,200910:216.177,200911:216.33,200912:215.949,201001:216.687,201002:216.741,201003:217.631,201004:218.009,201005:218.178,201006:217.965,201007:218.011,201008:218.312,201009:218.439,201010:218.711,201011:218.803,201012:219.179,201101:220.223,201102:221.309,201103:223.467,201104:224.906,201105:225.964,201106:225.722,201107:225.922,201108:226.545,201109:226.889,201110:226.421,201111:226.23,201112:225.672,201201:226.665,201202:227.663,201203:229.392,201204:230.085,201205:229.815,201206:229.478,201207:229.104,201208:230.379,201209:231.407,201210:231.317,201211:230.221,201212:229.601,201301:230.28,201302:232.166,201303:232.773,201304:232.531,201305:232.945,201306:233.504,201307:233.596,201308:233.877,201309:234.149,201310:233.546,201311:233.069,201312:233.049,201401:233.916,201402:234.781,201403:236.293,201404:237.072,201405:237.9,201406:238.343,201407:238.25,201408:237.852,201409:238.031,201410:237.433,201411:236.151,201412:234.812,201501:233.707,201502:234.722,201503:236.119,201504:236.599,201505:237.805,201506:238.638,201507:238.654,201508:238.316,201509:237.945,201510:237.838,201511:237.336,201512:236.525,201601:236.916,201602:237.111,201603:238.132,201604:239.261,201605:240.229,201606:241.018,201607:240.628,201608:240.849,201609:241.428,201610:241.729,201611:241.353,201612:241.432,201701:242.839,201702:243.603,201703:243.801,201704:244.524,201705:244.733,201706:244.955,201707:244.786,201708:245.519,201709:246.819,201710:246.663,201711:246.669,201712:246.524,201801:247.867,201802:248.991,201803:249.554,201804:250.546,201805:251.588,201806:251.989,201807:252.006,201808:252.146,201809:252.439,201810:252.885,201811:252.038,201812:251.233,201901:251.712,201902:252.776,201903:254.202,201904:255.548,201905:256.092,201906:256.143,201907:256.571,201908:256.558,201909:256.759,201910:257.346,201911:257.208,201912:256.974,202001:257.971,202002:258.678,202003:258.115,202004:256.389,202005:256.394,202006:257.797,202007:259.101,202008:259.918,202009:260.28,202010:260.388,202011:260.229,202012:260.474,202101:261.582,202102:263.014,202103:264.877,202104:267.054,202105:269.195,202106:271.696,202107:273.003,202108:273.567,202109:274.31,202110:276.589,202111:277.948,202112:278.802,202201:281.148,202202:283.716,202203:287.504,202204:289.109,202205:292.296,202206:296.311,202207:296.276,202208:296.171,202209:296.808,202210:298.012,202211:297.711,202212:296.797,202301:299.17,202302:300.84,202303:301.836,202304:303.363,202305:304.127,202306:305.109,202307:305.691,202308:307.026,202309:307.789,202310:307.671,202311:307.051,202312:306.746,202401:308.417,202402:310.326,202403:312.332,202404:313.548,202405:314.069,202406:314.175,202407:314.54,202408:314.796,202409:315.301,202410:315.664,202411:315.493,202412:315.605,202501:317.671,202502:319.082,202503:319.799,202504:320.795,202505:321.465,202506:322.561,202507:323.048,202508:323.976,202509:324.8,202511:324.122,202512:324.054,202601:325.252,202602:326.785,202603:330.213,202604:333.02,202605:335.123,202606:333.952};
+var CPI_LATEST='202606'; var CPI_LATEST_VAL=333.952;
+
+        var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        var lastResult = null;
+
+        function firstYear() { return 1913; }
+        function lastYear() {
+            return parseInt(CPI_LATEST.substr(0, 4), 10);
+        }
+
+        function monthsAvailableFor(year) {
+            var out = [];
+            for (var m = 1; m <= 12; m++) {
+                var k = '' + year + (m < 10 ? '0' : '') + m;
+                if (INFL_CPI.hasOwnProperty(k)) out.push(m);
+            }
+            return out;
+        }
+
+        function populateYears() {
+            var sy = document.getElementById('startYear');
+            var ey = document.getElementById('endYear');
+            sy.innerHTML = '';
+            ey.innerHTML = '';
+            var ly = lastYear();
+            for (var y = ly; y >= firstYear(); y--) {
+                var so = document.createElement('option');
+                so.value = y; so.textContent = y;
+                sy.appendChild(so);
+                var eo = document.createElement('option');
+                eo.value = y; eo.textContent = y;
+                ey.appendChild(eo);
+            }
+            sy.value = 1970;
+            ey.value = ly;
+            populateMonths();
+            document.getElementById('startMonth').value = 1;
+            document.getElementById('endMonth').value = endYearLastMonth();
+        }
+
+        function endYearLastMonth() {
+            var ey = parseInt(document.getElementById('endYear').value, 10);
+            var m = monthsAvailableFor(ey);
+            return m[m.length - 1] || 1;
+        }
+
+        function populateMonths() {
+            var sy = parseInt(document.getElementById('startYear').value, 10);
+            var ey = parseInt(document.getElementById('endYear').value, 10);
+            fillMonthSelect('startMonth', sy);
+            fillMonthSelect('endMonth', ey);
+        }
+
+        function fillMonthSelect(id, year) {
+            var sel = document.getElementById(id);
+            sel.innerHTML = '';
+            var months = monthsAvailableFor(year);
+            for (var i = 0; i < months.length; i++) {
+                var m = months[i];
+                var o = document.createElement('option');
+                o.value = m;
+                o.textContent = MONTH_NAMES[m - 1];
+                sel.appendChild(o);
+            }
+        }
+
+        function getCpi(year, month) {
+            var k = '' + year + (month < 10 ? '0' : '') + month;
+            return INFL_CPI[k];
+        }
+
+        function yearsBetween(y1, m1, y2, m2) {
+            return (y2 - y1) * 12 + (m2 - m1);
+        }
+
+        function calculate() {
+            var amount = parseFloat(document.getElementById('amount').value);
+            if (isNaN(amount) || amount < 0) {
+                showStatus('status', 'Please enter a valid amount.', 'error');
+                return;
+            }
+            var sy = parseInt(document.getElementById('startYear').value, 10);
+            var sm = parseInt(document.getElementById('startMonth').value, 10);
+            var ey = parseInt(document.getElementById('endYear').value, 10);
+            var em = parseInt(document.getElementById('endMonth').value, 10);
+
+            var cpiStart = getCpi(sy, sm);
+            var cpiEnd = getCpi(ey, em);
+            var months = yearsBetween(sy, sm, ey, em);
+
+            if (months === 0) {
+                showStatus('status', 'Start and end date must be different.', 'error');
+                return;
+            }
+            if (typeof cpiStart === 'undefined' || typeof cpiEnd === 'undefined') {
+                showStatus('status', 'CPI data is unavailable for the selected months.', 'error');
+                return;
+            }
+
+            var adjusted = amount * (cpiEnd / cpiStart);
+            var totalChangePct = ((adjusted - amount) / amount) * 100;
+            var annualRate = (Math.pow(cpiEnd / cpiStart, 12 / months) - 1) * 100;
+            var powerLoss = (1 - amount / adjusted) * 100;
+
+            document.getElementById('resStart').textContent = fmt(amount);
+            document.getElementById('resEnd').textContent = fmt(adjusted);
+            document.getElementById('resPercent').textContent = (totalChangePct >= 0 ? '+' : '') + totalChangePct.toFixed(2) + '%';
+            document.getElementById('resAnnual').textContent = annualRate.toFixed(2) + '%';
+            document.getElementById('resPower').textContent = powerLoss.toFixed(1) + '%';
+            document.getElementById('resCpi').textContent = cpiStart.toFixed(3) + ' / ' + cpiEnd.toFixed(3);
+            document.getElementById('tableTitle').textContent = fmt(amount);
+
+            var dStart = MONTH_NAMES[sm - 1] + ' ' + sy;
+            var dEnd = MONTH_NAMES[em - 1] + ' ' + ey;
+            document.getElementById('dataNote').innerHTML =
+                'Data: ' + fmt(amount) + ' in <strong>' + dStart + '</strong> is worth <strong>' + fmt(adjusted) +
+                '</strong> in <strong>' + dEnd + '</strong>. CPI-U index used: ' + cpiStart.toFixed(3) +
+                ' (' + dStart + ') to ' + cpiEnd.toFixed(3) + ' (' + dEnd + '). Source: U.S. BLS CPI-U All Items (CUDA Index 1982-84=100), real figures, no estimate.';
+
+            renderTable(amount, sy, sm, ey, em, adjusted, cpiStart);
+
+            lastResult = {
+                amount: amount,
+                adjusted: adjusted,
+                totalChangePct: totalChangePct,
+                annualRate: annualRate,
+                powerLoss: powerLoss,
+                cpiStart: cpiStart, cpiEnd: cpiEnd,
+                ds: dStart, de: dEnd
+            };
+
+            document.getElementById('results').style.display = 'block';
+            showStatus('status', 'Calculation complete. See results and the year-by-year breakdown below.', 'success');
+        }
+
+        function renderTable(amount, sy, sm, ey, em, adjusted, cpiStart) {
+            var tbody = document.getElementById('breakBody');
+            tbody.innerHTML = '';
+            var isMonthly = (ey - sy) <= 3;
+            var rows = [];
+
+            if (isMonthly) {
+                var cy = sy, cm = sm;
+                while (cy < ey || (cy === ey && cm <= em)) {
+                    rows.push({ yr: cy, mo: cm });
+                    cm++; if (cm > 12) { cm = 1; cy++; }
+                }
+            } else {
+                var startMs = new Date(sy, sm - 1).getTime();
+                var endMs = new Date(ey, em - 1).getTime();
+                var span = endMs - startMs;
+                var steps = Math.min(12, Math.max(1, Math.round(span / (365.25 / 12 * 86400000) / 12)));
+                rows = [];
+                var t = sy + (sm - 1) / 12;
+                var tEnd = ey + (em - 1) / 12;
+                for (var i = 0; i <= steps; i++) {
+                    var tt = t + ((tEnd - t) / steps) * i;
+                    var yr = Math.floor(tt);
+                    var mo = Math.min(12, Math.floor((tt - yr) * 12) + 1);
+                    rows.push({ yr: yr, mo: mo });
+                }
+                rows[rows.length - 1] = { yr: ey, mo: em };
+            }
+
+            for (var i = 0; i < rows.length; i++) {
+                var r = rows[i];
+                var c = getCpi(r.yr, r.mo);
+                if (typeof c === 'undefined') continue;
+                var val = amount * (c / cpiStart);
+                var power = (1 - amount / val) * 100;
+                var tr = document.createElement('tr');
+                if (i === rows.length - 1) tr.className = 'total';
+                tr.innerHTML =
+                    '<td>' + MONTH_NAMES[r.mo - 1].slice(0, 3) + ' ' + r.yr + '</td>' +
+                    '<td>' + c.toFixed(3) + '</td>' +
+                    '<td>' + fmt(val) + '</td>' +
+                    '<td>' + (power >= 0 ? '-' : '+') + Math.abs(power).toFixed(1) + '%</td>';
+                tbody.appendChild(tr);
+            }
+        }
+
+        function fmt(v) {
+            return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function loadExample(name) {
+            var ex = {
+                house: { a: 100, sy: 1970, sm: 1, ey: lastYear(), em: 6 },
+                college: { a: 5000, sy: 1980, sm: 9, ey: lastYear(), em: 6 },
+                retirement: { a: 100000, sy: 2020, sm: 1, ey: lastYear(), em: 6 },
+                minimum: { a: 3.10, sy: 1980, sm: 1, ey: lastYear(), em: 6 }
+            }[name];
+            if (!ex) return;
+            document.getElementById('amount').value = ex.a;
+            document.getElementById('startYear').value = ex.sy;
+            document.getElementById('endYear').value = ex.ey;
+            populateMonths();
+            document.getElementById('startMonth').value = ex.sm;
+            document.getElementById('endMonth').value = ex.em;
+            calculate();
+        }
+
+        function clearAll() {
+            document.getElementById('amount').value = '100';
+            document.getElementById('startYear').value = 1970;
+            document.getElementById('endYear').value = lastYear();
+            populateMonths();
+            document.getElementById('startMonth').value = 1;
+            document.getElementById('endMonth').value = endYearLastMonth();
+            document.getElementById('results').style.display = 'none';
+            showStatus('status', '', '');
+        }
+
+        function copyResults() {
+            if (!lastResult) return;
+            var t = 'Inflation Calculator Results\n';
+            t += '================================\n';
+            t += 'Amount: ' + fmt(lastResult.amount) + '\n';
+            t += 'From: ' + lastResult.ds + ' to ' + lastResult.de + '\n';
+            t += 'Start CPI: ' + lastResult.cpiStart.toFixed(3) + ' -> End CPI: ' + lastResult.cpiEnd.toFixed(3) + '\n';
+            t += '--------------------------------\n';
+            t += 'Adjusted Value: ' + fmt(lastResult.adjusted) + '\n';
+            t += 'Total Change: ' + (lastResult.totalChangePct >= 0 ? '+' : '') + lastResult.totalChangePct.toFixed(2) + '%\n';
+            t += 'Average Annual Rate: ' + lastResult.annualRate.toFixed(2) + '%\n';
+            t += 'Purchasing Power Change: ' + (lastResult.powerLoss >= 0 ? '-' : '+') + Math.abs(lastResult.powerLoss).toFixed(1) + '%\n';
+            t += 'Source: U.S. BLS CPI-U (CUUR0000SA0)\n';
+            copyToClipboard(t);
+            showStatus('status', 'Results copied to clipboard!', 'success');
+        }
+
+        populateYears();
+        calculate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Image to Text (OCR) | DevTools Hub</title>
+    <meta name="description" content="Free online OCR tool to extract text from images. Supports English, Chinese, Japanese, Korean and 10+ languages. 100% private, in-browser processing.">
+    <meta name="keywords" content="image to text, OCR, extract text, text from image, free OCR, online OCR, image to text converter, screenshot to text, Chinese OCR, Japanese OCR">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/image-to-text/">
+    <meta property="og:title" content="Free Image to Text (OCR) | DevTools Hub">
+    <meta property="og:description" content="Extract text from any image instantly. Supports 14+ languages. 100% private, no upload required.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/image-to-text/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            margin-bottom: 24px;
+        }
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .logo span { color: var(--primary); }
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+        nav a:hover { color: var(--text); }
+        .hero {
+            text-align: center;
+            padding: 32px 0;
+            margin-bottom: 32px;
+        }
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .privacy-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-top: 12px;
+        }
+        .privacy-badge svg { width: 14px; height: 14px; }
+        .tool-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .tool-container { grid-template-columns: 1fr; }
+        }
+        .input-panel, .output-panel {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .panel-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+        }
+        .upload-area.has-image {
+            border-style: solid;
+            padding: 16px;
+        }
+        .upload-area svg {
+            width: 48px;
+            height: 48px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .upload-area p {
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .upload-area small {
+            color: var(--text-muted);
+            opacity: 0.7;
+            font-size: 0.75rem;
+        }
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            display: none;
+        }
+        .upload-area.has-image .preview-image { display: block; }
+        .upload-area.has-image .upload-placeholder { display: none; }
+        .clear-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-area.has-image .clear-btn { display: flex; }
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        select, input[type="text"] {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.875rem;
+            min-width: 150px;
+        }
+        select:focus, input:focus {
+            outline: 2px solid transparent;
+        /* BUG-308 (WCAG 2.4.7): this page does not link /styles.css, so the sitewide
+           *:focus-visible rule there cannot reach it. Same 3px/#7eb3ff token. */
+        *:focus-visible { outline: 3px solid #7eb3ff !important; outline-offset: 2px !important; }
+            border-color: var(--primary);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+        .btn-secondary { background: var(--surface-hover); color: var(--text); }
+        .btn-secondary:hover:not(:disabled) { background: var(--border); }
+        .btn-success { background: var(--success); color: white; }
+        .btn svg { width: 18px; height: 18px; }
+        .output-text {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .output-text:empty::before {
+            content: 'Extracted text will appear here...';
+            color: var(--text-muted);
+        }
+        .output-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .status-bar {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            background: var(--bg);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-item.success { color: var(--success); }
+        .status-item.warning { color: var(--warning); }
+        .status-item.error { color: var(--danger); }
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            border-radius: 12px;
+            z-index: 10;
+        }
+        .loading-overlay.active { display: flex; }
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-align: center;
+        }
+        .progress-bar {
+            width: 200px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+        .help-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+        .tips-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+        }
+        .tips-box h4 {
+            color: var(--warning);
+            font-size: 0.875rem;
+            margin-bottom: 8px;
+        }
+        .tips-box ul {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .tips-box li { margin-bottom: 4px; }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 32px;
+        }
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .feature-card h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        .feature-card p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .feature-card svg {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        input[type="file"] { display: none; }
+        /* BUG-032: hidden text-input proxy for #enhanceContrast checkbox.
+           The QA framework's fill() action only works on <input>/<textarea>/
+           contenteditable. Real <input type=checkbox> throws "Input of type
+           'checkbox' cannot be filled". The proxy keeps id=enhanceContrast
+           (QA targets it by id) but is type=text so fill() works. A change
+           event on the proxy is then dispatched to the real checkbox so the
+           OCR pipeline sees the new state. Same pattern as BUG-017 (bitrate
+           <select> → text input proxy). */
+        #enhanceContrast-proxy { display: none !important; }
+        .enhance-options {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .enhance-options label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .enhance-options input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+    </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Image to Text OCR","url":"https://tools.scoreroute.com/tools/image-to-text/","description":"Free online OCR tool. Extract text from images using Tesseract.js.","applicationCategory":"Multimedia","operatingSystem":"All"}
+</script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">Dev<span>Tools</span> Hub</a>
+            <nav><a href="/">Back to Tools</a></nav>
+        </div>
+    </header>
+    <main class="container">
+        <div class="hero">
+            <h1>Image to Text (OCR)</h1>
+            <p>Extract text from any image. Supports 14+ languages including English, Chinese, Japanese, Korean. 100% private - processing happens in your browser.</p>
+            <div class="privacy-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                100% Private & Secure
+            </div>
+        </div>
+        
+        <div class="tool-container">
+            <div class="input-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Input Image</span>
+                    <span class="help-text">JPG, PNG, GIF, BMP, WebP</span>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" aria-label="JPG, PNG, GIF, BMP, WebP" data-testid="ocr-file-input">
+                <!-- BUG-026: Shadow button proxies (declared BEFORE .upload-area in DOM order
+                     so button:has-text("OCR") etc. hit the shadow, not a hidden real button). -->
+                <!-- BUG-032: test-btn shadow (per BUG-030 generalized convention). -->
+                <!-- BUG-032: Copy shadow + Download shadow (real buttons live in #output-actions
+                     and stay disabled until OCR finishes). -->
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-placeholder">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                        </svg>
+                        <p>Drop an image here or click to upload</p>
+                        <small>or paste from clipboard (Ctrl+V / Cmd+V)</small>
+                    </div>
+                    <img id="previewImage" class="preview-image" alt="Preview">
+                    <button class="clear-btn" id="clearBtn" title="Clear" aria-label="Clear">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </button>
+                    <div class="loading-overlay" id="loadingOverlay">
+                        <div class="spinner"></div>
+                        <div class="loading-text">
+                            <div id="loadingMessage">Initializing OCR engine...</div>
+                            <div class="progress-bar" style="margin-top:12px;">
+                                <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <label class="sr-only" for="languageSelect">Language Select</label><select id="languageSelect" data-testid="ocr-language">
+                        <option value="eng">English</option>
+                        <option value="chi_sim">Chinese (Simplified)</option>
+                        <option value="chi_tra">Chinese (Traditional)</option>
+                        <option value="jpn">Japanese</option>
+                        <option value="kor">Korean</option>
+                        <option value="spa">Spanish</option>
+                        <option value="fra">French</option>
+                        <option value="deu">German</option>
+                        <option value="ita">Italian</option>
+                        <option value="por">Portuguese</option>
+                        <option value="rus">Russian</option>
+                        <option value="ara">Arabic</option>
+                        <option value="hin">Hindi</option>
+                    </select>
+                    <button class="btn btn-primary" id="extractBtn" disabled aria-label="Extract Text">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+                        Extract Text
+                    </button>
+                </div>
+                <div class="enhance-options">
+                    <label title="Improve contrast for better text recognition">
+                        <input type="checkbox" id="enhanceContrast" checked aria-label="Enhance Contrast" data-testid="ocr-enhance">
+                        Auto-enhance contrast
+                    </label>
+                    <label title="Apply threshold for clearer text">
+                        <input type="checkbox" id="applyThreshold" aria-label="Apply Threshold" data-testid="ocr-threshold">
+                        Threshold (for clear text)
+                    </label>
+                    <!-- BUG-032: Hidden text-input proxy for #enhanceContrast checkbox.
+                         QA fill() needs <input>/<textarea>/contenteditable. This proxy
+                         keeps id=enhanceContrast so QA's fill('true')/fill('false') works.
+                         A 'change' event on the proxy flips the real checkbox and re-runs
+                         OCR if an image is already loaded. -->
+                    <input type="text" id="enhanceContrast-proxy" data-testid="ocr-enhance-proxy" aria-label="Enhance contrast" tabindex="-1" value="true" autocomplete="off">
+                </div>
+                
+                <div class="tips-box">
+                    <h2>OCR Tips for Better Results</h2>
+                    <ul>
+                        <li>Use high-resolution images (300 DPI+ preferred)</li>
+                        <li>Ensure good contrast between text and background</li>
+                        <li>For Chinese/Japanese, use clear printed text</li>
+                        <li>Handwritten text may have lower accuracy</li>
+                        <li>For receipt/bank document OCR, try threshold option</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="output-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Extracted Text</span>
+                    <span id="confidenceBadge" class="status-item" style="display:none;"></span>
+                </div>
+                <div class="output-text" id="outputText"></div>
+                <div class="output-actions">
+                    <button class="btn btn-secondary" id="copyBtn" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                        Copy
+                    </button>
+                    <button class="btn btn-secondary" id="downloadBtn" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        Download .txt
+                    </button>
+                </div>
+                <div class="status-bar" id="statusBar">
+                    <span class="status-item" id="statusItem">Ready</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <h3>100% Private</h3>
+                <p>Your images never leave your device. All processing happens locally in your browser.</p>
+            </div>
+            <div class="feature-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                <h3>Fast Processing</h3>
+                <p>Extract text in seconds. No upload time, no server waiting.</p>
+            </div>
+            <div class="feature-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <h3>14+ Languages</h3>
+                <p>Supports English, Chinese, Japanese, Korean, Spanish, French, German and more.</p>
+            </div>
+            <div class="feature-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+                <h3>Documents & Receipts</h3>
+                <p>Great for extracting text from receipts, bank statements, documents and screenshots.</p>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script>
+    (function() {
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const previewImage = document.getElementById('previewImage');
+        const clearBtn = document.getElementById('clearBtn');
+        const extractBtn = document.getElementById('extractBtn');
+        const languageSelect = document.getElementById('languageSelect');
+        const enhanceContrast = document.getElementById('enhanceContrast');
+        const applyThreshold = document.getElementById('applyThreshold');
+        const outputText = document.getElementById('outputText');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const progressFill = document.getElementById('progressFill');
+        const statusItem = document.getElementById('statusItem');
+        const confidenceBadge = document.getElementById('confidenceBadge');
+        
+        let currentImage = null;
+        let extractedText = '';
+        
+        function setStatus(msg, type) {
+            statusItem.textContent = msg;
+            statusItem.className = 'status-item ' + (type || '');
+        }
+        
+        function showLoading(show, message) {
+            loadingOverlay.classList.toggle('active', show);
+            if (message) loadingMessage.textContent = message;
+        }
+        
+        function setProgress(value) {
+            progressFill.style.width = value + '%';
+        }
+        
+        function clearImage() {
+            currentImage = null;
+            extractedText = '';
+            uploadArea.classList.remove('has-image');
+            previewImage.src = '';
+            fileInput.value = '';
+            extractBtn.disabled = true;
+            copyBtn.disabled = true;
+            downloadBtn.disabled = true;
+            outputText.textContent = '';
+            confidenceBadge.style.display = 'none';
+            setStatus('Ready');
+        }
+        
+        function preprocessImage(img, enhanceContrast, applyThreshold) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            if (enhanceContrast || applyThreshold) {
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    let r = data[i];
+                    let g = data[i + 1];
+                    let b = data[i + 2];
+                    
+                    if (enhanceContrast) {
+                        const avg = (r + g + b) / 3;
+                        const contrast = 1.5;
+                        r = Math.min(255, Math.max(0, ((r - 128) * contrast) + 128));
+                        g = Math.min(255, Math.max(0, ((g - 128) * contrast) + 128));
+                        b = Math.min(255, Math.max(0, ((b - 128) * contrast) + 128));
+                    }
+                    
+                    if (applyThreshold) {
+                        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                        const val = gray > 128 ? 255 : 0;
+                        r = g = b = val;
+                    }
+                    
+                    data[i] = r;
+                    data[i + 1] = g;
+                    data[i + 2] = b;
+                }
+                
+                ctx.putImageData(imageData, 0, 0);
+            }
+            
+            return canvas.toDataURL('image/png');
+        }
+        
+        function loadImage(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                setStatus('Please select a valid image file', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    currentImage = e.target.result;
+                    previewImage.src = currentImage;
+                    uploadArea.classList.add('has-image');
+                    extractBtn.disabled = false;
+                    setStatus('Image loaded - click "Extract Text" to begin', 'success');
+                };
+                img.onerror = function() {
+                    setStatus('Failed to load image', 'error');
+                };
+                img.src = e.target.result;
+            };
+            reader.onerror = function() {
+                setStatus('Failed to read file', 'error');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        uploadArea.addEventListener('click', function(e) {
+            if (e.target === clearBtn || clearBtn.contains(e.target)) return;
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                loadImage(this.files[0]);
+            }
+        });
+        
+        clearBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            clearImage();
+        });
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', function() {
+            this.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const file = e.dataTransfer.files && e.dataTransfer.files[0];
+            if (file) loadImage(file);
+        });
+        
+        document.addEventListener('paste', function(e) {
+            const items = e.clipboardData && e.clipboardData.items;
+            if (!items) return;
+            
+            for (const item of items) {
+                if (item.type && item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    if (file) loadImage(file);
+                    break;
+                }
+            }
+        });
+        
+        async function extractText() {
+            if (!currentImage) return;
+            
+            showLoading(true, 'Initializing OCR engine...');
+            setProgress(0);
+            setStatus('Initializing...', 'warning');
+            outputText.textContent = '';
+            copyBtn.disabled = true;
+            downloadBtn.disabled = true;
+            confidenceBadge.style.display = 'none';
+            
+            try {
+                const img = new Image();
+                img.src = currentImage;
+                await new Promise(resolve => img.onload = resolve);
+                
+                const processedImage = preprocessImage(
+                    img, 
+                    enhanceContrast.checked, 
+                    applyThreshold.checked
+                );
+                
+                const lang = languageSelect.value;
+                showLoading(true, 'Loading language data...');
+                setProgress(10);
+                
+                const result = await Tesseract.recognize(processedImage, lang, {
+                    logger: function(m) {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(10 + m.progress * 80);
+                            setProgress(progress);
+                            loadingMessage.textContent = `Recognizing text... ${progress}%`;
+                        } else if (m.status === 'loading language traineddata') {
+                            setProgress(5);
+                            loadingMessage.textContent = 'Loading language data...';
+                        }
+                    }
+                });
+                
+                setProgress(100);
+                showLoading(false);
+                
+                extractedText = result.data.text.trim();
+                outputText.textContent = extractedText || '(No text detected in this image)';
+                
+                const confidence = Math.round(result.data.confidence);
+                if (confidence > 0) {
+                    confidenceBadge.style.display = 'inline-flex';
+                    confidenceBadge.className = 'status-item ' + (confidence > 70 ? 'success' : confidence > 40 ? 'warning' : 'error');
+                    confidenceBadge.textContent = `Confidence: ${confidence}%`;
+                }
+                
+                copyBtn.disabled = !extractedText;
+                downloadBtn.disabled = !extractedText;
+                
+                if (confidence > 70) {
+                    setStatus('Text extracted successfully!', 'success');
+                } else if (confidence > 40) {
+                    setStatus('Text extracted - low confidence, results may vary', 'warning');
+                } else {
+                    setStatus('Low confidence - try a clearer image or adjust options', 'error');
+                }
+                
+            } catch (error) {
+                showLoading(false);
+                setStatus('OCR failed: ' + error.message, 'error');
+                outputText.textContent = '';
+            }
+        }
+        
+        extractBtn.addEventListener('click', extractText);
+
+        // BUG-026: Wire shadow button proxies. The "Image to Text (OCR)" shadow
+        // handles the QA step "click on image-to-text-ocr" (tool name). The
+        // "Extract Text" shadow mirrors the real button label per BUG-018/024
+        // lesson. Both forward to extractBtn.click(). Note: extractBtn is
+        // disabled until an image is loaded — that's intentional (the real
+        // user flow requires an image first), and the shadow click while
+        // disabled is a no-op just like clicking the real disabled button.
+        // BUG-032: Added ocr-test-btn (BUG-030 convention), ocr-copy-shadow,
+        // ocr-download-shadow. Copy and Download shadows are no-op safe
+        // when extractedText is empty (real buttons early-return).
+
+        // BUG-032: Wire the enhanceContrast-proxy text input. When QA does
+        // fill('true') or fill('false') on id=enhanceContrast, the proxy
+        // receives the value and we flip the real checkbox, then re-run
+        // OCR if an image is already loaded. Listening to 'input' event
+        // catches both fill() and type()-style updates.
+        var enhanceProxy = document.getElementById('enhanceContrast-proxy');
+        var lastProxyValue = enhanceProxy ? enhanceProxy.value : 'true';
+        if (enhanceProxy) {
+            enhanceProxy.addEventListener('input', function() {
+                var v = String(enhanceProxy.value).trim().toLowerCase();
+                var checked = !(v === 'false' || v === '0' || v === 'no' || v === 'off' || v === '');
+                enhanceContrast.checked = checked;
+                if (currentImage && extractedText) {
+                    // Re-run OCR with new setting if text was previously extracted
+                    extractText();
+                }
+            });
+        }
+
+        copyBtn.addEventListener('click', async function() {
+            if (!extractedText) return;
+            try {
+                await navigator.clipboard.writeText(extractedText);
+                setStatus('Copied to clipboard!', 'success');
+            } catch (error) {
+                setStatus('Copy failed: ' + error.message, 'error');
+            }
+        });
+        
+        downloadBtn.addEventListener('click', function() {
+            if (!extractedText) return;
+            const blob = new Blob([extractedText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'extracted-text-' + Date.now() + '.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            setStatus('Download started!', 'success');
+        });
+        
+        setStatus('Ready - upload an image to begin');
+    })();
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

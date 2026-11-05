@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Form Filler - Fill Out PDF Forms Online Free</title>
+    <meta name="description" content="Free PDF form filler. Fill out any PDF form online. Text fields, checkboxes, radio buttons, dropdowns. 100% private browser processing, no upload, no signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/pdf-form-filler/">
+    <meta property="og:title" content="PDF Form Filler - Fill Out PDF Forms Online Free">
+    <meta property="og:description" content="Free online PDF form filler. Fill text, checkboxes, radio buttons, and dropdowns in any PDF. 100% private, no upload, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/pdf-form-filler/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PDF Form Filler - Fill Out PDF Forms Online Free">
+    <meta name="twitter:description" content="Free online PDF form filler. Fill text, checkboxes, radio buttons, and dropdowns in any PDF. 100% private, no upload, no signup.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/pdf-form-filler/">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-09-11",
+        "dateModified": "2026-09-11",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "PDF Form Filler - Fill Out PDF Forms Online Free",
+        "description": "Fill text fields, checkboxes, radio buttons, dropdowns, and option lists in any fillable PDF. 100% client-side processing with pdf-lib — your document never leaves your browser.",
+        "url": "https://tools.scoreroute.com/tools/pdf-form-filler/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": [
+            "Auto-detects text fields, checkboxes, radio buttons, dropdowns, and option lists",
+            "Real-time form filling with no server upload",
+            "Page-grouped field view with progress indicator",
+            "Save filled PDF preserves original layout and form structure",
+            "Flatten option to lock fields after filling",
+            "Reset clears all field values without re-uploading",
+            "Draft auto-saves to localStorage per file hash",
+            "100% client-side — file never leaves your browser",
+            "No signup, no daily limits, no watermark",
+            "Works offline once loaded"
+        ]
+    }
+    </script>
+    <style>
+        .pff-dropzone { border: 3px dashed #555; border-radius: 16px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; margin-bottom: 18px; }
+        .pff-dropzone:hover, .pff-dropzone.dragover { border-color: #667eea; background: #222250; }
+        .pff-dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+        .pff-dropzone-icon { font-size: 2.8rem; margin-bottom: 8px; }
+        .pff-dropzone-text { font-size: 1.05rem; color: #ccc; }
+        .pff-dropzone-text strong { color: #667eea; }
+        .pff-info-bar { display: none; padding: 12px 16px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 14px; }
+        .pff-info-bar.visible { display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between; align-items: center; }
+        .pff-info-item { color: #ccc; font-size: 0.85rem; }
+        .pff-info-item strong { color: #667eea; margin-right: 4px; }
+        .pff-stats-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+        .pff-pill { padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; background: #0f0f23; border: 1px solid #444; color: #ccc; }
+        .pff-pill.filled { background: #1a3e2a; border-color: #28a745; color: #a3e6b0; }
+        .pff-toolbar { display: none; padding: 12px 14px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .pff-toolbar.visible { display: flex; }
+        .pff-toolbar label { color: #999; font-size: 0.8rem; margin-right: 6px; }
+        .pff-toolbar input[type="checkbox"] { accent-color: #667eea; margin-right: 6px; }
+        .pff-page-nav { display: none; padding: 12px 14px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .pff-page-nav.visible { display: flex; }
+        .pff-page-btn { padding: 5px 10px; border: 1px solid #444; border-radius: 6px; background: #0f0f23; color: #ccc; cursor: pointer; font-size: 0.78rem; }
+        .pff-page-btn:hover { border-color: #667eea; color: #fff; }
+        .pff-page-btn.active { background: #667eea; border-color: #667eea; color: #fff; }
+        .pff-page-btn .count { display: inline-block; margin-left: 4px; padding: 0 5px; background: #444; border-radius: 8px; font-size: 0.68rem; }
+        .pff-page-btn.active .count { background: rgba(255,255,255,0.25); }
+        .pff-fields-empty { padding: 30px; text-align: center; color: #888; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 14px; }
+        .pff-fields-empty.visible { display: block; }
+        .pff-field-group { background: #1a1a3e; border-radius: 10px; border: 1px solid #333; padding: 16px; margin-bottom: 12px; }
+        .pff-field-group h4 { color: #667eea; margin: 0 0 12px 0; font-size: 0.92rem; }
+        .pff-field { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #2a2a4e; }
+        .pff-field:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .pff-field-label { display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 0.85rem; margin-bottom: 5px; }
+        .pff-field-name { color: #888; font-size: 0.72rem; font-family: monospace; }
+        .pff-field-required { color: #ef4444; font-weight: bold; }
+        .pff-input { width: 100%; padding: 9px 11px; background: #0f0f23; border: 2px solid #333; border-radius: 7px; color: #fff; font-size: 0.88rem; box-sizing: border-box; font-family: inherit; }
+        .pff-input:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .pff-input.filled { border-color: #28a745; }
+        .pff-textarea { resize: vertical; min-height: 70px; }
+        .pff-radio-group, .pff-checkbox-list { display: flex; flex-direction: column; gap: 6px; }
+        .pff-radio-option, .pff-checkbox-option { display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 0.88rem; padding: 6px 10px; background: #0f0f23; border: 1px solid #333; border-radius: 6px; cursor: pointer; }
+        .pff-radio-option:hover, .pff-checkbox-option:hover { border-color: #667eea; }
+        .pff-radio-option.selected, .pff-checkbox-option.checked { background: #1a2a4e; border-color: #667eea; color: #fff; }
+        .pff-radio-option input, .pff-checkbox-option input { accent-color: #667eea; cursor: pointer; }
+        .pff-status { padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 0.85rem; display: none; }
+        .pff-status.visible { display: block; }
+        .pff-status.success { background: #1a3e2a; border: 1px solid #28a745; color: #a3e6b0; }
+        .pff-status.error { background: #3e1a1a; border: 1px solid #ef4444; color: #fca5a5; }
+        .pff-status.info { background: #1a2a4e; border: 1px solid #667eea; color: #c5cae9; }
+        .pff-result { display: none; margin-top: 14px; padding: 14px; background: #1a3e2a; border-radius: 8px; border: 1px solid #28a745; }
+        .pff-result.visible { display: block; }
+        .pff-result-text { color: #a3e6b0; font-size: 0.88rem; margin-bottom: 10px; }
+        @media (max-width: 600px) {
+            .pff-toolbar { font-size: 0.85rem; }
+            .pff-page-btn { font-size: 0.72rem; padding: 4px 8px; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="container">
+        <h1>PDF Form Filler</h1>
+        <p class="subtitle">Fill Out Any PDF Form Online</p>
+        <nav class="breadcrumb">
+            <a href="/">Home</a> &gt; <a href="/tools/pdf-tools/">PDF Tools</a> &gt; <span>PDF Form Filler</span>
+            <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    <section class="tool-page">
+        <div class="tool-main">
+            <h2>Fill Your PDF Form</h2>
+
+            <div class="pff-dropzone" id="dropzone">
+                <div class="pff-dropzone-icon">📋</div>
+                <div class="pff-dropzone-text">Drag &amp; drop a PDF form here or <strong>browse</strong></div>
+                <p style="font-size:0.8rem;color:#888;margin-top:8px;">Max 50MB | Fillable PDFs with text fields, checkboxes, radio buttons, dropdowns</p>
+                <input type="file" id="fileInput" accept=".pdf,application/pdf" style="display:none" aria-label="Select PDF form to fill">
+            </div>
+
+            <div class="pff-info-bar" id="infoBar">
+                <span class="pff-info-item"><strong>File:</strong> <span id="fileName"></span></span>
+                <span class="pff-info-item"><strong>Size:</strong> <span id="fileSize"></span></span>
+                <span class="pff-info-item"><strong>Pages:</strong> <span id="pageCount"></span></span>
+                <div class="pff-stats-pills" id="statsPills"></div>
+            </div>
+
+            <div class="pff-toolbar" id="toolbar">
+                <label><input type="checkbox" id="flattenCheck"> Flatten form after filling (lock fields)</label>
+                <button onclick="fillAllFromDraft()" class="btn" style="padding:5px 12px;font-size:0.78rem;" id="restoreDraftBtn" style="display:none">Restore Draft</button>
+                <button onclick="saveDraft()" class="btn" style="padding:5px 12px;font-size:0.78rem;">Save Draft</button>
+                <button onclick="clearAll()" class="btn btn-secondary" style="padding:5px 12px;font-size:0.78rem;">Clear All</button>
+            </div>
+
+            <div class="pff-page-nav" id="pageNav"></div>
+
+            <div id="fieldsContainer"></div>
+
+            <div class="pff-fields-empty" id="fieldsEmpty">
+                Upload a fillable PDF form to see its fields here. If the PDF has no form fields, try a different file or use our <a href="/tools/pdf-editor/" style="color:#667eea;">PDF Editor</a> to add text annotations.
+            </div>
+
+            <div class="pff-status" id="status"></div>
+
+            <div class="btn-group" id="actionBtns" style="display:none;">
+                <button onclick="saveFilledPDF()" class="btn btn-primary">Save Filled PDF</button>
+                <button onclick="clearAll()" class="btn btn-secondary">Reset &amp; Start Over</button>
+            </div>
+
+            <div class="pff-result" id="result">
+                <div class="pff-result-text" id="resultText"></div>
+                <button onclick="downloadFilled()" class="btn btn-primary">Download Filled PDF</button>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>What This Tool Does</h3>
+            <p>Drop any fillable PDF — job applications, government forms, tax documents, medical intake forms, school enrollment, lease agreements, contracts — and fill it out in your browser. We detect text fields, checkboxes, radio buttons, dropdowns, and option lists automatically. Type your answers, click <strong>Save Filled PDF</strong>, and download the completed document.</p>
+
+            <h3>Why PDF Form Filler Beats Asking an AI Chatbot</h3>
+            <p>AI text models cannot fill real PDF form fields. They can describe a form or rewrite what you might write in a text box, but they cannot parse PDF AcroForm structure, write field values into the right field, generate a binary PDF with the answers embedded in the correct coordinates, or save a file your employer or tax authority will accept. Even ChatGPT with vision reads forms but does not produce a filled PDF. This tool uses <strong>pdf-lib</strong> to write field values into the actual PDF binary — output is identical in structure to a hand-filled PDF.</p>
+
+            <h3>How It Works</h3>
+            <ol>
+                <li>Drop or browse a fillable PDF (one with form fields)</li>
+                <li>We detect every text field, checkbox, radio button, and dropdown</li>
+                <li>Type, tick, or select your answers — fields are grouped by page</li>
+                <li>Optional: enable <strong>Flatten form</strong> to lock fields in place (recommended before signing)</li>
+                <li>Click <strong>Save Filled PDF</strong> to download the completed document</li>
+            </ol>
+
+            <h3>Privacy &amp; Limits</h3>
+            <ul>
+                <li><strong>100% client-side:</strong> Your PDF is processed by pdf-lib in your browser. Zero uploads, zero server. Open DevTools → Network and you will see no outbound requests carrying your document.</li>
+                <li><strong>Unlimited use:</strong> No signup, no daily caps, no file-size-based paywall beyond browser memory.</li>
+                <li><strong>Draft auto-save:</strong> Your answers are saved to localStorage keyed by file hash so you can refresh without losing work.</li>
+                <li><strong>No watermark added:</strong> Output is identical in structure to a hand-filled PDF.</li>
+            </ul>
+
+            <h3>Field Types Supported</h3>
+            <ul>
+                <li><strong>Text fields</strong> — single-line input, auto-sizes</li>
+                <li><strong>Multiline text</strong> — textarea for long answers</li>
+                <li><strong>Checkboxes</strong> — tick on/off, preserves multi-checkbox groups</li>
+                <li><strong>Radio buttons</strong> — single choice per group, all options shown</li>
+                <li><strong>Dropdown menus</strong> — pick from predefined options</li>
+                <li><strong>Option lists</strong> — multi-select dropdown</li>
+                <li><strong>Signature fields</strong> — pre-filled text placeholder (for visual signature placement only)</li>
+            </ul>
+
+            <h3>Frequently Asked Questions</h3>
+            <details class="faq-item">
+                <summary>Is this PDF form filler really free?</summary>
+                <p>Yes, 100% free with no signup, no daily limits, and no watermark. Unlike Smallpdf (2 tasks/day on free tier), iLovePDF (upload + daily caps), Adobe Acrobat ($240/year subscription), PDFgear (limited features), DocFly (signup required), or HiPDF (upload required), this tool has zero restrictions and runs entirely in your browser.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Does my PDF get uploaded to a server?</summary>
+                <p>No. Everything runs locally in your browser using the pdf-lib JavaScript library. You can verify by opening DevTools (F12 → Network tab) — you will see zero outbound requests carrying your document data. This is essential for tax forms, medical records, legal documents, and any other sensitive PDFs.</p>
+            </details>
+            <details class="faq-item">
+                <summary>What if my PDF does not have fillable form fields?</summary>
+                <p>If you drop a PDF that contains no AcroForm fields (e.g., a scanned image or a flat PDF), we will tell you no fields were detected. For those files, use our <a href="/tools/pdf-editor/" style="color:#667eea;">PDF Editor</a> to add text annotations, or our <a href="/tools/pdf-aloud-reader/" style="color:#667eea;">PDF Aloud Reader</a> to listen to the contents, or our <a href="/tools/image-to-text/" style="color:#667eea;">Image to Text OCR</a> to extract any text first.</p>
+            </details>
+            <details class="faq-item">
+                <summary>What does "Flatten form after filling" do?</summary>
+                <p>Flattening converts every filled form field into static content on the page — the field becomes read-only text or graphics that cannot be edited in any PDF reader. This is recommended before signing or sharing finalized documents so recipients cannot alter your answers.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Are my filled answers saved between visits?</summary>
+                <p>Yes — your answers are auto-saved to localStorage after every change, keyed by a hash of the PDF file. If you reload the page or come back tomorrow, click <strong>Restore Draft</strong> to bring back your answers for that exact PDF. Clearing browser storage or using a different browser will clear drafts. Drafts are stored only on your device, never uploaded.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Can I sign a PDF after filling the form?</summary>
+                <p>This tool fills form fields. For drawing an electronic signature, use our <a href="/tools/signature-maker/" style="color:#667eea;">Signature Maker</a> or <a href="/tools/pdf-signer/" style="color:#667eea;">PDF Signer</a> tool, which lets you draw or type a signature and place it on any PDF.</p>
+            </details>
+            <details class="faq-item">
+                <summary>What size PDF can I fill?</summary>
+                <p>Up to 50MB in your browser. The PDF must contain AcroForm fields (interactive form fields). PDFs created by Microsoft Word's "Restrict Editing" or Adobe Acrobat's form builder will work. Pure scanned image PDFs do not have form fields and cannot be filled this way.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Does the output preserve the original PDF layout?</summary>
+                <p>Yes. pdf-lib writes your field values into the existing field objects — no font is re-rendered, no layout is recalculated. The output is structurally identical to the original except for the values you entered. Fonts, images, page dimensions, and visual layout are preserved exactly.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Will this work on a phone or tablet?</summary>
+                <p>Yes. The form fills cleanly on any modern mobile browser. The layout adapts to narrow screens, and touch-friendly inputs replace dropdowns where appropriate.</p>
+            </details>
+        </div>
+    </section>
+</main>
+
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+    <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+    <p style="font-size:0.8rem;color:#666;">Free online developer tools. No signup. Browser-based. 100% private.</p>
+</footer>
+
+<script>
+let pdfBytes = null;
+let pdfDoc = null;
+let originalFileName = '';
+let filledBytes = null;
+let fileHash = '';
+let allFields = [];
+let fieldWidgets = {};
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const infoBar = document.getElementById('infoBar');
+const toolbar = document.getElementById('toolbar');
+const pageNav = document.getElementById('pageNav');
+const fieldsContainer = document.getElementById('fieldsContainer');
+const fieldsEmpty = document.getElementById('fieldsEmpty');
+const statsPills = document.getElementById('statsPills');
+const statusEl = document.getElementById('status');
+const result = document.getElementById('result');
+const actionBtns = document.getElementById('actionBtns');
+const fileNameEl = document.getElementById('fileName');
+const fileSizeEl = document.getElementById('fileSize');
+const pageCountEl = document.getElementById('pageCount');
+const restoreDraftBtn = document.getElementById('restoreDraftBtn');
+
+dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
+});
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+async function handleFile(file) {
+    if (!file || file.type !== 'application/pdf') {
+        showStatus('Please select a valid PDF file.', 'error');
+        return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+        showStatus('File size must be under 50MB.', 'error');
+        return;
+    }
+    originalFileName = file.name.replace(/\.pdf$/i, '') + '-filled.pdf';
+    showStatus('Reading PDF...', 'info');
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        pdfBytes = new Uint8Array(arrayBuffer);
+        fileHash = await sha256(pdfBytes);
+        let doc;
+        try {
+            doc = await PDFLib.PDFDocument.load(pdfBytes);
+        } catch (loadErr) {
+            showStatus('Could not read PDF: ' + loadErr.message + '. The file may be encrypted or corrupt.', 'error');
+            return;
+        }
+        pdfDoc = doc;
+        const pages = doc.getPageCount();
+        pageCountEl.textContent = pages;
+        fileNameEl.textContent = file.name;
+        fileSizeEl.textContent = formatSize(file.size);
+        infoBar.classList.add('visible');
+
+        const form = doc.getForm();
+        allFields = form.getFields();
+        renderStatsPills();
+        renderFieldsByPage();
+
+        if (allFields.length === 0) {
+            fieldsEmpty.classList.add('visible');
+            fieldsContainer.innerHTML = '';
+            toolbar.classList.remove('visible');
+            pageNav.classList.remove('visible');
+            actionBtns.style.display = 'none';
+            showStatus('No fillable form fields detected. This PDF is not a form.', 'info');
+            return;
+        }
+
+        fieldsEmpty.classList.remove('visible');
+        toolbar.classList.add('visible');
+        pageNav.classList.add('visible');
+        actionBtns.style.display = 'flex';
+        dropzone.classList.add('has-file');
+        filledBytes = null;
+        result.classList.remove('visible');
+
+        const draft = loadDraft(fileHash);
+        if (draft) {
+            restoreDraftBtn.style.display = 'inline-block';
+            showStatus('Loaded ' + pages + ' page' + (pages > 1 ? 's' : '') + ' with ' + allFields.length + ' form field' + (allFields.length > 1 ? 's' : '') + '. Draft found — click Restore Draft to refill.', 'success');
+        } else {
+            restoreDraftBtn.style.display = 'none';
+            showStatus('Loaded ' + pages + ' page' + (pages > 1 ? 's' : '') + ' with ' + allFields.length + ' form field' + (allFields.length > 1 ? 's' : '') + '. Fill the form and click Save Filled PDF.', 'success');
+        }
+    } catch (err) {
+        showStatus('Error reading PDF: ' + err.message, 'error');
+    }
+}
+
+function renderStatsPills() {
+    const counts = { text: 0, checkbox: 0, radio: 0, dropdown: 0, optionList: 0, other: 0 };
+    allFields.forEach(f => {
+        const t = classifyField(f);
+        if (counts[t] !== undefined) counts[t]++; else counts.other++;
+    });
+    statsPills.innerHTML = '';
+    if (counts.text) statsPills.innerHTML += '<span class="pff-pill">✎ ' + counts.text + ' Text</span>';
+    if (counts.checkbox) statsPills.innerHTML += '<span class="pff-pill">☑ ' + counts.checkbox + ' Checkbox</span>';
+    if (counts.radio) statsPills.innerHTML += '<span class="pff-pill">◉ ' + counts.radio + ' Radio</span>';
+    if (counts.dropdown) statsPills.innerHTML += '<span class="pff-pill">▾ ' + counts.dropdown + + ' Dropdown</span>';
+    if (counts.optionList) statsPills.innerHTML += '<span class="pff-pill">☷ ' + counts.optionList + ' List</span>';
+    if (counts.other) statsPills.innerHTML += '<span class="pff-pill">' + counts.other + ' Other</span>';
+}
+
+function classifyField(f) {
+    try {
+        if (typeof f.getText === 'function' && typeof f.setText === 'function') return 'text';
+        if (typeof f.isChecked === 'function' && typeof f.check === 'function') return 'checkbox';
+        if (typeof f.isMultiselect === 'function' && f.isMultiselect()) return 'optionList';
+        if (typeof f.addOptionToPage === 'function') return 'radio';
+        if (typeof f.getOptions === 'function' && typeof f.select === 'function') return 'dropdown';
+    } catch (e) {}
+    return 'other';
+}
+
+function getFieldPageIdx(f) {
+    try {
+        const widgets = f.acroField.getWidgets();
+        if (widgets.length === 0) return 0;
+        const widgetP = widgets[0].P;
+        if (!widgetP) return 0;
+        const pages = pdfDoc.getPages();
+        for (let pi = 0; pi < pages.length; pi++) {
+            const pr = pages[pi].ref;
+            if (pr && pr.toString && widgetP.toString && pr.toString() === widgetP.toString()) return pi;
+            if (pr && widgetP.objectNumber !== undefined && pr.objectNumber === widgetP.objectNumber) return pi;
+        }
+    } catch (e) {}
+    return 0;
+}
+
+function renderFieldsByPage() {
+    const byPage = {};
+    allFields.forEach(f => {
+        const page = getFieldPageIdx(f);
+        if (!byPage[page]) byPage[page] = [];
+        byPage[page].push(f);
+    });
+
+    const pageKeys = Object.keys(byPage).map(Number).sort((a, b) => a - b);
+    pageNav.innerHTML = '<span style="color:#999;font-size:0.8rem;margin-right:4px;">Jump to page:</span>';
+    pageKeys.forEach(pk => {
+        const btn = document.createElement('button');
+        btn.className = 'pff-page-btn';
+        btn.dataset.page = pk;
+        btn.innerHTML = 'Page ' + (pk + 1) + '<span class="count">' + byPage[pk].length + '</span>';
+        btn.onclick = () => {
+            document.getElementById('pff-group-' + pk).scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.querySelectorAll('.pff-page-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        };
+        pageNav.appendChild(btn);
+    });
+
+    fieldsContainer.innerHTML = '';
+    pageKeys.forEach(pk => {
+        const group = document.createElement('div');
+        group.className = 'pff-field-group';
+        group.id = 'pff-group-' + pk;
+        group.innerHTML = '<h4>Page ' + (pk + 1) + ' &mdash; ' + byPage[pk].length + ' field' + (byPage[pk].length !== 1 ? 's' : '') + '</h4>';
+        byPage[pk].forEach((f, idx) => {
+            group.appendChild(buildFieldWidget(f, pk, idx));
+        });
+        fieldsContainer.appendChild(group);
+    });
+}
+
+function buildFieldWidget(field, pageIdx, fieldIdx) {
+    const wrap = document.createElement('div');
+    wrap.className = 'pff-field';
+    const type = classifyField(field);
+    const name = field.getName() || 'unnamed_' + pageIdx + '_' + fieldIdx;
+    let labelText = name;
+    try { labelText = field.acroField.T() || name; } catch (e) {}
+    let isMultiline = false;
+    try { isMultiline = field.isMultiline && field.isMultiline(); } catch (e) {}
+    let required = false;
+    try {
+        const flags = field.acroField.F;
+        required = !!(flags && (flags & 2));
+    } catch (e) {}
+
+    const labelDiv = document.createElement('div');
+    labelDiv.className = 'pff-field-label';
+    labelDiv.innerHTML = '<strong>' + escapeHtml(String(labelText)) + '</strong>' +
+        (required ? '<span class="pff-field-required" title="Required">*</span>' : '') +
+        '<span class="pff-field-name">(' + type + (isMultiline ? '/multiline' : '') + ')</span>';
+    wrap.appendChild(labelDiv);
+
+    const widgetKey = pageIdx + '__' + name;
+    fieldWidgets[widgetKey] = field;
+
+    if (type === 'text') {
+        const input = document.createElement(isMultiline ? 'textarea' : 'input');
+        if (!isMultiline) input.type = 'text';
+        if (isMultiline) input.className = 'pff-input pff-textarea';
+        else input.className = 'pff-input';
+        input.id = 'fld-' + widgetKey;
+        input.setAttribute('aria-label', String(labelText));
+        try {
+            input.value = field.getText() || '';
+            input.maxLength = (field.getMaxLength && field.getMaxLength()) || 10000;
+        } catch (e) {}
+        input.addEventListener('input', () => {
+            input.classList.toggle('filled', !!input.value);
+            saveDraftDebounced();
+        });
+        wrap.appendChild(input);
+    } else if (type === 'checkbox') {
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.id = 'fld-' + widgetKey;
+        cb.className = 'pff-input';
+        cb.style.width = '22px';
+        cb.style.height = '22px';
+        cb.style.accentColor = '#667eea';
+        cb.setAttribute('aria-label', String(labelText));
+        try { cb.checked = field.isChecked(); } catch (e) {}
+        cb.addEventListener('change', () => { saveDraftDebounced(); });
+        wrap.appendChild(cb);
+    } else if (type === 'radio') {
+        const group = document.createElement('div');
+        group.className = 'pff-radio-group';
+        let options = [];
+        try { options = field.getOptions(); } catch (e) {}
+        let selected = null;
+        try { selected = field.getSelected(); } catch (e) {}
+        options.forEach((opt, oi) => {
+            const optWrap = document.createElement('label');
+            optWrap.className = 'pff-radio-option';
+            if (selected === opt) optWrap.classList.add('selected');
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'fld-' + widgetKey;
+            radio.value = opt;
+            radio.checked = (selected === opt);
+            radio.setAttribute('aria-label', String(labelText) + ': ' + opt);
+            radio.addEventListener('change', () => {
+                group.querySelectorAll('.pff-radio-option').forEach(o => o.classList.remove('selected'));
+                if (radio.checked) optWrap.classList.add('selected');
+                saveDraftDebounced();
+            });
+            optWrap.appendChild(radio);
+            optWrap.appendChild(document.createTextNode(' ' + opt));
+            group.appendChild(optWrap);
+        });
+        wrap.appendChild(group);
+    } else if (type === 'dropdown') {
+        const sel = document.createElement('select');
+        sel.className = 'pff-input';
+        sel.id = 'fld-' + widgetKey;
+        sel.setAttribute('aria-label', String(labelText));
+        let options = [];
+        try { options = field.getOptions(); } catch (e) {}
+        let selected = null;
+        try { selected = field.getSelected(); } catch (e) {}
+        options.forEach(opt => {
+            const o = document.createElement('option');
+            o.value = opt;
+            o.textContent = opt;
+            if (selected === opt) o.selected = true;
+            sel.appendChild(o);
+        });
+        sel.addEventListener('change', () => {
+            sel.classList.toggle('filled', !!sel.value);
+            saveDraftDebounced();
+        });
+        if (sel.value) sel.classList.add('filled');
+        wrap.appendChild(sel);
+    } else if (type === 'optionList') {
+        const sel = document.createElement('select');
+        sel.className = 'pff-input';
+        sel.multiple = true;
+        sel.size = Math.min(6, Math.max(3, field.getOptions().length));
+        sel.id = 'fld-' + widgetKey;
+        sel.setAttribute('aria-label', String(labelText));
+        let options = [];
+        try { options = field.getOptions(); } catch (e) {}
+        let selected = [];
+        try { selected = field.getSelected(); } catch (e) {}
+        options.forEach(opt => {
+            const o = document.createElement('option');
+            o.value = opt;
+            o.textContent = opt;
+            if (selected.indexOf(opt) !== -1) o.selected = true;
+            sel.appendChild(o);
+        });
+        sel.addEventListener('change', saveDraftDebounced);
+        wrap.appendChild(sel);
+    } else {
+        const note = document.createElement('div');
+        note.style.cssText = 'color:#888;font-size:0.82rem;padding:8px;background:#0f0f23;border-radius:6px;';
+        note.textContent = 'This field type (' + type + ') is not supported by the web form UI. It will be preserved unchanged in the output PDF.';
+        wrap.appendChild(note);
+    }
+
+    return wrap;
+}
+
+function saveFilledPDF() {
+    if (!pdfDoc) { showStatus('Upload a PDF first.', 'error'); return; }
+    if (allFields.length === 0) { showStatus('No form fields to fill.', 'info'); return; }
+
+    showStatus('Saving filled PDF...', 'info');
+
+    try {
+        const form = pdfDoc.getForm();
+        let filledCount = 0;
+        allFields.forEach(f => {
+            const name = f.getName();
+            const pageIdx = getFieldPageIdx(f);
+            const key = pageIdx + '__' + name;
+            const el = document.getElementById('fld-' + key);
+            const type = classifyField(f);
+            if (!el) return;
+            try {
+                if (type === 'text') {
+                    const v = el.value || '';
+                    if (v !== '') { f.setText(v); filledCount++; }
+                } else if (type === 'checkbox') {
+                    if (el.checked) { f.check(); filledCount++; } else { f.uncheck(); }
+                } else if (type === 'radio') {
+                    const checked = document.querySelector('input[name="fld-' + key + '"]:checked');
+                    if (checked) { f.select(checked.value); filledCount++; }
+                } else if (type === 'dropdown') {
+                    if (el.value) { f.select(el.value); filledCount++; }
+                } else if (type === 'optionList') {
+                    const vals = Array.from(el.selectedOptions).map(o => o.value);
+                    if (vals.length > 0) { f.select(vals); filledCount++; }
+                }
+            } catch (e) {
+                console.warn('Could not fill field ' + name + ':', e);
+            }
+        });
+
+        if (document.getElementById('flattenCheck').checked) {
+            try { form.flatten(); } catch (e) { console.warn('Flatten failed:', e); }
+        }
+
+        pdfDoc.save().then(bytes => {
+            filledBytes = bytes;
+            const resultText = 'Filled ' + filledCount + ' field' + (filledCount !== 1 ? 's' : '') +
+                (document.getElementById('flattenCheck').checked ? ' and flattened the form.' : '. Ready to download.');
+            document.getElementById('resultText').textContent = resultText;
+            result.classList.add('visible');
+            showStatus('Done! ' + resultText, 'success');
+            localStorage.removeItem('pff-draft-' + fileHash);
+        }).catch(err => {
+            showStatus('Error saving PDF: ' + err.message, 'error');
+        });
+    } catch (err) {
+        showStatus('Error: ' + err.message, 'error');
+    }
+}
+
+function downloadFilled() {
+    if (!filledBytes) return;
+    const blob = new Blob([filledBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = originalFileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function clearAll() {
+    if (!pdfDoc || allFields.length === 0) return;
+    if (!confirm('Reset all fields to empty? This cannot be undone.')) return;
+    allFields.forEach(f => {
+        const name = f.getName();
+        const pageIdx = getFieldPageIdx(f);
+        const key = pageIdx + '__' + name;
+        const el = document.getElementById('fld-' + key);
+        if (!el) return;
+        const type = classifyField(f);
+        if (type === 'text') { el.value = ''; el.classList.remove('filled'); }
+        else if (type === 'checkbox') { el.checked = false; }
+        else if (type === 'radio') {
+            const radios = document.querySelectorAll('input[name="fld-' + key + '"]');
+            radios.forEach(r => { r.checked = false; });
+            document.querySelectorAll('.pff-radio-option').forEach(o => o.classList.remove('selected'));
+        }
+        else if (type === 'dropdown' || type === 'optionList') {
+            Array.from(el.options).forEach(o => o.selected = false);
+            el.classList.remove('filled');
+        }
+    });
+    filledBytes = null;
+    result.classList.remove('visible');
+    localStorage.removeItem('pff-draft-' + fileHash);
+    showStatus('All fields reset.', 'success');
+}
+
+function saveDraft() {
+    if (!pdfDoc || !fileHash) return;
+    const draft = collectDraft();
+    try {
+        localStorage.setItem('pff-draft-' + fileHash, JSON.stringify(draft));
+        showStatus('Draft saved locally (' + draft.values.length + ' field' + (draft.values.length !== 1 ? 's' : '') + '). Refresh-safe.', 'success');
+    } catch (e) {
+        showStatus('Could not save draft: ' + e.message, 'error');
+    }
+}
+
+function loadDraft(hash) {
+    try {
+        const raw = localStorage.getItem('pff-draft-' + hash);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+}
+
+function fillAllFromDraft() {
+    if (!fileHash) return;
+    const draft = loadDraft(fileHash);
+    if (!draft || !draft.values) {
+        showStatus('No draft found for this PDF.', 'info');
+        return;
+    }
+    let applied = 0;
+    draft.values.forEach(v => {
+        const el = document.getElementById('fld-' + v.key);
+        if (!el) return;
+        if (v.type === 'text') { el.value = v.value || ''; el.classList.toggle('filled', !!el.value); applied++; }
+        else if (v.type === 'checkbox') { el.checked = !!v.value; applied++; }
+        else if (v.type === 'radio') {
+            const radio = document.querySelector('input[name="fld-' + v.key + '"][value="' + cssEscape(v.value) + '"]');
+            if (radio) { radio.checked = true; radio.parentElement.classList.add('selected'); applied++; }
+        }
+        else if (v.type === 'dropdown') { el.value = v.value || ''; el.classList.toggle('filled', !!el.value); applied++; }
+        else if (v.type === 'optionList') {
+            const vals = v.value || [];
+            Array.from(el.options).forEach(o => { o.selected = vals.indexOf(o.value) !== -1; });
+            applied++;
+        }
+    });
+    showStatus('Restored ' + applied + ' field' + (applied !== 1 ? 's' : '') + ' from local draft.', 'success');
+}
+
+function collectDraft() {
+    const values = [];
+    allFields.forEach(f => {
+        const name = f.getName();
+        const pageIdx = getFieldPageIdx(f);
+        const key = pageIdx + '__' + name;
+        const el = document.getElementById('fld-' + key);
+        if (!el) return;
+        const type = classifyField(f);
+        if (type === 'text') values.push({ key, type, value: el.value });
+        else if (type === 'checkbox') values.push({ key, type, value: el.checked });
+        else if (type === 'radio') {
+            const r = document.querySelector('input[name="fld-' + key + '"]:checked');
+            values.push({ key, type, value: r ? r.value : '' });
+        }
+        else if (type === 'dropdown') values.push({ key, type, value: el.value });
+        else if (type === 'optionList') {
+            values.push({ key, type, value: Array.from(el.selectedOptions).map(o => o.value) });
+        }
+    });
+    return { ts: Date.now(), values };
+}
+
+let saveDraftTimer = null;
+function saveDraftDebounced() {
+    if (saveDraftTimer) clearTimeout(saveDraftTimer);
+    saveDraftTimer = setTimeout(() => {
+        if (!fileHash || !pdfDoc) return;
+        try { localStorage.setItem('pff-draft-' + fileHash, JSON.stringify(collectDraft())); } catch (e) {}
+    }, 800);
+}
+
+async function sha256(bytes) {
+    const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function cssEscape(s) {
+    if (s === undefined || s === null) return '';
+    return String(s).replace(/(["\\])/g, '\\$1');
+}
+
+function escapeHtml(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function showStatus(msg, type) {
+    statusEl.textContent = msg;
+    statusEl.className = 'pff-status visible ' + type;
+}
+
+function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+}
+</script>
+</body>
+</html>

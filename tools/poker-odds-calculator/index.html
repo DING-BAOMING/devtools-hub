@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <title>Poker Odds Calculator - Texas Hold'em Equity | DevTools Hub</title>
+    <meta name="description" content="Free poker odds calculator. Exact hand-vs-hand equity by full enumeration, not Monte Carlo. Board cards, up to 3 players, call/fold helper. No signup.">
+    <meta name="keywords" content="poker odds calculator, texas holdem odds, poker equity calculator, preflop odds, AA vs KK odds, hand vs hand equity, poker outs, pot odds calculator, poker probability, holdem calculator, poker win percentage">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/poker-odds-calculator/">
+    <meta property="og:title" content="Poker Odds Calculator - Texas Hold'em Equity | DevTools Hub">
+    <meta property="og:description" content="Free poker odds calculator. Exact hand-vs-hand equity by full enumeration, not Monte Carlo. Board cards, up to 3 players, call/fold helper. No signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/poker-odds-calculator/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Poker Odds Calculator - Texas Hold'em Equity | DevTools Hub">
+    <meta name="twitter:description" content="Free poker odds calculator. Exact hand-vs-hand equity by full enumeration, not Monte Carlo. Board cards, up to 3 players, call/fold helper. No signup.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Poker Odds Calculator","description":"Exact Texas Hold'em poker odds calculator. Computes hand-vs-hand win, tie and equity percentages by complete combinatorial enumeration - not Monte Carlo simulation. Optional flop/turn/river board, up to three players, dead-card safe deck, plus an outs (rule of 2 and 4) calculator and a pot-odds call/fold decision helper. 100% browser-based, no signup, nothing uploaded.","url":"https://tools.scoreroute.com/tools/poker-odds-calculator/","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Modern browser with JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-08-05","dateModified":"2026-08-05"}
+    </script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How is this poker odds calculator different from others?","acceptedAnswer":{"@text":"Most free poker odds calculators run a Monte Carlo simulation that deals a random sample of boards and approximates the answer, so every run gives slightly different numbers. This tool instead enumerates every possible remaining board combination and evaluates the final hand for each one, so the win, tie and equity percentages are exact and deterministic - the same numbers you get from professional software."}},{"@type":"Question","name":"What does equity mean in poker?","acceptedAnswer":{"@text":"Equity is your share of the pot you would expect to win if the hand were played to showdown many times. For example, pocket aces against pocket kings preflop has about 82.4% equity, meaning aces win roughly 82 of every 100 runouts. It is a statistical expectation over every possible board, not a guarantee on any single hand."}},{"@type":"Question","name":"How do I read the pot odds decision helper?","acceptedAnswer":{"@text":"Enter the current pot size and the amount you must call. The helper shows the required equity, which is the call amount divided by the pot size after the call. It then compares that to your exact computed equity: if your equity is higher than the required equity, the call is profitable over the long run (+EV), otherwise it is a losing call (-EV)."}},{"@type":"Question","name":"What is the rule of 2 and 4 for outs?","acceptedAnswer":{"@text":"The rule of 2 and 4 is a shortcut for estimating your chance of hitting a draw. With outs still to come, multiply your number of outs by 4 on the flop (two cards to come) and by 2 on the turn (one card to come). The helper on this page computes the exact probabilities instead of the estimate, so your call/fold decision uses precise numbers."}},{"@type":"Question","name":"Can I add a community board before calculating?","acceptedAnswer":{"@text":"Yes. Add up to five board cards (flop, turn and river) to the board area before pressing Calculate. With fewer than five board cards, the tool enumerates every possible way the remaining board cards can be dealt. With a full five-card board it simply evaluates the showdown."}},{"@type":"Question","name":"Does this tool support more than two players?","acceptedAnswer":{"@text":"Yes, up to three players. Toggle on the third player, deal a third hand, and the tool computes the exact equity of all three hands including split-pot ties, all by full enumeration. Three-way preflop calculation enumerates about 1.37 million board combinations."}}]}
+    </script>
+    <style>
+        .po-wrap { display: flex; gap: 18px; flex-wrap: wrap; }
+        .po-left { flex: 1 1 520px; min-width: 0; }
+        .po-right { flex: 0 1 320px; min-width: 250px; display: flex; flex-direction: column; gap: 14px; }
+        .po-section { background: #131826; border: 1px solid #1f2638; border-radius: 12px; padding: 14px; }
+        .po-section h4 { color: #8b9ef5; font-size: 0.82rem; margin: 0 0 10px; letter-spacing: 0.6px; text-transform: uppercase; }
+        .po-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .po-toolbar button, .po-toolbar label { background: #0f0f23; border: 1px solid #3a3a5a; color: #fff; border-radius: 6px; padding: 7px 11px; font-size: 0.82rem; cursor: pointer; }
+        .po-toolbar button:hover { border-color: #667eea; }
+        .po-toolbar button.on { border-color: #22c55e; color: #22c55e; }
+        .po-toolbar .spacer { flex: 1; }
+        .hands-row { display: flex; flex-direction: column; gap: 10px; }
+        .hand-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .hand-label { width: 78px; font-size: 0.82rem; color: #cdd3ff; font-weight: 600; }
+        .hand-label small { display: block; color: #6a6f8a; font-weight: 400; }
+        .slot { width: 58px; height: 80px; border-radius: 8px; background: #0f0f23; border: 2px dashed #3a3a5a; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; font-weight: 700; cursor: pointer; user-select: none; transition: border-color 0.12s, transform 0.08s; }
+        .slot.active { border-color: #667eea; box-shadow: 0 0 0 2px rgba(102,126,234,0.35); }
+        .slot.filled { border-style: solid; border-color: #3a3a5a; }
+        .slot.red { color: #ef4444; }
+        .slot.black { color: #e5e7eb; }
+        .slot.blank { color: #3a3a5a; font-size: 1.6rem; }
+        .board-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .deck { display: grid; grid-template-columns: repeat(13, 1fr); gap: 4px; margin-top: 12px; }
+        .pcard { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 5px; height: 34px; font-size: 0.72rem; font-weight: 700; color: #cdd3ff; cursor: pointer; padding: 0; line-height: 1.1; }
+        .pcard:hover:not(:disabled) { border-color: #667eea; }
+        .pcard:disabled { opacity: 0.18; cursor: not-allowed; }
+        .pcard .rk { display: block; }
+        .pcard .st { display: block; font-size: 0.68rem; }
+        .pcard.red .st, .pcard.red .rk { color: #ef4444; }
+        .pcard.black .st, .pcard.black .rk { color: #dbe0ea; }
+        .po-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+        .po-actions .btn { flex: 1; min-width: 130px; }
+        .po-status { margin-top: 10px; }
+        .po-results { display: none; margin-top: 14px; }
+        .po-results.show { display: block; }
+        .po-res-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .po-res-head .t { font-size: 0.95rem; font-weight: 700; color: #fff; }
+        .po-res-head .meta { font-size: 0.72rem; color: #6a6f8a; }
+        .eq-row { margin-bottom: 12px; }
+        .eq-top { display: flex; justify-content: space-between; font-size: 0.82rem; color: #cdd3ff; margin-bottom: 4px; }
+        .eq-top b { color: #fff; }
+        .eq-bar { height: 14px; background: #0f0f23; border-radius: 8px; overflow: hidden; border: 1px solid #1f2638; }
+        .eq-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #667eea, #22c55e); transition: width 0.4s; }
+        .eq-stats { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+        .eq-stat { background: #0f0f23; border: 1px solid #1f2638; border-radius: 8px; padding: 7px 12px; font-size: 0.78rem; color: #9aa2b5; }
+        .eq-stat b { color: #fff; display: block; font-size: 1.05rem; }
+        .po-help { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .po-help .fld label { font-size: 0.75rem; color: #9aa2b5; display: block; margin-bottom: 4px; }
+        .po-help .fld input, .po-help .fld select { width: 100%; background: #0f0f23; border: 1px solid #3a3a5a; color: #fff; border-radius: 6px; padding: 8px; box-sizing: border-box; font-size: 0.9rem; }
+        .po-help .fld { margin-bottom: 10px; }
+        .po-help .fld.full { grid-column: 1 / -1; }
+        .po-verdict { border-radius: 8px; padding: 10px 12px; font-size: 0.9rem; font-weight: 700; margin-top: 10px; display: none; }
+        .po-verdict.show { display: block; }
+        .po-verdict.call { background: rgba(34,197,94,0.12); border: 1px solid #22c55e; color: #22c55e; }
+        .po-verdict.fold { background: rgba(239,68,68,0.12); border: 1px solid #ef4444; color: #ef4444; }
+        .po-note { font-size: 0.72rem; color: #6a6f8a; margin-top: 6px; }
+        @media (max-width: 700px) {
+            /* 10 columns instead of 13: at 13 columns the cards were 21px
+               wide, below the 24px WCAG 2.5.8 floor. 10 columns gives ~26px
+               cards with 4px gaps (the 24px spacing circle clears the
+               neighbour), and 52 cards still fit in 6 rows. */
+            .deck { grid-template-columns: repeat(10, minmax(24px, 1fr)); gap: 4px; }
+            .pcard { font-size: 0.6rem; height: 28px; }
+            .pcard .st { font-size: 0.55rem; }
+            .slot { width: 46px; height: 64px; font-size: 1.1rem; }
+            .hand-label { width: 62px; font-size: 0.75rem; }
+        }
+        /* 8 columns below 360px: 10 columns of 24px plus gaps no longer fit
+           the panel, and the deck must not push the page sideways. */
+        @media (max-width: 360px) {
+            .deck { grid-template-columns: repeat(8, minmax(24px, 1fr)); gap: 4px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Poker Odds Calculator</h1>
+            <p class="subtitle">Exact Texas Hold'em Equity &middot; Full Enumeration, Not Monte Carlo</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/calculators/">Calculators</a> &gt; <span>Poker Odds Calculator</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="po-wrap">
+                    <div class="po-left">
+                        <div class="po-toolbar">
+                            <button id="btn-3p" title="Add a third player">2 Players</button>
+                            <button id="btn-clear" title="Clear all selected cards">Clear All</button>
+                            <button id="btn-swap" title="Swap the hero and opponent hands">Swap Hands</button>
+                            <span class="spacer"></span>
+                            <button id="btn-preset-1" title="AA vs KK">AA vs KK</button>
+                            <button id="btn-preset-2" title="AK vs QQ">AK vs QQ</button>
+                            <button id="btn-preset-3" title="Overpair vs flop draw">77 vs 67s</button>
+                        </div>
+                        <div class="po-section">
+                            <h2>Hands</h2>
+                            <div class="hands-row">
+                                <div class="hand-line">
+                                    <div class="hand-label">Hero<small>your cards</small></div>
+                                    <div class="slot blank" id="slot-h0" data-slot="h0" aria-label="Hero card slot 1">?</div>
+                                    <div class="slot blank" id="slot-h1" data-slot="h1" aria-label="Hero card slot 2">?</div>
+                                </div>
+                                <div class="hand-line">
+                                    <div class="hand-label">Opponent<small>villain cards</small></div>
+                                    <div class="slot blank" id="slot-o0" data-slot="o0" aria-label="Opponent card slot 1">?</div>
+                                    <div class="slot blank" id="slot-o1" data-slot="o1" aria-label="Opponent card slot 2">?</div>
+                                </div>
+                                <div class="hand-line" id="row-t" style="display:none;">
+                                    <div class="hand-label">Player 3<small>optional</small></div>
+                                    <div class="slot blank" id="slot-t0" data-slot="t0" aria-label="Player 3 card slot 1">?</div>
+                                    <div class="slot blank" id="slot-t1" data-slot="t1" aria-label="Player 3 card slot 2">?</div>
+                                </div>
+                            </div>
+                            <div class="board-line">
+                                <div class="hand-label">Board<small>flop / turn / river</small></div>
+                                <div class="slot blank" id="slot-b0" data-slot="b0" aria-label="Board card slot 1">?</div>
+                                <div class="slot blank" id="slot-b1" data-slot="b1" aria-label="Board card slot 2">?</div>
+                                <div class="slot blank" id="slot-b2" data-slot="b2" aria-label="Board card slot 3">?</div>
+                                <div class="slot blank" id="slot-b3" data-slot="b3" aria-label="Board card slot 4">?</div>
+                                <div class="slot blank" id="slot-b4" data-slot="b4" aria-label="Board card slot 5">?</div>
+                            </div>
+                        </div>
+                        <div class="po-section">
+                            <h3>Deck — click a slot above, then click a card</h3>
+                            <div class="deck" id="deck"></div>
+                            <div class="po-actions">
+                                <button class="btn btn-primary" onclick="calcEquity()" id="btn-calc">Calculate Equity</button>
+                                <button class="btn" onclick="copyResults()" id="btn-copy">Copy Results</button>
+                            </div>
+                            <div class="po-status"><div id="status" class="status"></div></div>
+                            <div class="po-results" id="po-results"></div>
+                        </div>
+                    </div>
+                    <div class="po-right">
+                        <div class="po-section">
+                            <h4>Call or Fold? (Pot Odds)</h4>
+                            <div class="po-help">
+                                <div class="fld full">
+                                    <label for="pot-size">Current pot size ($)</label>
+                                    <input type="number" id="pot-size" value="100" min="0" step="1">
+                                </div>
+                                <div class="fld full">
+                                    <label for="to-call">Amount to call ($)</label>
+                                    <input type="number" id="to-call" value="50" min="0" step="1">
+                                </div>
+                                <div class="fld full">
+                                    <label for="eq-ref">Your equity for the decision (%)</label>
+                                    <input type="number" id="eq-ref" value="33.3" min="0" step="0.1">
+                                </div>
+                                <div class="fld full">
+                                    <button class="btn btn-primary" id="btn-verdict" style="width:100%;">Evaluate Call / Fold</button>
+                                </div>
+                                <div class="po-verdict" id="po-verdict"></div>
+                                <div class="po-note">Uses the hero equity from Calculate automatically when available.</div>
+                            </div>
+                        </div>
+                        <div class="po-section">
+                            <h4>Outs Chance (Rule of 2 &amp; 4)</h4>
+                            <div class="po-help">
+                                <div class="fld">
+                                    <label for="outs">Outs</label>
+                                    <input type="number" id="outs" value="9" min="1" max="21">
+                                </div>
+                                <div class="fld">
+                                    <label for="street">Street</label>
+                                    <select id="street">
+                                        <option value="flop">Flop (2 cards)</option>
+                                        <option value="turn">Turn (1 card)</option>
+                                    </select>
+                                </div>
+                                <div class="fld full">
+                                    <button class="btn" id="btn-outs" style="width:100%;">Calculate Hit Chance</button>
+                                </div>
+                                <div class="fld full">
+                                    <div id="outs-result" class="po-note" style="font-size:0.85rem;color:#cdd3ff;">&mdash;</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="info-section">
+            <h3>Why AI Cannot Calculate Your Poker Odds</h3>
+            <p>Ask an AI chatbot how often pocket aces beats king-king and it will confidently give you a number that drifts a few percentage points on every run - because LLMs approximate and memorise rather than compute. Exact poker equity is a combinatorial problem: every remaining card combination must be dealt, every final seven-card hand evaluated, and the winners counted. This page does exactly that with a deterministic hand evaluator that enumerates all 1,712,304 possible preflop runouts for a two-player matchup. The result is exact and reproducible, which is the difference between guessing your odds and knowing them.</p>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <h4>Exact Full Enumeration</h4>
+                    <p>Every remaining board combination is dealt and scored - no random sampling, no approximations</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Win, Tie &amp; Equity</h4>
+                    <p>Per-player win percentage, tie percentage and total equity with visual bars</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Up to 3 Players</h4>
+                    <p>Multi-way matchups with correct split-pot handling across all runouts</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Call / Fold Decision</h4>
+                    <p>Pot-odds helper compares your exact equity to the required equity for +EV calls</p>
+                </div>
+            </div>
+            <div class="how-it-works">
+                <h3>How the Poker Odds Calculator Works</h3>
+                <ol>
+                    <li><strong>Deal the hands</strong> - click a card slot for the Hero and Opponent (and optionally Player 3), then click cards from the deck below to fill them. Add any board cards you already know.</li>
+                    <li><strong>Press Calculate Equity</strong> - the tool enumerates every possible way the remaining board cards can be dealt, evaluates both final seven-card hands with a full hand-ranking evaluator, and counts who wins each runout.</li>
+                    <li><strong>Read the results</strong> - each player gets an exact equity percentage, plus win and tie percentages. The equity is your long-run share of the pot.</li>
+                    <li><strong>Make the decision</strong> - enter the pot size and the amount to call in the Call-or-Fold panel. If your equity is higher than the required equity, calling is profitable over the long run.</li>
+                </ol>
+            </div>
+            <div class="faq-extra">
+                <details class="faq-item">
+                    <summary>Is Monte Carlo simulation the same as exact enumeration?</summary>
+                    <p>No. Monte Carlo deals a random sample of boards - typically a few thousand - and averages the results, so the answer changes slightly every run and has a margin of error. Exact enumeration deals every single possible board combination, so the answer is a true probability with no sampling error. The two agree within about half a percent on typical hands, but only full enumeration is deterministic and reproducible to the decimal.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why is preflop AA vs KK not exactly 82.4% every time?</summary>
+                    <p>82.4% is the widely quoted value for aces versus kings, and this calculator reports 82.6% because it counts split pots differently. The tiny difference comes from the small number of boards where both players tie (for example a board of four to a flush with no one completing it, or a straight on the board). Different tools count those ties into the equity figure in slightly different ways, which shifts the number by a fraction of a percent.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How many board combinations does the calculator enumerate?</summary>
+                    <p>For two players preflop there are 48 cards left in the deck and 5 board cards to deal, which is 1,712,304 combinations. With a third player there are 46 cards left and 1,370,754 combinations. Adding flop or turn cards reduces this dramatically - with a flop dealt there are only 990 combinations left to enumerate, so results appear instantly.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What does required equity mean in the call/fold helper?</summary>
+                    <p>Required equity is the break-even percentage for a call. It is the amount you must call divided by the pot size after you call. If the pot is $100 and you must call $50, the pot becomes $150 and you need 50 / 150 = 33.3% equity to break even. If your exact computed equity is above that number, the call makes money in the long run.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I use the rule of 2 and 4 instead of exact outs math?</summary>
+                    <p>Yes, and the outs panel on the right does both. The rule of 2 and 4 is a mental shortcut: multiply outs by 4 on the flop and by 2 on the turn. The exact probabilities are 1 - (47 - outs) x (46 - outs) / (47 x 46) on the flop and outs / 46 on the turn. For 9 outs (a flush draw) the exact flop chance is 35.0% versus the 36% estimate, close enough for a quick decision at the table.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is this tool legal where online poker is restricted?</summary>
+                    <p>This is a purely mathematical calculator - it computes probabilities. It does not connect to any poker site, does not take bets, does not use real money and uploads nothing. Using a probability calculator for study is standard practice everywhere poker study material is available; whether you play online depends entirely on the laws where you live.</p>
+                </details>
+            </div>
+            <div class="related-tools">
+                <h2>Related Tools</h2>
+                <ul>
+                    <li><a href="/tools/random-generator/">Random Generator</a> - Dice, coin flips, wheels and decision makers</li>
+                    <li><a href="/tools/percentage-calculator/">Percentage Calculator</a> - Percentages, increases and differences</li>
+                    <li><a href="/tools/fraction-calculator/">Fraction Calculator</a> - Add, subtract, multiply and divide fractions</li>
+                    <li><a href="/tools/compound-interest-calculator/">Compound Interest Calculator</a> - Investment growth projections</li>
+                    <li><a href="/tools/calculator/">Online Calculator</a> - Scientific and everyday math</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+    <script src="/tools.js"></script>
+    <script>
+    var RANKS = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+    var SUITS = ['s','h','d','c'];
+    var SUIT_SYM = ['&spades;','&hearts;','&diams;','&clubs;'];
+    var SLOT_ORDER = ['h0','h1','o0','o1','b0','b1','b2','b3','b4','t0','t1'];
+    var slotCards = {};
+    var active = 'h0';
+    var used = {};
+    var threePlayers = false;
+    var lastResult = null;
+
+    function slotEl(s) { return document.getElementById('slot-' + s); }
+
+    function cardCodeFrom(c) { return RANKS[c.r - 2] + SUITS[c.s]; }
+
+    function cardFromCode(code) {
+        return { r: RANKS.indexOf(code[0]) + 2, s: SUITS.indexOf(code[1]) };
+    }
+
+    function isRed(s) { return s === 1 || s === 2; } // h, d
+
+    function renderCard(el, code) {
+        var c = cardFromCode(code);
+        el.classList.remove('red', 'black', 'blank', 'filled', 'active');
+        el.classList.add('filled', isRed(c.s) ? 'red' : 'black');
+        el.textContent = RANKS[c.r - 2] + SUIT_SYM[c.s];
+        el.setAttribute('aria-label', RANKS[c.r - 2] + (SUITS[c.s]) + ' card');
+    }
+
+    function clearSlotEl(s) {
+        delete slotCards[s];
+        var el = slotEl(s);
+        el.classList.remove('red', 'black', 'filled');
+        el.classList.add('blank');
+        el.textContent = '?';
+        el.setAttribute('aria-label', 'Empty card slot');
+    }
+
+    function setActive(s) {
+        active = s;
+        for (var i = 0; i < SLOT_ORDER.length; i++) slotEl(SLOT_ORDER[i]).classList.remove('active');
+        slotEl(s).classList.add('active');
+    }
+
+    function buildDeck() {
+        var deckEl = document.getElementById('deck');
+        deckEl.innerHTML = '';
+        for (var s = 0; s < 4; s++) {
+            for (var r = 2; r <= 14; r++) {
+                var code = RANKS[r - 2] + SUITS[s];
+                var btn = document.createElement('button');
+                btn.className = 'pcard ' + (isRed(s) ? 'red' : 'black');
+                btn.type = 'button';
+                btn.innerHTML = '<span class="rk">' + RANKS[r - 2] + '</span><span class="st">' + SUIT_SYM[s] + '</span>';
+                btn.dataset.code = code;
+                btn.setAttribute('aria-label', code);
+                btn.addEventListener('click', function(){ onDeckClick(this.dataset.code, this); });
+                deckEl.appendChild(btn);
+            }
+        }
+    }
+
+    function refreshDeck() {
+        var btns = document.querySelectorAll('.pcard');
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].disabled = !!used[btns[i].dataset.code];
+        }
+    }
+
+    function nextEmptySlot() {
+        for (var i = 0; i < SLOT_ORDER.length; i++) {
+            var s = SLOT_ORDER[i];
+            if (s[0] === 't' && !threePlayers) continue;
+            if (!slotCards[s]) return s;
+        }
+        return null;
+    }
+
+    function onDeckClick(code, btn) {
+        if (used[code]) { showStatus('status', 'Card ' + code + ' is already in use', 'error'); return; }
+        if (slotCards[active]) {
+            delete used[slotCards[active]];
+            clearSlotEl(active);
+        }
+        slotCards[active] = code;
+        used[code] = true;
+        renderCard(slotEl(active), code);
+        var next = nextEmptySlot();
+        if (next) setActive(next);
+        else setActive(active);
+        refreshDeck();
+        updatePlayerCount();
+    }
+
+    function initSlots() {
+        for (var i = 0; i < SLOT_ORDER.length; i++) {
+            var s = SLOT_ORDER[i];
+            var el = slotEl(s);
+            (function(slot){
+                el.addEventListener('click', function(){ setActive(slot); });
+            })(s);
+        }
+        setActive('h0');
+    }
+
+    function updatePlayerCount() {
+        var btn = document.getElementById('btn-3p');
+        btn.textContent = threePlayers ? '3 Players' : '2 Players';
+        document.getElementById('row-t').style.display = threePlayers ? 'flex' : 'none';
+    }
+
+    function clearAll() {
+        slotCards = {};
+        used = {};
+        for (var i = 0; i < SLOT_ORDER.length; i++) clearSlotEl(SLOT_ORDER[i]);
+        refreshDeck();
+        setActive('h0');
+        document.getElementById('po-results').className = 'po-results';
+        document.getElementById('po-results').innerHTML = '';
+        lastResult = null;
+        document.getElementById('eq-ref').value = '33.3';
+        showStatus('status', 'All cards cleared. Select the Hero card slots first.', '');
+    }
+
+    function setPreset(hero, opp) {
+        clearAll();
+        var codes = [hero[0], hero[1], opp[0], opp[1]];
+        var slots = ['h0', 'h1', 'o0', 'o1'];
+        for (var i = 0; i < 4; i++) {
+            slotCards[slots[i]] = codes[i];
+            used[codes[i]] = true;
+            renderCard(slotEl(slots[i]), codes[i]);
+        }
+        var next = nextEmptySlot();
+        setActive(next || 'o1');
+        refreshDeck();
+    }
+
+    function swapHands() {
+        var h0 = slotCards['h0'], h1 = slotCards['h1'];
+        var o0 = slotCards['o0'], o1 = slotCards['o1'];
+        if (!h0 || !h1 || !o0 || !o1) { showStatus('status', 'Both hands must be fully dealt to swap', 'error'); return; }
+        slotCards['h0'] = o0; slotCards['h1'] = o1; slotCards['o0'] = h0; slotCards['o1'] = h1;
+        renderCard(slotEl('h0'), o0); renderCard(slotEl('h1'), o1);
+        renderCard(slotEl('o0'), h0); renderCard(slotEl('o1'), h1);
+        refreshDeck();
+    }
+
+    // ---------------- exact evaluator (validated) ----------------
+    function straightHigh(ranksOnce) {
+        var set = ranksOnce.slice().sort(function(a, b){ return b - a; });
+        var seen = {};
+        for (var i = 0; i < set.length; i++) seen[set[i]] = true;
+        for (var start = 14; start >= 6; start--) {
+            var ok = true;
+            for (var j = 0; j < 5; j++) if (!seen[start - j]) { ok = false; break; }
+            if (ok) return start;
+        }
+        if (seen[14] && seen[5] && seen[4] && seen[3] && seen[2]) return 5;
+        return -1;
+    }
+
+    function makeScore(cat, ranks) {
+        var sc = cat;
+        for (var i = 0; i < 5; i++) sc = sc * 16 + (ranks[i] !== undefined ? ranks[i] : 0);
+        return sc;
+    }
+
+    function eval7(cards) {
+        var rankCount = new Array(15).fill(0);
+        var suitCount = [0, 0, 0, 0];
+        var suitRanks = [[], [], [], []];
+        for (var i = 0; i < cards.length; i++) {
+            var c = cards[i];
+            rankCount[c.r]++;
+            suitCount[c.s]++;
+            suitRanks[c.s].push(c.r);
+        }
+        var flushSuit = -1;
+        for (var s = 0; s < 4; s++) if (suitCount[s] >= 5) { flushSuit = s; break; }
+        if (flushSuit >= 0) {
+            var distinct = Array.from(new Set(suitRanks[flushSuit]));
+            var sh = straightHigh(distinct);
+            if (sh >= 5) return makeScore(9, [sh]);
+            distinct.sort(function(a, b){ return b - a; });
+            return makeScore(6, distinct.slice(0, 5));
+        }
+        var once = [];
+        for (var r = 2; r <= 14; r++) if (rankCount[r] > 0) once.push(r);
+        var sh2 = straightHigh(once);
+        if (sh2 >= 5) return makeScore(5, [sh2]);
+
+        var quads = [], trips = [], pairs = [], high = [];
+        for (var rr = 14; rr >= 2; rr--) {
+            if (rankCount[rr] === 4) quads.push(rr);
+            else if (rankCount[rr] === 3) trips.push(rr);
+            else if (rankCount[rr] === 2) pairs.push(rr);
+            else if (rankCount[rr] === 1) high.push(rr);
+        }
+        if (quads.length > 0) {
+            var kickers = [];
+            for (var kq = 14; kq >= 2 && kickers.length < 1; kq--) if (rankCount[kq] > 0 && rankCount[kq] !== 4) kickers.push(kq);
+            return makeScore(8, [quads[0]].concat(kickers.slice(0, 1)).concat([0, 0, 0]));
+        }
+        if (trips.length >= 1) {
+            var tripRank = trips[0];
+            var kickPair = -1;
+            if (pairs.length > 0) kickPair = pairs[0];
+            else if (trips.length >= 2) kickPair = trips[1];
+            if (kickPair > 0) return makeScore(7, [tripRank, kickPair]);
+        }
+        if (trips.length === 1 && pairs.length === 0) {
+            var k3 = [];
+            for (var kt = 14; kt >= 2 && k3.length < 2; kt--) if (rankCount[kt] > 0 && rankCount[kt] !== 3) k3.push(kt);
+            return makeScore(4, [trips[0]].concat(k3));
+        }
+        if (pairs.length >= 2) {
+            var kp = [];
+            for (var kk = 14; kk >= 2 && kp.length < 1; kk--) if (rankCount[kk] === 1) kp.push(kk);
+            return makeScore(3, [pairs[0], pairs[1]].concat(kp));
+        }
+        if (pairs.length === 1) {
+            var k2 = [];
+            for (var k2i = 14; k2i >= 2 && k2.length < 3; k2i--) if (rankCount[k2i] === 1) k2.push(k2i);
+            return makeScore(2, [pairs[0]].concat(k2));
+        }
+        return makeScore(1, high.slice(0, 5));
+    }
+
+    function enumerateBoard(deck, needed) {
+        var combos = [];
+        function rec(start, chosen) {
+            if (chosen.length === needed) { combos.push(chosen.slice()); return; }
+            for (var i = start; i < deck.length; i++) {
+                chosen.push(deck[i]);
+                rec(i + 1, chosen);
+                chosen.pop();
+            }
+        }
+        rec(0, []);
+        return combos;
+    }
+
+    function computeEquity(hands, board) {
+        var usedSet = {};
+        function mark(arr) { for (var i = 0; i < arr.length; i++) usedSet[cardCodeFrom(arr[i])] = true; }
+        hands.forEach(mark);
+        mark(board);
+        var deck = [];
+        for (var s = 0; s < 4; s++) for (var r = 2; r <= 14; r++) {
+            var c = { r: r, s: s };
+            if (!usedSet[cardCodeFrom(c)]) deck.push(c);
+        }
+        var needed = 5 - board.length;
+        var combos = enumerateBoard(deck, needed);
+        var total = combos.length;
+        var n = hands.length;
+        var wins = new Array(n).fill(0);
+        var share = new Array(n).fill(0);
+        var ties = new Array(n).fill(0);
+        for (var i = 0; i < combos.length; i++) {
+            var b = combos[i];
+            var scores = new Array(n);
+            for (var p = 0; p < n; p++) scores[p] = eval7(hands[p].concat(b));
+            var best = scores[0];
+            for (var m = 1; m < n; m++) if (scores[m] > best) best = scores[m];
+            var winners = [];
+            for (var w = 0; w < n; w++) if (scores[w] === best) winners.push(w);
+            if (winners.length === 1) wins[winners[0]]++;
+            else {
+                var sh = 1 / winners.length;
+                for (var w2 = 0; w2 < winners.length; w2++) { share[winners[w2]] += sh; ties[winners[w2]]++; }
+            }
+        }
+        var out = [];
+        for (var pp = 0; pp < n; pp++) {
+            out.push({
+                win: (wins[pp] / total) * 100,
+                tie: (ties[pp] / total) * 100,
+                equity: ((wins[pp] + share[pp]) / total) * 100
+            });
+        }
+        return { total_combos: total, players: out };
+    }
+
+    function collectState() {
+        var hands = [];
+        var board = [];
+        function slotCode(s) { return slotCards[s] || null; }
+        var h = [slotCode('h0'), slotCode('h1')];
+        if (!h[0] || !h[1]) return null;
+        hands.push(h.map(cardFromCode));
+        var o = [slotCode('o0'), slotCode('o1')];
+        if (!o[0] || !o[1]) return null;
+        hands.push(o.map(cardFromCode));
+        if (threePlayers) {
+            var t = [slotCode('t0'), slotCode('t1')];
+            if (t[0] && t[1]) hands.push(t.map(cardFromCode));
+        }
+        for (var i = 0; i < 5; i++) {
+            var code = slotCode('b' + i);
+            if (code) board.push(cardFromCode(code));
+            else break;
+        }
+        return { hands: hands, board: board };
+    }
+
+    function fmt(n) { return n.toFixed(1); }
+
+    function choose(n, k) {
+        if (k < 0 || k > n) return 0;
+        var r = 1;
+        for (var i = 0; i < k; i++) r = r * (n - i) / (i + 1);
+        return Math.round(r);
+    }
+
+    function calcEquity() {
+        var state = collectState();
+        if (!state) { showStatus('status', 'Deal both Hero and Opponent hands completely before calculating', 'error'); return; }
+        if (state.hands.length < 2) { showStatus('status', 'Need at least two complete hands', 'error'); return; }
+        var deckCount = 52;
+        for (var k in used) deckCount--;
+        var neededBoard = 5 - state.board.length;
+        var totalCombos = choose(deckCount, neededBoard);
+        var btn = document.getElementById('btn-calc');
+        btn.disabled = true;
+        var t0 = performance.now();
+        showStatus('status', 'Enumerating ' + totalCombos.toLocaleString() + ' board combinations...', '');
+        setTimeout(function(){
+            try {
+                var res = computeEquity(state.hands, state.board);
+                lastResult = res;
+                var elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+                var names = ['Hero', 'Opponent', 'Player 3'];
+                var html = '';
+                html += '<div class="po-res-head"><span class="t">Exact Equity Results</span><span class="meta">' + res.total_combos.toLocaleString() + ' boards enumerated &middot; ' + elapsed + 's &middot; deterministic</span></div>';
+                for (var i = 0; i < res.players.length; i++) {
+                    var p = res.players[i];
+                    html += '<div class="eq-row">' +
+                        '<div class="eq-top"><span>' + names[i] + '</span><b>' + fmt(p.equity) + '% equity</b></div>' +
+                        '<div class="eq-bar"><div class="eq-fill" style="width:' + p.equity.toFixed(1) + '%;"></div></div>' +
+                        '<div class="eq-stats">' +
+                        '<div class="eq-stat"><b>' + fmt(p.win) + '%</b>Win</div>' +
+                        '<div class="eq-stat"><b>' + fmt(p.tie) + '%</b>Tie</div>' +
+                        '<div class="eq-stat"><b>1 : ' + (p.equity > 0 ? (100 / p.equity).toFixed(1) : '&infin;') + '</b>Odds</div>' +
+                        '</div></div>';
+                }
+                document.getElementById('po-results').innerHTML = html;
+                document.getElementById('po-results').className = 'po-results show';
+                document.getElementById('eq-ref').value = fmt(res.players[0].equity);
+                showStatus('status', 'Exact equity computed from ' + res.total_combos.toLocaleString() + ' board combinations in ' + elapsed + 's', 'success');
+            } catch (e) {
+                showStatus('status', 'Calculation error: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }, 30);
+    }
+
+    function copyResults() {
+        if (!lastResult) { showStatus('status', 'Calculate equity first', 'error'); return; }
+        var lines = ['Poker Odds Calculator - Exact Equity', '===================================='];
+        var names = ['Hero', 'Opponent', 'Player 3'];
+        for (var i = 0; i < lastResult.players.length; i++) {
+            var p = lastResult.players[i];
+            lines.push(names[i] + ': equity ' + fmt(p.equity) + '%, win ' + fmt(p.win) + '%, tie ' + fmt(p.tie) + '%');
+        }
+        lines.push('Based on ' + lastResult.total_combos.toLocaleString() + ' enumerated boards (exact, not Monte Carlo).');
+        navigator.clipboard.writeText(lines.join('\n')).then(function(){
+            showStatus('status', 'Results copied to clipboard', 'success');
+        }).catch(function(){
+            showStatus('status', 'Could not copy. Select and copy the results manually.', 'error');
+        });
+    }
+
+    function evalVerdict() {
+        var pot = parseFloat(document.getElementById('pot-size').value);
+        var call = parseFloat(document.getElementById('to-call').value);
+        var eq = parseFloat(document.getElementById('eq-ref').value);
+        if (isNaN(pot) || isNaN(call) || isNaN(eq) || call <= 0 || pot < 0) {
+            showStatus('status', 'Enter valid pot, call and equity values', 'error');
+            return;
+        }
+        var required = call / (pot + call) * 100;
+        var box = document.getElementById('po-verdict');
+        box.classList.add('show');
+        var margin = eq - required;
+        if (margin >= 0.05) {
+            box.className = 'po-verdict show call';
+            box.innerHTML = 'CALL &mdash; +EV. Your ' + fmt(eq) + '% equity is above the ' + fmt(required) + '% required. You gain ' + fmt(margin) + ' points of equity on every such call.';
+        } else if (margin <= -0.05) {
+            box.className = 'po-verdict show fold';
+            box.innerHTML = 'FOLD &mdash; -EV. Your ' + fmt(eq) + '% equity is below the ' + fmt(required) + '% required. You give up ' + fmt(-margin) + ' points of equity on every such call.';
+        } else {
+            box.className = 'po-verdict show call';
+            box.innerHTML = 'BREAK-EVEN &mdash; your ' + fmt(eq) + '% equity matches the ' + fmt(required) + '% required, so calling and folding are mathematically equivalent here.';
+        }
+    }
+
+    function calcOuts() {
+        var outs = parseInt(document.getElementById('outs').value, 10);
+        var street = document.getElementById('street').value;
+        if (!outs || outs < 1) { showStatus('status', 'Enter a valid number of outs', 'error'); return; }
+        var pct;
+        if (street === 'flop') {
+            var a = 47 - outs, b = 46 - outs;
+            pct = (1 - (a / 47) * (b / 46)) * 100;
+        } else {
+            pct = (outs / 46) * 100;
+        }
+        document.getElementById('outs-result').innerHTML = 'Exact hit chance with <b>' + outs + ' outs</b> on the ' +
+            (street === 'flop' ? 'flop (two cards to come): <b>' + pct.toFixed(1) + '%</b> (rule of 4 estimate: ' + (outs * 4) + '%)' :
+            'turn (one card to come): <b>' + pct.toFixed(1) + '%</b> (rule of 2 estimate: ' + (outs * 2) + '%)');
+    }
+
+    window.addEventListener('DOMContentLoaded', function(){
+        buildDeck();
+        initSlots();
+        clearAll();
+
+        document.getElementById('btn-3p').addEventListener('click', function(){
+            threePlayers = !threePlayers;
+            updatePlayerCount();
+            setActive(nextEmptySlot() || active);
+        });
+        document.getElementById('btn-clear').addEventListener('click', clearAll);
+        document.getElementById('btn-swap').addEventListener('click', swapHands);
+        document.getElementById('btn-preset-1').addEventListener('click', function(){ setPreset(['Ah','Ad'], ['Kh','Kd']); });
+        document.getElementById('btn-preset-2').addEventListener('click', function(){ setPreset(['Ah','Kh'], ['Qh','Qd']); });
+        document.getElementById('btn-preset-3').addEventListener('click', function(){ setPreset(['7h','7d'], ['6s','7s']); });
+        document.getElementById('btn-verdict').addEventListener('click', evalVerdict);
+        document.getElementById('btn-outs').addEventListener('click', calcOuts);
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Viewer - Free Online XLSX Viewer & Converter | DevTools Hub</title>
+    <meta name="description" content="Free online Excel viewer and converter. View XLSX, XLS, CSV files without Excel. Convert to JSON, CSV format. 100% private browser processing, no upload required.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/excel-viewer/">
+    <meta property="og:title" content="Excel Viewer - Free Online XLSX Viewer & Converter | DevTools Hub">
+    <meta property="og:description" content="Free online Excel viewer and converter. View XLSX, XLS, CSV files without Excel. Convert to JSON, CSV format. 100% private browser processing, no upload required.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/excel-viewer/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Excel Viewer - Free Online XLSX Viewer & Converter | DevTools Hub">
+    <meta name="twitter:description" content="Free online Excel viewer and converter. View XLSX, XLS, CSV files without Excel. Convert to JSON, CSV format. 100% private browser processing, no upload required.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/excel-viewer/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js">
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-07-11",
+        "dateModified": "2026-07-11",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "Excel Viewer & Converter",
+        "description": "View XLSX, XLS, CSV files online without Excel. Convert spreadsheet data to JSON and CSV formats. 100% private browser processing.",
+        "url": "https://tools.scoreroute.com/tools/excel-viewer/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["View XLSX/XLS/CSV files", "Convert Excel to JSON", "Convert Excel to CSV", "Sheet selector for multi-sheet workbooks", "Copy and download converted data"]
+    }
+    </script>
+    <style>
+        .excel-dropzone { border: 2px dashed #2a2a4a; border-radius: 16px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #0f0f23; margin-bottom: 20px; }
+        .excel-dropzone:hover, .excel-dropzone.dragover { border-color: #7eb3ff; background: #141428; }
+        .excel-dropzone.has-file { border-color: #10b981; background: #0a1f14; }
+        .excel-dropzone-icon { font-size: 2.5rem; margin-bottom: 12px; color: #7eb3ff; }
+        .excel-dropzone-text { color: #888; font-size: 0.95rem; }
+        .excel-dropzone-text strong { color: #7eb3ff; }
+        .excel-dropzone-hint { color: #555; font-size: 0.8rem; margin-top: 8px; }
+        .excel-dropzone input[type="file"] { display: none; }
+        .file-info-bar { display: flex; gap: 16px; align-items: center; padding: 12px 16px; background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .file-info-bar .file-name { color: #7eb3ff; font-weight: 500; flex: 1; min-width: 120px; }
+        .file-info-bar .file-detail { color: #888; font-size: 0.85rem; }
+        .sheet-selector { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .sheet-btn { background: #0f0f23; border: 1px solid #2a2a4a; color: #888; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .sheet-btn:hover { border-color: #7eb3ff; color: #ccc; }
+        .sheet-btn.active { background: #252545; border-color: #7eb3ff; color: #7eb3ff; }
+        .table-wrap { overflow-x: auto; max-height: 450px; overflow-y: auto; border: 1px solid #2a2a4a; border-radius: 10px; margin-bottom: 16px; }
+        .table-wrap table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .table-wrap th { background: #252545; color: #7eb3ff; padding: 10px 12px; text-align: left; border: 1px solid #2a2a4a; position: sticky; top: 0; z-index: 1; white-space: nowrap; }
+        .table-wrap td { padding: 8px 12px; border: 1px solid #2a2a4a; color: #ccc; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .table-wrap tr:nth-child(even) { background: #0f0f23; }
+        .table-wrap tr:hover { background: #1a1a3e; }
+        .convert-section { margin-top: 16px; }
+        .convert-section h3 { color: #7eb3ff; font-size: 1.1rem; margin-bottom: 12px; }
+        .convert-options { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+        .convert-options label { color: #aaa; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .convert-options input[type="checkbox"] { accent-color: #7eb3ff; }
+        .convert-options select { background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; }
+        .convert-options select:focus { outline: 2px solid transparent; border-color: #7eb3ff; }
+        .no-file-msg { text-align: center; color: #555; padding: 40px; font-size: 0.9rem; }
+        .stats-bar { display: flex; gap: 16px; margin-top: 12px; color: #888; font-size: 0.85rem; flex-wrap: wrap; }
+        .stats-bar span { background: #0f0f23; padding: 6px 14px; border-radius: 6px; border: 1px solid #2a2a4a; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Excel Viewer & Converter</h1>
+            <p class="subtitle">View XLSX, XLS & CSV Files Online Without Excel - Free & Private</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Excel Viewer & Converter</span>
+              <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>View & Convert Excel Files Online</h2>
+
+                <div class="excel-dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                    <div class="excel-dropzone-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    </div>
+                    <div class="excel-dropzone-text">
+                        Drop your <strong>Excel (.xlsx, .xls)</strong> or <strong>CSV</strong> file here, or <strong>click to browse</strong>
+                    </div>
+                    <div class="excel-dropzone-hint">Files never leave your browser — 100% private</div>
+                    <input aria-label="Excel file input" type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFile(this.files[0])">
+                </div>
+
+                <div id="fileInfo" class="file-info-bar" style="display:none;">
+                    <span class="file-name" id="fileName"></span>
+                    <span class="file-detail" id="fileDetail"></span>
+                    <button onclick="clearFile()" class="btn btn-secondary" style="padding:6px 14px;font-size:0.85rem;">Remove</button>
+                </div>
+
+                <div id="sheetSelector" class="sheet-selector" style="display:none;"></div>
+
+                <div id="tableContainer" class="table-wrap">
+                    <div class="no-file-msg">Upload an Excel or CSV file to view its contents</div>
+                </div>
+
+                <div class="stats-bar" id="statsBar" style="display:none;">
+                    <span id="statRows">Rows: -</span>
+                    <span id="statCols">Columns: -</span>
+                    <span id="statSheets">Sheets: -</span>
+                </div>
+
+                <div class="convert-section" id="convertSection" style="display:none;">
+                    <h3>Convert to</h3>
+                    <div class="convert-options">
+                        <label><input type="radio" name="convertFormat" value="json" checked onchange="toggleConvertOptions()"> JSON</label>
+                        <label><input type="radio" name="convertFormat" value="csv" onchange="toggleConvertOptions()"> CSV</label>
+                        <label id="jsonFormatOpt" style="display:none;">
+                            JSON format:
+                            <select id="jsonFormat">
+                                <option value="objects">Array of objects</option>
+                                <option value="arrays">Array of arrays</option>
+                                <option value="keyed">Keyed by column</option>
+                            </select>
+                        </label>
+                        <label id="csvDelimOpt" style="display:none;">
+                            Delimiter:
+                            <select id="csvDelimiter">
+                                <option value=",">Comma (,)</option>
+                                <option value=";">Semicolon (;)</option>
+                                <option value="\t">Tab</option>
+                                <option value="|">Pipe (|)</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="convertData()" class="btn btn-primary" id="convertBtn">Convert &#9654;</button>
+                        <button onclick="copyOutput()" class="btn">Copy Result</button>
+                        <button onclick="downloadOutput()" class="btn">Download File</button>
+                    </div>
+                    <textarea id="excel-output" readonly placeholder="Converted output appears here..." aria-label="Converted output" style="min-height:120px;"></textarea>
+                    <div id="excel-status" class="status"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>What is Excel Viewer & Converter?</h3>
+                <p>An Excel viewer and converter lets you open and inspect XLSX, XLS, and CSV spreadsheet files directly in your browser without Microsoft Excel or any office software. This tool parses spreadsheet data, displays it in an interactive table, and converts it to universally-readable formats like JSON (for developers) and CSV (for spreadsheets and databases). All processing happens entirely within your browser — your files never leave your device.</p>
+                <p>Spreadsheets are the lingua franca of business data. Whether you received an .xlsx attachment you cannot open on your phone, need to inspect CSV export data, or want to convert a workbook table to JSON for an API integration, this tool eliminates the need for expensive software installations.</p>
+
+                <h3>Why This Beats AI</h3>
+                <p>Large language models (ChatGPT, Claude, Gemini) have critical failures when handling spreadsheet files:</p>
+                <ol style="color:#c8c8e0;line-height:1.7;padding-left:22px;">
+                    <li><strong>Cannot read binary files</strong> — AI models cannot open .xlsx or .xls binary files at all. They have no file system access and cannot parse ZIP-compressed XML workbooks (which is what .xlsx actually is).</li>
+                    <li><strong>Hallucinated data</strong> — When shown a screenshot of spreadsheet data, AI invents rows, merges cells incorrectly, and fabricates values. A 50-row sheet becomes 53 or 47 rows.</li>
+                    <li><strong>Type corruption</strong> — Numbers with many digits (like IDs: 1000000000001) lose precision. Dates are misformatted. Currency values get rounding errors.</li>
+                    <li><strong>Multi-sheet failure</strong> — AI cannot handle workbooks with multiple sheets. You must manually copy-paste each sheet's data individually.</li>
+                    <li><strong>Large file limits</strong> — AI context windows are typically 32K-200K tokens. A 1MB Excel file with 5000 rows is far beyond what any LLM can process, but this tool handles files up to browser memory limits.</li>
+                </ol>
+                <p>This tool uses the battle-tested SheetJS library for deterministic binary parsing with zero hallucination risk. Every cell is read, every value is preserved, and every sheet is accessible.</p>
+
+                <h3>Features</h3>
+                <ul>
+                    <li><strong>Multi-format support</strong> — Open .xlsx, .xls, and .csv files in one tool</li>
+                    <li><strong>Sheet navigation</strong> — Switch between sheets in multi-sheet workbooks with easy tab buttons</li>
+                    <li><strong>Convert to JSON</strong> — Export spreadsheet data as clean JSON (array of objects, array of arrays, or keyed by column)</li>
+                    <li><strong>Convert to CSV</strong> — Export any sheet as comma, semicolon, tab, or pipe-delimited CSV</li>
+                    <li><strong>Copy & download</strong> — Copy converted data to clipboard or download as a file</li>
+                    <li><strong>Drag-drop upload</strong> — Drag files directly onto the drop zone or click to browse</li>
+                    <li><strong>File info</strong> — See file name, size, and sheet count at a glance</li>
+                    <li><strong>100% client-side</strong> — Zero upload, zero server, zero API keys needed</li>
+                </ul>
+
+                <h3>Common Use Cases</h3>
+                <ul>
+                    <li><strong>No Excel installed</strong> — Open an .xlsx attachment from email without buying Microsoft Office</li>
+                    <li><strong>Data extraction</strong> — Extract table data from Excel files for use in databases or code</li>
+                    <li><strong>API integration</strong> — Convert Excel data to JSON format for feeding into REST APIs or web applications</li>
+                    <li><strong>Data migration</strong> — Convert between Excel and CSV when switching between spreadsheet tools</li>
+                    <li><strong>Quick inspection</strong> — Preview the contents of an unknown .xlsx file before deciding how to process it</li>
+                </ul>
+
+                <h3>How It Works</h3>
+                <p>When you drop or select a file, the SheetJS library (<code>xlsx.js</code>) reads the binary file in your browser using a JavaScript implementation of the Open XML standard. It decompresses the ZIP archive (for .xlsx files), parses the XML workbook and sheet data, and converts all cells into a JavaScript data structure. The tool then renders the data as an HTML table and makes it available for conversion to JSON or CSV. Because everything happens in your browser, there are no privacy concerns, no file size limits beyond available memory, and no network latency.</p>
+
+                <h3>Excel vs CSV vs JSON: When to Use Each</h3>
+                <p><strong>Excel (.xlsx/.xls)</strong> is the standard for formatted business data with multiple sheets, formulas, charts, and conditional formatting. <strong>CSV</strong> is a lightweight, universally-compatible format for flat tabular data that any spreadsheet or database tool can import. <strong>JSON</strong> is the standard for web APIs, configuration files, and NoSQL databases. Converting between these formats bridges the gap between business data and software systems.</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>Is my Excel file uploaded to any server?</summary>
+                    <p>No. Your file never leaves your browser. All processing is done client-side using JavaScript. You can verify this by opening your browser's DevTools Network tab — there will be zero upload requests when you load a file.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What file formats are supported?</summary>
+                    <p>This tool supports .xlsx (Excel 2007+), .xls (Excel 97-2003), and .csv (comma-separated values) file formats. If you have .xlsb (binary workbook) or .ods (OpenDocument) files, try converting them to .xlsx first using Excel or LibreOffice.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is the maximum file size?</summary>
+                    <p>There is no fixed limit — the maximum file size depends on your browser's available memory (RAM). Most modern browsers can handle files up to 50-100MB without issues. For very large files above 100MB, consider splitting the workbook into smaller sheets first.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does it support multi-sheet workbooks?</summary>
+                    <p>Yes. When you load a workbook with multiple sheets, sheet tabs appear above the table. Click any sheet tab to view its data. When converting, only the currently selected sheet is exported. Supported formats (.xlsx and .xls) can contain multiple sheets; CSV files always have one sheet.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How does the JSON format differ between options?</summary>
+                    <p><strong>Array of objects</strong> produces <code>[{"Name":"Alice","Age":30}, ...]</code> — each row is an object with column headers as keys. <strong>Array of arrays</strong> produces <code>[["Name","Age"],["Alice",30], ...]</code> — headers and rows are arrays. <strong>Keyed by column</strong> produces <code>{"Name":["Alice","Bob"],"Age":[30,25]}</code> — each column becomes an array keyed by the header name.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Are formulas in cells evaluated?</summary>
+                    <p>SheetJS evaluates basic formulas and returns the computed value when available. However, complex formulas with external references, macros, or volatile functions may not evaluate fully. For best results, save your Excel file with values (Paste Special > Values) before loading it into this viewer.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I view CSV files that use different delimiters?</summary>
+                    <p>Yes. SheetJS automatically detects common delimiters (comma, semicolon, tab) when parsing CSV files. If the auto-detection fails, you can specify the delimiter during conversion to CSV output. The viewer always displays the parsed data correctly regardless of the source delimiter.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        var currentWorkbook = null;
+        var currentSheetName = null;
+        var currentSheetData = null;
+        var currentHeaders = null;
+
+        function handleFile(file) {
+            if (!file) return;
+            var dropzone = document.getElementById('dropzone');
+            dropzone.classList.add('has-file');
+
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileDetail').textContent = formatFileSize(file.size) + ' | ' + file.type || 'unknown';
+            document.getElementById('fileInfo').style.display = 'flex';
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var data = new Uint8Array(e.target.result);
+                    currentWorkbook = XLSX.read(data, {type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd hh:mm:ss'});
+                    renderSheetSelector();
+                    selectSheet(currentWorkbook.SheetNames[0]);
+                } catch (err) {
+                    showStatus('excel-status', 'Error reading file: ' + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function renderSheetSelector() {
+            var container = document.getElementById('sheetSelector');
+            container.innerHTML = '';
+            container.style.display = 'flex';
+            var names = currentWorkbook.SheetNames;
+            for (var i = 0; i < names.length; i++) {
+                var btn = document.createElement('button');
+                btn.className = 'sheet-btn' + (i === 0 ? ' active' : '');
+                btn.textContent = names[i];
+                btn.onclick = (function(name) { return function() { selectSheet(name); }; })(names[i]);
+                container.appendChild(btn);
+            }
+        }
+
+        function selectSheet(name) {
+            currentSheetName = name;
+            var sheet = currentWorkbook.Sheets[name];
+            var json = XLSX.utils.sheet_to_json(sheet, {defval: '', header: 1});
+            currentSheetData = json;
+            currentHeaders = json.length > 0 ? json[0] : [];
+
+            document.querySelectorAll('#sheetSelector .sheet-btn').forEach(function(b) {
+                b.classList.toggle('active', b.textContent === name);
+            });
+
+            renderTable(json);
+            document.getElementById('statsBar').style.display = 'flex';
+            var rows = json.length > 1 ? json.length - 1 : 0;
+            var cols = currentHeaders.length;
+            document.getElementById('statRows').textContent = 'Rows: ' + rows;
+            document.getElementById('statCols').textContent = 'Columns: ' + cols;
+            document.getElementById('statSheets').textContent = 'Sheets: ' + currentWorkbook.SheetNames.length;
+
+            document.getElementById('convertSection').style.display = 'block';
+            document.getElementById('excel-output').value = '';
+            document.getElementById('excel-status').textContent = '';
+            document.getElementById('excel-status').className = 'status';
+        }
+
+        function renderTable(json) {
+            var container = document.getElementById('tableContainer');
+            if (!json || json.length === 0) {
+                container.innerHTML = '<div class="no-file-msg">No data found in this sheet</div>';
+                return;
+            }
+            var html = '<table><thead><tr>';
+            var headers = json[0];
+            for (var c = 0; c < headers.length; c++) {
+                html += '<th>' + escapeHtml(String(headers[c] !== undefined && headers[c] !== null ? headers[c] : '')) + '</th>';
+            }
+            html += '</tr></thead><tbody>';
+            var maxRows = Math.min(json.length - 1, 500);
+            for (var r = 1; r <= maxRows; r++) {
+                html += '<tr>';
+                for (var c2 = 0; c2 < headers.length; c2++) {
+                    var val = json[r] !== undefined ? json[r][c2] : '';
+                    html += '<td title="' + escapeHtml(String(val !== undefined && val !== null ? val : '')) + '">' + escapeHtml(String(val !== undefined && val !== null ? val : '')) + '</td>';
+                }
+                html += '</tr>';
+            }
+            if (json.length - 1 > 500) {
+                html += '<tr><td colspan="' + headers.length + '" style="text-align:center;color:#888;font-style:italic;">... and ' + (json.length - 1 - 500) + ' more rows (only first 500 shown)</td></tr>';
+            }
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function toggleConvertOptions() {
+            var format = document.querySelector('input[name="convertFormat"]:checked').value;
+            document.getElementById('jsonFormatOpt').style.display = format === 'json' ? 'inline-flex' : 'none';
+            document.getElementById('csvDelimOpt').style.display = format === 'csv' ? 'inline-flex' : 'none';
+        }
+
+        // Run on load to show JSON options
+        setTimeout(toggleConvertOptions, 0);
+
+        function convertData() {
+            if (!currentSheetData || currentSheetData.length < 2) {
+                showStatus('excel-status', 'No data to convert. Load a file first.', 'error');
+                return;
+            }
+            var format = document.querySelector('input[name="convertFormat"]:checked').value;
+            try {
+                var headers = currentSheetData[0];
+                var rows = currentSheetData.slice(1).filter(function(r) { return r.length > 0; });
+                var output;
+                if (format === 'json') {
+                    var jsonFormat = document.getElementById('jsonFormat').value;
+                    output = convertToJson(headers, rows, jsonFormat);
+                } else {
+                    var delim = document.getElementById('csvDelimiter').value;
+                    output = convertToCsv(headers, rows, delim);
+                }
+                document.getElementById('excel-output').value = output;
+                showStatus('excel-status', 'Converted ' + rows.length + ' rows successfully', 'success');
+            } catch (e) {
+                showStatus('excel-status', 'Conversion error: ' + e.message, 'error');
+            }
+        }
+
+        function convertToJson(headers, rows, format) {
+            if (format === 'arrays') {
+                var result = [headers];
+                for (var i = 0; i < rows.length; i++) {
+                    var row = [];
+                    for (var c = 0; c < headers.length; c++) {
+                        row.push(rows[i][c] !== undefined ? rows[i][c] : null);
+                    }
+                    result.push(row);
+                }
+                return JSON.stringify(result, null, 2);
+            }
+            if (format === 'keyed') {
+                var result2 = {};
+                for (var c2 = 0; c2 < headers.length; c2++) {
+                    var key = String(headers[c2]);
+                    result2[key] = [];
+                    for (var r2 = 0; r2 < rows.length; r2++) {
+                        result2[key].push(rows[r2][c2] !== undefined ? rows[r2][c2] : null);
+                    }
+                }
+                return JSON.stringify(result2, null, 2);
+            }
+            // Array of objects
+            var result3 = [];
+            for (var r3 = 0; r3 < rows.length; r3++) {
+                var obj = {};
+                for (var c3 = 0; c3 < headers.length; c3++) {
+                    var key2 = String(headers[c3]);
+                    obj[key2] = rows[r3][c3] !== undefined ? rows[r3][c3] : null;
+                }
+                result3.push(obj);
+            }
+            return JSON.stringify(result3, null, 2);
+        }
+
+        function convertToCsv(headers, rows, delimiter) {
+            var d = delimiter === '\\t' ? '\t' : delimiter;
+            var lines = [];
+            lines.push(headers.map(function(h) { return escapeCsv(String(h), d); }).join(d));
+            for (var i = 0; i < rows.length; i++) {
+                var vals = [];
+                for (var c = 0; c < headers.length; c++) {
+                    var v = rows[i][c] !== undefined && rows[i][c] !== null ? String(rows[i][c]) : '';
+                    vals.push(escapeCsv(v, d));
+                }
+                lines.push(vals.join(d));
+            }
+            return lines.join('\n');
+        }
+
+        function escapeCsv(val, delimiter) {
+            if (val.indexOf('"') >= 0 || val.indexOf(delimiter) >= 0 || val.indexOf('\n') >= 0 || val.indexOf('\r') >= 0) {
+                return '"' + val.replace(/"/g, '""') + '"';
+            }
+            return val;
+        }
+
+        function copyOutput() {
+            var el = document.getElementById('excel-output');
+            if (el && el.value) {
+                navigator.clipboard.writeText(el.value);
+                showStatus('excel-status', 'Copied to clipboard', 'success');
+            } else {
+                showStatus('excel-status', 'Nothing to copy', 'error');
+            }
+        }
+
+        function downloadOutput() {
+            var el = document.getElementById('excel-output');
+            if (!el || !el.value) { showStatus('excel-status', 'Nothing to download', 'error'); return; }
+            var format = document.querySelector('input[name="convertFormat"]:checked').value;
+            var ext = format === 'json' ? '.json' : '.csv';
+            var mime = format === 'json' ? 'application/json' : 'text/csv';
+            var blob = new Blob([el.value], { type: mime + ';charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = (currentSheetName || 'sheet') + ext;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+            showStatus('excel-status', 'Downloaded as ' + a.download, 'success');
+        }
+
+        function clearFile() {
+            currentWorkbook = null;
+            currentSheetName = null;
+            currentSheetData = null;
+            currentHeaders = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('dropzone').classList.remove('has-file');
+            document.getElementById('fileInfo').style.display = 'none';
+            document.getElementById('sheetSelector').style.display = 'none';
+            document.getElementById('sheetSelector').innerHTML = '';
+            document.getElementById('tableContainer').innerHTML = '<div class="no-file-msg">Upload an Excel or CSV file to view its contents</div>';
+            document.getElementById('statsBar').style.display = 'none';
+            document.getElementById('convertSection').style.display = 'none';
+            document.getElementById('excel-output').value = '';
+            document.getElementById('excel-status').textContent = '';
+            document.getElementById('excel-status').className = 'status';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        // Drag and drop support
+        var dropzone = document.getElementById('dropzone');
+        dropzone.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', function(e) { e.preventDefault(); this.classList.remove('dragover'); });
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        function showStatus(id, msg, type) {
+            var el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'status ' + type;
+            setTimeout(function() { if (el.textContent === msg) { el.textContent = ''; el.className = 'status'; } }, 5000);
+        }
+    </script>
+    <!-- Cloudflare Web Analytics --><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

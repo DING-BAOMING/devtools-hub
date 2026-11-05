@@ -1,0 +1,87 @@
+name: IndexNow
+
+# Tells Bing / Yandex / Amazon about new pages the moment they appear.
+# No secrets needed: the IndexNow key is a public file on our own domain
+# (https://tools.scoreroute.com/f0ed603a5ff64d91903321956f48ceec.txt).
+#
+# Incremental on purpose. Bing's Webmaster Guidelines say to avoid batch
+# submissions — re-pinging every URL on every deploy turns the freshness signal
+# into noise (same reasoning as indexnow-submit.sh on the build machine).
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - sitemap.xml
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "incremental = only URLs missing from the previous sitemap, full = all URLs"
+        required: false
+        default: incremental
+        type: choice
+        options: [incremental, full]
+
+permissions:
+  contents: read
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Submit new URLs to IndexNow
+        env:
+          KEY: f0ed603a5ff64d91903321956f48ceec
+          HOST: tools.scoreroute.com
+          KEY_LOCATION: https://tools.scoreroute.com/f0ed603a5ff64d91903321956f48ceec.txt
+          SITEMAP_URL: https://tools.scoreroute.com/sitemap.xml
+          MODE: ${{ github.event.inputs.mode || 'incremental' }}
+        run: |
+          set -euo pipefail
+
+          curl -s --max-time 60 "$SITEMAP_URL" \
+            | grep -o '<loc>[^<]*</loc>' | sed 's|<loc>||;s|</loc>||' | sort > /tmp/live.txt
+          if [ ! -s /tmp/live.txt ]; then
+            echo "sitemap is empty or unreachable: $SITEMAP_URL"; exit 1
+          fi
+          echo "live sitemap: $(wc -l < /tmp/live.txt) URLs"
+
+          if [ "$MODE" = "full" ]; then
+            cp /tmp/live.txt /tmp/new.txt
+          elif git cat-file -e HEAD~1:sitemap.xml 2>/dev/null; then
+            git show HEAD~1:sitemap.xml \
+              | grep -o '<loc>[^<]*</loc>' | sed 's|<loc>||;s|</loc>||' | sort > /tmp/prev.txt
+            comm -23 /tmp/live.txt /tmp/prev.txt > /tmp/new.txt
+          else
+            cp /tmp/live.txt /tmp/new.txt
+          fi
+
+          COUNT=$(grep -c . /tmp/new.txt || true)
+          echo "mode: $MODE — URLs to submit: $COUNT"
+          if [ "$COUNT" -eq 0 ]; then
+            echo "nothing new to submit"; exit 0
+          fi
+
+          {
+            printf '{\n  "host": "%s",\n  "key": "%s",\n  "keyLocation": "%s",\n  "urlList": [\n' "$HOST" "$KEY" "$KEY_LOCATION"
+            sed 's/.*/    "&",/' /tmp/new.txt | sed '$ s/,$//'
+            printf '  ]\n}\n'
+          } > /tmp/indexnow.json
+
+          CODE=$(curl -s -o /tmp/indexnow-resp.txt -w '%{http_code}' --max-time 120 \
+            -X POST 'https://api.indexnow.org/indexnow' \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            -d @/tmp/indexnow.json)
+          echo "IndexNow HTTP $CODE"
+          cat /tmp/indexnow-resp.txt
+          if [ "$CODE" = "200" ] || [ "$CODE" = "202" ]; then
+            echo "SUCCESS: $COUNT URL(s) submitted"
+          else
+            echo "FAILED"; exit 1
+          fi

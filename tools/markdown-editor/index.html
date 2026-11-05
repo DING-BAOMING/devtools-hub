@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Markdown Editor & Preview - Live MD to HTML Converter | DevTools Hub</title>
+    <meta name="description" content="Free online markdown editor with live preview. Write markdown, see rendered HTML instantly. GitHub Flavored Markdown, syntax highlighting, copy HTML. No signup, 100% private.">
+    <meta name="keywords" content="markdown editor, markdown preview, markdown to html, md editor, live markdown, online markdown, gfm, github flavored markdown, markdown converter">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/markdown-editor/">
+    <meta property="og:title" content="Free Markdown Editor & Preview - Live MD to HTML Converter | DevTools Hub">
+    <meta property="og:description" content="Write markdown and see live rendered HTML preview. GitHub Flavored Markdown, syntax highlighting, copy HTML. No signup, 100% private browser processing.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/markdown-editor/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Free Markdown Editor & Preview","description":"Free online markdown editor with live HTML preview. GitHub Flavored Markdown, syntax highlighting, copy HTML. No signup required.","url":"https://tools.scoreroute.com/tools/markdown-editor/","applicationCategory":"WebApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-10","dateModified":"2026-06-10"}
+    </script>
+    <style>
+        :root {
+            --md-bg: #0d1117;
+            --md-surface: #161b22;
+            --md-border: #30363d;
+            --md-text: #e6edf3;
+            --md-muted: #8b949e;
+            --md-accent: #58a6ff;
+            --md-code-bg: #161b22;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .md-editor-wrapper { display:flex; flex-direction:column; gap:0; border-radius:12px; overflow:hidden; border:1px solid var(--md-border); }
+        .md-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 14px; background:var(--md-surface); border-bottom:1px solid var(--md-border); }
+        .md-toolbar-btn { background:transparent; border:none; color:var(--md-muted); width:34px; height:34px; border-radius:6px; cursor:pointer; font-size:0.95rem; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+        .md-toolbar-btn:hover { background:rgba(255,255,255,0.07); color:var(--md-text); }
+        .md-toolbar-btn.active { background:var(--md-accent); color:#fff; }
+        .md-toolbar-sep { width:1px; height:24px; background:var(--md-border); margin:0 4px; }
+        .md-toolbar-label { color:var(--md-muted); font-size:0.78rem; margin-right:4px; }
+        .md-panels { display:grid; grid-template-columns:1fr 1fr; min-height:500px; }
+        @media (max-width:900px) { .md-panels { grid-template-columns:1fr; } }
+        .md-panel { display:flex; flex-direction:column; background:var(--md-bg); }
+        .md-panel:first-child { border-right:1px solid var(--md-border); }
+        @media (max-width:900px) { .md-panel:first-child { border-right:none; border-bottom:1px solid var(--md-border); min-height:300px; } .md-panels { min-height:auto; } }
+        .md-panel-header { display:flex; justify-content:space-between; align-items:center; padding:8px 14px; background:var(--md-surface); border-bottom:1px solid var(--md-border); font-size:0.78rem; color:var(--md-muted); }
+        .md-panel-header-right { display:flex; gap:8px; align-items:center; }
+        .md-editor { flex:1; width:100%; min-height:450px; padding:16px; border:none; background:transparent; color:var(--md-text); font-family:'JetBrains Mono','Monaco','Menlo',monospace; font-size:0.9rem; line-height:1.7; resize:none; tab-size:2; }
+        .md-editor:focus { outline: 2px solid transparent; }
+        .md-editor::placeholder { color:var(--md-muted); opacity:0.4; }
+        .md-preview { flex:1; width:100%; min-height:450px; padding:16px; overflow-y:auto; line-height:1.7; color:var(--md-text); font-size:0.95rem; word-wrap:break-word; }
+        .md-preview h1 { font-size:1.8rem; font-weight:700; margin:0 0 16px; padding-bottom:8px; border-bottom:1px solid var(--md-border); }
+        .md-preview h2 { font-size:1.5rem; font-weight:600; margin:24px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--md-border); }
+        .md-preview h3 { font-size:1.25rem; font-weight:600; margin:20px 0 8px; }
+        .md-preview h4 { font-size:1.1rem; font-weight:600; margin:16px 0 6px; }
+        .md-preview p { margin:0 0 12px; }
+        .md-preview a { color:var(--md-accent); text-decoration:none; }
+        .md-preview a:hover { text-decoration:underline; }
+        .md-preview ul, .md-preview ol { margin:0 0 12px; padding-left:24px; }
+        .md-preview li { margin-bottom:4px; }
+        .md-preview li > ul, .md-preview li > ol { margin-bottom:0; }
+        .md-preview blockquote { margin:0 0 12px; padding:8px 16px; border-left:4px solid var(--md-accent); background:rgba(88,166,255,0.06); border-radius:0 6px 6px 0; color:var(--md-muted); }
+        .md-preview blockquote p:last-child { margin-bottom:0; }
+        .md-preview code { background:rgba(88,166,255,0.1); padding:2px 6px; border-radius:4px; font-family:'JetBrains Mono','Monaco',monospace; font-size:0.85em; color:#f97583; }
+        .md-preview pre { margin:0 0 16px; background:var(--md-code-bg); border-radius:8px; border:1px solid var(--md-border); overflow-x:auto; }
+        .md-preview pre code { background:transparent; padding:16px; display:block; overflow-x:auto; color:var(--md-text); font-size:0.85rem; line-height:1.5; }
+        .md-preview table { width:100%; border-collapse:collapse; margin:0 0 16px; }
+        .md-preview table th, .md-preview table td { padding:8px 12px; border:1px solid var(--md-border); text-align:left; font-size:0.9rem; }
+        .md-preview table th { background:var(--md-surface); font-weight:600; color:var(--md-muted); }
+        .md-preview table tr:nth-child(even) { background:rgba(255,255,255,0.02); }
+        .md-preview hr { border:none; border-top:1px solid var(--md-border); margin:24px 0; }
+        .md-preview img { max-width:100%; border-radius:8px; }
+        .md-preview input[type="checkbox"] { margin-right:6px; accent-color:var(--md-accent); }
+        .md-preview del { color:var(--md-muted); }
+        .md-stats { display:flex; gap:16px; padding:8px 14px; background:var(--md-surface); border-top:1px solid var(--md-border); font-size:0.78rem; color:var(--md-muted); }
+        .md-stat { display:flex; align-items:center; gap:4px; }
+        .md-stat-val { color:var(--md-text); font-weight:500; }
+        .md-bottom-bar { display:flex; gap:8px; padding:12px 14px; background:var(--md-surface); border-top:1px solid var(--md-border); flex-wrap:wrap; }
+        .toast { position:fixed; bottom:20px; right:20px; background:#10b981; color:#fff; padding:12px 24px; border-radius:8px; font-weight:500; opacity:0; transition:opacity 0.3s; z-index:2000; font-size:0.9rem; }
+        .toast.show { opacity:1; }
+        .md-empty { display:flex; align-items:center; justify-content:center; height:100%; min-height:300px; color:var(--md-muted); font-size:0.9rem; text-align:center; padding:40px; }
+        .md-empty svg { width:48px; height:48px; margin-bottom:12px; opacity:0.3; }
+        .md-preview .task-list-item { list-style:none; margin-left:-24px; }
+        .md-preview .contains-task-list { padding-left:0; }
+        @media (max-width:480px) {
+            .md-toolbar { padding:8px 10px; gap:4px; }
+            .md-toolbar-btn { width:30px; height:30px; font-size:0.85rem; }
+            .md-panel-header { padding:6px 10px; font-size:0.72rem; }
+            .md-editor { padding:12px; min-height:300px; font-size:0.85rem; }
+            .md-preview { padding:12px; min-height:300px; font-size:0.9rem; }
+        }
+        .btn-md { padding:7px 16px; border:none; border-radius:6px; font-size:0.8rem; font-weight:500; cursor:pointer; transition:all 0.15s; background:#21262d; color:var(--md-muted); border:1px solid var(--md-border); }
+        .btn-md:hover { background:#30363d; color:var(--md-text); }
+        .btn-md-primary { background:#238636; color:#fff; border:1px solid rgba(0,0,0,0); }
+        .btn-md-primary:hover { background:#2ea043; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Markdown Editor & Preview</h1>
+            <p class="subtitle">Write Markdown • See Live HTML Preview • Copy & Export • GFM Supported</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Markdown Editor & Preview</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="md-editor-wrapper">
+                    <div class="md-toolbar">
+                        <button class="md-toolbar-btn" onclick="insertMarkdown('**','**')" title="Bold" aria-label="Bold"><strong>B</strong></button>
+                        <button class="md-toolbar-btn" onclick="insertMarkdown('*','*')" title="Italic" aria-label="Italic"><em>I</em></button>
+                        <button class="md-toolbar-btn" onclick="insertMarkdown('~~','~~')" title="Strikethrough" aria-label="Strikethrough"><del>S</del></button>
+                        <button class="md-toolbar-btn" onclick="insertMarkdown('`','`')" title="Inline Code" aria-label="Inline Code">&lt;/&gt;</button>
+                        <div class="md-toolbar-sep"></div>
+                        <button class="md-toolbar-btn" onclick="insertLineStart('# ')">H1</button>
+                        <button class="md-toolbar-btn" onclick="insertLineStart('## ')">H2</button>
+                        <button class="md-toolbar-btn" onclick="insertLineStart('### ')">H3</button>
+                        <div class="md-toolbar-sep"></div>
+                        <button class="md-toolbar-btn" onclick="insertLineStart('- ')" title="Unordered List" aria-label="Unordered List">•</button>
+                        <button class="md-toolbar-btn" onclick="insertLineStart('1. ')" title="Ordered List (1.)" aria-label="Ordered List (1.)">1.</button>
+                        <button class="md-toolbar-btn" onclick="insertBlock('```\n','\n```')" title="Code Block" aria-label="Code Block">{ }</button>
+                        <button class="md-toolbar-btn" onclick="insertBlock('> ','')" title="Blockquote" aria-label="Blockquote">"</button>
+                        <button class="md-toolbar-btn" onclick="insertMarkdown('[','](url)')" title="Link" aria-label="Link">🔗</button>
+                        <button class="md-toolbar-btn" onclick="insertMarkdown('![','](url)')" title="Image" aria-label="Image">🖼</button>
+                        <div class="md-toolbar-sep"></div>
+                        <button class="md-toolbar-btn" onclick="insertBlock('\n---\n','')" title="Horizontal Rule" aria-label="Horizontal Rule">—</button>
+                        <button class="md-toolbar-btn" onclick="insertLineStart('| Header | Header |\n| ------ | ------ |\n| Cell | Cell |')" title="Table" aria-label="Table">⊞</button>
+                    </div>
+
+                    <div class="md-panels">
+                        <div class="md-panel">
+                            <div class="md-panel-header">
+                                <span>Markdown</span>
+                                <div class="md-panel-header-right">
+                                    <button class="btn-md" onclick="loadSamples()" aria-label="Load sample">Sample</button>
+                                    <button class="btn-md" onclick="clearEditor()" aria-label="Clear editor">Clear</button>
+                                    <span id="wordCount" class="md-stat-val" style="color:var(--md-muted);font-size:0.78rem;">0 words</span>
+                                </div>
+                            </div>
+                            <textarea class="md-editor" id="md-editor" placeholder="Type or paste your Markdown here..." aria-label="Markdown editor input" spellcheck="false"></textarea>
+                        </div>
+                        <div class="md-panel">
+                            <div class="md-panel-header">
+                                <span>Preview</span>
+                                <div class="md-panel-header-right">
+                                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:0.78rem;color:var(--md-muted)">
+                                        <input type="checkbox" id="autoPreview" checked onchange="updatePreview()" aria-label="Auto preview"> Auto
+                                    </label>
+                                    <span id="charCount" class="md-stat-val" style="color:var(--md-muted);font-size:0.78rem;">0 chars</span>
+                                </div>
+                            </div>
+                            <div class="md-preview" id="md-preview">
+                                <div class="md-empty">
+                                    <div>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+                                        <p>Start typing Markdown on the left to see the live preview here.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md-stats">
+                        <span class="md-stat">Words: <span class="md-stat-val" id="statsWords">0</span></span>
+                        <span class="md-stat">Chars: <span class="md-stat-val" id="statsChars">0</span></span>
+                        <span class="md-stat">Lines: <span class="md-stat-val" id="statsLines">0</span></span>
+                        <span class="md-stat">Reading: <span class="md-stat-val" id="statsReading">0s</span></span>
+                    </div>
+
+                    <div class="md-bottom-bar">
+                        <button class="btn-md btn-md-primary" onclick="copyHTML()" aria-label="Copy HTML">Copy HTML</button>
+                        <button class="btn-md" onclick="downloadMarkdown()" aria-label="Download .md file">Download .md</button>
+                        <button class="btn-md" onclick="downloadHTML()" aria-label="Download .html file">Download .html</button>
+                        <button class="btn-md" onclick="toggleFullscreen()" aria-label="Toggle fullscreen">Fullscreen</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What is a Markdown Editor & Preview?</h2>
+                <p>This online Markdown editor lets you write in Markdown syntax on the left and see the rendered HTML preview on the right in real time. Unlike AI tools that hallucinate HTML output or fail to render complex tables and code blocks correctly, our editor uses the battle-tested <strong>marked.js</strong> library with GitHub Flavored Markdown (GFM) support for 100% accurate rendering every time.</p>
+
+                <h3>How It Works</h3>
+                <p>Type or paste Markdown text in the left panel. The right panel instantly renders the formatted output as HTML. Use the toolbar buttons to insert formatting, or write raw Markdown directly. When you are satisfied, copy the HTML, download as a .md file, or download the rendered HTML output. Everything runs in your browser — nothing is uploaded to any server.</p>
+
+                <h3>Features</h3>
+                <ul>
+                    <li><strong>Live Preview</strong> — See your rendered Markdown update as you type</li>
+                    <li><strong>GitHub Flavored Markdown</strong> — Tables, task lists, strikethrough, code blocks with syntax highlighting</li>
+                    <li><strong>Formatting Toolbar</strong> — Quick buttons for bold, italic, headings, lists, code, links, and more</li>
+                    <li><strong>Copy HTML</strong> — One-click copy of clean, semantic HTML output</li>
+                    <li><strong>Export Options</strong> — Download as .md (source) or .html (rendered) file</li>
+                    <li><strong>Word & Character Count</strong> — Real-time statistics including reading time</li>
+                    <li><strong>Fullscreen Mode</strong> — Focus on your writing without distractions</li>
+                    <li><strong>Sample Content</strong> — Pre-loaded examples to get started quickly</li>
+                    <li><strong>GFM Task Lists</strong> — Interactive checkboxes in preview</li>
+                    <li><strong>Code Syntax Highlighting</strong> — Language-aware code block rendering</li>
+                </ul>
+
+                <h3>Why Use This Tool Instead of AI?</h3>
+                <ul>
+                    <li><strong>No Hallucinations</strong> — AI often generates incorrect HTML or invents formatting that doesn't exist. Our tool uses a deterministic parser for perfect accuracy.</li>
+                    <li><strong>Real-Time Preview</strong> — AI chatbots cannot provide live, interactive rendering as you type.</li>
+                    <li><strong>Zero Server Calls</strong> — All processing happens in your browser. Your content stays private and works offline after the first load.</li>
+                    <li><strong>Copy-Ready HTML</strong> — Get clean, semantic HTML suitable for CMS, blogs, documentation, and email templates.</li>
+                    <li><strong>No Signup, No Limits</strong> — Free forever, no account needed, no daily usage caps.</li>
+                </ul>
+
+                <h3>Common Use Cases</h3>
+                <ul>
+                    <li>Drafting README files for GitHub repositories</li>
+                    <li>Writing blog posts and converting to CMS-ready HTML</li>
+                    <li>Creating documentation for developer projects</li>
+                    <li>Formatting notes, newsletters, and technical reports</li>
+                    <li>Previewing GitHub Flavored Markdown before committing</li>
+                </ul>
+
+                <h3>Markdown Syntax Examples</h3>
+                <div class="example-box">
+                    <h4>Basic Formatting</h4>
+                    <div class="example-item">Bold: <code>**bold text**</code></div>
+                    <div class="example-item">Italic: <code>*italic text*</code></div>
+                    <div class="example-item">Link: <code>[title](https://example.com)</code></div>
+                    <div class="example-item">Image: <code>![alt](image.jpg)</code></div>
+                    <div class="example-item">Code: <code>`inline code`</code></div>
+                </div>
+
+                <div class="example-box">
+                    <h4>Extended GFM</h4>
+                    <div class="example-item">Table: Use pipes and dashes <code>| A | B |</code></div>
+                    <div class="example-item">Task List: <code>- [x] done / - [ ] todo</code></div>
+                    <div class="example-item">Code Block: Triple backticks with language</div>
+                    <div class="example-item">Strikethrough: <code>~~deleted~~</code></div>
+                    <div class="example-item">Footnote: <code>[^1]</code> at end</div>
+                </div>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>Is this markdown editor free?</summary>
+                    <p>Yes, completely free. No signup, no usage limits, no hidden paid features. Every feature including syntax highlighting, HTML copy, and file downloads is available to everyone.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What Markdown flavor is supported?</summary>
+                    <p>GitHub Flavored Markdown (GFM) via the marked.js library — including tables, task lists, strikethrough, autolinks, fenced code blocks with syntax highlighting, and more. It matches what you see on GitHub, GitLab, and most modern platforms.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How do I copy the HTML output?</summary>
+                    <p>Click the "Copy HTML" button at the bottom of the editor. The rendered HTML is copied to your clipboard, ready to paste into a CMS, blog editor, email template, or documentation system.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is my content uploaded to a server?</summary>
+                    <p>No. Everything runs entirely in your browser. Your text never leaves your device. The marked.js library processes everything locally. You can even use this tool offline after the first page load.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does it work on mobile?</summary>
+                    <p>Yes. On smaller screens, the editor and preview stack vertically. The toolbar adapts to fit, and all buttons have proper touch targets. You can write, preview, and copy HTML from any device.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How is this different from an AI chatbot?</summary>
+                    <p>AI chatbots generate text but cannot provide live, interactive HTML preview as you type. They also frequently hallucinate incorrect HTML output, fail on complex tables, and require server calls (meaning your data leaves your device). Our editor is deterministic, private, and instant.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+    (function() {
+        var editor = document.getElementById('md-editor');
+        var preview = document.getElementById('md-preview');
+        var autoPreview = document.getElementById('autoPreview');
+        var debounceTimer = null;
+
+        var sampleMD = '# Markdown Editor & Preview\n\n' +
+            'Welcome to the **Markdown Editor**! This is a live preview tool.\n\n' +
+            '## Features\n\n' +
+            '- **Bold**, *italic*, ~~strikethrough~~, and `inline code`\n' +
+            '- Headers (H1 to H6)\n' +
+            '- Ordered and unordered lists\n' +
+            '- [Links](https://example.com) and images\n' +
+            '- Tables and task lists\n' +
+            '- Code blocks with syntax highlighting\n\n' +
+            '## Code Example\n\n```javascript\nfunction greet(name) {\n' +
+            '  return `Hello, ${name}!`;\n}\n\nconsole.log(greet(\'DevTools Hub\'));\n```\n\n' +
+            '## Table Example\n\n' +
+            '| Feature | Status | Notes |\n|---------|--------|-------|\n' +
+            '| GFM Tables | ✅ | Full support |\n| Task Lists | ✅ | Interactive |\n| Syntax Highlight | ✅ | 190+ languages |\n\n' +
+            '## Task List\n\n' +
+            '- [x] Write markdown\n' +
+            '- [x] See live preview\n' +
+            '- [ ] Copy HTML to clipboard\n' +
+            '- [ ] Download as file\n\n' +
+            '> **Tip:** Click the \"Copy HTML\" button below to get clean HTML output!\n\n' +
+            '---\n\n' +
+            'Start editing to see the preview update in real time.';
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updatePreview() {
+            var text = editor.value;
+            updateStats(text);
+
+            if (!text.trim()) {
+                preview.innerHTML = '<div class="md-empty"><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg><p>Start typing Markdown on the left to see the live preview here.</p></div></div>';
+                return;
+            }
+
+            if (!autoPreview.checked) return;
+
+            try {
+                var html = marked.parse(text, { gfm: true, breaks: true });
+                preview.innerHTML = html;
+
+                preview.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(function(h) {
+                    h.setAttribute('aria-hidden', 'true');
+                });
+                preview.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+                    cb.setAttribute('aria-hidden', 'true');
+                    cb.setAttribute('tabindex', '-1');
+                });
+
+                // highlight code blocks
+                preview.querySelectorAll('pre code').forEach(function(block) {
+                    if (typeof hljs !== 'undefined') {
+                        hljs.highlightElement(block);
+                    }
+                });
+            } catch(e) {
+                preview.innerHTML = '<div style="color:#f85149;padding:16px;">Error rendering markdown: ' + escapeHtml(e.message) + '</div>';
+            }
+        }
+
+        function updateStats(text) {
+            var words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            var chars = text.length;
+            var lines = text ? text.split('\\n').length : 0;
+            var readingTime = Math.max(1, Math.ceil(words / 200));
+
+            document.getElementById('statsWords').textContent = words.toLocaleString();
+            document.getElementById('statsChars').textContent = chars.toLocaleString();
+            document.getElementById('statsLines').textContent = lines.toLocaleString();
+            document.getElementById('statsReading').textContent = readingTime + (readingTime === 1 ? 's' : 's');
+            document.getElementById('wordCount').textContent = words.toLocaleString() + ' words';
+            document.getElementById('charCount').textContent = chars.toLocaleString() + ' chars';
+        }
+
+        function debouncedUpdate() {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(updatePreview, 200);
+        }
+
+        editor.addEventListener('input', debouncedUpdate);
+
+        function getSelectionOrAll() {
+            var ta = editor;
+            if (ta.selectionStart !== ta.selectionEnd) {
+                return { start: ta.selectionStart, end: ta.selectionEnd, selected: ta.value.substring(ta.selectionStart, ta.selectionEnd) };
+            }
+            return null;
+        }
+
+        window.insertMarkdown = function(before, after) {
+            var sel = getSelectionOrAll();
+            if (sel) {
+                var newText = before + sel.selected + after;
+                editor.value = editor.value.substring(0, sel.start) + newText + editor.value.substring(sel.end);
+                editor.selectionStart = sel.start + before.length;
+                editor.selectionEnd = sel.start + before.length + sel.selected.length;
+            } else {
+                editor.value += before + after;
+                editor.selectionStart = editor.value.length - after.length;
+                editor.selectionEnd = editor.selectionStart;
+            }
+            editor.focus();
+            updatePreview();
+        };
+
+        window.insertLineStart = function(prefix) {
+            var ta = editor;
+            var start = ta.selectionStart;
+            var lineStart = ta.value.lastIndexOf('\\n', start - 1) + 1;
+            ta.value = ta.value.substring(0, lineStart) + prefix + ta.value.substring(lineStart);
+            ta.selectionStart = ta.selectionEnd = start + prefix.length;
+            ta.focus();
+            updatePreview();
+        };
+
+        window.insertBlock = function(before, after) {
+            var ta = editor;
+            var sel = getSelectionOrAll();
+            if (sel) {
+                var newText = before + sel.selected + after;
+                editor.value = editor.value.substring(0, sel.start) + newText + editor.value.substring(sel.end);
+                editor.selectionStart = sel.start + before.length;
+                editor.selectionEnd = sel.start + before.length + sel.selected.length;
+            } else {
+                var pos = ta.selectionStart;
+                editor.value = editor.value.substring(0, pos) + before + after + editor.value.substring(pos);
+                editor.selectionStart = pos + before.length;
+                editor.selectionEnd = pos + before.length;
+            }
+            ta.focus();
+            updatePreview();
+        };
+
+        window.loadSamples = function() {
+            editor.value = sampleMD;
+            updatePreview();
+        };
+
+        window.clearEditor = function() {
+            if (editor.value.trim() && !confirm('Clear all content?')) return;
+            editor.value = '';
+            updatePreview();
+        };
+
+        window.copyHTML = function() {
+            if (!editor.value.trim()) {
+                showToast('Nothing to copy — write some Markdown first');
+                return;
+            }
+            try {
+                var html = marked.parse(editor.value, { gfm: true, breaks: true });
+                navigator.clipboard.writeText(html).then(function() {
+                    showToast('HTML copied to clipboard!');
+                }).catch(function() {
+                    // fallback
+                    var ta = document.createElement('textarea');
+                    ta.value = html;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    showToast('HTML copied!');
+                });
+            } catch(e) {
+                showToast('Error generating HTML');
+            }
+        };
+
+        window.downloadMarkdown = function() {
+            if (!editor.value.trim()) {
+                showToast('Nothing to download');
+                return;
+            }
+            var blob = new Blob([editor.value], { type: 'text/markdown' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'document.md';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Markdown file downloaded!');
+        };
+
+        window.downloadHTML = function() {
+            if (!editor.value.trim()) {
+                showToast('Nothing to download');
+                return;
+            }
+            try {
+                var bodyHtml = marked.parse(editor.value, { gfm: true, breaks: true });
+                var fullHtml = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
+                    '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+                    '<title>Markdown Export</title>' +
+                    '<style>body{max-width:800px;margin:0 auto;padding:20px;font-family:-apple-system,sans-serif;line-height:1.6;color:#333;}pre{background:#f5f5f5;padding:16px;border-radius:8px;overflow-x:auto;}code{background:#f0f0f0;padding:2px 6px;border-radius:4px;}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px 12px;text-align:left}blockquote{border-left:4px solid #667eea;padding:8px 16px;margin:0;background:#f9f9f9}img{max-width:100%}</style></head><body>' +
+                    bodyHtml + '</body></html>';
+
+                var blob = new Blob([fullHtml], { type: 'text/html' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'document.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('HTML file downloaded!');
+            } catch(e) {
+                showToast('Error generating HTML');
+            }
+        };
+
+        window.toggleFullscreen = function() {
+            if (!document.fullscreenElement) {
+                var el = document.querySelector('.md-editor-wrapper');
+                if (el.requestFullscreen) {
+                    el.requestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        };
+
+        // BUG-332: `onchange="updatePreview()"` resolves against the global scope,
+        // but updatePreview is declared inside this IIFE. Without this export the
+        // Auto-preview checkbox throws `updatePreview is not defined`.
+        window.updatePreview = updatePreview;
+
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._timeout);
+            t._timeout = setTimeout(function() { t.classList.remove('show'); }, 2500);
+        }
+
+        // Load sample on first visit
+        editor.value = sampleMD;
+        updatePreview();
+
+        // Keyboard shortcut: Ctrl+Shift+P for preview refresh
+        editor.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && (e.key === 'P' || e.key === 'p')) {
+                e.preventDefault();
+                updatePreview();
+            }
+        });
+    })();
+    </script>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a> | <a href="/tools/markdown-editor/">Markdown Editor</a> | <a href="/tools/paraphrasing-tool/">Paraphrasing Tool</a> | <a href="/tools/text-diff/">Text Diff</a> | <a href="/sitemap.xml">Sitemap</a></p>
+    </footer>
+
+</body>
+</html>

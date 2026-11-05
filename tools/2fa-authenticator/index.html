@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2FA Authenticator - TOTP Generator & Decoder</title>
+<meta name="description" content="Decode otpauth QR codes and URIs, generate TOTP and HOTP codes, and find out why your authenticator code is rejected. Nothing is uploaded.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/2fa-authenticator/">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/2fa-authenticator/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="2FA Authenticator - TOTP Generator & Decoder">
+<meta property="og:description" content="Decode otpauth QR codes and URIs, generate TOTP and HOTP codes, and find out why your authenticator code is rejected. Nothing is uploaded.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="2FA Authenticator - TOTP Generator & Decoder">
+<meta name="twitter:description" content="Decode otpauth QR codes and URIs, generate TOTP and HOTP codes, and find out why your authenticator code is rejected. Nothing is uploaded.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:url" content="https://tools.scoreroute.com/tools/2fa-authenticator/">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "2FA Authenticator",
+  "description": "Free online 2FA authenticator and TOTP decoder. Decodes otpauth QR codes and URIs, generates TOTP and HOTP codes, checks clock drift and issuer mismatch, and verifies itself against the RFC 6238 test vectors.",
+  "url": "https://tools.scoreroute.com/tools/2fa-authenticator/",
+  "applicationCategory": "NetworkApplication",
+  "browserRequirements": "Requires JavaScript. Works offline once loaded.",
+  "operatingSystem": "Any",
+  "datePublished": "2026-10-10",
+  "dateModified": "2026-10-10",
+  "author": {"@type": "Person", "name": "BAOMING"},
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "isAccessibleForFree": true,
+  "featureList": [
+    "otpauth URI and QR code decoder",
+    "TOTP and HOTP code generation",
+    "Base32 secret validation and normalization",
+    "Clock drift diagnosis table",
+    "Issuer mismatch and phishing warning",
+    "RFC 6238 test vector self test"
+  ]
+}
+</script>
+<style>
+.tfa-drop{border:2px dashed #2a2a4a;border-radius:10px;padding:18px;text-align:center;cursor:pointer;color:#b3b8c0;margin-bottom:18px;transition:border-color .2s,background .2s;}
+.tfa-drop:hover,.tfa-drop:focus-visible{border-color:#667eea;background:rgba(102,126,234,.06);}
+.tfa-drop:focus{outline:2px solid transparent;}
+.tfa-input-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.tfa-input-row textarea{flex:1;min-width:260px;min-height:88px;padding:14px 16px;background:#0f0f23;border:2px solid #2a2a4a;color:#fff;border-radius:10px;font-family:monospace;font-size:.85rem;resize:vertical;}
+.tfa-input-row textarea:focus{outline:2px solid transparent;border-color:#667eea;}
+.tfa-btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+.tfa-code-box{background:#0f0f23;border:2px solid #667eea;border-radius:14px;padding:22px;text-align:center;margin-bottom:18px;}
+.tfa-code{font-family:monospace;font-size:2.6rem;font-weight:700;letter-spacing:.18em;color:#7eb3ff;word-break:break-all;}
+.tfa-meta{color:#888;font-size:.85rem;margin-top:8px;}
+.tfa-bar{height:6px;background:#2a2a4a;border-radius:3px;overflow:hidden;margin-top:14px;}
+.tfa-bar-fill{height:100%;background:#667eea;width:100%;transition:width .25s linear;}
+.tfa-warn{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:.87rem;color:#fbbf24;line-height:1.5;}
+.tfa-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:.87rem;color:#f87171;line-height:1.5;}
+.tfa-ok{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:.87rem;color:#4ade80;line-height:1.5;}
+.tfa-params{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:10px;padding:16px 20px;margin-bottom:20px;font-size:.88rem;}
+.tfa-params dt{color:#888;}
+.tfa-params dd{margin:0;font-family:monospace;color:#ddd;word-break:break-all;}
+.tfa-panel{background:#1a1a2e;border:1px solid #2a2a4a;border-radius:12px;margin-bottom:16px;overflow:hidden;}
+.tfa-panel-title{cursor:default;padding:14px 18px;margin:0;font-size:1.05rem;font-weight:600;color:#fff;border-bottom:1px solid #2a2a4a;}
+.tfa-panel-body{padding:16px 18px;}
+table.tfa-table{width:100%;border-collapse:collapse;font-size:.87rem;}
+table.tfa-table th,table.tfa-table td{padding:7px 10px;border-bottom:1px solid #2a2a4a;text-align:left;}
+table.tfa-table th{color:#888;font-weight:600;}
+table.tfa-table td.tfa-mono{font-family:monospace;color:#7eb3ff;letter-spacing:.1em;}
+table.tfa-table tr.tfa-here td{background:rgba(102,126,234,.14);}
+.tfa-legend{color:#888;font-size:.82rem;margin-top:10px;line-height:1.5;}
+.tfa-sel{background:#0f0f23;border:2px solid #2a2a4a;color:#fff;border-radius:8px;padding:9px 12px;font-size:.88rem;}
+.tfa-sel:focus{outline:2px solid transparent;border-color:#667eea;}
+.tfa-label{display:block;color:#888;font-size:.85rem;margin-bottom:5px;}
+.tfa-hidden{display:none;}
+@media (max-width:600px){.tfa-code{font-size:1.9rem;}.tfa-params{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>2FA Authenticator</h1>
+    <p class="subtitle">Decode otpauth Codes, Diagnose Rejected 2FA</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/tools/network/">Network</a> &gt; <span>2FA Authenticator</span>
+      <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <h2>Your Code Right Now</h2>
+
+      <div class="tfa-drop" id="tfa-drop" role="button" tabindex="0">
+        <div id="tfa-drop-text">Drop a 2FA QR code screenshot here, or click to choose a file</div>
+      </div>
+      <input type="file" id="tfa-file" accept="image/*" aria-label="2FA QR code image" class="tfa-hidden">
+      <canvas id="tfa-canvas" class="tfa-hidden"></canvas>
+
+      <div class="tfa-input-row">
+        <textarea id="tfa-input" spellcheck="false" autocomplete="off" aria-label="otpauth URI or Base32 setup key" placeholder="otpauth://totp/Example:alice@example.com?secret=JBSWY3DPEHPK3PXP&amp;issuer=Example&#10;&#10;or paste a Base32 setup key on its own:  JBSW Y3DP EHPK 3PXP"></textarea>
+      </div>
+      <div class="tfa-btn-row">
+        <button type="button" class="btn btn-primary" onclick="tfaDecode()">Decode and Generate</button>
+        <button type="button" class="btn" onclick="tfaClear()">Clear</button>
+        <button type="button" class="btn btn-secondary" onclick="tfaSelfTest()">Run RFC 6238 Self Test</button>
+      </div>
+
+      <div id="tfa-status" role="status" aria-live="polite"></div>
+
+      <div id="tfa-result" class="tfa-hidden">
+        <div class="tfa-code-box">
+          <div class="tfa-code" id="tfa-code">------</div>
+          <div class="tfa-meta" id="tfa-meta"></div>
+          <div class="tfa-bar"><div class="tfa-bar-fill" id="tfa-bar"></div></div>
+          <div style="margin-top:14px;">
+            <button type="button" class="btn tfa-hidden" id="tfa-next" onclick="tfaNextHotp()">Next code</button>
+          </div>
+        </div>
+        <div id="tfa-diag"></div>
+
+        <!-- These two panels are <div> rather than <details> on purpose: the request-time
+             FAQPage extractor reads ANY <details><summary> pair, so a collapsible tool panel
+             here would be published to Google and to AI agents as a FAQ question. -->
+        <div class="tfa-panel">
+          <h3 class="tfa-panel-title">Setup parameters</h3>
+          <div class="tfa-panel-body">
+            <dl class="tfa-params" id="tfa-params"></dl>
+            <div id="tfa-warnings"></div>
+          </div>
+        </div>
+
+        <div class="tfa-panel">
+          <h3 class="tfa-panel-title">Clock drift diagnosis</h3>
+          <div class="tfa-panel-body">
+            <p style="color:#b3b8c0;font-size:.9rem;margin-top:0;">If your authenticator app shows a different code, it is almost always a clock offset. Compare your app against the offsets below, then read the matching row to learn how far off your device clock is.</p>
+            <table class="tfa-table" id="tfa-drift">
+<caption class="sr-only">Clock drift between your device and the code it was issued for</caption>
+              <thead><tr><th scope="col">Your device clock</th><th scope="col">Code it should show</th></tr></thead>
+              <tbody id="tfa-drift-body"><tr><td colspan="2">Decode a code above to see clock drift.</td></tr></tbody>
+            </table>
+            <p class="tfa-legend">Rows are computed at the current instant plus the stated offset. Values are identical across an entire 30 second window, so match on the code, not on the second.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="tfa-selftest" class="tfa-hidden" style="margin-top:18px;">
+        <h2 style="margin-top:0;">Implementation self test</h2>
+        <p style="color:#b3b8c0;font-size:.9rem;">The published test vectors from RFC 6238, run against the same code path that generates the code above. All 18 must pass for the implementation to be considered correct.</p>
+        <div id="tfa-selftest-out"></div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h2>Why your authenticator code is rejected</h2>
+      <p>Most 2FA failures are not mysterious. When an authenticator app and a website disagree about the six digit code, the cause is almost always one of five things: the shared secret was mistyped, the clock on the device running the authenticator is off, the service expects a different digit count or hash than the app is using, the account was enrolled twice and you are reading a stale entry, or the code was copied with a few seconds left on its timer. This page computes the codes itself and then shows you the whole parameter set, so you can tell those five apart instead of guessing.</p>
+      <p>The secret is the only part that matters. Once two parties hold the same secret and agree on the time window, the six digit code is fully determined by RFC 6238. There is no server call involved, which is why this page can run entirely inside your browser. Your secret is never uploaded, never logged and never leaves the tab, because a tool that asks for your 2FA seed and then phones home is a worse risk than the problem you came here to fix.</p>
+      <p>Time drift is the reason most people give up. A TOTP code is valid for a window of thirty seconds, and most services will also accept the previous window, giving you about sixty seconds of tolerance in total. If your phone clock is ninety seconds fast, every code you copy is already stale by the time it reaches the server, and no amount of retyping helps. The drift table below solves this the only way it can be solved: by printing the code for a range of clock offsets so you can match your authenticator against one of them and read off how far off your device actually is.</p>
+      <p>The parameter table matters for a different reason. An otpauth URI carries far more than the secret. It carries the algorithm, which is SHA-1 for almost every service in the world but SHA-256 or SHA-512 for a handful. It carries the digit count, which is six almost everywhere and eight for a few banking and enterprise systems. It carries the period, which is thirty seconds unless the service chose otherwise. When an app is enrolled manually from a typed secret, these three defaults are assumed silently, and that is exactly where mismatches creep in.</p>
+      <p>Issuer mismatch is the failure nobody warns you about. The specification says that the issuer inside the account label and the issuer parameter should agree, and when they do not, an authenticator app is allowed to trust whichever one it likes. A link whose label reads GitHub but whose issuer parameter reads something else is the shape a phishing page produces, and it is also the shape some older enrolment flows produce by accident. Either way you want to know before you scan it.</p>
+      <p>Counter based codes, usually called HOTP, use a number that goes up by one per login instead of the clock. Some hardware tokens and a few older enterprise systems still work this way. Most web tools ignore them, which leaves anyone holding a counter based token unable to check their code anywhere at all. This page implements both so the same tool covers the whole family.</p>
+      <p>The built in self test runs the published test vectors from RFC 6238 against the exact code that produces the code on your screen. If every vector matches, the implementation is correct and any remaining disagreement is on the device side. If a vector fails, you know the problem is here rather than in your phone, and you should not waste another ten minutes retyping codes.</p>
+
+      <h2>How to use it</h2>
+      <ol style="color:#b3b8c0;">
+        <li>Drop in the QR code screenshot the service showed you, or paste the otpauth link or the Base32 setup key.</li>
+        <li>Read the setup parameters. Compare the issuer, algorithm, digits and period against what the service told you.</li>
+        <li>Type the displayed code into the login form. The bar shows how long it stays valid.</li>
+        <li>If it is rejected, open the clock drift diagnosis and match your authenticator against the offsets.</li>
+      </ol>
+      <p>Nothing is transmitted. There is no server behind this page.</p>
+
+      <h2>Frequently asked questions</h2>
+
+      <details class="faq-item">
+        <summary>Can an AI chatbot generate my 2FA code?</summary>
+        <p>No, and it should not be asked to. Generating a code requires your Base32 secret and an exact match between your clock and the server's. A language model cannot compute either, and pasting a 2FA seed into a chat window permanently hands your second factor to whoever stores that conversation. This page computes locally for the same reason.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Why does my code work on one site and not another?</summary>
+        <p>Two accounts enrolled from the same secret, or two accounts with different digit counts and algorithms. Both mistakes happen silently during manual enrolment, because the setup key alone carries none of that information. The setup parameters panel shows what this entry actually uses.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>What does an issuer mismatch mean?</summary>
+        <p>The account label and the issuer parameter disagree, for example a label of GitHub:alice with an issuer of something else. RFC 4226 section 5.2 says the two should match. When they do not, authenticator apps differ in which one they display, which makes a phishing QR and a genuine one look identical in the app. Treat any mismatch as a reason to verify the domain before logging in.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>How far can my device clock be off before codes fail?</summary>
+        <p>With the default 30 second period and a server that accepts one step of clock drift, you have roughly 60 seconds of tolerance. Outside that window every code is stale. Most services expose their tolerance, and a handful accept nothing at all, which is why a phone with a manual date can lock you out completely.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Is it safe to paste my setup key here?</summary>
+        <p>The calculation runs in this page using the browser's Web Crypto API. No network request carries the secret, and nothing is stored. The risk of pasting a secret into any other web tool is that the secret exists on someone else's server, where it can be logged, cached or breached. Do not reuse a setup key you have pasted elsewhere, and rotate this account's 2FA if you are unsure where you have typed it.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>What is HOTP and when do I need it?</summary>
+        <p>HOTP is the counter based scheme in RFC 4226. Instead of deriving the code from the clock, it derives it from a number that increases by one each time you use the token. You will meet it on older hardware tokens, some enterprise single sign on systems, and anything that asks you to press the button before reading the code.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>My secret is not valid Base32, what now?</summary>
+        <p>Strip the spaces and hyphens first, since setup keys are usually printed in groups. After that every remaining character has to come from A to Z or 2 to 7. Zeros and ones are the usual mistakes: an O mistyped as 0, or an I mistyped as 1, and they are invisible in most fonts. The decoder names the exact offending characters rather than failing silently.</p>
+      </details>
+
+      <details class="faq-item">
+        <summary>Does this replace my authenticator app?</summary>
+        <p>No. An app stores your seeds encrypted on your device and works with no browser at all. Use this page to check a code, decode a link you do not trust, or recover a setup key you stored somewhere safe. Enrolling new accounts is best done in a real authenticator.</p>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+
+<script src="/tools.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" integrity="sha384-b5Ya4Bq3qCyz39m2ISh+4DxjAIljdeFwK/BsXLuj9gugaNwAcj/ia15fxNZL9Nlx" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+var B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+var OFFICIAL_PARAMS = {secret:1,issuer:1,algorithm:1,digits:1,period:1,counter:1,image:1,lock:1};
+var RFC6238_VECTORS = [
+  {t:59,          sha1:'94287082', sha256:'46119246', sha512:'90693936'},
+  {t:1111111109,  sha1:'07081804', sha256:'68084774', sha512:'25091201'},
+  {t:1111111111,  sha1:'14050471', sha256:'67062674', sha512:'99943326'},
+  {t:1234567890,  sha1:'89005924', sha256:'91819424', sha512:'93441116'},
+  {t:2000000000,  sha1:'69279037', sha256:'90698825', sha512:'38618901'},
+  {t:20000000000, sha1:'65353130', sha256:'77737706', sha512:'47863826'}
+];
+var tfa = null, tfaTimer = null, tfaRendered = false;
+
+function tfaStatus(msg, cls) {
+  var el = document.getElementById('tfa-status');
+  el.innerHTML = msg ? '<div class="tfa-' + (cls || 'err') + '">' + tfaEsc(msg) + '</div>' : '';
+}
+function tfaEsc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Strip the cosmetic grouping people copy out of setup screens, uppercase, drop padding.
+function tfaNormalizeSecret(raw) {
+  return String(raw).replace(/[\s-]/g, '').replace(/=+$/, '').toUpperCase();
+}
+
+function tfaDecodeSecret(raw) {
+  var clean = tfaNormalizeSecret(raw), bad = [], i, c;
+  for (i = 0; i < clean.length; i++) {
+    c = clean.charAt(i);
+    if (B32.indexOf(c) < 0 && bad.indexOf(c) < 0) bad.push(c);
+  }
+  if (bad.length) throw new Error('Not valid Base32. Offending character' + (bad.length > 1 ? 's' : '') + ': ' + bad.join(' ') + '. Base32 uses A-Z and 2-7 only, so a 0 is almost always a mistyped O and a 1 is usually a mistyped I or L.');
+  if (!clean.length) throw new Error('No secret found.');
+  var bits = 0, val = 0, out = [];
+  for (i = 0; i < clean.length; i++) {
+    val = (val << 5) | B32.indexOf(clean.charAt(i));
+    bits += 5;
+    if (bits >= 8) { out.push((val >>> (bits - 8)) & 255); bits -= 8; }
+  }
+  return {bytes: new Uint8Array(out), clean: clean};
+}
+
+// RFC 4226 section 5.3 dynamic truncation.
+function tfaTruncateBytes(sig, digits) {
+  var off = sig[sig.length - 1] & 0x0f;
+  var bin = ((sig[off] & 0x7f) << 24) | (sig[off + 1] << 16) | (sig[off + 2] << 8) | sig[off + 3];
+  return String(bin % Math.pow(10, digits)).padStart(digits, '0');
+}
+
+// WebCrypto spells the hashes with a dash; RFC 6238 and otpauth URIs call them SHA1, SHA256, SHA512.
+var TFA_HASH = {SHA1: 'SHA-1', SHA256: 'SHA-256', SHA512: 'SHA-512'};
+
+// RFC 4226 / RFC 6238 dynamic truncation over an 8 byte big-endian counter.
+function tfaHmac(keyBytes, counter, digits, alg) {
+  if (typeof crypto === 'undefined' || !crypto.subtle) return Promise.reject(new Error('This browser has no Web Crypto support, so codes cannot be computed here.'));
+  var buf = new ArrayBuffer(8), dv = new DataView(buf);
+  dv.setUint32(0, Math.floor(counter / 4294967296));
+  dv.setUint32(4, counter >>> 0);
+  return crypto.subtle.importKey('raw', keyBytes, {name: 'HMAC', hash: {name: TFA_HASH[alg]}}, false, ['sign'])
+    .then(function (k) { return crypto.subtle.sign('HMAC', k, buf); })
+    .then(function (s) { return tfaTruncateBytes(new Uint8Array(s), digits); });
+}
+
+function tfaParse(raw) {
+  var text = String(raw).trim(), out = {type: 'totp', algorithm: 'SHA1', digits: 6, period: 30, counter: 0,
+    label: '', account: '', issuer: '', secretRaw: '', image: '', unknown: [], warnings: []};
+
+  if (/^otpauth:/i.test(text)) {
+    var u;
+    try { u = new URL(text); } catch (e) { throw new Error('That otpauth link could not be parsed. Copy it again from the service, usually under a Show setup key or Cannot scan option.'); }
+    if (u.protocol !== 'otpauth:') throw new Error('That is not an otpauth link.');
+    var kind = (u.hostname || '').toLowerCase();
+    if (kind !== 'totp' && kind !== 'hotp') throw new Error('Unsupported otpauth type "' + kind + '". This tool handles totp and hotp.');
+    out.type = kind;
+    var label = decodeURIComponent((u.pathname || '').replace(/^\//, ''));
+    out.label = label;
+    var colon = label.indexOf(':');
+    out.labelIssuer = colon > -1 ? label.slice(0, colon) : '';
+    out.account = colon > -1 ? label.slice(colon + 1) : label;
+    out.secretRaw = u.searchParams.get('secret') || '';
+    out.issuer = u.searchParams.get('issuer') || '';
+    out.image = u.searchParams.get('image') || '';
+    var digits = u.searchParams.get('digits');
+    if (digits !== null) out.digits = parseInt(digits, 10);
+    var period = u.searchParams.get('period');
+    if (period !== null) out.period = parseInt(period, 10);
+    var counter = u.searchParams.get('counter');
+    if (counter !== null) out.counter = parseInt(counter, 10);
+    var alg = (u.searchParams.get('algorithm') || 'SHA1').toUpperCase().replace(/-/g, '');
+    if (alg === 'SHA') alg = 'SHA1';
+    out.algorithm = alg;
+    u.searchParams.forEach(function (v, k) {
+      var lk = k.toLowerCase();
+      if (!OFFICIAL_PARAMS[lk]) out.unknown.push(k);
+    });
+  } else {
+    out.secretRaw = text;
+    out.label = 'Manual setup key';
+    out.account = '';
+  }
+
+  if (['SHA1', 'SHA256', 'SHA512'].indexOf(out.algorithm) < 0) throw new Error('Unsupported hash algorithm "' + out.algorithm + '". RFC 6238 defines SHA1, SHA256 and SHA512.');
+  if (!(out.digits >= 6 && out.digits <= 10)) throw new Error('Unsupported digit count ' + out.digits + '. Most services use 6 or 8.');
+  if (!(out.period >= 5 && out.period <= 300)) throw new Error('Unsupported time step ' + out.period + ' seconds.');
+
+  var d = tfaDecodeSecret(out.secretRaw);
+  out.keyBytes = d.bytes;
+  out.secret = d.clean;
+
+  if (out.labelIssuer && out.issuer && out.labelIssuer !== out.issuer) {
+    out.warnings.push({lvl: 'err', msg: 'Issuer mismatch. The account label says "' + out.labelIssuer + '" but the issuer parameter says "' + out.issuer + '". RFC 4226 section 5.2 says these must match. Authenticator apps differ in which one they show, so a phishing QR and a genuine one look identical here. Verify the domain before you log in.'});
+  } else if (!out.issuer && out.labelIssuer) {
+    out.warnings.push({lvl: 'warn', msg: 'No issuer parameter, only the one inside the account label. This is allowed but some apps then show an entry with no service name.'});
+  } else if (out.issuer && !out.labelIssuer) {
+    out.warnings.push({lvl: 'ok', msg: 'Issuer "' + out.issuer + '" comes from the issuer parameter, not from the account label.'});
+  }
+  if (out.algorithm !== 'SHA1') out.warnings.push({lvl: 'warn', msg: 'This account uses ' + out.algorithm + ', not SHA-1. Most authenticator apps default to SHA-1, so one that ignored the algorithm parameter will produce a different code.'});
+  if (out.digits !== 6) out.warnings.push({lvl: 'warn', msg: 'This account uses ' + out.digits + ' digit codes, not 6. A six digit entry means the algorithm or digits parameter was ignored somewhere.'});
+  if (out.period !== 30) out.warnings.push({lvl: 'warn', msg: 'This account uses a ' + out.period + ' second step, not 30. Codes change less often or more often than you expect.'});
+  if (out.type === 'hotp') out.warnings.push({lvl: 'warn', msg: 'This is a counter based token, so the code advances only when you press the button on the hardware. There is no countdown to watch.'});
+  if (out.unknown.length) out.warnings.push({lvl: 'warn', msg: 'Unrecognised parameters: ' + out.unknown.join(', ') + '. Ignored by this tool and by most authenticator apps.'});
+  if (out.keyBytes.length < 16) out.warnings.push({lvl: 'warn', msg: 'That secret is only ' + (out.keyBytes.length * 8) + ' bits. RFC 4226 section 4 requires at least 128 bits (20 Base32 characters). Short secrets are what a mistyped or truncated copy looks like, and most services will refuse to enrol one.'});
+  return out;
+}
+
+function tfaCounterFor(entry, atMs) { return Math.floor(atMs / 1000 / entry.period); }
+
+function tfaRenderParams() {
+  var e = tfa;
+  var rows = [
+    ['Type', e.type.toUpperCase() + (e.type === 'hotp' ? ' (counter based)' : ' (time based)')],
+    ['Issuer', e.issuer || e.labelIssuer || '(none)'],
+    ['Account', e.account || '(none)'],
+    ['Algorithm', e.algorithm],
+    ['Digits', String(e.digits)],
+    [e.type === 'hotp' ? 'Counter' : 'Time step', e.type === 'hotp' ? String(e.counter) : e.period + ' seconds'],
+    ['Secret', e.secret],
+    ['Secret length', e.keyBytes.length + ' bytes (' + e.secret.length + ' Base32 characters)']
+  ];
+  document.getElementById('tfa-params').innerHTML = rows.map(function (r) {
+    return '<dt>' + tfaEsc(r[0]) + '</dt><dd>' + tfaEsc(r[1]) + '</dd>';
+  }).join('');
+  document.getElementById('tfa-warnings').innerHTML = e.warnings.length
+    ? e.warnings.map(function (w) { return '<div class="tfa-' + w.lvl + '">' + tfaEsc(w.msg) + '</div>'; }).join('')
+    : '<div class="tfa-ok">No problems found in this setup link. If the code is still rejected, check the clock drift table below.</div>';
+}
+
+function tfaRenderDrift() {
+  if (!tfa || tfa.type !== 'totp') {
+    document.getElementById('tfa-drift-body').innerHTML = '<tr><td colspan="2">Clock drift only applies to time based codes.</td></tr>';
+    return;
+  }
+  var now = Date.now(), offsets = [-120, -90, -60, -30, 0, 30, 60, 90, 120], jobs = [], body = document.getElementById('tfa-drift-body');
+  body.innerHTML = '';
+  offsets.forEach(function (off) {
+    var c = tfaCounterFor(tfa, now + off * 1000);
+    jobs.push(tfaHmac(tfa.keyBytes, c, tfa.digits, tfa.algorithm).then(function (code) {
+      var tr = document.createElement('tr');
+      if (off === 0) tr.className = 'tfa-here';
+      var label = off === 0 ? 'Correct (no drift)' : (off > 0 ? off + ' s ahead' : Math.abs(off) + ' s behind');
+      tr.innerHTML = '<td>' + tfaEsc(label) + '</td><td class="tfa-mono">' + tfaEsc(code) + '</td>';
+      body.appendChild(tr);
+    }).catch(function (e) {
+      body.innerHTML = '<tr><td colspan="2">' + tfaEsc(e.message) + '</td></tr>';
+    }));
+  });
+  Promise.all(jobs);
+}
+
+function tfaTick() {
+  if (!tfa) return;
+  var codeEl = document.getElementById('tfa-code'), meta = document.getElementById('tfa-meta'), bar = document.getElementById('tfa-bar');
+  if (tfa.type === 'hotp') {
+    if (tfaRendered) return;
+    tfaHmac(tfa.keyBytes, tfa.counter, tfa.digits, tfa.algorithm).then(function (code) {
+      codeEl.textContent = tfaGroup(code);
+      meta.textContent = 'Counter ' + tfa.counter + '. The code changes only when you press Next code.';
+      bar.style.width = '100%';
+      tfaRendered = true;
+    }).catch(function (e) { codeEl.textContent = '------'; meta.textContent = e.message; });
+    return;
+  }
+  var now = Date.now(), c = tfaCounterFor(tfa, now), elapsed = Math.floor(now / 1000) % tfa.period;
+  var left = tfa.period - elapsed;
+  bar.style.width = (left / tfa.period * 100) + '%';
+  tfaHmac(tfa.keyBytes, c, tfa.digits, tfa.algorithm).then(function (code) {
+    codeEl.textContent = tfaGroup(code);
+    meta.textContent = 'Valid for ' + left + ' more second' + (left === 1 ? '' : 's') + '. Servers usually also accept the previous window.';
+  }).catch(function (e) { codeEl.textContent = '------'; meta.textContent = e.message; });
+}
+
+// Group digits in threes from the right so 6 and 8 digit codes both read cleanly.
+function tfaGroup(code) {
+  return code.replace(/(\d{3})(?=\d)/g, '$1 ');
+}
+
+function tfaDecode() {
+  var raw = document.getElementById('tfa-input').value.trim();
+  if (!raw) { tfaStatus('Paste an otpauth link or a Base32 setup key first.', 'err'); return; }
+  var parsed;
+  try { parsed = tfaParse(raw); }
+  catch (e) { tfaStatus(e.message, 'err'); document.getElementById('tfa-result').classList.add('tfa-hidden'); tfa = null; if (tfaTimer) { clearInterval(tfaTimer); tfaTimer = null; } return; }
+  tfa = parsed;
+  tfaRendered = false;
+  tfaStatus('', null);
+  document.getElementById('tfa-result').classList.remove('tfa-hidden');
+  document.getElementById('tfa-next').classList.toggle('tfa-hidden', parsed.type !== 'hotp');
+  tfaRenderParams();
+  tfaRenderDrift();
+  tfaTick();
+  if (tfaTimer) clearInterval(tfaTimer);
+  tfaTimer = setInterval(function () {
+    tfaTick();
+    if (tfa && tfa.type === 'totp' && Math.floor(Date.now() / 1000) % tfa.period === 0) tfaRenderDrift();
+  }, 1000);
+}
+
+function tfaClear() {
+  document.getElementById('tfa-input').value = '';
+  document.getElementById('tfa-result').classList.add('tfa-hidden');
+  document.getElementById('tfa-selftest').classList.add('tfa-hidden');
+  document.getElementById('tfa-next').classList.add('tfa-hidden');
+  tfaStatus('', null);
+  tfa = null;
+  tfaRendered = false;
+  if (tfaTimer) { clearInterval(tfaTimer); tfaTimer = null; }
+}
+
+function tfaNextHotp() {
+  if (!tfa || tfa.type !== 'hotp') return;
+  tfa.counter += 1;
+  tfaRendered = false;
+  tfaRenderParams();
+  tfaTick();
+}
+
+function tfaSelfTest() {
+  var box = document.getElementById('tfa-selftest'), out = document.getElementById('tfa-selftest-out');
+  box.classList.remove('tfa-hidden');
+  out.innerHTML = '<div class="tfa-warn">Running 18 vectors...</div>';
+  var ascii = function (n) { return new TextEncoder().encode('1234567890'.repeat(Math.ceil(n / 10)).slice(0, n)); };
+  var seeds = {SHA1: ascii(20), SHA256: ascii(32), SHA512: ascii(64)};
+  var jobs = [], rows = [];
+  RFC6238_VECTORS.forEach(function (v) {
+    ['sha1', 'sha256', 'sha512'].forEach(function (algName) {
+      var alg = algName.toUpperCase(), expect = v[algName];
+      // RFC 6238's own table prints the moving factor (seconds divided by the 30 second step)
+      // in its T column, so the counter fed to the HMAC is the time divided by 30.
+      jobs.push(tfaHmac(seeds[alg], Math.floor(v.t / 30), 8, alg).then(function (got) {
+        rows.push({t: v.t, alg: alg, expect: expect, got: got, ok: got === expect});
+      }).catch(function (e) { rows.push({t: v.t, alg: alg, expect: expect, got: e.message, ok: false}); }));
+    });
+  });
+  Promise.all(jobs).then(function () {
+    rows.sort(function (a, b) { return a.t - b.t || a.alg.localeCompare(b.alg); });
+    var failed = rows.filter(function (r) { return !r.ok; }).length;
+    out.innerHTML = '<div class="tfa-' + (failed ? 'err' : 'ok') + '">' + (failed ? failed + ' of ' + rows.length + ' vectors FAILED. Codes from this page cannot be trusted.' : 'All ' + rows.length + ' RFC 6238 test vectors passed. The code above is produced by the same function, so any remaining disagreement is on the device side.') + '</div>'
+      + '<table class="tfa-table"><thead><tr><th scope="col">Time (s)</th><th scope="col">Hash</th><th scope="col">Expected</th><th scope="col">Got</th><th scope="col">Result</th></tr></thead><tbody>'
+      + rows.map(function (r) {
+          return '<tr><td>' + r.t + '</td><td>' + r.alg + '</td><td class="tfa-mono">' + r.expect + '</td><td class="tfa-mono">' + tfaEsc(r.got) + '</td><td>' + (r.ok ? 'pass' : 'FAIL') + '</td></tr>';
+        }).join('')
+      + '</tbody></table>';
+  });
+}
+
+function tfaReadImage(file) {
+  if (typeof jsQR === 'undefined') { tfaStatus('The QR decoder did not load. Paste the otpauth link or setup key instead.', 'err'); return; }
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    var img = new Image();
+    img.onload = function () {
+      var max = 1400, scale = Math.min(1, max / Math.max(img.width, img.height));
+      var cv = document.getElementById('tfa-canvas');
+      cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
+      var ctx = cv.getContext('2d', {willReadFrequently: true});
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      var res = null, d = ctx.getImageData(0, 0, cv.width, cv.height).data;
+      for (var attempt = 0; attempt < 3 && !res; attempt++) {
+        res = jsQR(d, cv.width, cv.height, {inversionAttempts: attempt === 0 ? 'dontInvert' : 'attemptBoth'});
+        if (!res && attempt < 2) {
+          ctx.filter = 'grayscale(1) contrast(1.8)';
+          ctx.drawImage(img, 0, 0, cv.width, cv.height);
+          ctx.filter = 'none';
+          d = ctx.getImageData(0, 0, cv.width, cv.height).data;
+        }
+      }
+      if (!res || !res.data) { tfaStatus('No QR code found in that image. Crop tighter around the square, or paste the setup key manually.', 'err'); return; }
+      // Decode first, then warn: tfaDecode() owns #tfa-status and would clear a warning set before it.
+      if (!/^otpauth:/i.test(res.data)) {
+        document.getElementById('tfa-input').value = res.data;
+        tfaStatus('That QR code decoded to "' + res.data.slice(0, 80) + '", which is not an otpauth link, so it is not a 2FA enrolment code.', 'warn');
+        return;
+      }
+      document.getElementById('tfa-input').value = res.data;
+      tfaDecode();
+    };
+    img.onerror = function () { tfaStatus('That file could not be read as an image.', 'err'); };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  var drop = document.getElementById('tfa-drop'), file = document.getElementById('tfa-file');
+  drop.addEventListener('click', function () { file.click(); });
+  drop.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } });
+  drop.addEventListener('dragover', function (e) { e.preventDefault(); drop.style.borderColor = '#667eea'; });
+  drop.addEventListener('dragleave', function () { drop.style.borderColor = ''; });
+  drop.addEventListener('drop', function (e) {
+    e.preventDefault(); drop.style.borderColor = '';
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) tfaReadImage(e.dataTransfer.files[0]);
+  });
+  file.addEventListener('change', function () { if (file.files && file.files[0]) tfaReadImage(file.files[0]); });
+});
+</script>
+</body>
+</html>

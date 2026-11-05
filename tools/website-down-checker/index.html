@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Is It Down? - Website Down Checker | DevTools Hub</title>
+    <meta name="description" content="Free website down checker. Check if any website is down for everyone or just you. Real-time status, response time, and HTTP code. No signup, 100% free.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/website-down-checker/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/website-down-checker/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Is It Down? - Website Down Checker | DevTools Hub">
+    <meta property="og:description" content="Free website down checker. Check if any website is down for everyone or just you. Real-time server check, response time, and HTTP status code.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Is It Down? - Website Down Checker | DevTools Hub">
+    <meta name="twitter:description" content="Free website down checker. Check if any website is down for everyone or just you. Real-time results.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/website-down-checker/">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Is It Down? Website Down Checker",
+      "description": "Free online website down checker. Check if any website is down for everyone or just you. Real-time status, response time, and HTTP status code from server-side check.",
+      "url": "https://tools.scoreroute.com/tools/website-down-checker/",
+      "applicationCategory": "DeveloperApplication",
+      "datePublished": "2026-06-28",
+      "dateModified": "2026-06-28",
+      "author": {"@type": "Person", "name": "BAOMING"},
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+      "featureList": ["Website status check", "Response time measurement", "HTTP status code display", "Up/down indicator", "Quick popular site checks"]
+    }
+    </script>
+    <style>
+        .wdc-input-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .wdc-input-row input[type="text"] { flex: 1; min-width: 250px; padding: 14px 18px; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; font-size: 1rem; font-family: monospace; transition: border-color 0.2s; }
+        .wdc-input-row input[type="text"]:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .wdc-input-row input[type="text"]::placeholder { color: #555; }
+        .wdc-status-result { text-align: center; padding: 40px 20px; border-radius: 16px; margin-bottom: 20px; display: none; }
+        .wdc-status-result.visible { display: block; }
+        .wdc-status-up { background: rgba(16,185,129,0.12); border: 2px solid rgba(16,185,129,0.3); }
+        .wdc-status-down { background: rgba(239,68,68,0.12); border: 2px solid rgba(239,68,68,0.3); }
+        .wdc-status-error { background: rgba(234,179,8,0.12); border: 2px solid rgba(234,179,8,0.3); }
+        .wdc-status-icon { font-size: 4rem; margin-bottom: 12px; line-height: 1; }
+        .wdc-status-label { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
+        .wdc-status-up .wdc-status-label { color: #4ade80; }
+        .wdc-status-down .wdc-status-label { color: #ef4444; }
+        .wdc-status-error .wdc-status-label { color: #fbbf24; }
+        .wdc-status-subtitle { color: #b3b8c0; font-size: 1rem; margin-bottom: 16px; }
+        .wdc-metrics { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+        .wdc-metric { background: #0f0f23; border-radius: 10px; padding: 14px 24px; border: 1px solid #2a2a4a; min-width: 140px; }
+        .wdc-metric-value { font-size: 1.3rem; font-weight: 700; color: #667eea; }
+        .wdc-metric-label { font-size: 0.8rem; color: #888; margin-top: 4px; }
+        .wdc-quick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-top: 12px; margin-bottom: 20px; }
+        .wdc-quick-item { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 10px 14px; cursor: pointer; transition: border-color 0.2s; text-align: center; }
+        .wdc-quick-item:hover { border-color: #667eea; background: #0f0f23; }
+        .wdc-quick-item .wdc-qc-domain { color: #667eea; font-weight: 600; font-size: 0.9rem; }
+        .wdc-quick-item .wdc-qc-desc { color: #666; font-size: 0.8rem; margin-top: 2px; }
+        .wdc-loading { text-align: center; padding: 40px 20px; display: none; }
+        .wdc-loading.visible { display: block; }
+        .wdc-spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #2a2a4a; border-top: 4px solid #667eea; border-radius: 50%; animation: wdc-spin 0.8s linear infinite; margin-bottom: 12px; }
+        @keyframes wdc-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .wdc-loading p { color: #888; font-size: 1rem; }
+        .wdc-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 16px 20px; color: #f87171; margin-bottom: 20px; display: none; }
+        .wdc-recheck { text-align: center; margin-top: 16px; }
+        .wdc-popular-label { color: #888; font-size: 0.85rem; margin-bottom: 4px; }
+        @media (max-width: 600px) {
+            .wdc-input-row { flex-direction: column; }
+            .wdc-input-row input[type="text"] { min-width: unset; }
+            .wdc-metric { min-width: 100px; }
+            .wdc-status-icon { font-size: 3rem; }
+            .wdc-status-label { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Is It Down?</h1>
+            <p class="subtitle">Check if a Website is Down for Everyone or Just You</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Is It Down?</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Check Website Status</h2>
+                <div class="wdc-input-row">
+                    <input type="text" id="wdc-url" placeholder="https://example.com" autocomplete="url" spellcheck="false" aria-label="Enter a website URL">
+                    <button class="btn btn-primary" onclick="checkDown()" id="wdc-check-btn">Check</button>
+                </div>
+
+                <div>
+                    <p class="wdc-popular-label">Popular sites:</p>
+                    <div class="wdc-quick-grid">
+                        <div class="wdc-quick-item" onclick="quickCheck('https://google.com')">
+                            <div class="wdc-qc-domain">google.com</div>
+                            <div class="wdc-qc-desc">Search engine</div>
+                        </div>
+                        <div class="wdc-quick-item" onclick="quickCheck('https://youtube.com')">
+                            <div class="wdc-qc-domain">youtube.com</div>
+                            <div class="wdc-qc-desc">Video platform</div>
+                        </div>
+                        <div class="wdc-quick-item" onclick="quickCheck('https://github.com')">
+                            <div class="wdc-qc-domain">github.com</div>
+                            <div class="wdc-qc-desc">Code hosting</div>
+                        </div>
+                        <div class="wdc-quick-item" onclick="quickCheck('https://discord.com')">
+                            <div class="wdc-qc-domain">discord.com</div>
+                            <div class="wdc-qc-desc">Chat platform</div>
+                        </div>
+                        <div class="wdc-quick-item" onclick="quickCheck('https://netflix.com')">
+                            <div class="wdc-qc-domain">netflix.com</div>
+                            <div class="wdc-qc-desc">Streaming</div>
+                        </div>
+                        <div class="wdc-quick-item" onclick="quickCheck('https://openai.com')">
+                            <div class="wdc-qc-domain">openai.com</div>
+                            <div class="wdc-qc-desc">AI provider</div>
+                        </div>
+                        <div class="wdc-quick-item" onclick="quickCheck('https://tools.scoreroute.com')">
+                            <div class="wdc-qc-domain">tools.scoreroute.com</div>
+                            <div class="wdc-qc-desc">This website</div>
+                        </div>
+                        <div class="wdc-quick-item" onclick="quickCheck('https://chatgpt.com')">
+                            <div class="wdc-qc-domain">chatgpt.com</div>
+                            <div class="wdc-qc-desc">ChatGPT</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="wdc-loading" class="wdc-loading">
+                    <div class="wdc-spinner"></div>
+                    <p id="wdc-loading-text">Checking website...</p>
+                </div>
+
+                <div id="wdc-error" class="wdc-error"></div>
+
+                <div id="wdc-status-result" class="wdc-status-result">
+                    <div id="wdc-status-icon" class="wdc-status-icon"></div>
+                    <div id="wdc-status-label" class="wdc-status-label"></div>
+                    <div id="wdc-status-subtitle" class="wdc-status-subtitle"></div>
+                    <div id="wdc-metrics" class="wdc-metrics"></div>
+                    <div class="wdc-recheck">
+                        <button class="btn" onclick="resetTool()">Check Another Site</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Problem: Is It Down or Just You?</h3>
+                <p>You try to load a website and it won't open. Is the site actually down, or is it your internet connection, DNS cache, or a regional outage? Without a server-side check, you have no way to know. <strong>AI chatbots cannot check real-time website status</strong> — they have no ability to make live HTTP requests to verify if a server is responding.</p>
+
+                <h3>How This Tool Solves It</h3>
+                <ul>
+                    <li><strong>Server-side check via Cloudflare Worker</strong> — We make a real HTTP request from our edge network, not from your browser.</li>
+                    <li><strong>Up or down in 3 seconds</strong> — If our server can reach the site, it's up. If it can't, there's a real outage.</li>
+                    <li><strong>Response time & status code</strong> — See exactly how fast the server responds and what HTTP code it returns.</li>
+                    <li><strong>Quick check popular sites</strong> — One-click status for Google, YouTube, GitHub, Discord, Netflix, and more.</li>
+                    <li><strong>100% private</strong> — We only check the URL you provide; no data is stored or tracked.</li>
+                </ul>
+
+                <h3>How to Know if a Site Is Down</h3>
+                <details class="faq-item">
+                    <summary>Is it down for everyone or just me?</summary>
+                    <p>Enter any website URL above and click Check. Our server makes a real HTTP request from the Cloudflare edge network. If the site responds, it is up for everyone. If our server gets a timeout or error, the site is likely down for everyone (not just you). Regional outages, ISP problems, or DNS issues on your end can also prevent access — the server check rules those out.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What does "up" mean?</summary>
+                    <p>A website is considered "up" when it responds to an HTTP request with a status code in the 2xx or 3xx range (success or redirect). Some 4xx errors (like 401 Unauthorized or 403 Forbidden) also mean the server is running — the site is technically up, but access is restricted. 5xx errors (500, 502, 503) mean the server is responding but has a problem.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What does "down" mean?</summary>
+                    <p>A site is "down" when the server does not respond at all (connection timeout, DNS failure, connection refused) or returns a severe server error like 502 Bad Gateway, 503 Service Unavailable, or 504 Gateway Timeout. These indicate the server is overloaded, crashed, or under maintenance.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why use a server-side check?</summary>
+                    <p>Browser JavaScript cannot make HTTP requests to other domains (this is blocked by CORS security policy). Our Cloudflare Worker acts as a proxy — it makes the request from a real server and returns the result. This also means the check reflects the global internet's view, not just your local network's perspective.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How is response time measured?</summary>
+                    <p>Response time is the total time from initiating the connection to receiving the HTTP response headers, measured on our Cloudflare edge server. It includes DNS resolution, TCP connection, TLS handshake, and server processing time.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I check internal/private URLs?</summary>
+                    <p>No. The tool only checks public internet URLs. Private IP ranges (10.x.x.x, 192.168.x.x, 172.16-31.x.x, 127.0.0.1) and localhost are blocked for security reasons.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is this tool free and private?</summary>
+                    <p>Yes, 100% free with no signup required. We do not store or track the URLs you check. The check is made from Cloudflare's edge network, and no data is logged or persisted.</p>
+                </details>
+
+                <h3>Why AI Cannot Replace This Tool</h3>
+                <p>AI chatbots (ChatGPT, Claude, Gemini, Perplexity) cannot:</p>
+                <ul>
+                    <li>Make real-time HTTP requests to check if a website is currently responding</li>
+                    <li>Tell you whether a site is actually down right now or just not loading for you</li>
+                    <li>Measure actual server response time in milliseconds</li>
+                    <li>Distinguish between a regional outage and a global one</li>
+                    <li>Check whether a specific server is reachable from the open internet</li>
+                </ul>
+                <p>This tool <strong>does all of this</strong> by making a real server-to-server HTTP request through Cloudflare's edge network.</p>
+
+                <div class="related-section">
+                    <h4>Related Tools</h4>
+                    <ul>
+                        <li><a href="/tools/http-status-checker/">HTTP Status & Header Checker</a></li>
+                        <li><a href="/tools/ssl-checker/">SSL Certificate Checker</a></li>
+                        <li><a href="/tools/dns-lookup/">DNS Lookup & WHOIS</a></li>
+                        <li><a href="/tools/speed-test/">Internet Speed Test</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+    var lastResult = null;
+
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function quickCheck(url) {
+        document.getElementById('wdc-url').value = url;
+        checkDown();
+    }
+
+    async function checkDown() {
+        var urlInput = document.getElementById('wdc-url').value.trim();
+        if (!urlInput) {
+            showError('Please enter a website URL');
+            return;
+        }
+
+        var url = urlInput;
+        if (!/^https?:\/\//i.test(url)) {
+            url = 'https://' + url;
+        }
+
+        document.getElementById('wdc-url').value = url;
+        document.getElementById('wdc-check-btn').disabled = true;
+        document.getElementById('wdc-check-btn').textContent = 'Checking...';
+        document.getElementById('wdc-error').style.display = 'none';
+        document.getElementById('wdc-status-result').className = 'wdc-status-result';
+        var loading = document.getElementById('wdc-loading');
+        loading.className = 'wdc-loading visible';
+        document.getElementById('wdc-loading-text').textContent = 'Checking ' + url + '...';
+
+        try {
+            var response = await fetch('/api/website-down-checker?url=' + encodeURIComponent(url));
+            var data = await response.json();
+
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+
+            lastResult = data;
+            showResult(data, url);
+        } catch (err) {
+            showError('Network error: ' + err.message);
+        } finally {
+            document.getElementById('wdc-check-btn').disabled = false;
+            document.getElementById('wdc-check-btn').textContent = 'Check';
+            document.getElementById('wdc-loading').className = 'wdc-loading';
+        }
+    }
+
+    function showError(msg) {
+        document.getElementById('wdc-loading').className = 'wdc-loading';
+        document.getElementById('wdc-status-result').className = 'wdc-status-result';
+        var el = document.getElementById('wdc-error');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('wdc-check-btn').disabled = false;
+        document.getElementById('wdc-check-btn').textContent = 'Check';
+    }
+
+    function showResult(data, url) {
+        var resultEl = document.getElementById('wdc-status-result');
+        var iconEl = document.getElementById('wdc-status-icon');
+        var labelEl = document.getElementById('wdc-status-label');
+        var subtitleEl = document.getElementById('wdc-status-subtitle');
+        var metricsEl = document.getElementById('wdc-metrics');
+
+        var code = data.statusCode || 0;
+        var isUp = data.isUp;
+        var domain = new URL(url).hostname;
+
+        if (data.error && !isUp) {
+            // Connection error = down
+            resultEl.className = 'wdc-status-result wdc-status-down visible';
+            iconEl.textContent = '\u26D4';
+            labelEl.textContent = 'Down';
+            subtitleEl.textContent = domain + ' appears to be DOWN. Our server could not reach it.';
+            metricsEl.innerHTML = '<div class="wdc-metric"><div class="wdc-metric-value">' + escHtml(String(data.responseTime)) + 'ms</div><div class="wdc-metric-label">Timeout after</div></div>';
+            return;
+        }
+
+        if (code >= 200 && code < 300) {
+            resultEl.className = 'wdc-status-result wdc-status-up visible';
+            iconEl.textContent = '\u2705';
+            labelEl.textContent = 'It\'s Up!';
+            subtitleEl.textContent = domain + ' is online and responding. It\'s just you!';
+        } else if (code >= 300 && code < 400) {
+            resultEl.className = 'wdc-status-result wdc-status-up visible';
+            iconEl.textContent = '\uD83D\uDD04';
+            labelEl.textContent = 'Up (Redirect)';
+            subtitleEl.textContent = domain + ' is online (redirects to another URL). It\'s just you!';
+        } else if (code >= 400 && code < 500) {
+            resultEl.className = 'wdc-status-result wdc-status-error visible';
+            iconEl.textContent = '\u26A0\uFE0F';
+            labelEl.textContent = 'Up (Access Restricted)';
+            subtitleEl.textContent = domain + ' is online but returned a ' + code + ' ' + escHtml(data.statusText || '') + '. The server is running.';
+        } else if (code >= 500) {
+            resultEl.className = 'wdc-status-result wdc-status-down visible';
+            iconEl.textContent = '\uD83D\uDCA5';
+            labelEl.textContent = 'Server Error';
+            subtitleEl.textContent = domain + ' returned a ' + code + ' ' + escHtml(data.statusText || '') + ' error. The server has a problem.';
+        } else {
+            resultEl.className = 'wdc-status-result wdc-status-error visible';
+            iconEl.textContent = '\u2753';
+            labelEl.textContent = 'Unknown';
+            subtitleEl.textContent = 'Unexpected response from ' + domain + '. Status code: ' + code;
+        }
+
+        metricsEl.innerHTML = '<div class="wdc-metric"><div class="wdc-metric-value">' + code + '</div><div class="wdc-metric-label">Status Code</div></div>' +
+            '<div class="wdc-metric"><div class="wdc-metric-value">' + data.responseTime + 'ms</div><div class="wdc-metric-label">Response Time</div></div>';
+    }
+
+    function resetTool() {
+        document.getElementById('wdc-url').value = '';
+        document.getElementById('wdc-status-result').className = 'wdc-status-result';
+        document.getElementById('wdc-error').style.display = 'none';
+        document.getElementById('wdc-check-btn').disabled = false;
+        document.getElementById('wdc-check-btn').textContent = 'Check';
+        lastResult = null;
+    }
+
+    document.getElementById('wdc-url').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') checkDown();
+    });
+    </script>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

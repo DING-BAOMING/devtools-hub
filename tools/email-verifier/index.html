@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verifier | DevTools Hub</title>
+    <meta name="description" content="Free email verifier. Check if email addresses are valid and can receive messages. Detect disposable emails and SMTP issues. No signup required.">
+    <meta name="keywords" content="email verifier, email validator, verify email, email checker, disposable email detection, smtp checker">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/email-verifier/">
+    <meta property="og:title" content="Email Verifier | DevTools Hub">
+    <meta property="og:description" content="Check if email addresses are valid, real, and can receive messages. Detect disposable emails and SMTP issues.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/email-verifier/">
+    <meta property="og:type" content="website">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- BUG-323 (perf/font-delivery): media="print" + the onload swap keeps this third-party
+         font stylesheet out of the render-blocking path; both preconnects above stay. -->
+    <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: #e0e0e0; line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { font-size: 2.5rem; color: #667eea; margin-bottom: 10px; }
+        .subtitle { font-size: 1.1rem; color: #888; max-width: 600px; margin: 0 auto; }
+        .hero-section { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        .hero-section h2 { color: #667eea; font-size: 1.3rem; margin-bottom: 15px; }
+        .problem-list { list-style: none; padding: 0; }
+        .problem-list li { padding: 8px 0; padding-left: 25px; position: relative; color: #ccc; }
+        .problem-list li::before { content: '✗'; position: absolute; left: 0; color: #f56565; }
+        .tool-section { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 30px; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        .tool-section h2 { color: #667eea; font-size: 1.3rem; margin-bottom: 20px; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input[type="email"], textarea { flex: 1; min-width: 200px; padding: 14px 20px; border: 1px solid #2a2a4a; border-radius: 12px; background: #1a1a2e; color: #fff; font-size: 1rem; transition: all 0.3s ease; }
+        input[type="email"]:focus, textarea:focus { outline: 2px solid transparent; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.15); }
+        /* BUG-308 (WCAG 2.4.7): this page does not link /styles.css, so the sitewide
+           *:focus-visible rule there cannot reach it. Same 3px/#7eb3ff token. */
+        *:focus-visible { outline: 3px solid #7eb3ff !important; outline-offset: 2px !important; }
+        textarea { min-height: 100px; resize: vertical; font-family: inherit; }
+        .btn { padding: 14px 30px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102,126,234,0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .result { margin-top: 20px; padding: 20px; border-radius: 12px; display: none; }
+        .result.show { display: block; }
+        .result-valid { background: rgba(72, 187, 120, 0.15); border: 1px solid #48bb78; }
+        .result-invalid { background: rgba(245, 101, 101, 0.15); border: 1px solid #f56565; }
+        .result-unknown { background: rgba(236, 201, 75, 0.15); border: 1px solid #f6c90d; }
+        .result-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .result-icon { font-size: 1.5rem; }
+        .result-status { font-size: 1.2rem; font-weight: 600; }
+        .result-valid .result-status { color: #48bb78; }
+        .result-invalid .result-status { color: #f56565; }
+        .result-unknown .result-status { color: #f6c90d; }
+        .result-email { font-family: monospace; font-size: 1.1rem; color: #667eea; word-break: break-all; }
+        .result-message { margin-top: 10px; color: #ccc; }
+        .result-details { margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+        .detail-item { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
+        .detail-label { font-size: 0.8rem; color: #888; margin-bottom: 3px; }
+        .detail-value { font-weight: 600; color: #fff; }
+        .detail-value.yes { color: #48bb78; }
+        .detail-value.no { color: #f56565; }
+        .detail-value.maybe { color: #f6c90d; }
+        .suggestions { margin-top: 15px; padding: 15px; background: rgba(102,126,234,0.1); border-radius: 8px; }
+        .suggestions h4 { color: #667eea; margin-bottom: 8px; font-size: 0.9rem; }
+        .suggestions ul { list-style: none; padding: 0; }
+        .suggestions li { padding: 4px 0; color: #ccc; font-size: 0.9rem; }
+        .suggestions li::before { content: '→ '; color: #667eea; }
+        .loading { display: none; text-align: center; padding: 20px; }
+        .loading.show { display: block; }
+        .spinner { width: 30px; height: 30px; border: 3px solid rgba(102,126,234,0.3); border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; }
+        .feature-card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+        .feature-card h3 { color: #667eea; margin-bottom: 10px; font-size: 1rem; }
+        .feature-card p { color: #aaa; font-size: 0.9rem; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; background: transparent; border: 1px solid #2a2a4a; border-radius: 8px; color: #888; cursor: pointer; transition: all 0.3s; }
+        .tab.active { background: #667eea; border-color: #667eea; color: #fff; }
+        .tab:hover:not(.active) { border-color: #667eea; color: #667eea; }
+        .bulk-results { margin-top: 20px; }
+        .bulk-item { padding: 12px 15px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .bulk-email { font-family: monospace; color: #fff; word-break: break-all; }
+        .bulk-status { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+        .bulk-status.valid { background: rgba(72,187,120,0.2); color: #48bb78; }
+        .bulk-status.invalid { background: rgba(245,101,101,0.2); color: #f56565; }
+        .bulk-status.unknown { background: rgba(236,201,75,0.2); color: #f6c90d; }
+        .stats { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .stat { background: rgba(0,0,0,0.2); padding: 15px 25px; border-radius: 10px; text-align: center; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: #667eea; }
+        .stat-label { font-size: 0.8rem; color: #888; margin-top: 5px; }
+        footer { text-align: center; padding: 40px 20px; color: #666; font-size: 0.9rem; }
+        footer a { color: #667eea; text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+        .how-it-works { background: rgba(255,255,255,0.03); padding: 25px; border-radius: 12px; margin-top: 30px; }
+        .how-it-works h3 { color: #667eea; margin-bottom: 15px; }
+        .step { display: flex; gap: 15px; margin-bottom: 12px; align-items: flex-start; }
+        .step-num { background: #667eea; color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; flex-shrink: 0; }
+        .step-text { color: #ccc; font-size: 0.95rem; }
+    </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Email Verifier","url":"https://tools.scoreroute.com/tools/email-verifier/","description":"Free email verifier. Check if email addresses are valid and can receive messages.","applicationCategory":"Network","operatingSystem":"All"}
+</script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Email Verifier</h1>
+            <p class="subtitle">Verify email addresses instantly. Check if emails are real, detect disposable addresses, and solve email delivery problems.</p>
+        </header>
+
+        <main>
+        <section class="hero-section">
+            <h2>Why Your Emails Bounce: Common Problems We Solve</h2>
+            <ul class="problem-list">
+                <li>Emails sent to non-existent addresses get marked as bounces</li>
+                <li>Sending to disposable emails hurts your sender reputation</li>
+                <li>Role accounts (info@, support@) may not reach the right person</li>
+                <li>Typoos in domain names cause silent delivery failures</li>
+                <li>Missing MX records mean the domain can't receive any email</li>
+            </ul>
+        </section>
+
+        <section class="tool-section">
+            <h2>Verify Email Address</h2>
+            <div class="tabs">
+                <button class="tab active" data-tab="single">Single Email</button>
+                <button class="tab" data-tab="bulk">Bulk Verify (up to 10)</button>
+            </div>
+
+            <div id="single-tab" class="tab-content">
+                <div class="input-group">
+                    <input type="email" id="email-input" placeholder="Enter email address (e.g., user@example.com)" aria-label="Enter email address" autocomplete="email">
+                    <button class="btn btn-primary" id="verify-btn" onclick="verifySingle()">Verify Email</button>
+                </div>
+            </div>
+
+            <div id="bulk-tab" class="tab-content" style="display:none;">
+                <div class="input-group">
+                    <textarea id="bulk-input" placeholder="Enter multiple emails (one per line or comma-separated)" aria-label="Enter multiple emails"></textarea>
+                </div>
+                <button class="btn btn-primary" id="bulk-verify-btn" onclick="verifyBulk()">Verify All Emails</button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Verifying email...</p>
+            </div>
+
+            <div id="result" class="result"></div>
+            <div id="bulk-results" class="bulk-results"></div>
+        </section>
+
+        <section class="tool-section">
+            <h2>What We Check</h2>
+            <div class="features">
+                <div class="feature-card">
+                    <h3>SMTP Verification</h3>
+                    <p>We connect to the mail server to verify if the mailbox actually exists and can receive messages.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>MX Record Check</h3>
+                    <p>We verify if the domain has proper mail server records configured to receive emails.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Disposable Detection</h3>
+                    <p>We identify temporary/disposable email services that are often used to bypass sign-ups.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Role Account Detection</h3>
+                    <p>We detect role-based emails (support&#64;, info&#64;) that may not reach a specific person.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Spelling Suggestions</h3>
+                    <p>If you typo'd the domain, we'll suggest the correct one (like Gmail → google.com).</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Quality Score</h3>
+                    <p>Get a deliverability score from 0-1 to quickly assess email quality.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-it-works">
+            <h3>How Email Verification Works</h3>
+            <div class="step">
+                <span class="step-num">1</span>
+                <span class="step-text"><strong>Format Check</strong> - First we verify the email has valid syntax (user&#64;domain.com format)</span>
+            </div>
+            <div class="step">
+                <span class="step-num">2</span>
+                <span class="step-text"><strong>MX Lookup</strong> - We check if the domain has mail servers configured to receive email</span>
+            </div>
+            <div class="step">
+                <span class="step-num">3</span>
+                <span class="step-text"><strong>SMTP Connect</strong> - We connect to the mail server and ask if this mailbox exists (without sending an email)</span>
+            </div>
+            <div class="step">
+                <span class="step-num">4</span>
+                <span class="step-text"><strong>Risk Assessment</strong> - We check for disposable domains, role accounts, and other risk factors</span>
+            </div>
+        </section>
+        </main>
+    </div>
+
+    <footer>
+        <p>DevTools Hub - Free developer tools. <a href="/">Back to all tools</a></p>
+    </footer>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + '-tab').style.display = 'block';
+            });
+        });
+
+        // Single email verification
+        async function verifySingle() {
+            const input = document.getElementById('email-input');
+            const email = input.value.trim();
+            
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+
+            const btn = document.getElementById('verify-btn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const bulkResults = document.getElementById('bulk-results');
+
+            btn.disabled = true;
+            loading.classList.add('show');
+            result.classList.remove('show');
+            bulkResults.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/email-verify?email=' + encodeURIComponent(email));
+                const data = await response.json();
+                displayResult(data);
+            } catch (error) {
+                displayResult({ email, is_valid: null, message: 'Network error. Please try again.', suggestions: [] });
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('show');
+            }
+        }
+
+        // Bulk email verification
+        async function verifyBulk() {
+            const input = document.getElementById('bulk-input');
+            const text = input.value.trim();
+            
+            if (!text) {
+                alert('Please enter at least one email address');
+                return;
+            }
+
+            // Parse emails
+            const emails = text.split(/[\n,]+/).map(e => e.trim()).filter(e => e.includes('@'));
+            
+            if (emails.length === 0) {
+                alert('No valid emails found');
+                return;
+            }
+
+            if (emails.length > 10) {
+                alert('Maximum 10 emails at a time for free tier');
+                return;
+            }
+
+            const btn = document.getElementById('bulk-verify-btn');
+            const loading = document.getElementById('loading');
+            const bulkResults = document.getElementById('bulk-results');
+            const result = document.getElementById('result');
+
+            btn.disabled = true;
+            loading.classList.add('show');
+            result.classList.remove('show');
+            bulkResults.innerHTML = '';
+
+            let valid = 0, invalid = 0, unknown = 0;
+
+            for (const email of emails) {
+                try {
+                    const response = await fetch('/api/email-verify?email=' + encodeURIComponent(email));
+                    const data = await response.json();
+                    
+                    const status = data.is_valid === true ? 'valid' : (data.is_valid === false ? 'invalid' : 'unknown');
+                    if (status === 'valid') valid++;
+                    else if (status === 'invalid') invalid++;
+                    else unknown++;
+
+                    const div = document.createElement('div');
+                    div.className = 'bulk-item';
+                    div.innerHTML = `
+                        <span class="bulk-email">${escapeHtml(email)}</span>
+                        <span class="bulk-status ${status}">${status === 'valid' ? '✓ Valid' : (status === 'invalid' ? '✗ Invalid' : '? Unknown')}</span>
+                    `;
+                    bulkResults.appendChild(div);
+                } catch (error) {
+                    const div = document.createElement('div');
+                    div.className = 'bulk-item';
+                    div.innerHTML = `
+                        <span class="bulk-email">${escapeHtml(email)}</span>
+                        <span class="bulk-status unknown">? Error</span>
+                    `;
+                    bulkResults.appendChild(div);
+                    unknown++;
+                }
+                
+                // Small delay to avoid rate limiting
+                await new Promise(r => setTimeout(r, 500));
+            }
+
+            // Show stats
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'stats';
+            statsDiv.innerHTML = `
+                <div class="stat"><div class="stat-value">${valid}</div><div class="stat-label">Valid</div></div>
+                <div class="stat"><div class="stat-value">${invalid}</div><div class="stat-label">Invalid</div></div>
+                <div class="stat"><div class="stat-value">${unknown}</div><div class="stat-label">Unknown</div></div>
+            `;
+            bulkResults.insertBefore(statsDiv, bulkResults.firstChild);
+
+            btn.disabled = false;
+            loading.classList.remove('show');
+        }
+
+        function displayResult(data) {
+            const result = document.getElementById('result');
+            const status = data.is_valid === true ? 'valid' : (data.is_valid === false ? 'invalid' : 'unknown');
+            
+            let statusText = 'Unknown';
+            if (status === 'valid') statusText = 'Valid';
+            else if (status === 'invalid') statusText = 'Invalid';
+            else statusText = 'Could Not Verify';
+
+            let icon = '?';
+            if (status === 'valid') icon = '✓';
+            else if (status === 'invalid') icon = '✗';
+            else icon = '?';
+
+            let detailsHtml = '';
+            if (data.mx_found !== undefined) {
+                detailsHtml += `
+                    <div class="detail-grid">
+                        ${data.score !== null ? `
+                        <div class="detail-item">
+                            <div class="detail-label">Quality Score</div>
+                            <div class="detail-value ${data.score > 0.5 ? 'yes' : (data.score > 0.25 ? 'maybe' : 'no')}">${(data.score * 100).toFixed(0)}%</div>
+                        </div>` : ''}
+                        <div class="detail-item">
+                            <div class="detail-label">MX Records</div>
+                            <div class="detail-value ${data.mx_found ? 'yes' : 'no'}">${data.mx_found ? 'Found' : 'Not Found'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">SMTP Check</div>
+                            <div class="detail-value ${data.smtp_check ? 'yes' : (data.smtp_check === false ? 'no' : 'maybe')}">${data.smtp_check === true ? 'Passed' : (data.smtp_check === false ? 'Failed' : 'N/A')}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Free Email</div>
+                            <div class="detail-value ${data.free ? 'yes' : 'no'}">${data.free ? 'Yes (Gmail, etc.)' : 'No'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Disposable</div>
+                            <div class="detail-value ${data.disposable ? 'no' : 'yes'}">${data.disposable ? 'Yes - Risky!' : 'No'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Role Account</div>
+                            <div class="detail-value ${data.role ? 'maybe' : 'yes'}">${data.role ? 'Yes (info@, etc.)' : 'No'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            let suggestionsHtml = '';
+            if (data.suggestions && data.suggestions.length > 0) {
+                suggestionsHtml = `
+                    <div class="suggestions">
+                        <h4>💡 Suggestions</h4>
+                        <ul>
+                            ${data.suggestions.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            result.className = `result show result-${status}`;
+            result.innerHTML = `
+                <div class="result-header">
+                    <span class="result-icon">${icon}</span>
+                    <span class="result-status">${statusText}</span>
+                </div>
+                <div class="result-email">${escapeHtml(data.email)}</div>
+                <div class="result-message">${escapeHtml(data.message || '')}</div>
+                ${detailsHtml}
+                ${suggestionsHtml}
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Enter key support for single email
+        document.getElementById('email-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') verifySingle();
+        });
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Click Speed Test - CPS &amp; Reaction Time | DevTools Hub</title>
+<meta name="description" content="Free click speed test (CPS) and reaction tester. Measure clicks per second over 1-100 seconds, right-click, spacebar or touch. No signup, 100% private.">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/click-speed-test/">
+<meta property="og:title" content="Click Speed Test - CPS and Reaction Time">
+<meta property="og:description" content="Free click speed test (CPS) and reaction time tester. Measure clicks per second over 1-100 seconds, right-click, spacebar or touch. No signup.">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/click-speed-test/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Click Speed Test",
+  "url": "https://tools.scoreroute.com/tools/click-speed-test/",
+  "description": "Free click speed test (CPS) and reaction time tester that measures your real clicks per second over 1 to 100 second runs, with right-click, spacebar, touch and mouse modes, per-second breakdown, personal bests and a reaction time test.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "All",
+  "browserRequirement": "Requires JavaScript",
+  "featureList": [
+    "Click speed test in mouse, right-click, spacebar and touch modes",
+    "Durations from 1 to 100 seconds including the Kohi 10 second test",
+    "Live clicks per second with per-second breakdown bars",
+    "Best 1-second burst and approximate percentile rating",
+    "Auto-clicker pattern detection",
+    "Personal bests saved in your browser",
+    "Reaction time test with 5 trials, average and rating"
+  ],
+  "author": {
+    "@type": "Organization",
+    "name": "DevTools Hub"
+  },
+  "datePublished": "2026-08-16",
+  "dateModified": "2026-08-16",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.cs-container { max-width: 800px; }
+.cs-tabs { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; }
+.cs-tab-btn {
+  background: #1a1a2e; color: #b3b8c0; border: 1px solid #2a2a4a; padding: 12px 28px;
+  border-radius: 10px; cursor: pointer; font-size: 1.02rem; font-weight: 700; transition: all 0.2s;
+}
+.cs-tab-btn:hover { border-color: #667eea; color: #fff; }
+.cs-tab-btn.active { background: #667eea; border-color: #667eea; color: #fff; }
+.cs-panel { display: none; }
+.cs-panel.active { display: block; }
+.cs-chips { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 6px 0 10px; }
+.cs-chip {
+  background: #1a1a2e; border: 1px solid #2a2a4a; color: #b3b8c0; padding: 8px 16px;
+  border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.92rem; transition: all 0.2s;
+}
+.cs-chip.active { background: #667eea; border-color: #667eea; color: #fff; }
+.cs-chip:hover:not(.active) { border-color: #667eea; color: #fff; }
+.cs-zone {
+  display: flex; align-items: center; justify-content: center; width: 100%; min-height: 240px;
+  border-radius: 14px; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation;
+  background: #14142a; border: 2px dashed #3a3a6a; color: #e6e8f0;
+  font-size: 1.5rem; font-weight: 800; letter-spacing: 0.5px; transition: all 0.15s; padding: 20px;
+  box-sizing: border-box;
+}
+.cs-zone:hover { background: #181836; border-color: #667eea; }
+.cs-zone.running { border-style: solid; border-color: #667eea; background: #18203f; }
+.cs-zone.marathon { border-color: #ef4444; background: #2a1a20; }
+.cs-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 14px 0; }
+.cs-stat { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 10px; padding: 14px 8px; text-align: center; }
+.cs-stat .lbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+.cs-stat .val { font-size: 1.6rem; font-weight: 800; color: #fff; font-family: monospace; line-height: 1.2; }
+.cs-stat .val.small { font-size: 1.1rem; }
+.cs-bars { display: flex; align-items: flex-end; gap: 3px; height: 90px; margin: 10px 0 4px; padding: 0 2px; }
+.cs-bar { flex: 1; background: #24244a; border-radius: 3px 3px 0 0; min-height: 2px; transition: height 0.2s; position: relative; }
+.cs-bar.hl { background: #667eea; }
+.cs-bar-labels { display: flex; justify-content: space-between; color: #555; font-size: 0.68rem; padding: 0 4px; }
+.cs-result {
+  margin-top: 14px; background: #16213b; border: 1px solid #2a4a7a; border-radius: 12px;
+  padding: 18px; text-align: center;
+}
+.cs-result .big-cps { font-size: 3rem; font-weight: 900; color: #7eb3ff; font-family: monospace; line-height: 1; }
+.cs-result .big-label { font-size: 0.8rem; color: #8899aa; text-transform: uppercase; letter-spacing: 2px; }
+.cs-result .meta { color: #b3b8c0; font-size: 0.92rem; margin-top: 8px; }
+.cs-result .rating { display: inline-block; margin-top: 10px; background: #1f2638; border: 1px solid #33415e; padding: 6px 14px; border-radius: 20px; color: #b3b8c0; font-weight: 600; }
+.cs-result .auto-note { color: #fbbf24; font-size: 0.85rem; margin-top: 8px; }
+.cs-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.cs-bests { margin-top: 8px; color: #667eea; font-size: 0.8rem; text-align: center; min-height: 1.2em; }
+.cs-settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 8px 0 14px; }
+.cs-setting-group { text-align: center; }
+.cs-setting-group label { display: block; color: #888; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.cs-setting-group select { width: 100%; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; padding: 8px 10px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+.cs-setting-group select:focus { outline: 2px solid transparent; border-color: #667eea; }
+#rtBox {
+  display: flex; align-items: center; justify-content: center; width: 100%; min-height: 240px;
+  border-radius: 14px; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation;
+  background: #22243a; border: 2px solid #3a3a6a; color: #fff; font-size: 1.6rem; font-weight: 800;
+  transition: all 0.08s; padding: 20px; box-sizing: border-box; text-align: center;
+}
+#rtBox.waiting { background: #4a2430; border-color: #c0392b; }
+#rtBox.go { background: #1c5c2d; border-color: #2ecc71; color: #fff; }
+#rtBox.done { background: #16213b; border-color: #2a4a7a; }
+#rtBox.ready { background: #1a1a2e; border-color: #667eea; }
+.rt-hud { text-align: center; margin-bottom: 10px; color: #8899aa; font-size: 0.9rem; }
+.rt-results { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 14px 0; }
+.rt-single { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 10px 4px; text-align: center; font-weight: 700; color: #b3b8c0; font-size: 0.85rem; }
+.rt-single.hl { border-color: #667eea; color: #fff; }
+.rt-summary { text-align: center; background: #16213b; border: 1px solid #2a4a7a; border-radius: 12px; padding: 18px; }
+.rt-summary .big { font-size: 2.6rem; font-weight: 900; color: #7eb3ff; font-family: monospace; line-height: 1; }
+.rt-legend { text-align: center; color: #8899aa; font-size: 0.8rem; margin: 10px 0; }
+#rtList { text-align: center; color: #b3b8c0; font-size: 0.9rem; min-height: 1.2em; margin-top: 6px; }
+.cs-status { text-align: center; font-size: 0.85rem; color: #888; min-height: 1.5em; padding: 8px 0; }
+.cs-rate table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin: 10px 0; }
+.cs-rate table th, .cs-rate table td { border: 1px solid #2a2a4a; padding: 6px 8px; text-align: left; }
+.cs-rate table th { background: #1a1a2e; color: #b3b8c0; }
+.cs-copy-src { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.cs-container { position: relative; }
+@media (max-width: 600px) {
+  .cs-stats { grid-template-columns: repeat(2, 1fr); }
+  .cs-zone { min-height: 200px; font-size: 1.2rem; }
+  #rtBox { min-height: 200px; font-size: 1.2rem; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Click Speed Test</h1>
+    <p class="subtitle">CPS Test and Reaction Time Checker</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/tools/life/">Life</a> &gt; <span>Click Speed Test</span>
+      <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+    </nav>
+  </div>
+</header>
+<main class="container cs-container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <div class="cs-tabs" role="group">
+        <button class="cs-tab-btn active" id="tabCps" aria-pressed="true" onclick="csTab('cps')">Click Speed Test</button>
+        <button class="cs-tab-btn" id="tabRt" aria-pressed="false" onclick="csTab('rt')">Reaction Time</button>
+      </div>
+
+      <div class="cs-panel active" id="panelCps">
+        <div class="cs-settings">
+          <div class="cs-setting-group">
+            <label for="csMode">Input Mode</label>
+            <select id="csMode" onchange="csSetMode(this.value)">
+              <option value="mouse">Mouse (left click)</option>
+              <option value="right">Right click</option>
+              <option value="space">Spacebar</option>
+              <option value="touch">Touch / tap</option>
+            </select>
+          </div>
+        </div>
+        <div class="cs-chips" id="csChips">
+          <button class="cs-chip" onclick="csSetDuration(1)">1s</button>
+          <button class="cs-chip" onclick="csSetDuration(3)">3s</button>
+          <button class="cs-chip active" onclick="csSetDuration(10)">10s (Kohi)</button>
+          <button class="cs-chip" onclick="csSetDuration(30)">30s</button>
+          <button class="cs-chip" onclick="csSetDuration(60)">60s</button>
+          <button class="cs-chip" onclick="csSetDuration(100)">100s</button>
+        </div>
+        <div class="cs-zone" id="csZone" role="button">
+          Click here to start</div>
+        <div class="cs-stats">
+          <div class="cs-stat"><div class="lbl">Clicks</div><div class="val" id="csClicks">0</div></div>
+          <div class="cs-stat"><div class="lbl">Time Left</div><div class="val" id="csTime">0.0s</div></div>
+          <div class="cs-stat"><div class="lbl">Live CPS</div><div class="val" id="csCps">0</div></div>
+          <div class="cs-stat"><div class="lbl">Best 1s</div><div class="val small" id="csBurst">0</div></div>
+        </div>
+        <div class="cs-bars" id="csBars" aria-hidden="true"></div>
+        <div class="cs-bar-labels"><span>start</span><span>end</span></div>
+        <div class="cs-result" id="csResult" style="display:none">
+          <div class="big-label">Your Speed</div>
+          <div class="big-cps" id="csResultCps">0 CPS</div>
+          <div class="meta" id="csResultMeta"></div>
+          <div class="rating" id="csResultRating"></div>
+          <div class="auto-note" id="csAutoNote"></div>
+        </div>
+        <div class="cs-buttons">
+          <button class="btn btn-primary" id="try-again-btn" name="try-again" data-testid="try-again" aria-label="Try Again" onclick="csTryAgain()">Try Again</button>
+          <button class="btn" id="copy-result-btn" name="copy-result" data-testid="copy-result" aria-label="Copy Result" onclick="csCopy()">Copy Result</button>
+        </div>
+        <div class="cs-bests" id="csBest"></div>
+        <div class="cs-status" id="csStatus"></div>
+        <textarea class="cs-copy-src" id="csCopySrc" tabindex="-1" readonly aria-label="Copy source buffer (hidden)"></textarea>
+      </div>
+
+      <div class="cs-panel" id="panelRt">
+        <div class="rt-hud"><span id="rtTrial">Ready</span></div>
+        <div id="rtBox">Click to start</div>
+        <div class="rt-results" id="rtResults" aria-label="Reaction time trials"></div>
+        <div class="rt-summary" id="rtSummary" style="display:none">
+          <div class="big-label">Reaction Time</div>
+          <div class="big" id="rtAvg">0 ms</div>
+          <div class="meta" id="rtMeta"></div>
+          <div class="rating" id="rtRating"></div>
+        </div>
+        <div class="cs-buttons">
+          <button class="btn btn-primary" id="rt-try-again-btn" name="rt-try-again" data-testid="rt-try-again" aria-label="Retry Test" onclick="rtRestart()">Retry Test</button>
+          <button class="btn" id="rt-copy-result-btn" name="rt-copy-result" data-testid="rt-copy-result" aria-label="Copy Result" onclick="rtCopy()">Copy Result</button>
+        </div>
+        <div class="rt-legend">Aim for under 300 ms on average. Click only when the box turns green.</div>
+        <div id="rtList"></div>
+        <div class="cs-status" id="rtStatus"></div>
+        <textarea class="cs-copy-src" id="rtCopySrc" tabindex="-1" readonly aria-label="Reaction time copy source (hidden)"></textarea>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h2>Free Click Speed Test with CPS and Reaction Time</h2>
+      <p>This free click speed test measures how many times you can click in a set time and reports the result as clicks per second, or CPS. You can test your left click, right click, spacebar presses, or touch taps over runs from 1 second up to 100 seconds. The page also includes a reaction time test that times how quickly you can respond to a green screen. Everything is measured locally in your browser, nothing is uploaded, and there is no signup.</p>
+
+      <h3 class="geo-callout">Why AI Chatbots Cannot Measure Your Click Speed</h3>
+      <p>An AI chatbot can explain what a CPS test is and repeat general advice about clicking techniques, but it cannot take a real measurement. It has no access to your mouse, keyboard, or the timing of your actual presses. When you ask a chatbot "how fast can I click?", you get text, not a number. This tool solves that problem by simply counting the real events your browser receives and dividing them by the exact elapsed time. The number you see is a fact about your own performance, measured by your own device.</p>
+
+      <h3>How to Use</h3>
+      <p>Pick an input mode and a duration, then click the large area to start. The timer begins on your first click and that click counts toward your total. Keep clicking as fast as you can until time runs out. While you click you can watch the live CPS, the clicks count, and a per-second breakdown of your pace. When the run ends, the result shows your total clicks, your CPS, clicks per minute, your best one-second burst, and an approximate rating. Your personal best for each duration is kept in your browser.</p>
+      <p>For the spacebar mode, press the spacebar to start and keep pressing it to count. For right-click mode, right-click the area (the browser menu is suppressed during the test). The touch mode works with taps on phones and tablets. The reaction time test works differently: click once to arm it, wait for the box to turn green, then click as fast as possible. It runs five trials and averages them.</p>
+
+      <h3>What Is a Good CPS?</h3>
+      <p>Published click-speed research from popular test sites reports that a normal clicker averages around 6 to 8 CPS in a 10-second run. Averaging 10 CPS or more is considered fast, and skilled players using advanced techniques can push well beyond that. The techniques are generally described like this: regular clicking around 3 to 9 CPS, jitter clicking around 10 to 14 CPS by tensing the forearm, butterfly clicking around 15 to 25 CPS by alternating two fingers, and drag clicking up to 25-100 CPS with friction-based drags. The one-second result is always higher than the ten-second result, because holding a fast pace over time is harder than a short burst.</p>
+
+      <h3>Common Uses</h3>
+      <p>Gamers use the tool to measure and train their clicking speed for Minecraft PvP, first-person shooters, and other competitive titles. People test a new mouse to see if it registers fast clicks reliably. The spacebar mode is popular as a quick skill test, and the reaction mode is used by drivers, pilots, and esports players to practice quick responses. Students often use it as a fun classroom challenge between friends. There is no account, so results are private by design.</p>
+
+      <h3>How Accuracy and Automation Are Handled</h3>
+      <p>The tool counts clicks using the browser events your device actually produces and times the window with the high-resolution clock, so the CPS is exact for the run. A best-one-second value is computed as the largest number of clicks that fits inside any single one-second window. The tool also flags a clear sign of automation: if many consecutive clicks arrive at intervals that are almost perfectly identical, it displays a note that the pattern looks automated. An auto-clicker will still produce a number, but the note makes the result easy to trust less.</p>
+
+      <h3>Approximate CPS Rating Scale</h3>
+      <p>The rating below is a rough guide adapted from publicly published click-speed data tables. Use it as a ballpark, not a certified percentile.</p>
+      <table class="info-table">
+<caption class="sr-only">How a clicks-per-second score ranks against other people</caption>
+        <tr><th>CPS (10s run)</th><th>Approximate Standing</th></tr>
+        <tr><td>13+</td><td>Top few percent</td></tr>
+        <tr><td>10 to 12.9</td><td>Fast, top range</td></tr>
+        <tr><td>8 to 9.9</td><td>Above average</td></tr>
+        <tr><td>5.5 to 7.9</td><td>Average range</td></tr>
+        <tr><td>4 to 5.4</td><td>Below average</td></tr>
+        <tr><td>Under 4</td><td>Beginner range</td></tr>
+      </table>
+
+      <h3>Frequently Asked Questions</h3>
+      <details class="faq-item">
+        <summary>What does CPS mean?</summary>
+        <p>CPS stands for clicks per second. It is your total number of clicks divided by the test duration. CPM is the same number expressed per minute.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why is my 10-second CPS lower than my 1-second CPS?</summary>
+        <p>Clicking speed naturally drops as the test gets longer. In a short burst you can go as fast as your fingers physically allow, but muscle fatigue and lost rhythm lower the average over a longer window. Most people see a noticeably lower score at 10 seconds or 60 seconds than at 1 second.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is a higher CPS cheating in games?</summary>
+        <p>That depends on the game. Some Minecraft PvP servers allow high CPS achieved by hand (jitter, butterfly, or drag clicking) but ban auto-clickers, which is why this tool flags an automation pattern so your hand-measured result is easy to verify. Check the rules of the server or game you play.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How can I increase my click speed?</summary>
+        <p>Practice regularly, keep your wrist relaxed, and use a mouse that fits your hand. Once regular clicking is smooth, players often learn jitter clicking (vibrating the forearm), butterfly clicking (two fingers alternating), or drag clicking (finger friction on the button). Each technique takes time to master and can strain your hand, so take breaks.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does the tool work on mobile?</summary>
+        <p>Yes. Choose the touch mode and tap the area as fast as you can. Reaction time also works with taps on a phone or tablet.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Are my results stored or shared?</summary>
+        <p>No. All counting happens in your browser. Your personal bests are saved only in your own browser's local storage. Nothing is sent to a server, and there is no account or tracking.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is a good reaction time?</summary>
+        <p>Most people average between 250 and 350 ms. Under 250 ms is quick, and results under 200 ms are exceptional. A very slow average over 400 ms is normal for out-of-practice or tired reflexes and improves with training.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is the Kohi test?</summary>
+        <p>The Kohi click test is simply a 10-second CPS test. It got its name from the Kohi Minecraft server, where players compared how fast they could click over a ten-second window during PvP. This page's 10-second preset is that same test.</p>
+      </details>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <ul>
+          <li><a href="/tools/mouse-tester/">Mouse Tester</a></li>
+          <li><a href="/tools/keyboard-tester/">Keyboard Tester</a></li>
+          <li><a href="/tools/gamepad-tester/">Gamepad Tester</a></li>
+          <li><a href="/tools/speed-test/">Internet Speed Test</a></li>
+          <li><a href="/tools/monitor-test/">Monitor Test</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>
+  <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+var csTabName = 'cps';
+var csMode = 'mouse';
+var csDuration = 10;
+var csDurMs = 10000;
+var csState = 'idle'; // idle | running | done
+var csClicks = 0;
+var csTimes = [];
+var csStartAt = 0;
+var csEndAt = 0;
+var csBestBurst = 0;
+var csRaf = 0;
+var csBarsArr = [];
+var csAutoNote = '';
+var CS_BEST_KEY = 'devtools_cs_best_v1';
+
+function csTab(n) {
+  csTabName = n;
+  document.getElementById('tabCps').classList.toggle('active', n === 'cps');
+  document.getElementById('tabRt').classList.toggle('active', n === 'rt');
+  document.getElementById('tabCps').setAttribute('aria-pressed', n === 'cps' ? 'true' : 'false');
+  document.getElementById('tabRt').setAttribute('aria-pressed', n === 'rt' ? 'true' : 'false');
+  document.getElementById('panelCps').classList.toggle('active', n === 'cps');
+  document.getElementById('panelRt').classList.toggle('active', n === 'rt');
+  if (n === 'rt') { rtReset(); } else { csRenderBars(); }
+}
+
+function csSetDuration(s) {
+  csDuration = s;
+  csDurMs = s * 1000;
+  var chips = document.querySelectorAll('#csChips .cs-chip');
+  for (var i = 0; i < chips.length; i++) {
+    chips[i].classList.toggle('active', parseInt(chips[i].textContent) === s);
+  }
+  csReset();
+  csRenderBars();
+}
+
+function csSetMode(m) {
+  csMode = m;
+  csReset();
+  csRenderBars();
+  document.getElementById('csZone').textContent = csIdleText();
+  csStatusMsg('Mode: ' + document.getElementById('csMode').selectedOptions[0].textContent, '');
+}
+
+function csIdleText() {
+  if (csMode === 'right') return 'Right click here to start';
+  if (csMode === 'space') return 'Press the spacebar to start';
+  if (csMode === 'touch') return 'Tap here to start';
+  return 'Click here to start';
+}
+
+var csIsTyping = false;
+function csReset() {
+  cancelAnimationFrame(csRaf);
+  csState = 'idle';
+  csClicks = 0;
+  csTimes = [];
+  csStartAt = 0;
+  csEndAt = 0;
+  csBestBurst = 0;
+  csBarsArr = [];
+  document.getElementById('csZone').textContent = csIdleText();
+  document.getElementById('csZone').classList.remove('running', 'marathon');
+  document.getElementById('csClicks').textContent = '0';
+  document.getElementById('csTime').textContent = csDuration + '.0s';
+  document.getElementById('csCps').textContent = '0';
+  document.getElementById('csBurst').textContent = '0';
+  document.getElementById('csResult').style.display = 'none';
+  document.getElementById('csAutoNote').textContent = '';
+  csRenderBars();
+  csShowBest();
+}
+
+function csRenderBars() {
+  var wrap = document.getElementById('csBars');
+  wrap.innerHTML = '';
+  var n = Math.min(Math.max(csDuration, 1), 60);
+  csBarsArr = [];
+  for (var i = 0; i < n; i++) {
+    var b = document.createElement('div');
+    b.className = 'cs-bar';
+    b.style.height = '2px';
+    wrap.appendChild(b);
+    csBarsArr.push(b);
+  }
+  if (csDuration > 60) {
+    var hint = document.createElement('div');
+    hint.style.cssText = 'text-align:center;color:#555;font-size:0.75rem;padding:4px 0;';
+    hint.textContent = 'Showing first 60 of ' + csDuration + ' seconds.';
+    wrap.appendChild(hint);
+  }
+}
+
+function csCount() {
+  var now = performance.now();
+  if (csState === 'idle') {
+    csState = 'running';
+    csClicks = 0;
+    csTimes = [];
+    csStartAt = now;
+    csEndAt = now + csDurMs;
+    csBestBurst = 0;
+    document.getElementById('csZone').classList.add('running');
+    if (csDuration >= 60) document.getElementById('csZone').classList.add('marathon');
+    document.getElementById('csZone').textContent = 'Click!';
+    csRaf = requestAnimationFrame(csTick);
+  }
+  if (csState !== 'running') return;
+  csClicks++;
+  csTimes.push(now);
+  document.getElementById('csClicks').textContent = csClicks;
+}
+
+function csTick() {
+  var now = performance.now();
+  var el = now - csStartAt;
+  var remain = csEndAt - now;
+  if (remain <= 0) { csFinish(now); return; }
+  var elapsedSec = el / 1000;
+  var live = elapsedSec > 0 ? (csClicks / elapsedSec) : 0;
+  document.getElementById('csTime').textContent = (remain / 1000).toFixed(1) + 's';
+  document.getElementById('csCps').textContent = live.toFixed(1);
+  csBurst(now);
+  csDrawBars(el);
+  csRaf = requestAnimationFrame(csTick);
+}
+
+function csBurst(now) {
+  var i2 = 0;
+  var t = csTimes;
+  var best = 0;
+  var start = Math.max(0, csStartAt);
+  for (var i = 0; i < t.length; i++) {
+    while (i2 < t.length && t[i2] - t[i] < 1000) i2++;
+    if (i2 - i > best) best = i2 - i;
+  }
+  csBestBurst = Math.max(csBestBurst, best);
+  document.getElementById('csBurst').textContent = csBestBurst;
+}
+
+function csDrawBars(el) {
+  var secIndex = Math.floor(el / 1000);
+  for (var i = 0; i < csBarsArr.length; i++) {
+    if (i > secIndex) break;
+    var c = csCountInSec(i, el);
+    var maxH = 86;
+    csBarsArr[i].style.height = Math.max(2, Math.min(maxH, c * 5)) + 'px';
+    csBarsArr[i].classList.add('hl');
+  }
+}
+
+function csCountInSec(sec, el) {
+  var t = csTimes;
+  var a = 0, b = 0;
+  for (var i = 0; i < t.length; i++) {
+    var rel = t[i] - csStartAt;
+    if (rel >= sec * 1000 && rel < (sec + 1) * 1000) a++;
+  }
+  return a;
+}
+
+function csFinish(now) {
+  cancelAnimationFrame(csRaf);
+  csState = 'done';
+  document.getElementById('csZone').classList.remove('running', 'marathon');
+  document.getElementById('csZone').textContent = 'Done - click or press Try Again';
+  var elapsedSec = csDurMs / 1000;
+  var cps = csClicks / elapsedSec;
+  var cpm = csClicks * 60 / elapsedSec;
+  csBestBurst = csBestBurstCalc();
+  document.getElementById('csTime').textContent = '0.0s';
+  document.getElementById('csCps').textContent = cps.toFixed(2);
+  document.getElementById('csBurst').textContent = csBestBurst;
+  csDrawBars(csDurMs);
+  var rating = csRating(cps, csDuration);
+  document.getElementById('csResultCps').textContent = cps.toFixed(2) + ' CPS';
+  document.getElementById('csResultMeta').textContent =
+    csClicks + ' clicks in ' + csDuration + 's \u00b7 ' + cpm.toFixed(0) + ' CPM \u00b7 best 1s burst ' + csBestBurst;
+  document.getElementById('csResultRating').textContent = rating;
+  csAutoNote = csAutoCheck();
+  document.getElementById('csAutoNote').textContent = csAutoNote;
+  document.getElementById('csResult').style.display = 'block';
+  csSaveBest(cps);
+  csSetCopySrc('cps', cps);
+  csShowBest();
+}
+
+function csBestBurstCalc() {
+  var t = csTimes;
+  var best = 0, i2 = 0;
+  for (var i = 0; i < t.length; i++) {
+    while (i2 < t.length && t[i2] - t[i] < 1000) i2++;
+    if (i2 - i > best) best = i2 - i;
+  }
+  return best;
+}
+
+function csAutoCheck() {
+  var t = csTimes.slice();
+  if (t.length < 8) return '';
+  var gaps = [];
+  for (var i = 1; i < t.length; i++) gaps.push(t[i] - t[i - 1]);
+  var min = Infinity, max = 0;
+  for (var i = 0; i < gaps.length; i++) {
+    if (gaps[i] < min) min = gaps[i];
+    if (gaps[i] > max) max = gaps[i];
+  }
+  if (max - min <= 4) {
+    return 'Note: click intervals were almost identical (' + min.toFixed(1) + ' ms apart). This pattern looks automated - it is not a typical hand-clicking result.';
+  }
+  return '';
+}
+
+function csRating(cps, dur) {
+  if (dur >= 10) {
+    if (cps >= 13.6) return 'Elite range (roughly top few percent)';
+    if (cps >= 12.8) return 'Elite range';
+    if (cps >= 11.4) return 'Very fast';
+    if (cps >= 10.7) return 'Very fast';
+    if (cps >= 9.5) return 'Fast';
+    if (cps >= 8.6) return 'Fast';
+    if (cps >= 7.7) return 'Above average';
+    if (cps >= 6.9) return 'Above average';
+    if (cps >= 6.5) return 'Slightly above average';
+    if (cps >= 5.8) return 'Average';
+    if (cps >= 5.4) return 'Average';
+    if (cps >= 4.4) return 'Below average';
+    if (cps >= 3.5) return 'Below average';
+    return 'Beginner range';
+  }
+  if (cps >= 17) return 'Elite range';
+  if (cps >= 15) return 'Very fast';
+  if (cps >= 13) return 'Fast';
+  if (cps >= 11) return 'Above average';
+  if (cps >= 9) return 'Above average';
+  if (cps >= 7) return 'Average';
+  if (cps >= 5) return 'Below average';
+  return 'Beginner range';
+}
+
+function csSaveBest(cps) {
+  try {
+    var bests = {};
+    var raw = localStorage.getItem(CS_BEST_KEY);
+    if (raw) bests = JSON.parse(raw);
+    var key = csMode + '_' + csDuration;
+    if (!bests[key] || cps > bests[key]) bests[key] = Math.round(cps * 100) / 100;
+    localStorage.setItem(CS_BEST_KEY, JSON.stringify(bests));
+  } catch (e) {}
+}
+
+function csShowBest() {
+  try {
+    var bests = JSON.parse(localStorage.getItem(CS_BEST_KEY) || '{}');
+    var key = csMode + '_' + csDuration;
+    var el = document.getElementById('csBest');
+    if (bests[key]) el.textContent = 'Personal best for ' + csDuration + 's ' + csMode + ': ' + bests[key] + ' CPS';
+    else el.textContent = '';
+  } catch (e) { document.getElementById('csBest').textContent = ''; }
+}
+
+function csSetCopySrc(which, cps) {
+  if (which === 'cps') {
+    var txt = 'Click Speed Test Result - DevTools Hub\n' +
+      'Mode: ' + csMode + '\nDuration: ' + csDuration + 's\n' +
+      'Clicks: ' + csClicks + '\nCPS: ' + cps.toFixed(2) + '\nCPM: ' + (csClicks * 60 / csDurMs * 1000).toFixed(0) +
+      '\nBest 1s burst: ' + csBestBurst + '\n';
+    document.getElementById('csCopySrc').value = txt;
+  }
+}
+
+function csCopy() {
+  var src = document.getElementById('csCopySrc');
+  src.select();
+  try { navigator.clipboard.writeText(src.value); } catch (e) {
+    try { document.execCommand('copy'); } catch (e2) {}
+  }
+  csStatusMsg('Result copied to clipboard', 'success');
+}
+
+function csTryAgain() {
+  csReset();
+  csStatusMsg('Ready. Click the area to start a new ' + csDuration + 's test.', 'success');
+}
+
+function csStatusMsg(msg, type) {
+  var el = document.getElementById('csStatus');
+  el.textContent = msg;
+  el.className = 'cs-status' + (type ? ' ' + type : '');
+  setTimeout(function() { el.textContent = ''; el.className = 'cs-status'; }, 2600);
+}
+
+var csZone = document.getElementById('csZone');
+csZone.addEventListener('pointerdown', function(e) {
+  if (csTabName !== 'cps') return;
+  if (csMode === 'mouse' && e.pointerType !== 'touch' && e.pointerType !== 'pen') { e.preventDefault(); csCount(); }
+  else if (csMode === 'touch' && (e.pointerType === 'touch' || e.pointerType === 'pen')) { e.preventDefault(); csCount(); }
+  else if (csMode === 'right') { e.preventDefault(); }
+});
+csZone.addEventListener('contextmenu', function(e) {
+  if (csTabName === 'cps' && csMode === 'right') {
+    e.preventDefault();
+    csCount();
+  }
+});
+document.addEventListener('keydown', function(e) {
+  if (csTabName === 'cps' && csMode === 'space' && e.code === 'Space') {
+    var tag = document.activeElement ? document.activeElement.tagName : '';
+    if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
+    e.preventDefault();
+    csCount();
+  }
+});
+
+var rtState = 'idle'; // idle | waiting | go | between | finished
+var rtTrials = [];
+var rtTrialN = 0;
+var rtGoAt = 0;
+var rtWaitTimer = 0;
+var rtBlinkTimer = 0;
+var rtDelayOverride = null;
+var rtLastMs = 0;
+
+var rtBox = document.getElementById('rtBox');
+rtBox.addEventListener('pointerdown', function(e) {
+  if (csTabName !== 'rt') return;
+  e.preventDefault();
+  rtClick();
+});
+document.addEventListener('keydown', function(e) {
+  if (csTabName === 'rt' && e.code === 'Space') {
+    var tag = document.activeElement ? document.activeElement.tagName : '';
+    if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
+    e.preventDefault();
+    rtClick();
+  }
+});
+
+function rtReset() {
+  clearTimeout(rtWaitTimer);
+  rtState = 'idle';
+  rtTrials = [];
+  rtTrialN = 0;
+  rtGoAt = 0;
+  rtLastMs = 0;
+  rtDelayOverride = null;
+  document.getElementById('rtTrial').textContent = 'Ready';
+  rtBox.textContent = 'Click to start';
+  rtBox.className = '';
+  document.getElementById('rtBox').className = 'ready';
+  document.getElementById('rtResults').innerHTML = '';
+  document.getElementById('rtSummary').style.display = 'none';
+  document.getElementById('rtList').textContent = '';
+  document.getElementById('rtStatus').textContent = '';
+}
+
+function rtClick() {
+  if (rtState === 'idle') {
+    rtStartTrials();
+  } else if (rtState === 'waiting') {
+    clearTimeout(rtWaitTimer);
+    document.getElementById('rtList').textContent = 'Too soon! Wait for green before clicking.';
+    rtScheduleGo();
+  } else if (rtState === 'go') {
+    rtRecordTrial();
+  } else if (rtState === 'between') {
+    // ignore clicks in the brief pause between trials
+  } else if (rtState === 'finished') {
+    rtStartTrials();
+  }
+}
+
+function rtStartTrials() {
+  rtTrials = [];
+  rtTrialN = 0;
+  document.getElementById('rtResults').innerHTML = '';
+  document.getElementById('rtSummary').style.display = 'none';
+  document.getElementById('rtList').textContent = '';
+  rtTrialN = 1;
+  document.getElementById('rtTrial').textContent = 'Trial ' + rtTrialN + ' of 5';
+  rtScheduleGo();
+}
+
+function rtScheduleGo() {
+  rtState = 'waiting';
+  document.getElementById('rtBox').className = 'waiting';
+  document.getElementById('rtBox').textContent = 'Wait for green...';
+  var delay = rtDelayOverride !== null ? rtDelayOverride : (1000 + Math.random() * 2500);
+  rtWaitTimer = setTimeout(rtGo, delay);
+}
+
+function rtGo() {
+  rtState = 'go';
+  rtGoAt = performance.now();
+  document.getElementById('rtBox').className = 'go';
+  document.getElementById('rtBox').textContent = 'CLICK!';
+}
+
+function rtRecordTrial() {
+  var ms = performance.now() - rtGoAt;
+  rtTrials.push(ms);
+  rtLastMs = ms;
+  var box = document.getElementById('rtBox');
+  box.className = 'done';
+  box.textContent = Math.round(ms) + ' ms';
+  document.getElementById('rtList').textContent = '';
+  var cell = document.createElement('div');
+  cell.className = 'rt-single' + (rtTrials.length === 5 ? ' hl' : '');
+  cell.textContent = 'T' + rtTrials.length + ': ' + Math.round(ms) + ' ms';
+  document.getElementById('rtResults').appendChild(cell);
+  if (rtTrials.length >= 5) {
+    rtFinish();
+  } else {
+    rtState = 'between';
+    rtTrialN++;
+    document.getElementById('rtTrial').textContent = 'Trial ' + rtTrialN + ' of 5';
+    rtWaitTimer = setTimeout(rtScheduleGo, 900);
+  }
+}
+
+function rtFinish() {
+  rtState = 'finished';
+  document.getElementById('rtTrial').textContent = 'Complete';
+  document.getElementById('rtBox').className = 'done';
+  document.getElementById('rtBox').textContent = 'Done';
+  var sum = 0, best = Infinity;
+  for (var i = 0; i < rtTrials.length; i++) { sum += rtTrials[i]; if (rtTrials[i] < best) best = rtTrials[i]; }
+  var avg = sum / rtTrials.length;
+  document.getElementById('rtAvg').textContent = Math.round(avg) + ' ms';
+  document.getElementById('rtMeta').textContent = 'Average of 5 trials \u00b7 best ' + Math.round(best) + ' ms';
+  document.getElementById('rtRating').textContent = rtRating(avg);
+  document.getElementById('rtSummary').style.display = 'block';
+  document.getElementById('rtCopySrc').value =
+    'Reaction Time Test Result - DevTools Hub\nAverage: ' + Math.round(avg) + ' ms\nBest: ' + Math.round(best) + ' ms\nTrials: ' +
+    rtTrials.map(function(t) { return Math.round(t); }).join(', ') + ' ms\n';
+}
+
+function rtRating(avg) {
+  if (avg < 200) return 'Exceptional';
+  if (avg < 250) return 'Excellent';
+  if (avg < 300) return 'Above average';
+  if (avg < 360) return 'Average';
+  return 'Below average';
+}
+
+function rtCopy() {
+  var src = document.getElementById('rtCopySrc');
+  src.select();
+  try { navigator.clipboard.writeText(src.value); } catch (e) {
+    try { document.execCommand('copy'); } catch (e2) {}
+  }
+  var el = document.getElementById('rtStatus');
+  el.textContent = 'Result copied to clipboard';
+  el.className = 'cs-status success';
+  setTimeout(function() { el.textContent = ''; el.className = 'cs-status'; }, 2600);
+}
+
+function rtRestart() {
+  rtReset();
+  rtStatusMsg('Ready. Click the box to start 5 reaction trials.', 'success');
+}
+
+function rtStatusMsg(msg, type) {
+  var el = document.getElementById('rtStatus');
+  el.textContent = msg;
+  el.className = 'cs-status' + (type ? ' ' + type : '');
+  setTimeout(function() { el.textContent = ''; el.className = 'cs-status'; }, 2600);
+}
+
+csRenderBars();
+csShowBest();
+
+window.csGetState = function() {
+  return {
+    tab: csTabName,
+    cps: {
+      mode: csMode,
+      duration: csDuration,
+      state: csState,
+      clicks: csClicks,
+      cps: csState === 'running' ? (csClicks / ((performance.now() - csStartAt) / 1000 || 1)) : (csState === 'done' ? csClicks / (csDurMs / 1000) : 0),
+      bestBurst: csBestBurst,
+      resultShown: document.getElementById('csResult').style.display !== 'none',
+      autoNote: csAutoNote
+    },
+    rt: {
+      state: rtState,
+      trials: rtTrials,
+      trialN: rtTrialN,
+      avg: rtTrials.length ? rtTrials.reduce(function(a, b) { return a + b; }, 0) / rtTrials.length : null
+    }
+  };
+};
+window.csSetMode = function(m) { csSetMode(m); };
+window.csSetDuration = function(s) { csSetDuration(s); };
+window.csStart = function() { csCount(); };
+window.csForceRtDelay = function(ms) { rtDelayOverride = ms; };
+</script>
+</body>
+</html>

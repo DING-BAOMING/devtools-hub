@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free English Dictionary - Definition, Pronunciation, Synonyms | DevTools Hub</title>
+    <meta name="description" content="Free English dictionary with real-time definitions, audio pronunciation (US & UK), phonetic transcription, synonyms, antonyms, and example sentences. AI cannot play real audio or guarantee accurate definitions. No signup, no tracking, privacy-first.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/dictionary/">
+    <meta property="og:title" content="Free English Dictionary - Definition, Pronunciation, Synonyms | DevTools Hub">
+    <meta property="og:description" content="Real-time English dictionary with audio pronunciation, definitions, synonyms, antonyms, and examples. No signup, no tracking, 100% private.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/dictionary/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-06-05","dateModified":"2026-06-05","author":{"@type":"Person","name":"BAOMING"},"name":"Free English Dictionary - Definition, Pronunciation, Synonyms","description":"Free English dictionary. Look up any English word for real-time definitions, audio pronunciation (US & UK), phonetic transcription, synonyms, antonyms, and example sentences. No signup, no tracking, 100% private.","url":"https://tools.scoreroute.com/tools/dictionary/","applicationCategory":"UtilityApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        .dict-container { background: #1a1a2e; border-radius: 12px; padding: 22px; margin-bottom: 22px; }
+        .dict-search-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
+        .dict-input-group { flex: 1; min-width: 220px; position: relative; }
+        .dict-input { width: 100%; padding: 14px 18px; background: #0f0f23; border: 2px solid #333; color: #fff; border-radius: 10px; font-size: 1.1rem; font-family: inherit; box-sizing: border-box; transition: border-color 0.2s; }
+        .dict-input:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .dict-input::placeholder { color: #555; }
+        .dict-btn { padding: 14px 26px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: #fff; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.2s; }
+        .dict-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102,126,234,0.35); }
+        .dict-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .dict-btn-secondary { background: #252540; border: 1px solid #3a3a5c; font-weight: 500; }
+        .dict-btn-secondary:hover { background: #2f2f55; box-shadow: none; transform: none; }
+        .dict-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #0f0f23; border: 1px solid #333; border-radius: 8px; margin-top: 4px; max-height: 280px; overflow-y: auto; z-index: 10; display: none; }
+        .dict-suggestion { padding: 10px 16px; color: #c8c8e0; cursor: pointer; border-bottom: 1px solid #1a1a2e; }
+        .dict-suggestion:hover, .dict-suggestion.active { background: #1a1a2e; color: #fff; }
+        .dict-suggestion:last-child { border-bottom: none; }
+        .dict-quick-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+        .dict-quick-btn { padding: 7px 14px; background: #252540; border: 1px solid #3a3a5c; color: #a8a8c0; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+        .dict-quick-btn:hover { border-color: #667eea; color: #fff; background: #2f2f55; }
+        .dict-word-header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid #2a2a40; }
+        .dict-word { font-size: 2.4rem; color: #fff; font-weight: 700; margin: 0; }
+        .dict-phonetic { color: #667eea; font-size: 1.1rem; font-family: 'Lucida Sans Unicode', 'Arial Unicode MS', serif; }
+        .dict-audio-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .dict-audio-btn { padding: 6px 14px; background: #252540; border: 1px solid #3a3a5c; color: #a8a8c0; border-radius: 20px; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .dict-audio-btn:hover { border-color: #667eea; color: #fff; background: #2f2f55; }
+        .dict-audio-btn.playing { background: #667eea; color: #fff; border-color: #667eea; }
+        .dict-audio-btn .flag { font-size: 1rem; }
+        .dict-meaning-block { background: #1a1a2e; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; border-left: 4px solid #667eea; }
+        .dict-pos { display: inline-block; color: #667eea; font-style: italic; font-size: 1.05rem; font-weight: 600; margin-bottom: 10px; }
+        .dict-def-list { list-style: none; padding: 0; margin: 0; }
+        .dict-def-item { padding: 10px 0; border-bottom: 1px solid #2a2a40; counter-increment: def-counter; }
+        .dict-def-item:last-child { border-bottom: none; }
+        .dict-def-list { counter-reset: def-counter; }
+        .dict-def-text { color: #fff; line-height: 1.65; display: flex; gap: 10px; }
+        .dict-def-num { color: #888; min-width: 24px; font-weight: 600; }
+        .dict-example { color: #a8a8c0; font-style: italic; margin-top: 6px; padding-left: 34px; line-height: 1.5; }
+        .dict-example::before { content: '"'; color: #667eea; }
+        .dict-example::after { content: '"'; color: #667eea; }
+        .dict-rel-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid #2a2a40; }
+        .dict-rel-label { color: #888; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
+        .dict-rel-chip { padding: 4px 12px; background: #252540; border: 1px solid #3a3a5c; color: #c8c8e0; border-radius: 14px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+        .dict-rel-chip:hover { background: #667eea; color: #fff; border-color: #667eea; }
+        .dict-rel-chip.ant { background: #1a1a2e; color: #888; }
+        .dict-rel-chip.ant:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
+        .dict-loading { display: none; text-align: center; padding: 40px; color: #667eea; font-size: 1.05rem; }
+        .dict-loading .spinner { display: inline-block; width: 22px; height: 22px; border: 3px solid #2a2a40; border-top-color: #667eea; border-radius: 50%; animation: dict-spin 0.8s linear infinite; margin-right: 10px; vertical-align: middle; }
+        @keyframes dict-spin { to { transform: rotate(360deg); } }
+        .dict-error { display: none; background: #2d1a1a; border: 1px solid #ff4444; border-radius: 10px; padding: 16px 20px; color: #ff8888; margin-bottom: 18px; }
+        .dict-error strong { color: #ff6666; }
+        .dict-empty { background: #1a1a2e; border-radius: 12px; padding: 50px 24px; text-align: center; color: #888; }
+        .dict-empty .icon { font-size: 3rem; margin-bottom: 12px; }
+        .dict-empty strong { color: #fff; display: block; font-size: 1.1rem; margin-bottom: 6px; }
+        .dict-history { background: #1a1a2e; border-radius: 12px; padding: 18px 22px; margin-bottom: 18px; }
+        .dict-history-title { color: #888; font-size: 0.85rem; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .dict-history-clear { color: #888; font-size: 0.8rem; cursor: pointer; background: none; border: none; padding: 2px 8px; border-radius: 6px; }
+        .dict-history-clear:hover { color: #ff8888; background: #2d1a1a; }
+        .dict-history-list { display: flex; gap: 8px; flex-wrap: wrap; }
+        .dict-history-item { padding: 5px 12px; background: #0f0f23; border: 1px solid #2a2a40; color: #c8c8e0; border-radius: 16px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+        .dict-history-item:hover { border-color: #667eea; color: #fff; }
+        .dict-source { color: #555; font-size: 0.8rem; margin-top: 18px; padding-top: 14px; border-top: 1px solid #2a2a40; }
+        .dict-source a { color: #8b9ef5; }
+        .dict-source a:hover { text-decoration: underline; }
+        .dict-extra { background: #1a1a2e; border-radius: 12px; padding: 18px 22px; margin-top: 18px; }
+        .dict-extra-title { color: #667eea; font-weight: 600; margin-bottom: 10px; }
+        .dict-extra-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+        .dict-extra-chip { padding: 6px 14px; background: #0f0f23; border: 1px solid #2a2a40; color: #c8c8e0; border-radius: 16px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+        .dict-extra-chip:hover { border-color: #667eea; color: #fff; background: #252540; }
+        @media(max-width:600px) { .dict-word { font-size: 1.8rem; } .dict-search-row { flex-direction: column; } .dict-input-group, .dict-btn { width: 100%; } .dict-meaning-block { padding: 16px 18px; } .dict-container { padding: 16px; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Free English Dictionary</h1>
+            <p class="subtitle">Real definitions, real audio pronunciation, real examples &mdash; what AI cannot fabricate</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Dictionary</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="dict-container">
+                    <div class="dict-search-row">
+                        <div class="dict-input-group">
+                            <input type="text" id="word-input" class="dict-input" placeholder="Type a word (e.g. serendipity, run, ephemeral)" autocomplete="off" spellcheck="false" autocapitalize="off" aria-label="Enter English word to look up">
+                            <div id="suggestions" class="dict-suggestions" role="listbox" aria-label="Word suggestions"></div>
+                        </div>
+                        <button id="lookup-btn" class="dict-btn" onclick="lookupWord()">Look Up</button>
+                        <button class="dict-btn dict-btn-secondary" onclick="getRandomWord()" title="Discover a random word">Random</button>
+                    </div>
+                    <div class="dict-quick-row">
+                        <span style="color:#888;font-size:0.85rem;align-self:center;margin-right:4px;">Try:</span>
+                        <button class="dict-quick-btn" onclick="quickLookup('serendipity')">serendipity</button>
+                        <button class="dict-quick-btn" onclick="quickLookup('ephemeral')">ephemeral</button>
+                        <button class="dict-quick-btn" onclick="quickLookup('ubiquitous')">ubiquitous</button>
+                        <button class="dict-quick-btn" onclick="quickLookup('mellifluous')">mellifluous</button>
+                        <button class="dict-quick-btn" onclick="quickLookup('petrichor')">petrichor</button>
+                        <button class="dict-quick-btn" onclick="quickLookup('sonder')">sonder</button>
+                    </div>
+                </div>
+
+                <div id="dict-history" class="dict-history" style="display:none;">
+                    <div class="dict-history-title">
+                        <span>Recent Lookups</span>
+                        <button class="dict-history-clear" onclick="clearHistory()">Clear</button>
+                    </div>
+                    <div id="history-list" class="dict-history-list"></div>
+                </div>
+
+                <div id="dict-error" class="dict-error"></div>
+                <div id="dict-loading" class="dict-loading"><span class="spinner"></span>Looking up word&hellip;</div>
+
+                <div id="result-area" style="display:none;"></div>
+                <div id="related-extra" style="display:none;"></div>
+
+                <div id="empty-area" class="dict-empty">
+                    <div class="icon">📖</div>
+                    <strong>Start by entering any English word</strong>
+                    Get real definitions, real audio pronunciation (US &amp; UK), phonetic transcriptions, synonyms, antonyms, and curated example sentences &mdash; free, no signup, no tracking.
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>About This Dictionary</h2>
+                <p>A free, privacy-first English dictionary that returns authoritative definitions, audio pronunciation, and linguistic data from curated sources. Type any English word and get real data &mdash; not AI-generated guesses.</p>
+
+                <h2 style="margin-top:24px;">Why This Beats Asking AI</h2>
+                <p>Large language models like ChatGPT, Claude, and Gemini have three core problems when you ask them to "define a word":</p>
+                <ol style="color:#c8c8e0;line-height:1.7;padding-left:22px;">
+                    <li><strong>Hallucinated definitions</strong> &mdash; LLMs invent plausible-sounding but wrong definitions for less common words (e.g., invented etymologies, wrong part of speech, fabricated example sentences).</li>
+                    <li><strong>No real audio</strong> &mdash; AI can transcribe IPA phonetic symbols but cannot play a real human voice. This tool plays real audio recordings (US &amp; UK) from Wikipedia Commons.</li>
+                    <li><strong>Stale or missing data</strong> &mdash; LLM training data is months to years old. New slang, recent additions to dictionaries, or evolving usage patterns may be missing. This tool fetches live data on every query.</li>
+                </ol>
+                <p style="margin-top:12px;">This dictionary is the opposite approach: every definition, every audio file, every synonym comes from a curated, authoritative source. You get the same data a linguist would use, instantly and free.</p>
+
+                <h2 style="margin-top:24px;">What You Get</h2>
+                <ul style="color:#c8c8e0;line-height:1.7;padding-left:22px;">
+                    <li><strong>Definitions</strong> &mdash; Multiple senses grouped by part of speech (noun, verb, adjective, adverb, etc.)</li>
+                    <li><strong>Audio pronunciation</strong> &mdash; Real US and UK recordings with one-click play (no signup, no app)</li>
+                    <li><strong>Phonetic transcription</strong> &mdash; IPA notation in both US and UK variants</li>
+                    <li><strong>Example sentences</strong> &mdash; Real usage examples from authoritative corpora</li>
+                    <li><strong>Synonyms</strong> &mdash; Per-part-of-speech synonym lists, clickable to look up</li>
+                    <li><strong>Antonyms</strong> &mdash; Opposite-word lists, clickable to look up</li>
+                    <li><strong>Random word</strong> &mdash; Discover new vocabulary with a curated random word button</li>
+                    <li><strong>Search history</strong> &mdash; Recent lookups stored only in your browser, never sent anywhere</li>
+                </ul>
+
+                <details class="faq-item">
+                    <summary>Where does the data come from?</summary>
+                    <p>Definitions, phonetics, audio, and example sentences come from <a href="https://dictionaryapi.dev" rel="noopener" target="_blank" style="color:#8b9ef5;">dictionaryapi.dev</a>, a free, no-key public API aggregating Wiktionary and other open-source dictionaries. Synonyms and antonyms are enhanced with the <a href="https://www.datamuse.com" rel="noopener" target="_blank" style="color:#8b9ef5;">Datamuse Word API</a>. Both are free for any use and require no API key.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is my search history private?</summary>
+                    <p>Yes. Your recent lookups are stored only in your browser's local storage. They are never sent to any server, never logged, and never shared. You can clear them anytime with the Clear button or by clearing your browser data.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I look up any word?</summary>
+                    <p>The dictionary covers hundreds of thousands of English words from common vocabulary to specialized terminology. If a word is missing, the API returns a 404 and we suggest a search-engine fallback. Misspellings show suggestions from Datamuse.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does it work on mobile?</summary>
+                    <p>Yes. The layout is fully responsive and audio playback works on iOS, Android, and all modern mobile browsers. Bookmark it for quick word lookups anywhere.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is this better than Dictionary.com or Cambridge?</summary>
+                    <p>It is leaner, faster, ad-free, signup-free, and respects your privacy. For most everyday lookups the definitions are comparable. Cambridge and Dictionary.com have more editorial content, but require signup for advanced features and track you with ads and analytics. This tool is the no-nonsense alternative for people who just want a definition fast.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+    <script>
+    var DICT_API = 'https://api.dictionaryapi.dev/api/v2/entries/en/';
+    var DATAMUSE_API = 'https://api.datamuse.com/';
+    var HISTORY_KEY = 'dict-history-v1';
+    var MAX_HISTORY = 12;
+    var MAX_SUGGESTIONS = 8;
+    var debounceTimer = null;
+    var suggestSeq = 0;
+    var currentAudio = null;
+    var currentResult = null;
+
+    function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+            return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+        });
+    }
+
+    function getHistory() {
+        try {
+            var h = localStorage.getItem(HISTORY_KEY);
+            return h ? JSON.parse(h) : [];
+        } catch (e) { return []; }
+    }
+
+    function saveHistory(word) {
+        try {
+            var h = getHistory();
+            h = h.filter(function(w) { return w.toLowerCase() !== word.toLowerCase(); });
+            h.unshift(word);
+            if (h.length > MAX_HISTORY) h = h.slice(0, MAX_HISTORY);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+            renderHistory();
+        } catch (e) {}
+    }
+
+    function clearHistory() {
+        try { localStorage.removeItem(HISTORY_KEY); } catch (e) {}
+        renderHistory();
+    }
+
+    function renderHistory() {
+        var h = getHistory();
+        var container = document.getElementById('dict-history');
+        var list = document.getElementById('history-list');
+        if (!h.length) { container.style.display = 'none'; return; }
+        container.style.display = 'block';
+        var html = '';
+        for (var i = 0; i < h.length; i++) {
+            html += '<button class="dict-history-item" onclick="quickLookup(\'' + escapeHtml(h[i]).replace(/'/g, "\\'") + '\')">' + escapeHtml(h[i]) + '</button>';
+        }
+        list.innerHTML = html;
+    }
+
+    function getQueryParam(name) {
+        var params = new URLSearchParams(window.location.search);
+        return params.get(name);
+    }
+
+    function setQueryParam(name, value) {
+        var url = new URL(window.location);
+        url.searchParams.set(name, value);
+        window.history.replaceState({}, '', url);
+    }
+
+    function showError(msg, suggestion) {
+        var e = document.getElementById('dict-error');
+        var html = '<strong>Word not found.</strong> ' + escapeHtml(msg || '');
+        if (suggestion && suggestion.length) {
+            html += '<div style="margin-top:10px;color:#a8a8c0;">Did you mean: ';
+            for (var i = 0; i < Math.min(suggestion.length, 5); i++) {
+                if (i > 0) html += ', ';
+                html += '<a href="#" onclick="event.preventDefault();quickLookup(\'' + escapeHtml(suggestion[i]).replace(/'/g, "\\'") + '\');" style="color:#8b9ef5;text-decoration:underline;">' + escapeHtml(suggestion[i]) + '</a>';
+            }
+            html += '?</div>';
+        }
+        e.innerHTML = html;
+        e.style.display = 'block';
+    }
+
+    function hideError() {
+        document.getElementById('dict-error').style.display = 'none';
+    }
+
+    function showLoading() {
+        document.getElementById('dict-loading').style.display = 'block';
+        document.getElementById('result-area').style.display = 'none';
+        document.getElementById('related-extra').style.display = 'none';
+        document.getElementById('empty-area').style.display = 'none';
+        document.getElementById('lookup-btn').disabled = true;
+    }
+
+    function hideLoading() {
+        document.getElementById('dict-loading').style.display = 'none';
+        document.getElementById('lookup-btn').disabled = false;
+    }
+
+    function stopAudio() {
+        if (currentAudio) { try { currentAudio.pause(); } catch(e) {} currentAudio = null; }
+        document.querySelectorAll('.dict-audio-btn').forEach(function(b) { b.classList.remove('playing'); });
+    }
+
+    function playAudio(url, btn) {
+        stopAudio();
+        if (!url) return;
+        var audio = new Audio(url);
+        audio.preload = 'auto';
+        currentAudio = audio;
+        btn.classList.add('playing');
+        audio.onended = function() { btn.classList.remove('playing'); currentAudio = null; };
+        audio.onerror = function() { btn.classList.remove('playing'); currentAudio = null; };
+        var p = audio.play();
+        if (p && p.catch) p.catch(function() { btn.classList.remove('playing'); currentAudio = null; });
+    }
+
+    function chipOnClick(word) {
+        return 'onclick="quickLookup(\'' + escapeHtml(word).replace(/'/g, "\\'") + '\')"';
+    }
+
+    function pickFirstDefinedPhonetic(phonetics) {
+        if (!phonetics || !phonetics.length) return null;
+        for (var i = 0; i < phonetics.length; i++) {
+            if (phonetics[i] && phonetics[i].text) return phonetics[i].text;
+        }
+        return null;
+    }
+
+    function pickAudioForRegion(phonetics, region) {
+        if (!phonetics || !phonetics.length) return null;
+        for (var i = 0; i < phonetics.length; i++) {
+            var p = phonetics[i];
+            if (!p || !p.audio) continue;
+            var u = p.audio.toLowerCase();
+            if (region === 'us' && (u.indexOf('-us') >= 0 || u.indexOf('us-') >= 0 || u.indexOf('/us/') >= 0)) return p.audio;
+            if (region === 'uk' && (u.indexOf('-uk') >= 0 || u.indexOf('-gb') >= 0 || u.indexOf('uk-') >= 0)) return p.audio;
+        }
+        for (var j = 0; j < phonetics.length; j++) {
+            if (phonetics[j] && phonetics[j].audio) return phonetics[j].audio;
+        }
+        return null;
+    }
+
+    function renderResult(entry, word) {
+        currentResult = entry;
+        var phonetic = entry.phonetic || pickFirstDefinedPhonetic(entry.phonetics);
+        var usAudio = pickAudioForRegion(entry.phonetics, 'us');
+        var ukAudio = pickAudioForRegion(entry.phonetics, 'uk');
+
+        var html = '<div class="dict-meaning-block">';
+        html += '<div class="dict-word-header">';
+        html += '<h2 class="dict-word">' + escapeHtml(entry.word) + '</h2>';
+        if (phonetic) html += '<span class="dict-phonetic">' + escapeHtml(phonetic) + '</span>';
+        html += '<div class="dict-audio-group">';
+        if (usAudio) html += '<button class="dict-audio-btn" onclick="playAudio(\'' + escapeHtml(usAudio) + '\', this)" title="Play US pronunciation"><span class="flag">🇺🇸</span> US</button>';
+        if (ukAudio) html += '<button class="dict-audio-btn" onclick="playAudio(\'' + escapeHtml(ukAudio) + '\', this)" title="Play UK pronunciation"><span class="flag">🇬🇧</span> UK</button>';
+        html += '</div></div>';
+
+        var meanings = entry.meanings || [];
+        for (var i = 0; i < meanings.length; i++) {
+            var m = meanings[i];
+            html += '<div style="margin-bottom:18px;">';
+            html += '<span class="dict-pos">' + escapeHtml(m.partOfSpeech || '') + '</span>';
+            if (m.definitions && m.definitions.length) {
+                html += '<ol class="dict-def-list">';
+                for (var d = 0; d < m.definitions.length; d++) {
+                    var def = m.definitions[d];
+                    html += '<li class="dict-def-item"><div class="dict-def-text"><span class="dict-def-num">' + (d+1) + '.</span><span>' + escapeHtml(def.definition || '') + '</span></div>';
+                    if (def.example) html += '<div class="dict-example">' + escapeHtml(def.example) + '</div>';
+                    html += '</li>';
+                }
+                html += '</ol>';
+            }
+            var relHtml = '';
+            if (m.synonyms && m.synonyms.length) {
+                relHtml += '<div class="dict-rel-row"><span class="dict-rel-label">Synonyms</span>';
+                var syns = m.synonyms.slice(0, 8);
+                for (var s = 0; s < syns.length; s++) relHtml += '<button class="dict-rel-chip" ' + chipOnClick(syns[s]) + '>' + escapeHtml(syns[s]) + '</button>';
+                relHtml += '</div>';
+            }
+            if (m.antonyms && m.antonyms.length) {
+                relHtml += '<div class="dict-rel-row"><span class="dict-rel-label">Antonyms</span>';
+                var ants = m.antonyms.slice(0, 8);
+                for (var a = 0; a < ants.length; a++) relHtml += '<button class="dict-rel-chip ant" ' + chipOnClick(ants[a]) + '>' + escapeHtml(ants[a]) + '</button>';
+                relHtml += '</div>';
+            }
+            html += relHtml + '</div>';
+        }
+
+        if (entry.sourceUrls && entry.sourceUrls.length) {
+            html += '<div class="dict-source">Source: <a href="' + escapeHtml(entry.sourceUrls[0]) + '" rel="noopener" target="_blank">' + escapeHtml(entry.sourceUrls[0]) + '</a></div>';
+        }
+        html += '</div>';
+
+        document.getElementById('result-area').innerHTML = html;
+        document.getElementById('result-area').style.display = 'block';
+    }
+
+    function fetchDatamuseRelated(word, callback) {
+        var done = 0;
+        var syn = [], ant = [];
+        function onPart() {
+            done++;
+            if (done === 2) callback({ synonyms: syn, antonyms: ant });
+        }
+        fetch(DATAMUSE_API + 'words?rel_syn=' + encodeURIComponent(word) + '&max=8')
+            .then(function(r) { return r.ok ? r.json() : []; })
+            .then(function(d) { syn = d.map(function(x) { return x.word; }).filter(Boolean); onPart(); })
+            .catch(function() { onPart(); });
+        fetch(DATAMUSE_API + 'words?rel_ant=' + encodeURIComponent(word) + '&max=8')
+            .then(function(r) { return r.ok ? r.json() : []; })
+            .then(function(d) { ant = d.map(function(x) { return x.word; }).filter(Boolean); onPart(); })
+            .catch(function() { onPart(); });
+    }
+
+    function renderExtraRelated(word, related) {
+        if ((!related.synonyms || !related.synonyms.length) && (!related.antonyms || !related.antonyms.length)) return;
+        var html = '<div class="dict-extra"><div class="dict-extra-title">More related words (Datamuse)</div><div class="dict-extra-chips">';
+        if (related.synonyms && related.synonyms.length) {
+            html += '<span style="color:#888;font-size:0.85rem;align-self:center;">Synonyms:</span>';
+            for (var i = 0; i < related.synonyms.length; i++) html += '<button class="dict-extra-chip" ' + chipOnClick(related.synonyms[i]) + '>' + escapeHtml(related.synonyms[i]) + '</button>';
+        }
+        if (related.antonyms && related.antonyms.length) {
+            html += '<span style="color:#888;font-size:0.85rem;align-self:center;">Antonyms:</span>';
+            for (var j = 0; j < related.antonyms.length; j++) html += '<button class="dict-extra-chip" ' + chipOnClick(related.antonyms[j]) + '>' + escapeHtml(related.antonyms[j]) + '</button>';
+        }
+        html += '</div></div>';
+        document.getElementById('related-extra').innerHTML = html;
+        document.getElementById('related-extra').style.display = 'block';
+    }
+
+    function lookupWord() {
+        var input = document.getElementById('word-input');
+        var raw = (input.value || '').trim();
+        if (!raw) { input.focus(); return; }
+        var word = raw.toLowerCase().replace(/[^a-z\-'\s]/g, '').trim();
+        if (!word) { input.focus(); return; }
+        doLookup(word);
+    }
+
+    function quickLookup(word) {
+        document.getElementById('word-input').value = word;
+        doLookup(word.toLowerCase());
+    }
+
+    function getRandomWord() {
+        var list = ['serendipity','ephemeral','ubiquitous','petrichor','mellifluous','sonder','quintessential','halcyon','elucidate','ineffable','limerence','defenestration','lugubrious','susurrus','kerfuffle','cacophony','eudaimonia','hiraeth','komorebi','tsundoku'];
+        var w = list[Math.floor(Math.random() * list.length)];
+        document.getElementById('word-input').value = w;
+        doLookup(w);
+    }
+
+    function doLookup(word) {
+        stopAudio();
+        hideError();
+        hideSuggestions();
+        clearTimeout(debounceTimer);
+        debounceTimer = null;
+        showLoading();
+        setQueryParam('w', word);
+        fetch(DICT_API + encodeURIComponent(word))
+            .then(function(r) {
+                if (r.status === 404) return { _notFound: true, word: word };
+                if (!r.ok) throw new Error('Lookup failed (' + r.status + ')');
+                return r.json();
+            })
+            .then(function(data) {
+                hideLoading();
+                if (data && data._notFound) {
+                    fetchDatamuseRelated(word, function(related) {
+                        var suggestions = (related.synonyms || []).slice(0, 5);
+                        showError('No definitions found for "' + word + '". Try a different spelling.', suggestions);
+                        document.getElementById('empty-area').style.display = 'block';
+                    });
+                    return;
+                }
+                var entry = Array.isArray(data) ? data[0] : data;
+                if (!entry || !entry.word) { throw new Error('Invalid response'); }
+                renderResult(entry, word);
+                saveHistory(entry.word);
+                fetchDatamuseRelated(entry.word.toLowerCase(), function(related) { renderExtraRelated(entry.word, related); });
+            })
+            .catch(function(err) {
+                hideLoading();
+                showError(err && err.message ? err.message : 'Lookup failed. Check your connection.');
+                document.getElementById('empty-area').style.display = 'block';
+            });
+    }
+
+    function renderSuggestions(items) {
+        var box = document.getElementById('suggestions');
+        if (!items || !items.length) { box.style.display = 'none'; return; }
+        var html = '';
+        for (var i = 0; i < items.length; i++) {
+            html += '<div class="dict-suggestion" role="option" onclick="quickLookup(\'' + escapeHtml(items[i]).replace(/'/g, "\\'") + '\')">' + escapeHtml(items[i]) + '</div>';
+        }
+        box.innerHTML = html;
+        box.style.display = 'block';
+    }
+
+    function onInputChange() {
+        var v = (document.getElementById('word-input').value || '').trim().toLowerCase();
+        if (!v || v.length < 2) { document.getElementById('suggestions').style.display = 'none'; return; }
+        clearTimeout(debounceTimer);
+        var seq = ++suggestSeq;
+        debounceTimer = setTimeout(function() {
+            debounceTimer = null;
+            fetch(DATAMUSE_API + 'words?sp=' + encodeURIComponent(v) + '&max=' + MAX_SUGGESTIONS + '&md=s')
+                .then(function(r) { return r.ok ? r.json() : []; })
+                .then(function(d) {
+                    if (seq !== suggestSeq) return;
+                    var current = (document.getElementById('word-input').value || '').trim().toLowerCase();
+                    if (current !== v) return;
+                    var words = (d || []).map(function(x) { return x.word; }).filter(function(w) { return w && w.toLowerCase() !== v; });
+                    renderSuggestions(words);
+                })
+                .catch(function() { if (seq === suggestSeq) document.getElementById('suggestions').style.display = 'none'; });
+        }, 250);
+    }
+
+    document.getElementById('word-input').addEventListener('input', onInputChange);
+    document.getElementById('word-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); hideSuggestions(); lookupWord(); }
+        if (e.key === 'Escape') { hideSuggestions(); }
+    });
+    document.getElementById('word-input').addEventListener('blur', function() {
+        setTimeout(function() { hideSuggestions(); }, 200);
+    });
+    document.addEventListener('click', function(e) {
+        var sug = document.getElementById('suggestions');
+        var input = document.getElementById('word-input');
+        if (sug && sug.style.display !== 'none' && !sug.contains(e.target) && e.target !== input) {
+            hideSuggestions();
+        }
+    });
+    function hideSuggestions() {
+        var s = document.getElementById('suggestions');
+        if (s) s.style.display = 'none';
+    }
+
+    (function init() {
+        renderHistory();
+        var initial = getQueryParam('w');
+        if (initial && /^[a-z\-']{1,40}$/i.test(initial)) {
+            document.getElementById('word-input').value = initial;
+            doLookup(initial.toLowerCase());
+        }
+    })();
+    </script>
+</body>
+</html>

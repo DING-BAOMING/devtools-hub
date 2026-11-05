@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTO Calculator - Accrual &amp; Balance | DevTools Hub</title>
+    <meta name="description" content="Free PTO calculator. Project your paid time off balance on any date from your pay schedule, accrual cap and carry-over limit, and estimate a payout.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/pto-calculator/">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="PTO Calculator - Accrual &amp; Balance | DevTools Hub">
+    <meta property="og:description" content="Free PTO calculator. Project your paid time off balance on any date from your pay schedule, accrual cap and carry-over limit, and estimate a payout.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/pto-calculator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PTO Calculator - Accrual &amp; Balance | DevTools Hub">
+    <meta name="twitter:description" content="Free PTO calculator. Project your paid time off balance on any date from your pay schedule, accrual cap and carry-over limit, and estimate a payout.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/pto-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-10-24","dateModified":"2026-10-24","author":{"@type":"Person","name":"BAOMING"},"name":"PTO Calculator","description":"Free PTO calculator. Project your paid time off balance on any date from your pay schedule, accrual cap and carry-over limit, solve when you will have enough for a trip, estimate a termination payout, and see the ten states that require payout of accrued vacation. All math runs in the browser.","url":"https://tools.scoreroute.com/tools/pto-calculator/","applicationCategory":"BusinessApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Weekly, biweekly, semi-monthly and monthly pay schedules anchored on real dates","Annual hours, annual days, hours-per-period and hourly-worked accrual modes","Accrual cap with hours-not-earned tracking","Year-end carry-over limit with forfeiture counted at the boundary","Enough-for-a-date solver that names the pay date you hit your target","Hire-date proration for partial first years","Termination payout estimate with the ten payout-required states","Hours and days display with an adjustable workday","Canvas balance timeline"]}
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I figure out my PTO accrual rate?","acceptedAnswer":{"@type":"Answer","text":"Take the annual allowance in your offer letter or handbook and divide it by the number of paychecks a year. Fifteen days at eight hours on a biweekly schedule is 120 hours divided by 26 paychecks, or about 4.6 hours per paycheck. Weekly runs 52 periods, biweekly 26, semi-monthly 24, monthly 12. If your pay stub already prints an hourly accrual, use the hours-per-period mode instead."}},{"@type":"Question","name":"How much PTO do I have right now?","acceptedAnswer":{"@type":"Answer","text":"Add your carry-over to the set-up hours your company granted, then add one accrual chunk for every payday that has come and gone since your accrual start date, and subtract the hours you already used. A balance from a pay stub is more reliable than a mental estimate, so enter it as the starting balance and set the accrual start date the day that stub belongs to."}},{"@type":"Question","name":"What happens when I hit the accrual cap?","acceptedAnswer":{"@type":"Answer","text":"Your balance stops at the cap and every hour after that is simply never credited. Those hours do not come back when you take a vacation, so the tool counts them separately as hours not earned because of the cap."}},{"@type":"Question","name":"What is a use-it-or-lose-it carry-over limit?","acceptedAnswer":{"@type":"Answer","text":"At the end of the PTO year, any balance above your carry-over limit disappears. California bans forfeiting earned vacation outright, though it allows a reasonable accrual cap instead, and listed states require paying out accrued vacation at separation. Check your handbook before counting on hours rolling over."}},{"@type":"Question","name":"Do employers have to pay out unused PTO when I quit?","acceptedAnswer":{"@type":"Answer","text":"Federal law does not require it. Ten states treat accrued vacation as wages and do require payout: California, Colorado, Illinois, Louisiana, Maine, Massachusetts, Montana, Nebraska, North Dakota and Rhode Island. Where a payout applies it is unused hours times your final hourly rate."}},{"@type":"Question","name":"How accurate is this PTO calculator?","acceptedAnswer":{"@type":"Answer","text":"The arithmetic is exact for the policy you describe. The one assumption to check is pay dates: weekly and biweekly schedules are modeled stepping 7 or 14 days from the date you enter as the period start, and semi-monthly pays land on the 15th and the last day of the month. Align the start date with a real payday and the projection matches your stub."}},{"@type":"Question","name":"Why can an AI chatbot not do this math?","acceptedAnswer":{"@type":"Answer","text":"A language model answering in a chat has no calendar. It does not know how many semi-monthly paydates fell between your hire date and the date you ask about, it cannot step through paydays counting accrual against a moving cap, and it cannot stop a projection at the year boundary to subtract a carry-over limit. This tool iterates the real pay calendar and shows the same sequence every time."}},{"@type":"Question","name":"Does this tool store my salary or balance?","acceptedAnswer":{"@type":"Answer","text":"Never. Everything runs in your browser, nothing is sent anywhere and nothing is saved. Close the tab and the numbers are gone."}}]}
+    </script>
+    <style>
+        .ptc-panel {
+            background: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+        .ptc-panel h3 { margin: 0 0 14px; font-size: 1rem; color: #667eea; }
+        .ptc-field { margin-bottom: 12px; }
+        .ptc-field label {
+            display: block;
+            color: #8888a0;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        .ptc-field input,
+        .ptc-field select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        .ptc-field input:focus, .ptc-field select:focus {
+            outline: 2px solid #667eea;
+            border-color: transparent;
+        }
+        .ptc-gr { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .ptc-unit-hint { color: #8888a0; font-size: 0.75rem; }
+        .ptc-result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2a4a;
+            flex-wrap: wrap;
+        }
+        .ptc-result-row:last-child { border-bottom: none; }
+        .ptc-result-row .ptc-k { color: #d0d0e0; font-size: 0.9rem; }
+        .ptc-result-row .ptc-v { color: #667eea; font-weight: 600; font-size: 1.05rem; white-space: nowrap; }
+        .ptc-note { color: #8888a0; font-size: 0.8rem; margin-top: 10px; }
+        .ptc-badge {
+            display: inline-block;
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            border-radius: 6px;
+            padding: 3px 8px;
+            margin: 3px 3px 0 0;
+            color: #7eb3ff;
+            font-size: 0.75rem;
+        }
+        .ptc-chart-wrap { margin-top: 16px; }
+        .ptc-chart-wrap canvas {
+            width: 100%;
+            height: auto;
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+        }
+        @media (max-width: 640px) {
+            .ptc-gr { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>PTO Calculator</h1>
+            <p class="subtitle">Project Your Paid Time Off Balance on Any Date</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/calculators/">Calculators</a> &gt; <span>PTO Calculator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" role="main">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Find Out How Much PTO You Have and When You Have Enough</h2>
+
+                <div class="ptc-panel">
+                    <div class="ptc-gr">
+                        <div class="ptc-field">
+                            <label for="ptc-schedule">Pay schedule</label>
+                            <select id="ptc-schedule">
+                                <option value="26" selected>Biweekly (26 paychecks)</option>
+                                <option value="52">Weekly (52 paychecks)</option>
+                                <option value="24">Semi-monthly (24 paychecks)</option>
+                                <option value="12">Monthly (12 paychecks)</option>
+                            </select>
+                        </div>
+                        <div class="ptc-field">
+                            <label for="ptc-grant">How PTO accrues</label>
+                            <select id="ptc-grant">
+                                <option value="hours" selected>Annual hours (e.g. 120)</option>
+                                <option value="days">Annual days (times workday below)</option>
+                                <option value="perperiod">Fixed hours each paycheck</option>
+                                <option value="worked">Hourly worked (1 hour per X worked)</option>
+                            </select>
+                        </div>
+                        <div class="ptc-field">
+                            <label for="ptc-amount" id="ptc-amount-label">Annual hours</label>
+                            <input type="number" id="ptc-amount" value="120" min="0" step="1" inputmode="decimal">
+                            <span class="ptc-unit-hint" id="ptc-amount-hint">From your offer letter or handbook</span>
+                        </div>
+                        <div class="ptc-field" id="ptc-workday-field">
+                            <label for="ptc-workday">Hours in a workday</label>
+                            <input type="number" id="ptc-workday" value="8" min="1" step="0.5" inputmode="decimal">
+                        </div>
+                        <div class="ptc-field" id="ptc-xworked-field" style="display:none;">
+                            <label for="ptc-xworked">One accrual hour per X worked</label>
+                            <input type="number" id="ptc-xworked" value="30" min="1" step="1" inputmode="decimal">
+                            <span class="ptc-unit-hint">California sick time: 1 per 30</span>
+                        </div>
+                        <div class="ptc-field" id="ptc-workedhrs-field" style="display:none;">
+                            <label for="ptc-workedhrs">Hours you work each paycheck</label>
+                            <input type="number" id="ptc-workedhrs" value="80" min="0" step="1" inputmode="decimal">
+                        </div>
+                        <div class="ptc-field">
+                            <label for="ptc-start">Accrual period starts on</label>
+                            <input type="date" id="ptc-start">
+                            <span class="ptc-unit-hint">PTO-year start or your hire date. Align with a real payday.</span>
+                        </div>
+                        <div class="ptc-field">
+                            <label for="ptc-carried">Carried over from last year (hours)</label>
+                            <input type="number" id="ptc-carried" value="0" min="0" step="1" inputmode="decimal">
+                        </div>
+                        <div class="ptc-field">
+                            <label for="ptc-used">PTO used since the start date (hours)</label>
+                            <input type="number" id="ptc-used" value="0" min="0" step="1" inputmode="decimal">
+                        </div>
+                        <div class="ptc-field">
+                            <label for="ptc-cap">Accrual cap (hours, optional)</label>
+                            <input type="number" id="ptc-cap" placeholder="e.g. 160" min="0" step="1" inputmode="decimal">
+                        </div>
+                        <div class="ptc-field">
+                            <label for="ptc-rollover">Carry-over limit at year end (hours, optional)</label>
+                            <input type="number" id="ptc-rollover" placeholder="e.g. 40" min="0" step="1" inputmode="decimal">
+                        </div>
+                        <div class="ptc-field">
+                            <label for="ptc-asof">Balance as of (today by default)</label>
+                            <input type="date" id="ptc-asof">
+                        </div>
+                        <div class="ptc-field">
+                            <label for="ptc-target">Balance on a future date (optional)</label>
+                            <input type="date" id="ptc-target">
+                            <span class="ptc-unit-hint">e.g. the day a trip starts</span>
+                        </div>
+                        <div class="ptc-field">
+                            <label for="ptc-goal">I need this many hours for a trip (optional)</label>
+                            <input type="number" id="ptc-goal" placeholder="e.g. 40" min="0" step="1" inputmode="decimal">
+                            <span class="ptc-unit-hint">Reports the payday you reach it</span>
+                        </div>
+                        <div class="ptc-field" id="ptc-rate-field">
+                            <label for="ptc-rate">Hourly pay rate for a payout estimate (optional)</label>
+                            <input type="number" id="ptc-rate" placeholder="e.g. 25" min="0" step="0.01" inputmode="decimal">
+                        </div>
+                    </div>
+
+                    <div class="btn-group" style="margin-top:16px;">
+                        <button type="button" id="ptc-calc" class="btn btn-primary" data-testid="calculate">Calculate PTO</button>
+                        <button type="button" id="ptc-clear" class="btn">Clear</button>
+                        <button type="button" id="ptc-copy" class="copy-btn">Copy Summary</button>
+                    </div>
+                    <div id="ptc-status" class="status" role="status" aria-live="polite" style="display:none;"></div>
+                </div>
+
+                <div class="ptc-panel" id="ptc-result-panel" style="display:none;">
+                    <h3 id="ptc-result-heading">Results</h3>
+                    <div id="ptc-results"></div>
+                    <div class="ptc-chart-wrap" id="ptc-chart-wrap" style="display:none;">
+                        <h3 style="margin-bottom:8px;">Balance over the pay calendar</h3>
+                        <canvas id="ptc-chart" height="300" aria-label="Line chart of the PTO balance after every payday, with the policy cap drawn as a dashed line when one is set" role="img"></canvas>
+                        <p class="ptc-unit-hint">Each point is the balance after that payday. The dashed line is your accrual cap.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>How This PTO Calculator Works</h2>
+                <p id="ptc-info-p1">MOST US employers do not hand you a full year of paid time off on day one. Balance grows a little at every paycheck, and the balance you can book a trip against is the product of four numbers: the annual allowance, the pay schedule, the date the accrual window opened, and whatever the policy lets you carry over or cap. This calculator walks the actual pay calendar, payday by payday, from your start date to the date you name, so the projection lands on the same number your pay stub will show.</p>
+                <p id="ptc-info-p2">A few inputs swing the answer more than anything else. A 160-hour annual grant on a semi-monthly schedule is 6.67 hours every payday, 15 days at a 9-hour workday is 135 hours a year, and a one-hour-per-30-worked rule on an 80-hour paycheck comes to 2.67. Caps and carry-over limits do the rest: with no cap the balance climbs until the year ends and the limit resets it, and with a low cap you can watch hours pile up as hours the policy never let you keep.</p>
+
+                <h2>Why AI Chatbots Cannot Replace This Tool</h2>
+                <p id="ptc-info-p3">Counting paydays is the part that breaks people. Semi-monthly schedules pay on the 15th and the last day of the month, so the distance between two dates in paychecks is not a formula you can run in your head, and being off by one payday is the classic discrepancy payroll hears about, worth about 4.6 hours on a typical biweekly grant. This tool walks the calendar for you and shows the paydays, so the number on the screen is reproducible instead of a vibe.</p>
+
+                <h2>How to Use It</h2>
+                <ol>
+                    <li>Pick the pay schedule and tell the tool how PTO accrues: annual hours, annual days at your workday length, a fixed number printed on the stub, or hours earned per hour worked.</li>
+                    <li>Set the accrual period start. Align it with a real payday; weekly and biweekly projections step 7 or 14 days from it, semi-monthly ones land on the 15th and month end.</li>
+                    <li>Enter carry-over and the used hours, then name the date you care about. The panel reports the balance today, the balance on the future date, the hours the cap swallowed and the hours the year-end limit will forfeit.</li>
+                    <li>Set a trip budget in hours to find the first payday you clear it, or an hourly rate to estimate a termination payout.</li>
+                </ol>
+
+                <h2>Frequently Asked Questions</h2>
+
+                <details class="faq-item">
+                    <summary>How do I figure out my PTO accrual rate?</summary>
+                    <p id="ptc-faq-1">Take the annual allowance in your offer letter or handbook and divide it by the number of paychecks a year. 15 days at 8 hours on a biweekly schedule is 120 hours divided by 26 paychecks, or about 4.6 hours per paycheck. Weekly runs 52 periods, biweekly 26, semi-monthly 24, monthly 12. If your pay stub already prints an hourly accrual, use the hours-per-period mode instead.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How much PTO do I have right now?</summary>
+                    <p id="ptc-faq-2">Add your carry-over to any set-up hours your company granted, add one accrual chunk for every payday that has come and gone since the accrual start date, and subtract everything you already used. A balance printed on a pay stub is more reliable than a mental model, so enter it as the starting balance and set the accrual start date to the day that stub belongs to.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What happens when I hit the accrual cap?</summary>
+                    <p id="ptc-faq-3">Your balance stops at the cap and every hour after that is simply never credited. Those hours do not come back when you take a vacation, so the tool counts them separately as hours not earned because of the cap. A mid-cap vacation frees room and accrual resumes at the next paycheck.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What is a use-it-or-lose-it carry-over limit?</summary>
+                    <p id="ptc-faq-4">At the end of the PTO year, any balance above your carry-over limit disappears. California bans forfeiting earned vacation outright though it allows a reasonable accrual cap instead, and ten listed states require paying out accrued vacation at separation. Check your handbook before counting on hours rolling over.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Do employers have to pay out unused PTO when I quit?</summary>
+                    <p id="ptc-faq-5">Federal law does not require it. Ten states treat accrued vacation as wages and do require payout: California, Colorado, Illinois, Louisiana, Maine, Massachusetts, Montana, Nebraska, North Dakota and Rhode Island. Where a payout applies it is unused hours times your final hourly rate, and those wages land as supplemental income for tax purposes.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How accurate is this PTO calculator?</summary>
+                    <p id="ptc-faq-6">The arithmetic is exact for the policy you describe. The assumption to check is the pay calendar itself: weekly and biweekly projections step 7 or 14 days from the date you enter as the period start, and semi-monthly pay dates land on the 15th and the last day of each month. Align the start date with a real payday and the projection matches your stub.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Why can an AI chatbot not do this math?</summary>
+                    <p id="ptc-faq-7">A chatbot has no calendar. It does not know how many semi-monthly pay dates fell between your hire date and the day you ask about, it cannot step through paydays holding a balance against a moving cap, and it cannot stop mid-projection at the year boundary to subtract a carry-over limit. This tool iterates the real pay calendar and shows the same sequence every time.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Does this tool store my salary or balance?</summary>
+                    <p>No. Everything runs in your browser, nothing is sent anywhere and nothing is saved. Close the tab and the numbers are gone.</p>
+                </details>
+
+                <p style="color:#8888a0;font-size:0.85rem;margin-top:20px;">State payout list covers the ten states widely cited as requiring payout of accrued vacation (CA, CO, IL, LA, ME, MA, MT, NE, ND, RI). Company policy can be more generous; this tool computes a projection, not legal advice.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+// Pay-date model: weekly +7d, biweekly +14d from the anchor; semi-monthly 15th & last day; monthly anchor day.
+// Payout-required state list reflects widely cited state practice (FLSA leaves it to states).
+(function () {
+    var PAYOUT_STATES = ["CA", "CO", "IL", "LA", "ME", "MA", "MT", "NE", "ND", "RI"];
+    var PERIODS_LABEL = {52: "week", 26: "biweekly pay period", 24: "semi-monthly pay period", 12: "month"};
+    var cap = function (n, d) { if (d === undefined) d = 2; return Math.round(n * Math.pow(10, d)) / Math.pow(10, d); };
+    var lastDay = function (y, m) { return new Date(y, m + 1, 0).getDate(); };
+    function parseD(s) { if (!s) return null; var p = s.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+    function fmt(d) { return (d.getMonth() + 1) + "/" + d.getDate() + "/" + d.getFullYear(); }
+    // First semi-monthly pay date strictly after d (15th / last day cycle, month-end safe).
+    function nextSemiMonthly(d) {
+        var y = d.getFullYear(), m = d.getMonth();
+        if (d.getDate() < 15) return new Date(y, m, 15);
+        if (d.getDate() < lastDay(y, m)) return new Date(y, m, lastDay(y, m));
+        return new Date(y, m + 1, 15);
+    }
+    function nextPayAfter(d, freq, anchor) {
+        var step, n, cand;
+        if (freq === 26 || freq === 52) {
+            step = freq === 26 ? 14 : 7;
+            n = Math.ceil((d.getTime() - anchor.getTime()) / 86400000 / step);
+            cand = new Date(anchor.getTime() + n * step * 86400000);
+            while (cand.getTime() <= d.getTime()) cand = new Date(cand.getTime() + step * 86400000);
+            return cand;
+        }
+        if (freq === 12) {
+            cand = new Date(d.getFullYear(), d.getMonth(), Math.min(anchor.getDate(), lastDay(d.getFullYear(), d.getMonth())));
+            if (cand.getTime() <= d.getTime()) cand = new Date(d.getFullYear(), d.getMonth() + 1, Math.min(anchor.getDate(), lastDay(d.getFullYear(), d.getMonth() + 1)));
+            return cand;
+        }
+        return nextSemiMonthly(d);
+    }
+
+    function readForm() {
+        var grant = document.getElementById("ptc-grant").value;
+        var amt = parseFloat(document.getElementById("ptc-amount").value) || 0;
+        var workday = parseFloat(document.getElementById("ptc-workday").value) || 8;
+        var freq = parseInt(document.getElementById("ptc-schedule").value, 10);
+        var wage;
+        if (grant === "hours") wage = amt / freq;            // annual hours -> per payday
+        else if (grant === "days") wage = amt * workday / freq; // annual days x workday -> per payday
+        else if (grant === "perperiod") wage = amt;           // printed per-paycheck accrual
+        else {
+            var x = parseFloat(document.getElementById("ptc-xworked").value) || 30;
+            var w = parseFloat(document.getElementById("ptc-workedhrs").value) || 0;
+            wage = w / x;
+        }
+        return {
+            freq: freq,
+            grant: grant,
+            wagePerPeriod: wage,
+            workday: workday,
+            start: parseD(document.getElementById("ptc-start").value),
+            carried: parseFloat(document.getElementById("ptc-carried").value) || 0,
+            used: parseFloat(document.getElementById("ptc-used").value) || 0,
+            capV: parseFloat(document.getElementById("ptc-cap").value) || 0,
+            rollover: parseFloat(document.getElementById("ptc-rollover").value) || 0,
+            asof: parseD(document.getElementById("ptc-asof").value) || new Date(),
+            target: parseD(document.getElementById("ptc-target").value),
+            goal: parseFloat(document.getElementById("ptc-goal").value) || 0,
+            rate: parseFloat(document.getElementById("ptc-rate").value) || 0
+        };
+    }
+
+    // Walks paydays from c.start (treated as payday 1) forward, up to 400 periods.
+    // The carry-over limit, when set, is applied at every Jan 1 boundary the walk crosses.
+    function project(c) {
+        var rows = [], bal = c.carried, notEarned = 0, dt = null, year = c.start.getFullYear(), forfeit = 0, forfeitAt = null;
+        for (var i = 0; i < 400; i++) {
+            dt = i === 0 ? new Date(c.start) : nextPayAfter(dt, c.freq, c.start);
+            if (dt.getFullYear() > year) {
+                year = dt.getFullYear();
+                if (c.rollover && bal > c.rollover) { forfeit += bal - c.rollover; if (forfeitAt === null) forfeitAt = fmt(dt); bal = c.rollover; }
+            }
+            var add = c.capV ? Math.min(c.wagePerPeriod, Math.max(0, c.capV - bal)) : c.wagePerPeriod;
+            notEarned += c.wagePerPeriod - add;
+            bal += add;
+            rows.push({ d: new Date(dt), bal: bal, notEarned: notEarned, forfeit: forfeit });
+        }
+        return { rows: rows, forfeit: forfeit, forfeitAt: forfeitAt };
+    }
+
+    function render() {
+        var c = readForm();
+        if (!c.start || !c.wagePerPeriod) { showStatus("ptc-status", "Enter an accrual start date and a positive accrual amount.", "error"); return; }
+        var p = project(c);
+        var at = null; // last payday on or before the balance date
+        for (var i = 0; i < p.rows.length; i++) {
+            if (p.rows[i].d.getTime() > c.asof.getTime()) break;
+            at = p.rows[i];
+        }
+        if (!at) { showStatus("ptc-status", "The accrual start date is after the balance date. Move the start date back to your last payday.", "error"); return; }
+        var balNow = Math.max(0, at.bal - c.used);
+        var hr2d = function (h) { return " (" + cap(h / c.workday) + " days)"; };
+        var out = [["Accrual rate per " + PERIODS_LABEL[c.freq], cap(c.wagePerPeriod) + " h" + hr2d(c.wagePerPeriod)],
+                   ["Balance as of " + fmt(c.asof), cap(balNow) + " h" + hr2d(balNow)]];
+        var rowOnOrBefore = function (d) {
+            var found = null;
+            for (var j = 0; j < p.rows.length; j++) if (p.rows[j].d.getTime() <= d.getTime()) found = p.rows[j];
+            return found;
+        };
+        if (c.target) {
+            if (c.target.getTime() < c.start.getTime()) {
+                out.push(["Target date is before the accrual start", "set a later date"]);
+            } else {
+                var lastD = p.rows[p.rows.length - 1].d.getTime();
+                var tr = c.target.getTime() > lastD ? null : rowOnOrBefore(c.target);
+                var balT = tr ? Math.max(0, tr.bal - c.used) : Math.max(0, c.carried - c.used);
+                var lab = tr ? "Balance on " + fmt(c.target) + " (payday " + fmt(tr.d) + ")" : "No projection reaches " + fmt(c.target);
+                out.push([lab, cap(balT) + " h" + hr2d(balT)]);
+            }
+        }
+        if (c.capV) out.push(["Hours never earned (cap reached)", cap(at.notEarned) + " h" + hr2d(at.notEarned)]);
+        if (at.forfeit) out.push(["Forfeited at year end (limit " + cap(c.rollover) + " h)", cap(at.forfeit) + " h" + hr2d(at.forfeit)]);
+        if (c.goal) {
+            var maxPossible = Math.min(c.capV || Infinity, c.carried + (c.capV || Infinity));
+            if (c.goal > maxPossible) out.push([cap(c.goal) + " h can never accrue", "above the " + cap(c.capV) + " h cap plus carry-over"]);
+            else if (balNow >= c.goal) out.push(["Available now (as of the balance date)", cap(balNow) + " h" + hr2d(balNow)]);
+            else {
+                // first payday after today whose projected balance covers the goal
+                var hit = null;
+                for (var k = 0; k < p.rows.length; k++) {
+                    if (p.rows[k].d.getTime() <= c.asof.getTime()) continue;
+                    if (p.rows[k].bal - c.used >= c.goal) { hit = p.rows[k]; break; }
+                }
+                if (hit) out.push(["First payday you reach " + cap(c.goal) + " h", fmt(hit.d)]);
+                else out.push([cap(c.goal) + " h not reached", "within 400 pay periods at this rate"]);
+            }
+        }
+        if (c.rate) {
+            var endBal = c.target ? (function () {
+                var tr2 = rowOnOrBefore(c.target);
+                return tr2 ? tr2.bal : at.bal;
+            })() : at.bal;
+            var unused = Math.max(0, endBal - c.used);
+            out.push(["Payout estimate (unused h x rate)", "$" + cap(unused * c.rate)]);
+        }
+        var el = document.getElementById("ptc-results");
+        el.textContent = "";
+        out.forEach(function (r) {
+            var row = document.createElement("div");
+            row.className = "ptc-result-row";
+            var k2 = document.createElement("span"); k2.className = "ptc-k"; k2.textContent = r[0];
+            var v = document.createElement("span"); v.className = "ptc-v"; v.textContent = r[1];
+            row.appendChild(k2); row.appendChild(v); el.appendChild(row);
+        });
+        var notes = document.createElement("div");
+        notes.className = "ptc-note";
+        notes.textContent = "Payout of accrued PTO at separation is required in: " + PAYOUT_STATES.join(", ") + ". Company policy may pay out elsewhere.";
+        el.appendChild(notes);
+        var badges = document.createElement("div");
+        PAYOUT_STATES.forEach(function (s) { var b = document.createElement("span"); b.className = "ptc-badge"; b.textContent = s; badges.appendChild(b); });
+        el.appendChild(badges);
+        document.getElementById("ptc-result-panel").style.display = "";
+        document.getElementById("ptc-result-heading").dataset.summary = ["PTO summary"].concat(out.map(function (r) { return r[0] + ": " + r[1]; })).join("\n");
+        document.getElementById("ptc-status").style.display = "none";
+        drawChart(p, c);
+    }
+
+    function drawChart(p, c) {
+        var cvs = document.getElementById("ptc-chart"), ctx = cvs.getContext("2d");
+        var W = cvs.clientWidth || 640, H = 300, dpr = window.devicePixelRatio || 1;
+        cvs.width = W * dpr; cvs.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        var rows = p.rows.slice(0, 52);
+        var maxB = Math.max.apply(null, rows.map(function (r) { return r.bal; }).concat([c.capV || 0, 1]));
+        var n = rows.length;
+        var px = function (i) { return 40 + (n < 2 ? 0 : i * (W - 60) / (n - 1)); };
+        var py = function (b) { return H - 30 - b / maxB * (H - 60); };
+        ctx.strokeStyle = "#2a2a4a"; ctx.strokeRect(40, 20, W - 60, H - 50);
+        ctx.fillStyle = "#8888a0"; ctx.font = "10px sans-serif";
+        ctx.fillText(cap(maxB), 4, py(maxB) + 4); ctx.fillText("0", 32, H - 26);
+        if (c.capV && c.capV <= maxB) {
+            ctx.strokeStyle = "#7eb3ff"; ctx.setLineDash([5, 4]);
+            ctx.beginPath(); ctx.moveTo(40, py(c.capV)); ctx.lineTo(W - 20, py(c.capV)); ctx.stroke();
+            ctx.setLineDash([]); ctx.fillStyle = "#7eb3ff";
+            ctx.fillText("cap " + cap(c.capV), 45, py(c.capV) - 4);
+        }
+        ctx.beginPath(); ctx.strokeStyle = "#667eea"; ctx.lineWidth = 2;
+        rows.forEach(function (r, idx) { ctx[idx === 0 ? "moveTo" : "lineTo"](px(idx), py(r.bal)); });
+        ctx.stroke();
+        ctx.fillStyle = "#667eea";
+        rows.forEach(function (r, idx) { ctx.beginPath(); ctx.arc(px(idx), py(r.bal), 2.5, 0, 7); ctx.fill(); });
+        document.getElementById("ptc-chart-wrap").style.display = "";
+    }
+
+    document.getElementById("ptc-grant").addEventListener("change", function () {
+        var g = this.value;
+        document.getElementById("ptc-amount-label").textContent =
+            g === "hours" ? "Annual hours" : g === "days" ? "Annual PTO days" : g === "perperiod" ? "Hours each paycheck" : "Not used in this mode";
+        document.getElementById("ptc-workday-field").style.display = g === "days" ? "" : "none";
+        document.getElementById("ptc-xworked-field").style.display = g === "worked" ? "" : "none";
+        document.getElementById("ptc-workedhrs-field").style.display = g === "worked" ? "" : "none";
+    });
+
+    var today = new Date();
+    var iso = function (d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+    document.getElementById("ptc-start").value = iso(new Date(today.getFullYear(), 0, 1));
+    document.getElementById("ptc-asof").value = iso(today);
+
+    document.getElementById("ptc-calc").addEventListener("click", render);
+    document.getElementById("ptc-clear").addEventListener("click", function () {
+        ["ptc-amount", "ptc-carried", "ptc-used", "ptc-cap", "ptc-rollover", "ptc-target", "ptc-goal", "ptc-rate"].forEach(function (id) { document.getElementById(id).value = ""; });
+        document.getElementById("ptc-results").textContent = "";
+        document.getElementById("ptc-result-panel").style.display = "none";
+        document.getElementById("ptc-status").style.display = "none";
+        document.getElementById("ptc-start").value = iso(new Date(today.getFullYear(), 0, 1));
+        document.getElementById("ptc-asof").value = iso(today);
+    });
+    document.getElementById("ptc-copy").addEventListener("click", function () {
+        var s = document.getElementById("ptc-result-heading").dataset.summary || "";
+        if (!s) return;
+        var done = function () { showStatus("ptc-status", "Summary copied to clipboard.", "success"); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(s).then(done, function () { fallback(); });
+        else fallback();
+        function fallback() {
+            var ta = document.getElementById("ptc-summary-ta");
+            ta.value = s; ta.select();
+            try { document.execCommand("copy"); done(); } catch (e) { showStatus("ptc-status", "Copy failed. Select the text manually.", "error"); }
+        }
+    });
+    // exposed for automated tests only; harmless in production
+    if (typeof window !== "undefined") window.__pto = { project: project, nextPayAfter: nextPayAfter, fmt: fmt, readForm: readForm, payoutStates: PAYOUT_STATES };
+})();
+    </script>
+
+    <textarea id="ptc-summary-ta" style="position:absolute;left:-9999px;" aria-hidden="true" tabindex="-1"></textarea>
+</body>
+</html>

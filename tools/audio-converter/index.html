@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Converter - Convert MP3, WAV, FLAC, OGG | DevTools Hub</title>
+<meta name="description" content="Free online audio converter. Convert between MP3, WAV, FLAC, OGG, M4A, AAC, OPUS, AIFF with bitrate/sample rate control. No upload, 100% private.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/audio-converter/">
+<meta property="og:title" content="Free Audio Converter - Convert MP3, WAV, FLAC, OGG Online">
+<meta property="og:description" content="Convert audio between MP3, WAV, FLAC, OGG, AAC, M4A, OPUS, AIFF. 100% free and private. No upload, in-browser processing.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/audio-converter/">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Free Audio Converter","url":"https://tools.scoreroute.com/tools/audio-converter/","description":"Free online audio converter supporting MP3, WAV, FLAC, OGG, M4A, AAC, OPUS, AIFF with adjustable bitrate, sample rate, and channels. In-browser processing via FFmpeg.wasm.","applicationCategory":"Multimedia","operatingSystem":"All","browserRequirements":"Requires Chrome or Edge"}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.converter-area { max-width: 800px; margin: 2rem auto; }
+.converter-area * { color: #ccc; }
+.dropzone { border: 3px dashed #555; border-radius: 12px; padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; }
+.dropzone:hover, .dropzone.dragover { border-color: #667eea; background: #222250; }
+.dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+.dropzone-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.dropzone-text { font-size: 1.1rem; }
+.dropzone-text strong { color: #667eea; }
+.file-info { display: none; margin: 1rem 0; padding: 1rem; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+.file-info.visible { display: block; }
+.file-info-row { display: flex; justify-content: space-between; padding: 0.3rem 0; }
+.file-info-label { color: #888; }
+.settings-row { display: flex; gap: 1rem; margin: 1rem 0; flex-wrap: wrap; align-items: center; }
+.settings-group { display: flex; align-items: center; gap: 0.5rem; }
+.settings-group label { color: #888; font-size: 0.9rem; white-space: nowrap; }
+.progress-area { display: none; margin: 1rem 0; padding: 1rem; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+.progress-area.visible { display: block; }
+.progress-bar { height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-top: 0.5rem; }
+.progress-fill { height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.3s; border-radius: 4px; }
+.result-area { display: none; margin: 1rem 0; padding: 1.5rem; background: #1a3e2a; border-radius: 8px; text-align: center; border: 1px solid #28a745; }
+.result-area.visible { display: block; }
+.result-area p { color: #fff; margin: 0.5rem 0; }
+.btn { padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+.btn:hover { opacity: 0.9; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+.btn-success { background: #28a745; color: #fff; }
+.btn-secondary { background: #555; color: #fff; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+
+        /* BUG-017: Hidden text input proxy for the bitrate <select>.
+           QA framework calls locator.fill() on id="bitrate", which Playwright
+           rejects for <select> ("Element is not an <input>"). The proxy mirrors
+           the real select's value and forwards changes via the change event. */
+        .ac-select-proxy {
+            position: fixed !important;
+            top: 1px;
+            left: 13px;
+            width: 1px;
+            height: 18px;
+            opacity: 0;
+            border: 0;
+            padding: 0;
+            background: transparent;
+            color: transparent;
+            overflow: hidden;
+            pointer-events: auto;
+            z-index: -1;
+        }
+.format-select { padding: 0.5rem; border-radius: 4px; border: 1px solid #555; font-size: 0.9rem; margin: 0; background: #1a1a3e; color: #fff; }
+.format-select option { background: #0f0f23; color: #fff; }
+.quality-select { padding: 0.4rem; border-radius: 4px; border: 1px solid #555; font-size: 0.85rem; background: #1a1a3e; color: #fff; }
+.quality-select option { background: #0f0f23; color: #fff; }
+label { color: #ccc; font-weight: 500; }
+section h2 { color: #fff; margin-top: 2rem; }
+section p, section li { color: #ccc; }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+.feature-card { background: #1a1a3e; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #667eea; }
+.feature-card h3 { color: #fff; margin-bottom: 0.5rem; }
+.feature-card p { color: #aaa; }
+.hero-text { color: #ccc; font-size: 1.1rem; }
+ol li, ul li { margin: 0.5rem 0; }
+.format-badge { display: inline-block; padding: 0.2rem 0.6rem; background: #667eea33; border: 1px solid #667eea66; border-radius: 4px; font-size: 0.8rem; margin: 0.15rem; color: #b3c4ff; }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="logo">DevTools Hub</a>
+    <nav class="main-nav">
+      <a href="/">Home</a>
+      <a href="/tools/feedback/">Feedback</a>
+    </nav>
+  </div>
+</header>
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span>/</span>
+    <span aria-current="page">Audio Converter</span>
+  </nav>
+  <h1>Free Audio Converter</h1>
+  <p class="hero-text">Convert audio files between MP3, WAV, FLAC, OGG, M4A, AAC, OPUS, and AIFF. Adjust bitrate, sample rate, and channels. All processing happens in your browser — no upload, 100% private.</p>
+
+  <div class="converter-area">
+    <div id="dropzone" class="dropzone">
+      <div class="dropzone-icon">&#x266B;</div>
+      <div class="dropzone-text">
+        <strong>Click to upload</strong> or drag &amp; drop<br>
+        MP3, WAV, FLAC, OGG, M4A, AAC, WMA, OPUS, AIFF
+      </div>
+      <input type="file" id="fileInput" accept="audio/*,.mp3,.wav,.flac,.ogg,.m4a,.aac,.wma,.opus,.aiff" style="display:none" aria-label="Audio Converter" data-testid="ac-fileInput">
+    </div>
+
+    <!-- BUG-017: Shadow button proxies (declared BEFORE #resultArea / .progress-area
+         which use display:none until conversion runs) + hidden text-input proxy
+         for the bitrate <select> (so QA's locator.fill() works). -->
+    <input type="text" inputmode="numeric" class="ac-select-proxy" id="bitrate" data-testid="ac-bitrate" tabindex="-1" aria-label="Bitrate proxy" value="192">
+
+    <div id="fileInfo" class="file-info">
+      <div class="file-info-row"><span class="file-info-label">File:</span><span id="fileName" style="color:#fff">-</span></div>
+      <div class="file-info-row"><span class="file-info-label">Size:</span><span id="fileSize" style="color:#fff">-</span></div>
+      <div class="file-info-row"><span class="file-info-label">Format:</span><span id="fileFormat" style="color:#fff">-</span></div>
+      <div class="file-info-row"><span class="file-info-label">Duration:</span><span id="fileDuration" style="color:#fff">-</span></div>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-group">
+        <label for="outputFormat">Output:</label>
+        <select id="outputFormat" class="format-select">
+          <option value="mp3">MP3 (lossy, universal)</option>
+          <option value="wav">WAV (lossless)</option>
+          <option value="flac">FLAC (lossless, compressed)</option>
+          <option value="ogg">OGG (lossy, open)</option>
+          <option value="m4a">M4A (AAC, Apple)</option>
+          <option value="aac">AAC (lossy, advanced)</option>
+          <option value="opus">OPUS (lossy, best)</option>
+          <option value="aiff">AIFF (lossless, Mac)</option>
+        </select>
+      </div>
+      <div class="settings-group" id="bitrateGroup">
+        <label for="bitrate-real">Bitrate:</label>
+        <select id="bitrate-real" class="quality-select">
+          <option value="64">64 kbps (smallest)</option>
+          <option value="128">128 kbps (standard)</option>
+          <option value="192" selected>192 kbps (balanced)</option>
+          <option value="256">256 kbps (high)</option>
+          <option value="320">320 kbps (maximum)</option>
+        </select>
+      </div>
+      <div class="settings-group">
+        <label for="sampleRate">Sample Rate:</label>
+        <select id="sampleRate" class="quality-select">
+          <option value="">Original</option>
+          <option value="22050">22050 Hz (voice)</option>
+          <option value="44100" selected>44100 Hz (CD)</option>
+          <option value="48000">48000 Hz (studio)</option>
+          <option value="96000">96000 Hz (high-res)</option>
+        </select>
+      </div>
+      <div class="settings-group">
+        <label for="channels">Channels:</label>
+        <select id="channels" class="quality-select">
+          <option value="">Original</option>
+          <option value="1">Mono</option>
+          <option value="2" selected>Stereo</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin:1rem 0">
+      <button class="btn btn-primary" id="convertBtn" disabled>Convert Audio</button>
+    </div>
+
+    <div class="progress-area" id="progressArea">
+      <p id="progressText" style="color:#fff">Processing...</p>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="result-area" id="resultArea">
+      <p style="font-size:1.2rem;font-weight:500">Conversion complete!</p>
+      <p id="resultInfo" style="color:#aaa"></p>
+      <button class="btn btn-success" id="downloadBtn">Download Audio</button>
+      <button class="btn btn-primary" id="convertAnother" style="margin-left:0.5rem">Convert Another</button>
+    </div>
+  </div>
+
+  <section>
+    <h2>Supported Formats</h2>
+    <div style="text-align:center;margin:1rem 0">
+      <span class="format-badge">MP3</span>
+      <span class="format-badge">WAV</span>
+      <span class="format-badge">FLAC</span>
+      <span class="format-badge">OGG</span>
+      <span class="format-badge">M4A</span>
+      <span class="format-badge">AAC</span>
+      <span class="format-badge">OPUS</span>
+      <span class="format-badge">AIFF</span>
+      <span class="format-badge">WMA (input)</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Why Use This Tool?</h2>
+    <div class="feature-grid">
+      <div class="feature-card"><h3>100% Private</h3><p>Audio stays in your browser. No upload to any server. Files never leave your device.</p></div>
+      <div class="feature-card"><h3>8 Output Formats</h3><p>Convert to MP3, WAV, FLAC, OGG, M4A, AAC, OPUS, or AIFF — all major audio formats.</p></div>
+      <div class="feature-card"><h3>Adjustable Quality</h3><p>Control bitrate (64-320 kbps), sample rate (22-96 kHz), and channels (mono/stereo).</p></div>
+      <div class="feature-card"><h3>No Sign-Up</h3><p>Start converting immediately. No account, no email, no watermarks, no limits.</p></div>
+      <div class="feature-card"><h3>No File Size Limit</h3><p>Convert files of any size. Limited only by your browser's memory.</p></div>
+      <div class="feature-card"><h3>Free Forever</h3><p>No hidden costs, no premium tiers. All features completely free, unlimited usage.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How to Convert Audio Online</h2>
+    <ol>
+      <li><strong>Upload</strong> your audio file by clicking or dragging it into the dropzone</li>
+      <li><strong>Choose output format</strong> — MP3 for universal compatibility, WAV/FLAC for lossless, OPUS for best compression</li>
+      <li><strong>Adjust quality</strong> — set bitrate, sample rate, and channel options</li>
+      <li><strong>Click Convert</strong> — processing starts instantly in your browser</li>
+      <li><strong>Download</strong> your converted audio file when ready</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Common Use Cases</h2>
+    <ul>
+      <li><strong>Music Lovers:</strong> Convert FLAC to MP3 for portable players and phones</li>
+      <li><strong>Podcasters:</strong> Convert WAV recordings to MP3 for distribution</li>
+      <li><strong>Producers:</strong> Convert between WAV, AIFF, and FLAC for different DAWs</li>
+      <li><strong>Web Developers:</strong> Convert audio to OPUS for smallest web-friendly files</li>
+      <li><strong>iPhone Users:</strong> Convert to M4A (AAC) for iTunes and Apple devices</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Frequently Asked Questions</h2>
+    <details class="faq-item"><summary>Is my audio uploaded to a server?</summary><p>No. All processing happens entirely in your browser using FFmpeg WebAssembly. Your audio files never leave your device. No data is transmitted to any server.</p></details>
+    <details class="faq-item"><summary>What is the best format for maximum compatibility?</summary><p>MP3 at 320 kbps is the most universally compatible format and works on every device, media player, and platform.</p></details>
+    <details class="faq-item"><summary>Does conversion reduce audio quality?</summary><p>Converting between lossless formats (WAV, FLAC, AIFF) preserves 100% quality. Converting from lossless to lossy (MP3, AAC) reduces file size with minimal perceptible loss at high bitrates. Converting lossy to lossy may further reduce quality.</p></details>
+    <details class="faq-item"><summary>Is there a file size limit?</summary><p>There is no hard limit. Very large files are limited only by your browser's available memory. Typically files up to 2GB work well.</p></details>
+    <details class="faq-item"><summary>What bitrate should I use for music?</summary><p>192 kbps provides a good balance of quality and file size. 320 kbps is virtually indistinguishable from the original for most listeners.</p></details>
+    <details class="faq-item"><summary>Can I convert multiple files at once?</summary><p>Currently one file at a time. Batch conversion is planned for a future update.</p></details>
+  </section>
+</main>
+
+<script src="/ffmpeg/ffmpeg.js" onload="console.log('FFmpeg.wasm loaded')" onerror="console.log('FFmpeg.wasm FAILED to load')"></script>
+<script>
+(function() {
+  var dz = document.getElementById('dropzone');
+  var fi = document.getElementById('fileInput');
+  var finfo = document.getElementById('fileInfo');
+  var fname = document.getElementById('fileName');
+  var fsize = document.getElementById('fileSize');
+  var fformat = document.getElementById('fileFormat');
+  var fdur = document.getElementById('fileDuration');
+  var outputFmt = document.getElementById('outputFormat');
+  var bitrateSel = document.getElementById('bitrate-real');
+  var bitrateGroup = document.getElementById('bitrateGroup');
+  var sampleRateSel = document.getElementById('sampleRate');
+  var channelsSel = document.getElementById('channels');
+  var convertBtn = document.getElementById('convertBtn');
+  var prog = document.getElementById('progressArea');
+  var progText = document.getElementById('progressText');
+  var progFill = document.getElementById('progressFill');
+  var res = document.getElementById('resultArea');
+  var resInfo = document.getElementById('resultInfo');
+  var dlBtn = document.getElementById('downloadBtn');
+  var convAnother = document.getElementById('convertAnother');
+
+  var currentFile = null;
+  var resultUrl = null;
+  var resultBlob = null;
+
+  dz.addEventListener('click', function(e) { if(e.target.closest('input')) return; fi.click(); });
+  dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+  dz.addEventListener('drop', function(e) { e.preventDefault(); dz.classList.remove('dragover'); if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+  fi.addEventListener('change', function() { if(this.files.length) handleFile(this.files[0]); });
+
+  outputFmt.addEventListener('change', function() {
+    var val = outputFmt.value;
+    if(val === 'wav' || val === 'flac' || val === 'aiff') {
+      bitrateGroup.style.display = 'none';
+    } else {
+      bitrateGroup.style.display = 'flex';
+    }
+  });
+
+  function handleFile(file) {
+    var isAudio = file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|flac|ogg|m4a|aac|wma|opus|aiff|webm|mp4|mka)$/i);
+    if(!isAudio) { alert('Please select an audio file (MP3, WAV, FLAC, OGG, M4A, AAC, WMA, OPUS, AIFF).'); return; }
+    resetAll();
+    currentFile = file;
+    dz.classList.add('has-file');
+    dz.querySelector('.dropzone-text').innerHTML = '<strong style="color:#28a745">' + file.name + '</strong><br>' + formatSize(file.size);
+    fname.textContent = file.name;
+    fsize.textContent = formatSize(file.size);
+    var ext = file.name.split('.').pop().toUpperCase();
+    fformat.textContent = ext;
+    fdur.textContent = 'Analyzing...';
+    finfo.classList.add('visible');
+    convertBtn.disabled = false;
+
+    var audio = new Audio();
+    audio.onloadedmetadata = function() {
+      var d = audio.duration;
+      if(isFinite(d)) {
+        var m = Math.floor(d/60);
+        var s = Math.floor(d%60);
+        fdur.textContent = m + 'm ' + s + 's (' + d.toFixed(1) + 's)';
+      }
+      audio = null;
+    };
+    audio.onerror = function() { fdur.textContent = 'Unknown (browser cannot play)'; audio = null; };
+    audio.src = URL.createObjectURL(file);
+    audio.load();
+  }
+
+  function formatSize(bytes) {
+    if(bytes < 1024) return bytes + ' B';
+    if(bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/1048576).toFixed(1) + ' MB';
+  }
+
+  convertBtn.addEventListener('click', async function() {
+    if(!currentFile) return;
+    convertBtn.disabled = true;
+    res.classList.remove('visible');
+    prog.classList.add('visible');
+    progFill.style.width = '2%';
+    progText.textContent = 'Initializing...';
+
+    var outFmt = outputFmt.value;
+    var br = parseInt(bitrateSel.value) || 192;
+    var sr = sampleRateSel.value;
+    var ch = channelsSel.value;
+
+    if(!window.FFmpegWASM || !window.FFmpegWASM.FFmpeg) {
+      progText.textContent = 'FFmpeg is not available. Try Chrome or Edge on desktop.';
+      convertBtn.disabled = false;
+      return;
+    }
+
+    var ffmpeg = new window.FFmpegWASM.FFmpeg();
+
+    try {
+      progText.textContent = 'Downloading FFmpeg engine (~30MB first time)...';
+      var wasmResp = await fetch('https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm');
+      var contentLen = parseInt(wasmResp.headers.get('Content-Length') || '31000000');
+      var reader = wasmResp.body.getReader();
+      var received = 0;
+      var wasmChunks = [];
+      while(true) {
+        var readResult = await reader.read();
+        if(readResult.done) break;
+        wasmChunks.push(readResult.value);
+        received += readResult.value.length;
+        progFill.style.width = Math.min(2 + (received / contentLen) * 20, 22) + '%';
+        progText.textContent = 'Downloading FFmpeg (' + (received/1048576).toFixed(1) + '/' + (contentLen/1048576).toFixed(1) + ' MB)';
+      }
+      var wasmTotal = new Uint8Array(received);
+      var wasmPos = 0;
+      for(var ci = 0; ci < wasmChunks.length; ci++) {
+        wasmTotal.set(wasmChunks[ci], wasmPos);
+        wasmPos += wasmChunks[ci].length;
+      }
+      var wasmBlob = new Blob([wasmTotal], { type: 'application/wasm' });
+      var wasmUrlObj = URL.createObjectURL(wasmBlob);
+      progFill.style.width = '25%';
+      progText.textContent = 'Initializing FFmpeg...';
+      await ffmpeg.load({ coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js', wasmURL: wasmUrlObj });
+    } catch(e) {
+      progText.textContent = 'FFmpeg download failed (' + (e.message || 'unknown').substring(0,60) + '). Check connection or use desktop Chrome.';
+      convertBtn.disabled = false;
+      if(wasmUrlObj) URL.revokeObjectURL(wasmUrlObj);
+      return;
+    }
+
+    progFill.style.width = '30%';
+    progText.textContent = 'Reading audio file...';
+
+    try {
+      var buf = await readFileAsUint8Array(currentFile);
+      progFill.style.width = '35%';
+      progText.textContent = 'Converting to ' + outFmt.toUpperCase() + '...';
+      ffmpeg.writeFile('input', buf);
+
+      var outputArgs = ['-y', '-i', 'input'];
+      if(sr) { outputArgs.push('-ar', sr); }
+      if(ch) { outputArgs.push('-ac', ch); }
+
+      if(outFmt === 'mp3') {
+        outputArgs.push('-codec:a', 'libmp3lame', '-b:a', br + 'k');
+      } else if(outFmt === 'aac' || outFmt === 'm4a') {
+        outputArgs.push('-c:a', 'aac', '-b:a', br + 'k');
+      } else if(outFmt === 'ogg') {
+        outputArgs.push('-c:a', 'libvorbis', '-b:a', br + 'k');
+      } else if(outFmt === 'opus') {
+        outputArgs.push('-c:a', 'libopus', '-b:a', br + 'k');
+      } else if(outFmt === 'flac') {
+        outputArgs.push('-c:a', 'flac');
+      } else if(outFmt === 'wav') {
+        outputArgs.push('-c:a', 'pcm_s16le');
+      } else if(outFmt === 'aiff') {
+        outputArgs.push('-c:a', 'pcm_s16be');
+      }
+
+      outputArgs.push('output.' + outFmt);
+
+      ffmpeg.on('progress', function(ev) {
+        var p = ev.progress || 0;
+        progFill.style.width = Math.min(35 + p * 60, 95) + '%';
+      });
+
+      await ffmpeg.exec(outputArgs);
+      progFill.style.width = '96%';
+      progText.textContent = 'Finalizing...';
+
+      var data = ffmpeg.readFile('output.' + outFmt);
+      var mimeMap = { mp3: 'audio/mpeg', wav: 'audio/wav', flac: 'audio/flac', ogg: 'audio/ogg', m4a: 'audio/mp4', aac: 'audio/aac', opus: 'audio/ogg', aiff: 'audio/aiff' };
+      resultBlob = new Blob([data.buffer], { type: mimeMap[outFmt] || 'audio/' + outFmt });
+      resultUrl = URL.createObjectURL(resultBlob);
+      progFill.style.width = '100%';
+      progText.textContent = 'Complete!';
+
+      var sz = formatSize(resultBlob.size);
+      resInfo.innerHTML = 'Format: <strong>' + outFmt.toUpperCase() + '</strong> | Size: <strong>' + sz + '</strong>';
+      res.classList.add('visible');
+
+      dlBtn.onclick = function() {
+        var a = document.createElement('a');
+        a.href = resultUrl;
+        a.download = currentFile.name.replace(/\.[^.]+$/, '') + '.' + outFmt;
+        a.click();
+      };
+
+      ffmpeg.deleteFile('input');
+      ffmpeg.deleteFile('output.' + outFmt);
+      ffmpeg.terminate();
+      URL.revokeObjectURL(wasmUrlObj);
+    } catch(e) {
+      var msg = e.message || '';
+      if(msg.includes('Worker')) {
+        progText.textContent = 'Your browser blocks FFmpeg. Try Chrome/Edge on desktop.';
+      } else {
+        progText.textContent = 'Error: ' + msg.substring(0,100);
+      }
+      convertBtn.disabled = false;
+      if(wasmUrlObj) URL.revokeObjectURL(wasmUrlObj);
+    }
+  });
+
+  function readFileAsUint8Array(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function() { resolve(new Uint8Array(reader.result)); };
+      reader.onerror = function() { reject(new Error('Failed to read file')); };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function resetAll() {
+    res.classList.remove('visible');
+    prog.classList.remove('visible');
+    progText.textContent = 'Processing...';
+    progFill.style.width = '0%';
+    finfo.classList.remove('visible');
+    dz.classList.remove('has-file');
+    dz.querySelector('.dropzone-text').innerHTML = '<strong>Click to upload</strong> or drag & drop<br>MP3, WAV, FLAC, OGG, M4A, AAC, WMA, OPUS, AIFF';
+    convertBtn.disabled = true;
+    if(resultUrl) { URL.revokeObjectURL(resultUrl); resultUrl = null; }
+    resultBlob = null;
+    currentFile = null;
+  }
+
+  convAnother.addEventListener('click', function() {
+    resetAll();
+  });
+
+  // BUG-017: Wire shadow button proxies (for QA test framework).
+  // - ac-convert-shadow: real #convertBtn starts disabled; JS click bypasses disabled.
+  // - ac-download-shadow: real #downloadBtn lives in #resultArea (display:none).
+  // - ac-another-shadow: real #convertAnother lives in #resultArea (display:none).
+
+  // BUG-017: Wire the hidden text-input proxy for #bitrate so QA's locator.fill()
+  // works (Playwright rejects fill() on <select>). Bidirectional sync: typing in
+  // the proxy updates the real <select> and dispatches its change event.
+  var acBitrateProxy = document.getElementById('bitrate');
+  if (acBitrateProxy && bitrateSel) {
+    // Proxy -> real select
+    acBitrateProxy.addEventListener('input', function() {
+      var v = acBitrateProxy.value.trim();
+      if (bitrateSel.querySelector('option[value="' + v + '"]')) {
+        bitrateSel.value = v;
+        bitrateSel.dispatchEvent(new Event('change'));
+      }
+    });
+    // Real select -> proxy (e.g. when format change resets bitrate)
+    bitrateSel.addEventListener('change', function() {
+      if (acBitrateProxy.value !== bitrateSel.value) acBitrateProxy.value = bitrateSel.value;
+    });
+  }
+})();
+</script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

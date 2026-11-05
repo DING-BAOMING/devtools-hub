@@ -1,0 +1,1970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<title>Audio Editor - Free Online Audio Effects &amp; Editing Tool</title>
+<meta name="description" content="Free online audio editor. Cut, fade, normalize, change speed/pitch, add reverb and echo, EQ bass/treble, reverse, trim silence. 100% private, no upload.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/audio-editor/">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+<meta property="og:title" content="Audio Editor - Free Online Audio Effects &amp; Editing Tool">
+<meta property="og:description" content="Free online audio editor. Cut, fade, normalize, change speed/pitch, add reverb and echo, EQ bass/treble, reverse, trim silence. 100% private, no upload.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/audio-editor/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Audio Editor - Free Online Audio Effects &amp; Editing Tool">
+<meta name="twitter:description" content="Free online audio editor. Cut, fade, normalize, change speed/pitch, add reverb and echo, EQ bass/treble, reverse, trim silence. 100% private, no upload.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:url" content="https://tools.scoreroute.com/tools/audio-editor/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "datePublished": "2026-08-21",
+  "dateModified": "2026-08-21",
+  "author": {"@type": "Organization", "name": "DevTools Hub"},
+  "name": "Audio Editor",
+  "description": "Free online audio editor with cut, fade, normalize, speed, pitch, reverse, reverb, echo, bass/treble EQ, trim silence and MP3 export. Runs entirely in the browser with no upload, no signup and 100% privacy.",
+  "url": "https://tools.scoreroute.com/tools/audio-editor/",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "All",
+  "browserRequirement": "Requires JavaScript and Web Audio API",
+  "featureList": [
+    "Cut and trim with waveform precision",
+    "Fade in and fade out",
+    "Volume adjust and normalize",
+    "Speed change with optional pitch preservation",
+    "Pitch shift",
+    "Reverse audio",
+    "Auto trim silence",
+    "Bass and treble EQ",
+    "Reverb (small, medium, large room)",
+    "Echo with adjustable delay",
+    "Compressor / limiter",
+    "Export to WAV or MP3"
+  ],
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root {
+  --ae-bg: #0f0f23;
+  --ae-card: #1a1a2e;
+  --ae-border: #2a2a4a;
+  --ae-text: #fff;
+  --ae-muted: #9ca3af;
+  --ae-dim: #6b7280;
+  --ae-primary: #667eea;
+  --ae-primary-dark: #5568d3;
+  --ae-success: #10b981;
+  --ae-warn: #f59e0b;
+  --ae-danger: #ef4444;
+}
+.ae-wrap { max-width: 1000px; margin: 0 auto; }
+.ae-dropzone {
+  border: 3px dashed #555;
+  border-radius: 12px;
+  padding: 50px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: var(--ae-card);
+  margin-bottom: 20px;
+}
+.ae-dropzone:hover, .ae-dropzone.dragover {
+  border-color: var(--ae-primary);
+  background: #1f2151;
+}
+.ae-dropzone.has-file { border-color: var(--ae-success); background: #0e3327; }
+.ae-dropzone-icon { font-size: 3.6rem; margin-bottom: 0.6rem; }
+.ae-dropzone-text { font-size: 1.05rem; color: var(--ae-text); }
+.ae-dropzone-text strong { color: var(--ae-primary); }
+.ae-dropzone-hint { color: var(--ae-muted); font-size: 0.85rem; margin-top: 8px; }
+
+.ae-panel {
+  background: var(--ae-bg);
+  border: 1px solid var(--ae-border);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+.ae-panel h2.ae-panel-title,
+.ae-panel h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  color: var(--ae-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ae-panel h2.ae-panel-title .ae-badge,
+.ae-panel h3 .ae-badge {
+  background: var(--ae-card);
+  color: var(--ae-muted);
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.ae-waveform-wrap {
+  position: relative;
+  background: #0a0a1c;
+  border: 1px solid var(--ae-border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.ae-waveform-canvas {
+  display: block;
+  width: 100%;
+  height: 140px;
+  cursor: pointer;
+  background: #0a0a1c;
+}
+.ae-region-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 140px;
+  cursor: crosshair;
+  pointer-events: auto;
+}
+.ae-playhead {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--ae-warn);
+  pointer-events: none;
+  display: none;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+}
+.ae-region-marker {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(102, 126, 234, 0.25);
+  border-left: 2px solid var(--ae-primary);
+  border-right: 2px solid var(--ae-primary);
+  pointer-events: none;
+  display: none;
+}
+.ae-time-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--ae-muted);
+  padding: 0 4px;
+}
+
+.ae-transport {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.ae-transport .ae-play-btn {
+  background: var(--ae-primary);
+  color: var(--ae-text);
+  border: none;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ae-transport .ae-play-btn:hover { background: var(--ae-primary-dark); transform: scale(1.05); }
+.ae-transport .ae-play-btn.playing { background: var(--ae-danger); }
+.ae-time-display {
+  font-family: 'SF Mono', Consolas, monospace;
+  color: var(--ae-text);
+  font-size: 0.95rem;
+  background: var(--ae-card);
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--ae-border);
+  min-width: 200px;
+  text-align: center;
+}
+.ae-time-display .ae-time-dim { color: var(--ae-dim); font-size: 0.85rem; }
+
+.ae-effect-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+@media (max-width: 700px) { .ae-effect-row { grid-template-columns: 1fr; } }
+.ae-effect {
+  background: var(--ae-card);
+  border: 1px solid var(--ae-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.ae-effect-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.ae-effect-name {
+  font-size: 0.9rem;
+  color: var(--ae-text);
+  font-weight: 600;
+}
+.ae-effect-toggle {
+  width: 38px;
+  height: 22px;
+  background: var(--ae-border);
+  border-radius: 11px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.ae-effect-toggle.on { background: var(--ae-primary); }
+.ae-effect-toggle::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.ae-effect-toggle.on::after { transform: translateX(16px); }
+.ae-effect-control { display: flex; align-items: center; gap: 10px; }
+.ae-effect-control label { color: var(--ae-muted); font-size: 0.78rem; min-width: 70px; }
+.ae-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--ae-border);
+  border-radius: 2px;
+  outline: none;
+}
+.ae-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ae-primary);
+  cursor: pointer;
+}
+.ae-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ae-primary);
+  cursor: pointer;
+  border: none;
+}
+.ae-effect-value {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--ae-primary);
+  min-width: 50px;
+  text-align: right;
+}
+.ae-effect select, .ae-effect input[type="number"] {
+  background: var(--ae-bg);
+  color: var(--ae-text);
+  border: 1px solid var(--ae-border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 0.85rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+.ae-effect select:focus, .ae-effect input:focus {
+  outline: 2px solid var(--ae-primary);
+  border-color: transparent;
+}
+
+.ae-btn {
+  background: var(--ae-card);
+  color: var(--ae-text);
+  border: 1px solid var(--ae-border);
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.ae-btn:hover:not(:disabled) {
+  border-color: var(--ae-primary);
+  background: #222250;
+}
+.ae-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ae-btn-primary { background: var(--ae-primary); color: #fff; border: none; }
+.ae-btn-primary:hover:not(:disabled) { background: var(--ae-primary-dark); }
+.ae-btn-success { background: var(--ae-success); color: #fff; border: none; }
+.ae-btn-success:hover:not(:disabled) { background: #059669; }
+.ae-btn-danger { background: var(--ae-danger); color: #fff; border: none; }
+.ae-btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.ae-status {
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+  display: none;
+}
+.ae-status.show { display: block; }
+.ae-status.info { background: #1e3a8a; color: #dbeafe; border: 1px solid #3b82f6; }
+.ae-status.success { background: #064e3b; color: #d1fae5; border: 1px solid var(--ae-success); }
+.ae-status.error { background: #7f1d1d; color: #fee2e2; border: 1px solid var(--ae-danger); }
+
+.ae-result {
+  display: none;
+  padding: 16px;
+  background: #0e3327;
+  border: 1px solid var(--ae-success);
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+.ae-result.show { display: block; }
+.ae-result h3.ae-result-title,
+.ae-result h4 { color: var(--ae-success); margin: 0 0 8px; font-size: 1rem; }
+.ae-result p { color: var(--ae-text); margin: 4px 0; font-size: 0.9rem; }
+
+.ae-presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.ae-preset-btn {
+  background: var(--ae-card);
+  border: 1px solid var(--ae-border);
+  color: var(--ae-muted);
+  padding: 6px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+.ae-preset-btn:hover { border-color: var(--ae-primary); color: var(--ae-text); }
+.ae-preset-btn.active { background: var(--ae-primary); color: #fff; border-color: var(--ae-primary); }
+
+.ae-summary {
+  background: var(--ae-card);
+  border: 1px solid var(--ae-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 0.88rem;
+  color: var(--ae-text);
+}
+.ae-summary-row { display: flex; justify-content: space-between; padding: 3px 0; }
+.ae-summary-row span:first-child { color: var(--ae-muted); }
+
+.ae-help {
+  font-size: 0.76rem;
+  color: var(--ae-dim);
+  margin-top: 6px;
+}
+
+.ae-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--ae-border);
+}
+.ae-tab {
+  background: none;
+  border: none;
+  color: var(--ae-muted);
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.ae-tab.active { color: var(--ae-primary); border-bottom-color: var(--ae-primary); }
+.ae-tab:hover { color: var(--ae-text); }
+.ae-tab-content { display: none; }
+.ae-tab-content.active { display: block; }
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>Audio Editor</h1>
+<p class="subtitle">Cut, fade, normalize, EQ and add effects in your browser</p>
+<nav class="breadcrumb">
+<a href="/">Home</a> &gt; <a href="/tools/media/">Media</a> &gt; <span>Audio Editor</span>
+<a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+</nav>
+</div>
+</header>
+
+<main class="container ae-wrap">
+<section class="tool-page">
+<div class="tool-main">
+
+<div class="ae-status" id="aeStatus"></div>
+
+<div class="ae-dropzone" id="aeDrop">
+<div class="ae-dropzone-icon">&#127908;</div>
+<div class="ae-dropzone-text"><strong>Click to upload</strong> or drag &amp; drop audio</div>
+<div class="ae-dropzone-hint">Supports MP3, WAV, M4A, FLAC, OGG, AAC &mdash; 100% private, nothing leaves your device</div>
+<input type="file" id="aeFile" accept="audio/*" style="display:none" aria-label="Audio file">
+</div>
+
+<div class="ae-panel" id="aeEditorPanel" style="display:none">
+<h2 class="ae-panel-title">Your Audio <span class="ae-badge" id="aeFileBadge">No file loaded</span></h2>
+
+<div class="ae-summary" id="aeSummary" style="display:none">
+<div class="ae-summary-row"><span>Format:</span><span id="aeInfoFormat">&mdash;</span></div>
+<div class="ae-summary-row"><span>Duration:</span><span id="aeInfoDur">&mdash;</span></div>
+<div class="ae-summary-row"><span>Channels:</span><span id="aeInfoChan">&mdash;</span></div>
+<div class="ae-summary-row"><span>Sample rate:</span><span id="aeInfoRate">&mdash;</span></div>
+<div class="ae-summary-row"><span>Peak level:</span><span id="aeInfoPeak">&mdash;</span></div>
+</div>
+
+<div class="ae-presets">
+<button class="ae-preset-btn" onclick="aeApplyPreset('podcast')">Podcast Voice</button>
+<button class="ae-preset-btn" onclick="aeApplyPreset('music')">Loud Music</button>
+<button class="ae-preset-btn" onclick="aeApplyPreset('clean')">Clean Voice</button>
+<button class="ae-preset-btn" onclick="aeApplyPreset('warm')">Warm Bass</button>
+<button class="ae-preset-btn" onclick="aeApplyPreset('bright')">Bright Treble</button>
+<button class="ae-preset-btn" onclick="aeApplyPreset('hall')">Concert Hall</button>
+<button class="ae-preset-btn" onclick="aeApplyPreset('reset')">Reset All</button>
+</div>
+
+<div class="ae-waveform-wrap">
+<canvas id="aeWaveCanvas" class="ae-waveform-canvas" width="1000" height="140"></canvas>
+<canvas id="aeRegionCanvas" class="ae-region-canvas" width="1000" height="140"></canvas>
+<div class="ae-playhead" id="aePlayhead"></div>
+<div class="ae-region-marker" id="aeRegionMarker"></div>
+</div>
+<div class="ae-time-row">
+<span id="aeTimeStart">0:00.00</span>
+<span id="aeTimeEnd">0:00.00</span>
+</div>
+
+<div class="ae-transport">
+<button class="ae-play-btn" id="aePlayBtn" onclick="aeTogglePlay()" aria-label="Play / pause"><span aria-hidden="true">&#9654;</span></button>
+<div class="ae-time-display"><span id="aeCurTime">0:00.00</span> <span class="ae-time-dim">/ <span id="aeTotalTime">0:00.00</span></span></div>
+<button class="ae-btn" onclick="aeSetPlayheadStart()">&#9198; Set start</button>
+<button class="ae-btn" onclick="aeSetPlayheadEnd()">&#9197; Set end</button>
+<button class="ae-btn" onclick="aeClearRegion()">Clear</button>
+<button class="ae-btn" onclick="aePlayRegion()">Play selection</button>
+</div>
+
+<div class="ae-tabs">
+<button class="ae-tab active" onclick="aeSwitchTab('basic', this)">Basic</button>
+<button class="ae-tab" onclick="aeSwitchTab('eq', this)">EQ &amp; Tone</button>
+<button class="ae-tab" onclick="aeSwitchTab('fx', this)">Effects</button>
+<button class="ae-tab" onclick="aeSwitchTab('time', this)">Time</button>
+</div>
+
+<div class="ae-tab-content active" data-tab="basic">
+<div class="ae-effect-row">
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Volume</div>
+<div class="ae-effect-toggle on" data-toggle="volume" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Gain</label>
+<input type="range" class="ae-slider" id="aeVolumeSlider" min="0" max="300" value="100" step="1" oninput="aeOnSlider('volume', this.value)" aria-label="Volume gain percentage">
+<span class="ae-effect-value" id="aeVolumeVal">100%</span>
+</div>
+</div>
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Normalize</div>
+<div class="ae-effect-toggle" data-toggle="normalize" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Target</label>
+<input type="range" class="ae-slider" id="aeNormSlider" min="-20" max="0" value="-3" step="1" oninput="aeOnSlider('normalize', this.value)" aria-label="Normalize target in decibels full scale">
+<span class="ae-effect-value" id="aeNormVal">-3 dB</span>
+</div>
+<div class="ae-help">Auto-gain so the loudest sample hits the target dBFS.</div>
+</div>
+</div>
+<div class="ae-effect-row">
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Fade In</div>
+<div class="ae-effect-toggle" data-toggle="fadeIn" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Length</label>
+<input type="range" class="ae-slider" id="aeFadeInSlider" min="0" max="10000" value="500" step="50" oninput="aeOnSlider('fadeIn', this.value)" aria-label="Fade in length in milliseconds">
+<span class="ae-effect-value" id="aeFadeInVal">0.5 s</span>
+</div>
+</div>
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Fade Out</div>
+<div class="ae-effect-toggle" data-toggle="fadeOut" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Length</label>
+<input type="range" class="ae-slider" id="aeFadeOutSlider" min="0" max="10000" value="500" step="50" oninput="aeOnSlider('fadeOut', this.value)" aria-label="Fade out length in milliseconds">
+<span class="ae-effect-value" id="aeFadeOutVal">0.5 s</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="ae-tab-content" data-tab="eq">
+<div class="ae-effect-row">
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Bass Boost</div>
+<div class="ae-effect-toggle" data-toggle="bass" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Gain</label>
+<input type="range" class="ae-slider" id="aeBassSlider" min="-12" max="18" value="0" step="1" oninput="aeOnSlider('bass', this.value)" aria-label="Bass boost gain in decibels">
+<span class="ae-effect-value" id="aeBassVal">0 dB</span>
+</div>
+<div class="ae-help">Low-shelf filter at 150 Hz.</div>
+</div>
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Treble Boost</div>
+<div class="ae-effect-toggle" data-toggle="treble" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Gain</label>
+<input type="range" class="ae-slider" id="aeTrebleSlider" min="-12" max="18" value="0" step="1" oninput="aeOnSlider('treble', this.value)" aria-label="Treble boost gain in decibels">
+<span class="ae-effect-value" id="aeTrebleVal">0 dB</span>
+</div>
+<div class="ae-help">High-shelf filter at 4 kHz.</div>
+</div>
+</div>
+<div class="ae-effect-row">
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Compressor</div>
+<div class="ae-effect-toggle" data-toggle="compressor" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Threshold</label>
+<input type="range" class="ae-slider" id="aeCompSlider" min="-40" max="0" value="-18" step="1" oninput="aeOnSlider('compressor', this.value)" aria-label="Compressor threshold in decibels">
+<span class="ae-effect-value" id="aeCompVal">-18 dB</span>
+</div>
+<div class="ae-help">Smooths loud peaks. Ratio 4:1, attack 3 ms, release 250 ms.</div>
+</div>
+</div>
+</div>
+
+<div class="ae-tab-content" data-tab="fx">
+<div class="ae-effect-row">
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Reverb</div>
+<div class="ae-effect-toggle" data-toggle="reverb" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Amount</label>
+<input type="range" class="ae-slider" id="aeReverbSlider" min="0" max="100" value="30" step="1" oninput="aeOnSlider('reverb', this.value)" aria-label="Reverb amount percentage">
+<span class="ae-effect-value" id="aeReverbVal">30%</span>
+</div>
+<div class="ae-effect-control" style="margin-top:8px">
+<label for="aeReverbRoom">Room</label>
+<select id="aeReverbRoom" name="aeReverbRoom" data-testid="aeReverbRoom" onchange="aeOnSelect('reverbRoom', this.value)">
+<option value="small">Small room</option>
+<option value="medium" selected>Medium room</option>
+<option value="large">Large hall</option>
+<option value="church">Cathedral</option>
+</select>
+</div>
+</div>
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Echo</div>
+<div class="ae-effect-toggle" data-toggle="echo" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Amount</label>
+<input type="range" class="ae-slider" id="aeEchoSlider" min="0" max="100" value="25" step="1" oninput="aeOnSlider('echo', this.value)" aria-label="Echo amount percentage">
+<span class="ae-effect-value" id="aeEchoVal">25%</span>
+</div>
+<div class="ae-effect-control" style="margin-top:8px">
+<label>Delay</label>
+<input type="range" class="ae-slider" id="aeEchoDelaySlider" min="50" max="1000" value="250" step="10" oninput="aeOnSlider('echoDelay', this.value)" aria-label="Echo delay in milliseconds">
+<span class="ae-effect-value" id="aeEchoDelayVal">250 ms</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="ae-tab-content" data-tab="time">
+<div class="ae-effect-row">
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Speed Change</div>
+<div class="ae-effect-toggle" data-toggle="speed" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Rate</label>
+<input type="range" class="ae-slider" id="aeSpeedSlider" min="25" max="400" value="100" step="1" oninput="aeOnSlider('speed', this.value)" aria-label="Playback speed rate percentage">
+<span class="ae-effect-value" id="aeSpeedVal">1.00&times;</span>
+</div>
+<div class="ae-help">25% = quarter speed, 200% = double speed.</div>
+</div>
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Pitch Shift</div>
+<div class="ae-effect-toggle" data-toggle="pitch" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Semitones</label>
+<input type="range" class="ae-slider" id="aePitchSlider" min="-12" max="12" value="0" step="1" oninput="aeOnSlider('pitch', this.value)" aria-label="Pitch shift in semitones">
+<span class="ae-effect-value" id="aePitchVal">0 st</span>
+</div>
+<div class="ae-help">Preserves duration. -12 = one octave down, +12 = one octave up.</div>
+</div>
+</div>
+<div class="ae-effect-row">
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Reverse</div>
+<div class="ae-effect-toggle" data-toggle="reverse" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-help">Plays the audio backwards. Combine with reverb for ambient textures.</div>
+</div>
+<div class="ae-effect">
+<div class="ae-effect-head">
+<div class="ae-effect-name">Trim Silence</div>
+<div class="ae-effect-toggle" data-toggle="trimSilence" onclick="aeToggleFx(this)"></div>
+</div>
+<div class="ae-effect-control">
+<label>Threshold</label>
+<input type="range" class="ae-slider" id="aeTrimSlider" min="-60" max="-20" value="-40" step="1" oninput="aeOnSlider('trimSilence', this.value)" aria-label="Trim silence threshold in decibels">
+<span class="ae-effect-value" id="aeTrimVal">-40 dB</span>
+</div>
+<div class="ae-help">Removes silent gaps longer than 100 ms below the threshold.</div>
+</div>
+</div>
+</div>
+
+<div class="ae-btn-row">
+<button class="ae-btn ae-btn-primary" id="aePreviewBtn" onclick="aePreview()">&#9654; Preview with effects</button>
+<button class="ae-btn" id="aeStopPreviewBtn" onclick="aeStopPreview()">&#9632; Stop</button>
+<button class="ae-btn" onclick="aeResetEffects()">Reset effects</button>
+</div>
+</div>
+
+<div class="ae-panel" id="aeExportPanel" style="display:none">
+<h2 class="ae-panel-title">Export <span class="ae-badge">Apply all effects and download</span></h2>
+<div class="ae-btn-row">
+<button class="ae-btn ae-btn-success" id="aeExportWavBtn" onclick="aeExportWav()">&#11015; Download WAV</button>
+<button class="ae-btn ae-btn-success" id="aeExportMp3Btn" onclick="aeExportMp3()">&#11015; Download MP3</button>
+<button class="ae-btn" onclick="aeLoadNew()">Load another file</button>
+</div>
+<div class="ae-help">WAV is rendered instantly with Web Audio. MP3 uses FFmpeg.wasm (~30 MB first-time download).</div>
+</div>
+
+<div class="ae-result" id="aeResult">
+<h3 class="ae-result-title">Render complete</h3>
+<p id="aeResultText">&mdash;</p>
+<a id="aeResultLink" class="ae-btn ae-btn-success" style="display:none">Download again</a>
+</div>
+
+</div>
+
+<div class="info-section">
+<h2>Free Online Audio Editor with Real Effects</h2>
+<p>This free online audio editor runs entirely inside your browser. Drop in an MP3, WAV, M4A, FLAC, OGG or AAC file and you can cut it, fade it in and out, change volume, normalize loudness, shift pitch, change speed, add reverb or echo, boost bass and treble, run a soft compressor, reverse it or trim silence &mdash; then export to WAV or MP3 without uploading anything to a server.</p>
+<p>Everything happens with the Web Audio API. Your audio stays on your device, no account is needed, and there are no daily limits, file-size caps or watermarks. Open the page, drop a file, edit it, save it. That is the whole workflow.</p>
+
+<h3>What You Can Do With This Tool</h3>
+<ul>
+<li><strong>Cut and trim.</strong> Click and drag across the waveform to set a selection, then hit Play selection. Use Set start / Set end buttons to fine-tune the in and out points with sub-frame accuracy.</li>
+<li><strong>Fade in and fade out.</strong> Linear fades with adjustable length up to ten seconds. Useful for podcast intros, music beds and avoiding abrupt cuts.</li>
+<li><strong>Volume and normalize.</strong> A simple gain slider covers routine level changes. The normalize switch finds the loudest sample in your file and rescales everything so the peak hits a target dBFS, which is the right way to make a quiet recording audible without clipping.</li>
+<li><strong>Bass and treble EQ.</strong> Two cascaded biquad shelves at 150 Hz and 4 kHz. Subtle values clean up voice recordings; aggressive values reshape music.</li>
+<li><strong>Compressor.</strong> Threshold-driven dynamics control at a 4:1 ratio. Pulls down loud peaks and lifts quiet passages, which is what podcasters use to even out voice levels.</li>
+<li><strong>Reverb and echo.</strong> Convolver-based reverb with four room sizes and a feedback delay line for echo. Stack them for ambient pads.</li>
+<li><strong>Speed and pitch.</strong> Change tempo independently of pitch, or shift pitch while keeping the same duration. Useful for music practice, language learning and fixing slightly off-key recordings.</li>
+<li><strong>Reverse and trim silence.</strong> Reverse playback for creative effects, plus an automatic silence trimmer that removes quiet gaps above 100 ms.</li>
+<li><strong>Export to WAV or MP3.</strong> WAV renders in milliseconds. MP3 uses FFmpeg.wasm loaded on demand, with the standard LAME encoder and adjustable bitrate.</li>
+</ul>
+
+<h3>Why AI Chatbots Cannot Replace This</h3>
+<p>Audio editing is a real-time DSP problem. To apply a fade, the tool has to walk through millions of samples and multiply each by a ramp. To normalize, it has to scan the whole buffer for the peak, then divide every sample by a derived gain. A convolution reverb multiplies the input by an impulse response across multiple channels in real time. None of this can be done with text prediction.</p>
+<p>AI assistants can describe what a fade is, suggest EQ settings or recommend a target loudness in LUFS. They can even write down a list of operations you should perform. But they cannot take your private audio file, render the changes and hand you back a finished WAV without seeing the bytes. The file is too large to paste into a chat window, and most users rightly refuse to upload private recordings to a third-party AI service. This editor solves that gap by doing the math locally.</p>
+
+<h3>Who This Tool Is For</h3>
+<ul>
+<li><strong>Podcasters</strong> trimming interviews, normalising hosts and guests, adding a short fade between segments.</li>
+<li><strong>Musicians</strong> slowing down a riff for practice, shifting the key of a backing track, experimenting with reverb settings.</li>
+<li><strong>Video editors</strong> who need a quick EQ pass, room-tone removal or de-essing alternative without launching a full DAW.</li>
+<li><strong>Students and language learners</strong> slowing dictation tracks or speeding up lectures while keeping voices intelligible.</li>
+<li><strong>Anyone</strong> with a recording who wants to clean it up, send it, and move on.</li>
+</ul>
+
+<h3>Tips for Best Results</h3>
+<ul>
+<li><strong>Normalize once, then compress.</strong> Normalizing first sets a known peak. Compressing after keeps the dynamics even.</li>
+<li><strong>Use mild EQ.</strong> A bass cut of -3 to -6 dB and a treble boost of +2 to +4 dB will clean up most phone recordings without sounding processed.</li>
+<li><strong>Reverb before echo, not after.</strong> Reverb on a dry signal then a subtle echo gives a natural room. Echo into reverb gives a metallic sound that rarely works.</li>
+<li><strong>Speed and pitch interact.</strong> Speed change at 50% also drops the pitch by an octave. Use pitch shift if you only want to change one.</li>
+<li><strong>MP3 is for sharing, WAV is for editing.</strong> Export WAV whenever you plan to do another pass. MP3 is lossy and accumulates artefacts each round trip.</li>
+</ul>
+
+<h3>How It Works Under the Hood</h3>
+<p>When you drop a file, the browser decodes it into a raw PCM buffer using <code>AudioContext.decodeAudioData</code>. From that point on, every effect is a deterministic transform on a <code>Float32Array</code>. Volume is a sample-by-sample multiply. Normalize scans for the peak once, divides by the resulting scale, and applies it. Reverb uses an <code>ConvolverNode</code> with a synthetic impulse response. Pitch shift uses a granular phase vocoder that overlaps short windows of the audio and resynthesises them at a new frequency while keeping the total length.</p>
+<p>Export to WAV is a direct write of the PCM samples into a 16-bit RIFF container. Export to MP3 writes the same buffer into FFmpeg's virtual filesystem, then runs the LAME encoder with a quality preset, and finally reads the resulting MP3 bytes back out as a download. Nothing in the chain touches a server.</p>
+
+<h3>Privacy</h3>
+<p>Your audio file is read by your browser, processed by your browser, and saved to your disk by your browser. There is no upload step. There is no analytics on the audio content. The page only loads the Web Audio API (built in), the FFmpeg.wasm core (loaded only when you export MP3) and the static stylesheet. Closing the tab clears everything.</p>
+
+<h3>Frequently Asked Questions</h3>
+
+<details class="faq-item">
+<summary>What audio formats are supported?</summary>
+<p>Anything your browser can decode: MP3, WAV, M4A, FLAC, OGG and AAC on Chrome, Edge, Firefox and Safari. Very large or unusual codecs (WMA, AMR) may not decode in-browser. If decoding fails the editor will tell you which file failed and why.</p>
+</details>
+
+<details class="faq-item">
+<summary>Is there a file size limit?</summary>
+<p>No hard limit. The buffer is held in memory, so very long files (over an hour at 44.1 kHz stereo) may slow the browser tab. For a typical podcast clip or song the editor is instant.</p>
+</details>
+
+<details class="faq-item">
+<summary>Does the tool upload my audio anywhere?</summary>
+<p>No. Audio decoding, every effect and the WAV export all run locally in your browser. The MP3 export pulls the FFmpeg core script from a public CDN, but the audio itself never leaves your machine.</p>
+</details>
+
+<details class="faq-item">
+<summary>Can I undo a change?</summary>
+<p>Yes. Use the Reset effects button to clear every switch and slider, or use the Reset All preset for a full reset including cut selection. Each preview also replays from the original buffer, so a wrong setting never damages the source.</p>
+</details>
+
+<details class="faq-item">
+<summary>What is the difference between speed change and pitch shift?</summary>
+<p>Speed change stretches or compresses the audio in time, which also moves the pitch. A 2x speed doubles the pitch (one octave up). Pitch shift uses a granular algorithm that changes the pitch while keeping the duration, so you can re-key a song without affecting its length.</p>
+</details>
+
+<details class="faq-item">
+<summary>Why does MP3 export take longer the first time?</summary>
+<p>The FFmpeg core is about 30 MB and only loads on first MP3 export. After the first run it is cached by your browser, so subsequent MP3 exports are quick. WAV export never uses FFmpeg and is always instant.</p>
+</details>
+
+<details class="faq-item">
+<summary>What does normalize actually do?</summary>
+<p>It scans the audio buffer, finds the single loudest sample (the peak), and rescales the entire signal so that peak hits the target you set (default -3 dBFS, leaving a small headroom margin to avoid clipping). This is different from a compressor, which changes the dynamic shape of the audio.</p>
+</details>
+</div>
+
+</section>
+</main>
+
+<footer>
+<p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a> &middot; <a href="/tools/feedback/">Feedback</a></p>
+</footer>
+
+<script src="/tools.js"></script>
+<script>
+(function() {
+'use strict';
+
+// ===== STATE =====
+var state = {
+  audioCtx: null,
+  originalBuffer: null,
+  currentBuffer: null,
+  workingBuffer: null,
+  fileName: '',
+  fileType: '',
+  fileExt: 'wav',
+  regionStart: -1,
+  regionEnd: -1,
+  playStart: 0,
+  isPlaying: false,
+  playSource: null,
+  previewSource: null,
+  playStartTime: 0,
+  playPauseOffset: 0,
+  previewStartTime: 0,
+  previewOffset: 0,
+  isPreview: false,
+  renderedBlob: null,
+  renderedUrl: null,
+  renderedName: '',
+  effects: {
+    volume: 100,
+    normalize: 0,
+    fadeIn: 500,
+    fadeOut: 500,
+    bass: 0,
+    treble: 0,
+    compressor: -18,
+    reverb: 0,
+    reverbRoom: 'medium',
+    echo: 0,
+    echoDelay: 250,
+    speed: 100,
+    pitch: 0,
+    reverse: false,
+    trimSilence: -40,
+    enabled: {
+      volume: true,
+      normalize: false,
+      fadeIn: false,
+      fadeOut: false,
+      bass: false,
+      treble: false,
+      compressor: false,
+      reverb: false,
+      echo: false,
+      speed: false,
+      pitch: false,
+      reverse: false,
+      trimSilence: false
+    }
+  },
+  ffmpeg: null,
+  ffmpegLoading: false
+};
+
+// ===== DOM =====
+var dropzone = document.getElementById('aeDrop');
+var fileInput = document.getElementById('aeFile');
+var editorPanel = document.getElementById('aeEditorPanel');
+var exportPanel = document.getElementById('aeExportPanel');
+var waveCanvas = document.getElementById('aeWaveCanvas');
+var regionCanvas = document.getElementById('aeRegionCanvas');
+var playhead = document.getElementById('aePlayhead');
+var regionMarker = document.getElementById('aeRegionMarker');
+var playBtn = document.getElementById('aePlayBtn');
+var status = document.getElementById('aeStatus');
+var summary = document.getElementById('aeSummary');
+var fileBadge = document.getElementById('aeFileBadge');
+var result = document.getElementById('aeResult');
+var resultText = document.getElementById('aeResultText');
+var resultLink = document.getElementById('aeResultLink');
+
+// ===== HELPERS =====
+function showStatus(msg, type) {
+  status.textContent = msg;
+  status.className = 'ae-status show ' + (type || 'info');
+}
+function clearStatus() { status.className = 'ae-status'; status.textContent = ''; }
+
+function fmtTime(sec) {
+  if (!isFinite(sec) || sec < 0) sec = 0;
+  var m = Math.floor(sec / 60);
+  var s = (sec - m * 60);
+  return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2);
+}
+
+function fmtBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+  return (b / 1048576).toFixed(2) + ' MB';
+}
+
+function getCtx() {
+  if (!state.audioCtx) {
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    state.audioCtx = new Ctx();
+  }
+  return state.audioCtx;
+}
+
+function peakOf(buf) {
+  var max = 0;
+  for (var ch = 0; ch < buf.numberOfChannels; ch++) {
+    var d = buf.getChannelData(ch);
+    for (var i = 0; i < d.length; i++) {
+      var v = Math.abs(d[i]);
+      if (v > max) max = v;
+    }
+  }
+  return max;
+}
+
+function linToDb(v) { return 20 * Math.log10(Math.max(v, 1e-6)); }
+
+// ===== FILE LOAD =====
+function onFileSelected(file) {
+  if (!file) return;
+  if (!file.type.startsWith('audio/') && !/\.(mp3|wav|m4a|flac|ogg|aac|opus|wma)$/i.test(file.name)) {
+    showStatus('Please select an audio file (MP3, WAV, M4A, FLAC, OGG, AAC).', 'error');
+    return;
+  }
+  state.fileName = file.name;
+  state.fileType = file.type || 'audio/' + (file.name.split('.').pop() || 'mp3');
+  state.fileExt = (file.name.split('.').pop() || 'mp3').toLowerCase();
+  if (state.fileExt === 'm4a') state.fileExt = 'mp4';
+  fileBadge.textContent = file.name;
+  showStatus('Decoding ' + file.name + ' (' + fmtBytes(file.size) + ')...', 'info');
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var ctx = getCtx();
+    ctx.decodeAudioData(e.target.result, function(buf) {
+      state.originalBuffer = buf;
+      state.currentBuffer = buf;
+      state.workingBuffer = cloneBuffer(buf);
+      state.regionStart = -1;
+      state.regionEnd = -1;
+      aeResetEffects(true);
+      renderSummary(buf);
+      drawWaveform(buf);
+      clearRegionUI();
+      updateRegionUI();
+      editorPanel.style.display = 'block';
+      exportPanel.style.display = 'block';
+      showStatus('Loaded ' + file.name + ' &mdash; ' + fmtTime(buf.duration) + ', ' + buf.numberOfChannels + ' ch, ' + buf.sampleRate + ' Hz', 'success');
+      aeUpdateTimes();
+    }, function(err) {
+      showStatus('Decode failed: ' + (err.message || err) + '. Try MP3 or WAV.', 'error');
+    });
+  };
+  reader.onerror = function() { showStatus('Could not read file.', 'error'); };
+  reader.readAsArrayBuffer(file);
+}
+
+function cloneBuffer(buf) {
+  var ctx = getCtx();
+  var nb = ctx.createBuffer(buf.numberOfChannels, buf.length, buf.sampleRate);
+  for (var ch = 0; ch < buf.numberOfChannels; ch++) {
+    nb.copyToChannel(buf.getChannelData(ch).slice(), ch);
+  }
+  return nb;
+}
+
+// ===== SUMMARY =====
+function renderSummary(buf) {
+  summary.style.display = 'block';
+  document.getElementById('aeInfoFormat').textContent = (state.fileType || 'audio') + ' (' + state.fileExt.toUpperCase() + ')';
+  document.getElementById('aeInfoDur').textContent = fmtTime(buf.duration);
+  document.getElementById('aeInfoChan').textContent = buf.numberOfChannels === 1 ? 'Mono' : (buf.numberOfChannels === 2 ? 'Stereo' : buf.numberOfChannels + ' ch');
+  document.getElementById('aeInfoRate').textContent = buf.sampleRate + ' Hz';
+  document.getElementById('aeInfoPeak').textContent = linToDb(peakOf(buf)).toFixed(1) + ' dBFS';
+}
+
+// ===== WAVEFORM =====
+function drawWaveform(buf) {
+  var c = waveCanvas.getContext('2d');
+  var W = waveCanvas.width = waveCanvas.clientWidth || 1000;
+  var H = waveCanvas.height;
+  c.clearRect(0, 0, W, H);
+  c.fillStyle = '#0a0a1c';
+  c.fillRect(0, 0, W, H);
+  var data = buf.getChannelData(0);
+  var step = Math.max(1, Math.floor(data.length / W));
+  var mid = H / 2;
+  c.strokeStyle = '#667eea';
+  c.lineWidth = 1;
+  c.beginPath();
+  for (var x = 0; x < W; x++) {
+    var min = 1, max = -1;
+    var start = x * step;
+    var end = Math.min(start + step, data.length);
+    for (var i = start; i < end; i++) {
+      var v = data[i];
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+    c.moveTo(x + 0.5, mid + min * (H / 2));
+    c.lineTo(x + 0.5, mid + max * (H / 2));
+  }
+  c.stroke();
+  if (buf.numberOfChannels > 1) {
+    var d2 = buf.getChannelData(1);
+    c.strokeStyle = '#10b981';
+    c.beginPath();
+    for (var x2 = 0; x2 < W; x2++) {
+      var min2 = 1, max2 = -1;
+      var s2 = x2 * step;
+      var e2 = Math.min(s2 + step, d2.length);
+      for (var i2 = s2; i2 < e2; i2++) {
+        var v2 = d2[i2];
+        if (v2 < min2) min2 = v2;
+        if (v2 > max2) max2 = v2;
+      }
+      c.moveTo(x2 + 0.5, mid + min2 * (H / 2));
+      c.lineTo(x2 + 0.5, mid + max2 * (H / 2));
+    }
+    c.stroke();
+  }
+  c.strokeStyle = '#2a2a4a';
+  c.lineWidth = 1;
+  c.beginPath();
+  c.moveTo(0, mid);
+  c.lineTo(W, mid);
+  c.stroke();
+}
+
+// ===== REGION =====
+function clearRegionUI() {
+  regionMarker.style.display = 'none';
+  document.getElementById('aeTimeStart').textContent = '0:00.00';
+  document.getElementById('aeTimeEnd').textContent = '0:00.00';
+}
+function updateRegionUI() {
+  var buf = state.originalBuffer;
+  if (!buf) return;
+  var total = buf.duration;
+  if (state.regionStart >= 0 && state.regionEnd > state.regionStart) {
+    var x1 = (state.regionStart / total) * 100;
+    var x2 = (state.regionEnd / total) * 100;
+    regionMarker.style.display = 'block';
+    regionMarker.style.left = x1 + '%';
+    regionMarker.style.width = (x2 - x1) + '%';
+    document.getElementById('aeTimeStart').textContent = fmtTime(state.regionStart);
+    document.getElementById('aeTimeEnd').textContent = fmtTime(state.regionEnd);
+  } else {
+    clearRegionUI();
+  }
+}
+function pixelToTime(px) {
+  var rect = waveCanvas.getBoundingClientRect();
+  var x = px - rect.left;
+  var w = rect.width;
+  var buf = state.originalBuffer;
+  if (!buf) return 0;
+  return Math.max(0, Math.min(buf.duration, (x / w) * buf.duration));
+}
+
+// Region drag selection
+var dragState = null;
+regionCanvas.addEventListener('mousedown', function(e) {
+  if (!state.originalBuffer) return;
+  var t = pixelToTime(e.clientX);
+  state.regionStart = t;
+  state.regionEnd = t;
+  dragState = { startX: e.clientX, startTime: t };
+  updateRegionUI();
+});
+regionCanvas.addEventListener('mousemove', function(e) {
+  if (!dragState) return;
+  var t = pixelToTime(e.clientX);
+  if (t < dragState.startTime) {
+    state.regionStart = t;
+    state.regionEnd = dragState.startTime;
+  } else {
+    state.regionStart = dragState.startTime;
+    state.regionEnd = t;
+  }
+  updateRegionUI();
+});
+regionCanvas.addEventListener('mouseup', function() { dragState = null; });
+regionCanvas.addEventListener('mouseleave', function() { dragState = null; });
+
+regionCanvas.addEventListener('click', function(e) {
+  if (!state.originalBuffer) return;
+  var t = pixelToTime(e.clientX);
+  if (e.shiftKey) {
+    if (state.regionStart < 0 || (state.regionEnd - state.regionStart) > 0.05) {
+      state.regionStart = t;
+      state.regionEnd = t + 0.001;
+    } else {
+      state.regionEnd = t;
+    }
+  } else {
+    state.playStart = t;
+    state.playPauseOffset = t;
+    if (state.isPlaying) aeStopPreview();
+    aePlayFrom(t);
+  }
+  updateRegionUI();
+});
+
+// ===== TRANSPORT =====
+function aeUpdateTimes() {
+  var buf = state.originalBuffer;
+  if (!buf) return;
+  document.getElementById('aeTotalTime').textContent = fmtTime(buf.duration);
+  if (!state.isPlaying) document.getElementById('aeCurTime').textContent = fmtTime(state.playPauseOffset);
+}
+
+function aeTogglePlay() {
+  if (!state.originalBuffer) return;
+  if (state.isPlaying) {
+    aeStopPreview();
+  } else {
+    aePlayFrom(state.playPauseOffset);
+  }
+}
+
+function aeSetPlayheadStart() {
+  if (!state.originalBuffer) return;
+  state.regionStart = state.playPauseOffset;
+  if (state.regionEnd < state.regionStart || state.regionEnd < 0) state.regionEnd = state.originalBuffer.duration;
+  updateRegionUI();
+}
+function aeSetPlayheadEnd() {
+  if (!state.originalBuffer) return;
+  state.regionEnd = state.playPauseOffset;
+  if (state.regionStart < 0 || state.regionStart > state.regionEnd) state.regionStart = 0;
+  updateRegionUI();
+}
+function aeClearRegion() {
+  state.regionStart = -1;
+  state.regionEnd = -1;
+  clearRegionUI();
+}
+
+function aePlayRegion() {
+  if (state.regionStart < 0 || state.regionEnd <= state.regionStart) {
+    showStatus('Select a region first by dragging on the waveform, or use Set start / Set end.', 'error');
+    return;
+  }
+  aePlayFrom(state.regionStart, state.regionEnd);
+}
+
+function aePlayFrom(start, end) {
+  var buf = state.originalBuffer;
+  if (!buf) return;
+  aeStopPreview();
+  state.isPreview = false;
+  var s = Math.max(0, Math.min(buf.duration, start || 0));
+  var e = (end != null) ? Math.max(s, Math.min(buf.duration, end)) : buf.duration;
+  var ctx = getCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+  var src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(ctx.destination);
+  src.onended = function() { if (state.playSource === src) aeStopPreview(); };
+  var offset = s;
+  var dur = e - s;
+  src.start(0, offset, dur);
+  state.playSource = src;
+  state.playStartTime = ctx.currentTime;
+  state.playPauseOffset = s;
+  state.isPlaying = true;
+  playBtn.innerHTML = '<span aria-hidden="true">&#9632;</span>';
+  playBtn.classList.add('playing');
+  drawPlayhead(s, e);
+  requestAnimationFrame(updatePlayhead);
+}
+
+function drawPlayhead(s, e) {
+  if (!state.originalBuffer) return;
+  var total = state.originalBuffer.duration;
+  var left = (s / total) * 100;
+  playhead.style.left = left + '%';
+  playhead.style.display = 'block';
+  if (e != null) {
+    var right = (e / total) * 100;
+    regionMarker.style.display = 'block';
+    regionMarker.style.left = left + '%';
+    regionMarker.style.width = (right - left) + '%';
+    document.getElementById('aeTimeStart').textContent = fmtTime(s);
+    document.getElementById('aeTimeEnd').textContent = fmtTime(e);
+  }
+}
+
+function updatePlayhead() {
+  if (!state.isPlaying) return;
+  var ctx = state.audioCtx;
+  if (!ctx) return;
+  var src = state.playSource;
+  if (!src) return;
+  var elapsed = ctx.currentTime - state.playStartTime;
+  var buf = state.originalBuffer;
+  var s = state.playPauseOffset + elapsed;
+  if (s >= buf.duration) { aeStopPreview(); return; }
+  var pct = (s / buf.duration) * 100;
+  playhead.style.left = pct + '%';
+  document.getElementById('aeCurTime').textContent = fmtTime(s);
+  if (state.isPlaying) requestAnimationFrame(updatePlayhead);
+}
+
+function aeStopPreview() {
+  if (state.playSource) {
+    try { state.playSource.onended = null; state.playSource.stop(); } catch (e) {}
+    state.playSource = null;
+  }
+  state.isPlaying = false;
+  playBtn.innerHTML = '<span aria-hidden="true">&#9654;</span>';
+  playBtn.classList.remove('playing');
+  aeUpdateTimes();
+}
+
+// ===== EFFECTS UI =====
+window.aeToggleFx = function(el) {
+  var key = el.dataset.toggle;
+  state.effects.enabled[key] = !state.effects.enabled[key];
+  el.classList.toggle('on', state.effects.enabled[key]);
+};
+
+window.aeOnSlider = function(key, val) {
+  state.effects[key] = parseFloat(val);
+  var v = state.effects[key];
+  switch (key) {
+    case 'volume':
+      document.getElementById('aeVolumeVal').textContent = v + '%';
+      break;
+    case 'normalize':
+      document.getElementById('aeNormVal').textContent = v + ' dB';
+      break;
+    case 'fadeIn':
+      document.getElementById('aeFadeInVal').textContent = (v / 1000).toFixed(2) + ' s';
+      break;
+    case 'fadeOut':
+      document.getElementById('aeFadeOutVal').textContent = (v / 1000).toFixed(2) + ' s';
+      break;
+    case 'bass':
+      document.getElementById('aeBassVal').textContent = v + ' dB';
+      break;
+    case 'treble':
+      document.getElementById('aeTrebleVal').textContent = v + ' dB';
+      break;
+    case 'compressor':
+      document.getElementById('aeCompVal').textContent = v + ' dB';
+      break;
+    case 'reverb':
+      document.getElementById('aeReverbVal').textContent = v + '%';
+      break;
+    case 'echo':
+      document.getElementById('aeEchoVal').textContent = v + '%';
+      break;
+    case 'echoDelay':
+      document.getElementById('aeEchoDelayVal').textContent = v + ' ms';
+      break;
+    case 'speed':
+      document.getElementById('aeSpeedVal').textContent = (v / 100).toFixed(2) + '\u00d7';
+      break;
+    case 'pitch':
+      document.getElementById('aePitchVal').textContent = v + ' st';
+      break;
+    case 'trimSilence':
+      document.getElementById('aeTrimVal').textContent = v + ' dB';
+      break;
+  }
+};
+
+window.aeOnSelect = function(key, val) {
+  state.effects[key] = val;
+};
+
+window.aeSwitchTab = function(tab, el) {
+  var tabs = document.querySelectorAll('.ae-tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  el.classList.add('active');
+  var contents = document.querySelectorAll('.ae-tab-content');
+  for (var j = 0; j < contents.length; j++) {
+    contents[j].classList.toggle('active', contents[j].dataset.tab === tab);
+  }
+};
+
+window.aeApplyPreset = function(name) {
+  var btns = document.querySelectorAll('.ae-preset-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  if (event && event.target) event.target.classList.add('active');
+  switch (name) {
+    case 'podcast':
+      setFx(true, ['volume', 'normalize', 'compressor', 'fadeIn', 'fadeOut']);
+      state.effects.volume = 110;
+      state.effects.normalize = -3;
+      state.effects.compressor = -16;
+      state.effects.fadeIn = 200;
+      state.effects.fadeOut = 400;
+      setSliders();
+      break;
+    case 'music':
+      setFx(true, ['volume', 'normalize', 'bass', 'treble']);
+      state.effects.volume = 105;
+      state.effects.normalize = -1;
+      state.effects.bass = 2;
+      state.effects.treble = 3;
+      setSliders();
+      break;
+    case 'clean':
+      setFx(true, ['normalize', 'compressor']);
+      state.effects.normalize = -3;
+      state.effects.compressor = -20;
+      setSliders();
+      break;
+    case 'warm':
+      setFx(true, ['bass', 'treble', 'compressor']);
+      state.effects.bass = 4;
+      state.effects.treble = -2;
+      state.effects.compressor = -14;
+      setSliders();
+      break;
+    case 'bright':
+      setFx(true, ['bass', 'treble', 'compressor']);
+      state.effects.bass = -2;
+      state.effects.treble = 5;
+      state.effects.compressor = -16;
+      setSliders();
+      break;
+    case 'hall':
+      setFx(true, ['reverb']);
+      state.effects.reverb = 50;
+      state.effects.reverbRoom = 'large';
+      setSliders();
+      break;
+    case 'reset':
+      aeResetEffects(false);
+      break;
+  }
+};
+
+function setFx(on, keys) {
+  var all = Object.keys(state.effects.enabled);
+  for (var i = 0; i < all.length; i++) {
+    var k = all[i];
+    var enable = keys.indexOf(k) >= 0;
+    state.effects.enabled[k] = on && enable;
+    var el = document.querySelector('[data-toggle="' + k + '"]');
+    if (el) el.classList.toggle('on', state.effects.enabled[k]);
+  }
+}
+function setSliders() {
+  aeOnSlider('volume', state.effects.volume);
+  aeOnSlider('normalize', state.effects.normalize);
+  aeOnSlider('fadeIn', state.effects.fadeIn);
+  aeOnSlider('fadeOut', state.effects.fadeOut);
+  aeOnSlider('bass', state.effects.bass);
+  aeOnSlider('treble', state.effects.treble);
+  aeOnSlider('compressor', state.effects.compressor);
+  aeOnSlider('reverb', state.effects.reverb);
+  aeOnSlider('echo', state.effects.echo);
+  aeOnSlider('echoDelay', state.effects.echoDelay);
+  aeOnSlider('speed', state.effects.speed);
+  aeOnSlider('pitch', state.effects.pitch);
+  aeOnSlider('trimSilence', state.effects.trimSilence);
+  document.getElementById('aeReverbRoom').value = state.effects.reverbRoom;
+  document.getElementById('aeVolumeSlider').value = state.effects.volume;
+  document.getElementById('aeNormSlider').value = state.effects.normalize;
+  document.getElementById('aeFadeInSlider').value = state.effects.fadeIn;
+  document.getElementById('aeFadeOutSlider').value = state.effects.fadeOut;
+  document.getElementById('aeBassSlider').value = state.effects.bass;
+  document.getElementById('aeTrebleSlider').value = state.effects.treble;
+  document.getElementById('aeCompSlider').value = state.effects.compressor;
+  document.getElementById('aeReverbSlider').value = state.effects.reverb;
+  document.getElementById('aeEchoSlider').value = state.effects.echo;
+  document.getElementById('aeEchoDelaySlider').value = state.effects.echoDelay;
+  document.getElementById('aeSpeedSlider').value = state.effects.speed;
+  document.getElementById('aePitchSlider').value = state.effects.pitch;
+  document.getElementById('aeTrimSlider').value = state.effects.trimSilence;
+}
+
+window.aeResetEffects = function(skipPreset) {
+  if (!skipPreset) {
+    var btns = document.querySelectorAll('.ae-preset-btn');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  }
+  state.effects = {
+    volume: 100, normalize: 0, fadeIn: 500, fadeOut: 500,
+    bass: 0, treble: 0, compressor: -18,
+    reverb: 0, reverbRoom: 'medium', echo: 0, echoDelay: 250,
+    speed: 100, pitch: 0, reverse: false, trimSilence: -40,
+    enabled: {
+      volume: true, normalize: false, fadeIn: false, fadeOut: false,
+      bass: false, treble: false, compressor: false,
+      reverb: false, echo: false,
+      speed: false, pitch: false, reverse: false, trimSilence: false
+    }
+  };
+  setSliders();
+  var all = Object.keys(state.effects.enabled);
+  for (var j = 0; j < all.length; j++) {
+    var el = document.querySelector('[data-toggle="' + all[j] + '"]');
+    if (el) el.classList.toggle('on', state.effects.enabled[all[j]]);
+  }
+};
+
+// ===== RENDER PIPELINE =====
+async function processBuffer() {
+  var src = state.originalBuffer;
+  if (!src) return null;
+  var ctx = getCtx();
+  var work = cloneBuffer(src);
+
+  // 1. Trim selection
+  if (state.regionStart >= 0 && state.regionEnd > state.regionStart && (state.regionEnd - state.regionStart) < src.duration - 0.001) {
+    work = sliceBuffer(work, state.regionStart, state.regionEnd);
+  }
+
+  // 2. Trim silence
+  if (state.effects.enabled.trimSilence) {
+    work = trimSilenceBuffer(work, state.effects.trimSilence);
+  }
+
+  // 3. Speed change
+  if (state.effects.enabled.speed && state.effects.speed !== 100) {
+    work = speedChangeBuffer(work, state.effects.speed / 100);
+  }
+
+  // 4. Pitch shift
+  if (state.effects.enabled.pitch && state.effects.pitch !== 0) {
+    work = pitchShiftBuffer(work, state.effects.pitch);
+  }
+
+  // 5. Reverse
+  if (state.effects.enabled.reverse) {
+    work = reverseBuffer(work);
+  }
+
+  // 6. Volume / Normalize / Fade
+  var postGain = 1;
+  if (state.effects.enabled.normalize) {
+    var peak = peakOf(work);
+    if (peak > 0) {
+      var target = Math.pow(10, state.effects.normalize / 20);
+      postGain = target / peak;
+    }
+  }
+  if (state.effects.enabled.volume) {
+    postGain *= state.effects.volume / 100;
+  }
+  if (postGain !== 1) {
+    applyGain(work, postGain);
+  }
+  if (state.effects.enabled.fadeIn || state.effects.enabled.fadeOut) {
+    applyFades(work, state.effects.enabled.fadeIn ? state.effects.fadeIn / 1000 : 0,
+                          state.effects.enabled.fadeOut ? state.effects.fadeOut / 1000 : 0);
+  }
+
+  // 7. EQ + dynamics + FX (apply with OfflineAudioContext for accurate DSP)
+  var needOffline = state.effects.enabled.bass || state.effects.enabled.treble ||
+                    state.effects.enabled.compressor || state.effects.enabled.reverb ||
+                    state.effects.enabled.echo;
+  if (needOffline) {
+    work = await applyOffline(work, {
+      bass: state.effects.enabled.bass ? state.effects.bass : 0,
+      treble: state.effects.enabled.treble ? state.effects.treble : 0,
+      compressor: state.effects.enabled.compressor ? state.effects.compressor : -100,
+      reverb: state.effects.enabled.reverb ? state.effects.reverb / 100 : 0,
+      reverbRoom: state.effects.reverbRoom,
+      echo: state.effects.enabled.echo ? state.effects.echo / 100 : 0,
+      echoDelay: state.effects.echoDelay
+    });
+  }
+
+  return work;
+}
+
+function sliceBuffer(buf, startSec, endSec) {
+  var ctx = getCtx();
+  var sr = buf.sampleRate;
+  var s = Math.floor(startSec * sr);
+  var e = Math.min(buf.length, Math.floor(endSec * sr));
+  var len = Math.max(1, e - s);
+  var nb = ctx.createBuffer(buf.numberOfChannels, len, sr);
+  for (var ch = 0; ch < buf.numberOfChannels; ch++) {
+    nb.copyToChannel(buf.getChannelData(ch).subarray(s, e), ch);
+  }
+  return nb;
+}
+
+function trimSilenceBuffer(buf, thresholdDb) {
+  var ctx = getCtx();
+  var sr = buf.sampleRate;
+  var thr = Math.pow(10, thresholdDb / 20);
+  var minGapSamples = Math.floor(sr * 0.1);
+  var channels = [];
+  for (var c = 0; c < buf.numberOfChannels; c++) channels.push(buf.getChannelData(c));
+  var len = buf.length;
+  var keep = new Uint8Array(len);
+  var gap = 0;
+  for (var i = 0; i < len; i++) {
+    var pk = 0;
+    for (var c2 = 0; c2 < channels.length; c2++) {
+      var av = Math.abs(channels[c2][i]);
+      if (av > pk) pk = av;
+    }
+    if (pk >= thr) { keep[i] = 1; gap = 0; }
+    else {
+      gap++;
+      if (gap >= minGapSamples) keep[i] = 0;
+      else keep[i] = 1;
+    }
+  }
+  var first = -1, last = -1;
+  for (var k = 0; k < len; k++) { if (keep[k]) { first = k; break; } }
+  for (var k2 = len - 1; k2 >= 0; k2--) { if (keep[k2]) { last = k2; break; } }
+  if (first < 0) first = 0;
+  if (last < 0) last = len - 1;
+  var newLen = last - first + 1;
+  var nb = ctx.createBuffer(buf.numberOfChannels, newLen, sr);
+  for (var c3 = 0; c3 < buf.numberOfChannels; c3++) {
+    var src = buf.getChannelData(c3).subarray(first, last + 1);
+    nb.copyToChannel(src, c3);
+  }
+  return nb;
+}
+
+function applyGain(buf, g) {
+  for (var c = 0; c < buf.numberOfChannels; c++) {
+    var d = buf.getChannelData(c);
+    for (var i = 0; i < d.length; i++) {
+      var v = d[i] * g;
+      if (v > 1) v = 1;
+      else if (v < -1) v = -1;
+      d[i] = v;
+    }
+  }
+}
+
+function applyFades(buf, fadeInSec, fadeOutSec) {
+  var sr = buf.sampleRate;
+  var len = buf.length;
+  var fin = Math.min(len, Math.floor(fadeInSec * sr));
+  var fout = Math.min(len, Math.floor(fadeOutSec * sr));
+  for (var c = 0; c < buf.numberOfChannels; c++) {
+    var d = buf.getChannelData(c);
+    for (var i = 0; i < fin; i++) d[i] *= i / fin;
+    for (var j = 0; j < fout; j++) d[len - 1 - j] *= j / fout;
+  }
+}
+
+function reverseBuffer(buf) {
+  var ctx = getCtx();
+  var nb = ctx.createBuffer(buf.numberOfChannels, buf.length, buf.sampleRate);
+  for (var c = 0; c < buf.numberOfChannels; c++) {
+    var src = buf.getChannelData(c);
+    var dst = nb.getChannelData(c);
+    for (var i = 0; i < src.length; i++) dst[i] = src[src.length - 1 - i];
+  }
+  return nb;
+}
+
+// Simple resampling for speed
+function speedChangeBuffer(buf, factor) {
+  var ctx = getCtx();
+  var newLen = Math.max(1, Math.floor(buf.length / factor));
+  var nb = ctx.createBuffer(buf.numberOfChannels, newLen, buf.sampleRate);
+  for (var c = 0; c < buf.numberOfChannels; c++) {
+    var src = buf.getChannelData(c);
+    var dst = nb.getChannelData(c);
+    for (var i = 0; i < newLen; i++) {
+      var pos = i * factor;
+      var i0 = Math.floor(pos);
+      var i1 = Math.min(buf.length - 1, i0 + 1);
+      var frac = pos - i0;
+      dst[i] = src[i0] * (1 - frac) + src[i1] * frac;
+    }
+  }
+  return nb;
+}
+
+// Granular pitch shift (preserves duration)
+function pitchShiftBuffer(buf, semitones) {
+  var ratio = Math.pow(2, semitones / 12);
+  if (ratio === 1) return buf;
+  var ctx = getCtx();
+  var winSize = 2048;
+  var overlap = 4;
+  var hop = Math.floor(winSize / overlap);
+  var newLen = buf.length;
+  var nb = ctx.createBuffer(buf.numberOfChannels, newLen, buf.sampleRate);
+  var window = new Float32Array(winSize);
+  for (var w = 0; w < winSize; w++) {
+    window[w] = 0.5 - 0.5 * Math.cos(2 * Math.PI * w / (winSize - 1));
+  }
+  for (var c = 0; c < buf.numberOfChannels; c++) {
+    var src = buf.getChannelData(c);
+    var dst = nb.getChannelData(c);
+    var acc = new Float32Array(newLen);
+    var wsum = new Float32Array(newLen);
+    for (var pos = 0; pos + winSize < src.length; pos += hop) {
+      var readPos = pos * ratio;
+      var r0 = Math.floor(readPos);
+      for (var k = 0; k < winSize; k++) {
+        var rp = r0 + k;
+        if (rp >= src.length - 1) break;
+        var s = src[rp] * (1 - (readPos + k - rp)) + src[rp + 1] * (readPos + k - rp);
+        var outIdx = pos + k;
+        if (outIdx >= newLen) break;
+        acc[outIdx] += s * window[k];
+        wsum[outIdx] += window[k];
+      }
+    }
+    for (var n = 0; n < newLen; n++) {
+      dst[n] = wsum[n] > 0 ? acc[n] / wsum[n] : 0;
+    }
+  }
+  return nb;
+}
+
+// ===== OFFLINE FX RENDER =====
+function applyOffline(buf, opts) {
+  var ctx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(buf.numberOfChannels, buf.length, buf.sampleRate);
+  var src = ctx.createBufferSource();
+  src.buffer = buf;
+
+  var lastNode = src;
+  if (opts.bass !== 0) {
+    var bass = ctx.createBiquadFilter();
+    bass.type = 'lowshelf';
+    bass.frequency.value = 150;
+    bass.gain.value = opts.bass;
+    lastNode.connect(bass);
+    lastNode = bass;
+  }
+  if (opts.treble !== 0) {
+    var tre = ctx.createBiquadFilter();
+    tre.type = 'highshelf';
+    tre.frequency.value = 4000;
+    tre.gain.value = opts.treble;
+    lastNode.connect(tre);
+    lastNode = tre;
+  }
+  if (opts.compressor > -100) {
+    var comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = opts.compressor;
+    comp.ratio.value = 4;
+    comp.attack.value = 0.003;
+    comp.release.value = 0.25;
+    lastNode.connect(comp);
+    lastNode = comp;
+  }
+  // Reverb: dry/wet mix
+  var dryGain = ctx.createGain();
+  var wetGain = ctx.createGain();
+  var conv = null;
+  if (opts.reverb > 0) {
+    conv = ctx.createConvolver();
+    conv.buffer = makeImpulse(ctx, opts.reverbRoom);
+    wetGain.gain.value = opts.reverb;
+    dryGain.gain.value = 1 - opts.reverb * 0.5;
+  } else {
+    wetGain.gain.value = 0;
+    dryGain.gain.value = 1;
+  }
+  lastNode.connect(dryGain);
+  if (conv) lastNode.connect(conv);
+  if (conv) conv.connect(wetGain);
+  dryGain.connect(ctx.destination);
+  wetGain.connect(ctx.destination);
+
+  // Echo: extra delay line (mono)
+  if (opts.echo > 0) {
+    var del = ctx.createDelay(2.0);
+    del.delayTime.value = opts.echoDelay / 1000;
+    var fb = ctx.createGain();
+    fb.gain.value = opts.echo;
+    var echoMix = ctx.createGain();
+    echoMix.gain.value = 1;
+    var echoWet = ctx.createGain();
+    echoWet.gain.value = opts.echo * 0.6;
+    del.connect(fb);
+    fb.connect(del);
+    del.connect(echoWet);
+    echoWet.connect(ctx.destination);
+    src.connect(del);
+  }
+
+  src.start(0);
+  return ctx.startRendering();
+}
+
+function makeImpulse(ctx, room) {
+  var sr = ctx.sampleRate;
+  var dur;
+  switch (room) {
+    case 'small': dur = 0.3; break;
+    case 'medium': dur = 0.8; break;
+    case 'large': dur = 1.8; break;
+    case 'church': dur = 3.5; break;
+    default: dur = 0.8;
+  }
+  var len = Math.floor(sr * dur);
+  var ir = ctx.createBuffer(2, len, sr);
+  for (var c = 0; c < 2; c++) {
+    var d = ir.getChannelData(c);
+    for (var i = 0; i < len; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.5);
+    }
+  }
+  return ir;
+}
+
+// ===== PREVIEW =====
+window.aePreview = async function() {
+  if (!state.originalBuffer) return;
+  if (state.isPlaying) aeStopPreview();
+  showStatus('Rendering preview...', 'info');
+  try {
+    var buf = await processBuffer();
+    if (!buf) { showStatus('Nothing to preview.', 'error'); return; }
+    var ctx = getCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.onended = function() { if (state.previewSource === src) aeStopPreview(); };
+    src.start(0);
+    state.previewSource = src;
+    state.playSource = src;
+    state.playStartTime = ctx.currentTime;
+    state.playPauseOffset = 0;
+    state.isPlaying = true;
+    state.isPreview = true;
+    playBtn.innerHTML = '<span aria-hidden="true">&#9632;</span>';
+    playBtn.classList.add('playing');
+    drawPlayhead(0, buf.duration);
+    requestAnimationFrame(updatePlayhead);
+    showStatus('Preview playing &mdash; ' + fmtTime(buf.duration) + ' rendered', 'success');
+  } catch (e) {
+    showStatus('Render failed: ' + (e.message || e), 'error');
+  }
+};
+
+window.aeStopPreview = function() {
+  if (state.previewSource) {
+    try { state.previewSource.onended = null; state.previewSource.stop(); } catch (e) {}
+    state.previewSource = null;
+  }
+  state.isPlaying = false;
+  state.isPreview = false;
+  playBtn.innerHTML = '<span aria-hidden="true">&#9654;</span>';
+  playBtn.classList.remove('playing');
+  playhead.style.display = 'none';
+  aeUpdateTimes();
+};
+
+// ===== EXPORT WAV =====
+function bufferToWav(buf) {
+  var numCh = buf.numberOfChannels;
+  var sr = buf.sampleRate;
+  var len = buf.length * numCh * 2 + 44;
+  var ab = new ArrayBuffer(len);
+  var view = new DataView(ab);
+  function ws(off, s) {
+    for (var i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i));
+  }
+  ws(0, 'RIFF');
+  view.setUint32(4, len - 8, true);
+  ws(8, 'WAVE');
+  ws(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numCh, true);
+  view.setUint32(24, sr, true);
+  view.setUint32(28, sr * numCh * 2, true);
+  view.setUint16(32, numCh * 2, true);
+  view.setUint16(34, 16, true);
+  ws(36, 'data');
+  view.setUint32(40, buf.length * numCh * 2, true);
+  var channels = [];
+  for (var c = 0; c < numCh; c++) channels.push(buf.getChannelData(c));
+  var off = 44;
+  for (var i = 0; i < buf.length; i++) {
+    for (var c2 = 0; c2 < numCh; c2++) {
+      var s2 = Math.max(-1, Math.min(1, channels[c2][i]));
+      view.setInt16(off, s2 < 0 ? s2 * 0x8000 : s2 * 0x7FFF, true);
+      off += 2;
+    }
+  }
+  return new Blob([ab], { type: 'audio/wav' });
+}
+
+window.aeExportWav = async function() {
+  if (!state.originalBuffer) return;
+  if (state.isPlaying) aeStopPreview();
+  showStatus('Rendering WAV...', 'info');
+  try {
+    var buf = await processBuffer();
+    if (!buf) { showStatus('Nothing to export.', 'error'); return; }
+    var blob = bufferToWav(buf);
+    if (state.renderedUrl) URL.revokeObjectURL(state.renderedUrl);
+    state.renderedBlob = blob;
+    state.renderedUrl = URL.createObjectURL(blob);
+    var base = state.fileName.replace(/\.[^.]+$/, '');
+    state.renderedName = base + '_edited.wav';
+downloadBlob(state.renderedUrl, state.renderedName);
+      result.classList.add('show');
+      resultText.innerHTML = 'WAV export complete: <strong>' + escHtml(state.renderedName) + '</strong> (' + fmtBytes(blob.size) + ', ' + fmtTime(buf.duration) + ', ' + buf.numberOfChannels + ' ch, ' + buf.sampleRate + ' Hz)';
+      resultLink.href = state.renderedUrl;
+      resultLink.download = state.renderedName;
+      resultLink.style.display = 'inline-block';
+      resultLink.textContent = 'Download again';
+      showStatus('WAV ready &mdash; ' + fmtBytes(blob.size), 'success');
+  } catch (e) {
+    showStatus('WAV export failed: ' + (e.message || e), 'error');
+  }
+};
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function downloadBlob(url, name) {
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function() { document.body.removeChild(a); }, 0);
+}
+
+// ===== EXPORT MP3 (FFmpeg.wasm) =====
+async function loadFFmpeg() {
+  if (state.ffmpeg) return state.ffmpeg;
+  if (state.ffmpegLoading) {
+    return new Promise(function(resolve, reject) {
+      var t = 0;
+      var iv = setInterval(function() {
+        t++;
+        if (state.ffmpeg) { clearInterval(iv); resolve(state.ffmpeg); }
+        if (t > 60) { clearInterval(iv); reject(new Error('FFmpeg load timeout')); }
+      }, 500);
+    });
+  }
+  state.ffmpegLoading = true;
+  showStatus('Loading FFmpeg engine (~30 MB, first time only)...', 'info');
+  try {
+    if (!window.FFmpegWASM) {
+      await new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = '/ffmpeg/ffmpeg.js';
+        s.onload = resolve;
+        s.onerror = function() { reject(new Error('Failed to load ffmpeg.js')); };
+        document.head.appendChild(s);
+      });
+    }
+    var FFmpeg = window.FFmpegWASM.FFmpeg;
+    var ff = new FFmpeg();
+    var wasmURL = await window.FFmpegWASM.toBlobURL('https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm', 'application/wasm');
+    var coreURL = await window.FFmpegWASM.toBlobURL('https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js', 'text/javascript');
+    await ff.load({ coreURL: coreURL, wasmURL: wasmURL });
+    state.ffmpeg = ff;
+    state.ffmpegLoading = false;
+    showStatus('FFmpeg loaded. Ready to render MP3.', 'success');
+    return ff;
+  } catch (e) {
+    state.ffmpegLoading = false;
+    throw new Error('FFmpeg load failed: ' + (e.message || e));
+  }
+}
+
+window.aeExportMp3 = async function() {
+  if (!state.originalBuffer) return;
+  if (state.isPlaying) aeStopPreview();
+  try {
+    var ff = await loadFFmpeg();
+    showStatus('Rendering MP3...', 'info');
+    var buf = await processBuffer();
+    if (!buf) { showStatus('Nothing to export.', 'error'); return; }
+    var wavBlob = bufferToWav(buf);
+    var wavBytes = new Uint8Array(await wavBlob.arrayBuffer());
+    await ff.writeFile('in.wav', wavBytes);
+    await ff.exec(['-y', '-i', 'in.wav', '-codec:a', 'libmp3lame', '-qscale:a', '2', 'out.mp3']);
+    var data = await ff.readFile('out.mp3');
+    var mp3Blob = new Blob([data.buffer], { type: 'audio/mpeg' });
+    if (state.renderedUrl) URL.revokeObjectURL(state.renderedUrl);
+    state.renderedBlob = mp3Blob;
+    state.renderedUrl = URL.createObjectURL(mp3Blob);
+    var base = state.fileName.replace(/\.[^.]+$/, '');
+    state.renderedName = base + '_edited.mp3';
+    downloadBlob(state.renderedUrl, state.renderedName);
+    result.classList.add('show');
+    resultText.innerHTML = 'MP3 export complete: <strong>' + escHtml(state.renderedName) + '</strong> (' + fmtBytes(mp3Blob.size) + ', ' + fmtTime(buf.duration) + ')';
+    resultLink.href = state.renderedUrl;
+    resultLink.download = state.renderedName;
+    resultLink.style.display = 'inline-block';
+    resultLink.textContent = 'Download again';
+    showStatus('MP3 ready &mdash; ' + fmtBytes(mp3Blob.size), 'success');
+  } catch (e) {
+    showStatus('MP3 export failed: ' + (e.message || e) + '. Try WAV instead.', 'error');
+  }
+};
+
+window.aeLoadNew = function() {
+  state.originalBuffer = null;
+  state.currentBuffer = null;
+  state.workingBuffer = null;
+  state.regionStart = -1;
+  state.regionEnd = -1;
+  state.fileName = '';
+  fileInput.value = '';
+  editorPanel.style.display = 'none';
+  exportPanel.style.display = 'none';
+  result.classList.remove('show');
+  clearStatus();
+  fileBadge.textContent = 'No file loaded';
+};
+
+// ===== DROPZONE =====
+dropzone.addEventListener('click', function() { fileInput.click(); });
+dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', function() { dropzone.classList.remove('dragover'); });
+dropzone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  dropzone.classList.add('has-file');
+  if (e.dataTransfer.files.length) onFileSelected(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', function(e) {
+  if (e.target.files.length) {
+    dropzone.classList.add('has-file');
+    onFileSelected(e.target.files[0]);
+  }
+});
+
+// Test hook for Playwright
+window.aeGetState = function() {
+  return {
+    fileName: state.fileName,
+    duration: state.originalBuffer ? state.originalBuffer.duration : 0,
+    effects: state.effects,
+    hasOriginal: !!state.originalBuffer,
+    renderedName: state.renderedName,
+    renderedSize: state.renderedBlob ? state.renderedBlob.size : 0
+  };
+};
+window.aeSetEffects = function(obj) {
+  for (var k in obj) {
+    if (obj.hasOwnProperty(k) && state.effects.hasOwnProperty(k)) {
+      state.effects[k] = obj[k];
+    }
+  }
+  setSliders();
+};
+window.aeToggleEffect = function(key, on) {
+  state.effects.enabled[key] = !!on;
+  var el = document.querySelector('[data-toggle="' + key + '"]');
+  if (el) el.classList.toggle('on', state.effects.enabled[key]);
+};
+window.aeRenderWav = async function() { return await processBuffer(); };
+window.aeExportWavBlob = async function() {
+  var buf = await processBuffer();
+  return bufferToWav(buf);
+};
+
+// BUG-332: the transport/region buttons carry inline `onclick` handlers, which
+// resolve against the global scope. These five are declared inside this IIFE and
+// were never exported, so each button threw `<name> is not defined`.
+window.aeTogglePlay = aeTogglePlay;
+window.aeSetPlayheadStart = aeSetPlayheadStart;
+window.aeSetPlayheadEnd = aeSetPlayheadEnd;
+window.aeClearRegion = aeClearRegion;
+window.aePlayRegion = aePlayRegion;
+
+// Resize handler for waveform
+window.addEventListener('resize', function() {
+  if (state.originalBuffer) drawWaveform(state.originalBuffer);
+});
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Typing Test - WPM, Accuracy & Code Mode | DevTools Hub</title>
+    <meta name="description" content="Free online typing test with WPM, accuracy, and code snippet modes (JavaScript, Python, SQL, HTML). No signup. Practice common words, quotes, numbers, and programming syntax. Privacy-first.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/typing-test/">
+    <meta property="og:title" content="Free Typing Test - WPM, Accuracy & Code Mode | DevTools Hub">
+    <meta property="og:description" content="Free online typing test with WPM, accuracy, and code snippet modes. No signup required. Practice common words, quotes, numbers, and code. Privacy-first browser-based.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/typing-test/">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Free Typing Test",
+      "description": "Browser-based typing test with WPM, accuracy, and code snippet modes. Practice common words, quotes, numbers, and programming syntax in JavaScript, Python, SQL, HTML. No signup, 100% private.",
+      "url": "https://tools.scoreroute.com/tools/typing-test/",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "All",
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+      "author": {"@type": "Person", "name": "BAOMING"},
+      "datePublished": "2026-06-06",
+      "dateModified": "2026-06-06"
+    }
+    </script>
+    <style>
+        .typing-test-container { max-width: 1200px; margin: 0 auto; }
+        .mode-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; padding: 16px; background: #1a1a2e; border-radius: 12px; }
+        .mode-btn { background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+        .mode-btn:hover { border-color: #667eea; }
+        .mode-btn.active { background: #667eea; border-color: #667eea; color: #fff; }
+        .mode-btn .icon { margin-right: 6px; }
+        .test-stats { display: flex; justify-content: space-around; padding: 20px; background: #1a1a2e; border-radius: 12px; margin-bottom: 20px; }
+        .stat { text-align: center; }
+        .stat-value { font-size: 2.2rem; font-weight: 700; color: #667eea; font-family: 'JetBrains Mono', monospace; }
+        .stat-label { font-size: 0.75rem; color: #888; text-transform: uppercase; margin-top: 4px; }
+        /* BUG-342: every space was rendered as `&nbsp;`, so the target text was ONE unbreakable
+           run — measured at 2822px of document width on a 1280px viewport (and ~7x the width of a
+           390px phone). `.text-display` has a min-height and line-height:2, i.e. it was designed
+           to wrap. `white-space: pre-wrap` preserves runs of spaces (what the &nbsp; was working
+           around) while letting the line break; the spans now emit a plain space. */
+        .text-display { background: #1a1a2e; padding: 30px; border-radius: 12px; margin-bottom: 20px; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 1.3rem; line-height: 2; min-height: 140px; position: relative; white-space: pre-wrap; overflow-wrap: break-word; }
+        .text-display.code-mode { font-size: 1.1rem; }
+        .char { position: relative; color: #888; transition: color 0.1s; }
+        .char.correct { color: #4ade80; }
+        .char.wrong { color: #ef4444; background: rgba(239, 68, 68, 0.15); }
+        .char.current { background: #667eea; color: #fff; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.7; } }
+        .typing-input { position: absolute; opacity: 0; pointer-events: none; }
+        .progress-bar { height: 4px; background: #1a1a2e; border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #667eea; transition: width 0.2s; }
+        .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .result-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+        .result-modal.show { display: flex; }
+        .result-content { background: #1a1a2e; padding: 40px; border-radius: 16px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .result-content h2 { color: #667eea; text-align: center; margin-bottom: 24px; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+        .result-item { padding: 16px; background: #0f0f23; border-radius: 8px; text-align: center; }
+        .result-item .label { font-size: 0.8rem; color: #888; text-transform: uppercase; }
+        .result-item .value { font-size: 1.8rem; color: #4ade80; font-weight: 700; margin-top: 8px; font-family: 'JetBrains Mono', monospace; }
+        .chart-container { background: #0f0f23; padding: 16px; border-radius: 8px; margin-bottom: 20px; }
+        .chart-title { color: #888; font-size: 0.85rem; margin-bottom: 8px; }
+        .chart { display: flex; align-items: flex-end; height: 80px; gap: 1px; }
+        .chart-bar { flex: 1; background: #667eea; min-height: 2px; transition: height 0.2s; border-radius: 1px 1px 0 0; }
+        .options-panel { background: #1a1a2e; padding: 16px; border-radius: 12px; margin-bottom: 20px; }
+        .options-panel h3 { color: #667eea; margin-bottom: 12px; font-size: 1rem; }
+        .options-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 10px; }
+        .options-row label { color: #aaa; font-size: 0.9rem; }
+        .options-row select, .options-row input { background: #0f0f23; color: #fff; border: 1px solid #2a2a4a; padding: 6px 12px; border-radius: 6px; font-size: 0.9rem; }
+        .code-language-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+        .code-tab { background: #0f0f23; border: 1px solid #2a2a4a; color: #aaa; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+        .code-tab.active { background: #667eea; border-color: #667eea; color: #fff; }
+        .info-box { background: #0f0f23; padding: 20px; border-radius: 12px; border-left: 4px solid #667eea; margin-top: 20px; }
+        .info-box h3 { color: #667eea; margin-bottom: 12px; }
+        .info-box p, .info-box li { color: #aaa; line-height: 1.7; font-size: 0.95rem; }
+        .info-box ul { padding-left: 20px; }
+        .status-info { display: flex; align-items: center; justify-content: center; min-height: 40px; color: #888; font-size: 0.9rem; margin-top: 10px; }
+        .kbd-hint { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 4px; padding: 2px 6px; font-family: monospace; font-size: 0.85rem; }
+        @media (max-width: 600px) {
+            .test-stats { flex-wrap: wrap; gap: 10px; }
+            .stat { flex: 1 1 30%; }
+            .stat-value { font-size: 1.6rem; }
+            .text-display { font-size: 1.1rem; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Free Typing Test</h1>
+            <p class="subtitle">WPM &middot; Accuracy &middot; Code Mode &middot; Multi-Language &middot; No Signup</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/code-testing/">Code Testing</a> &gt; <span>Typing Test</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="typing-test-container">
+                    <div class="mode-selector" role="group" aria-label="Test mode">
+                        <button class="mode-btn active tab" aria-pressed="true" data-mode="time" data-value="15"><span class="icon">⏱️</span>15s</button>
+                        <button class="mode-btn tab" aria-pressed="false" data-mode="time" data-value="30"><span class="icon">⏱️</span>30s</button>
+                        <button class="mode-btn tab" aria-pressed="false" data-mode="time" data-value="60"><span class="icon">⏱️</span>60s</button>
+                        <button class="mode-btn tab" aria-pressed="false" data-mode="time" data-value="120"><span class="icon">⏱️</span>2min</button>
+                        <button class="mode-btn tab" aria-pressed="false" data-mode="words" data-value="10"><span class="icon">📝</span>10 words</button>
+                        <button class="mode-btn tab" aria-pressed="false" data-mode="words" data-value="25"><span class="icon">📝</span>25 words</button>
+                        <button class="mode-btn tab" aria-pressed="false" data-mode="words" data-value="50"><span class="icon">📝</span>50 words</button>
+                        <button class="mode-btn tab" aria-pressed="false" data-mode="words" data-value="100"><span class="icon">📝</span>100 words</button>
+                        <button class="mode-btn tab" aria-pressed="false" data-mode="code"><span class="icon">💻</span>Code</button>
+                    </div>
+
+                    <div class="options-panel">
+                        <h2>Test Options</h2>
+                        <div class="options-row">
+                            <label for="text-category">Category:</label>
+                            <select id="text-category">
+                                <option value="common">Common English Words</option>
+                                <option value="quotes">Famous Quotes</option>
+                                <option value="numbers">Numbers & Symbols</option>
+                                <option value="punctuation">Punctuation Heavy</option>
+                                <option value="code" selected>Code Snippets (use Code mode)</option>
+                            </select>
+                        </div>
+                        <div class="options-row" id="code-lang-row" style="display:none;">
+                            <label>Programming Language:</label>
+                            <div class="code-language-tabs">
+                                <button class="code-tab active" data-lang="javascript">JavaScript</button>
+                                <button class="code-tab" data-lang="python">Python</button>
+                                <button class="code-tab" data-lang="sql">SQL</button>
+                                <button class="code-tab" data-lang="html">HTML/CSS</button>
+                            </div>
+                        </div>
+                        <div class="options-row">
+                            <label for="difficulty">Difficulty:</label>
+                            <select id="difficulty">
+                                <option value="easy">Easy (common short words)</option>
+                                <option value="medium" selected>Medium (mixed)</option>
+                                <option value="hard">Hard (long & rare words)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="test-stats">
+                        <div class="stat"><div class="stat-value" id="timer-display">60</div><div class="stat-label">Seconds</div></div>
+                        <div class="stat"><div class="stat-value" id="wpm-display">0</div><div class="stat-label">WPM</div></div>
+                        <div class="stat"><div class="stat-value" id="accuracy-display">100%</div><div class="stat-label">Accuracy</div></div>
+                        <div class="stat"><div class="stat-value" id="raw-display">0</div><div class="stat-label">Raw WPM</div></div>
+                        <div class="stat"><div class="stat-value" id="consistency-display">0%</div><div class="stat-label">Consistency</div></div>
+                    </div>
+
+                    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+                    <div class="text-display" id="text-display" tabindex="0" aria-label="Type the text shown here">
+                        <div id="text-content">Click here or press any key to start</div>
+                    </div>
+
+                    <div class="status-info" id="status-info">
+                        Press <span class="kbd-hint" style="margin:0 4px;">Tab</span> + <span class="kbd-hint" style="margin:0 4px;">Enter</span> to restart, or click the text to focus
+                    </div>
+
+                    <input type="text" id="typing-input" class="typing-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Typing input">
+
+                    <div class="controls">
+                        <button class="btn btn-primary" id="start-btn" onclick="restartTest()">Start Test</button>
+                        <button class="btn btn-secondary" onclick="newText()">New Text</button>
+                    </div>
+
+                    <div class="info-box">
+                        <h3>How It Works</h3>
+                        <ul>
+                            <li><strong>Real-time tracking</strong>: WPM, accuracy, and consistency update as you type</li>
+                            <li><strong>Multiple test modes</strong>: Time-based (15s/30s/60s/2min), word count, or code snippets</li>
+                            <li><strong>Code mode</strong> (unique!): Practice JavaScript, Python, SQL, HTML/CSS syntax</li>
+                            <li><strong>Multi-category</strong>: Common words, quotes, numbers, punctuation, code</li>
+                            <li><strong>100% private</strong>: No data sent to servers. Everything happens in your browser.</li>
+                            <li><strong>No signup</strong>: Just start typing.</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-box">
+                        <h3>Why This Beats AI for Typing Practice</h3>
+                        <p>AI chatbots like ChatGPT cannot measure your typing speed or accuracy. They cannot track real-time keystrokes, calculate WPM, or provide per-character feedback. This tool runs entirely in your browser, capturing your actual physical typing performance - something AI fundamentally cannot do.</p>
+                    </div>
+
+                    <div class="info-box">
+                        <h3>Typing Tips for Better WPM</h3>
+                        <ul>
+                            <li><strong>Don't look at the keyboard</strong>: Touch typing is 2-3x faster than hunt-and-peck</li>
+                            <li><strong>Relax your hands</strong>: Tension slows you down and causes errors</li>
+                            <li><strong>Accuracy over speed</strong>: 60 WPM at 100% beats 80 WPM at 85%</li>
+                            <li><strong>Practice daily</strong>: 15 minutes a day for 2 weeks = +20 WPM</li>
+                            <li><strong>Home row first</strong>: Master ASDF JKL; before adding other keys</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <h3>Frequently Asked Questions</h3>
+            <details class="faq-item">
+                <summary>How is WPM calculated?</summary>
+                <p>WPM (Words Per Minute) is calculated as: (correct characters / 5) / minutes elapsed. The standard "word" is 5 characters. Raw WPM includes all typed characters (including errors).</p>
+            </details>
+            <details class="faq-item">
+                <summary>What is consistency?</summary>
+                <p>Consistency measures how stable your WPM is throughout the test. It's calculated as the coefficient of variation of WPM samples - higher = more consistent typing. 100% means perfectly steady speed.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Why is code mode unique?</summary>
+                <p>Most typing tests (Monkeytype, 10FastFingers, TypingTest.com) only use common English words. Our code mode lets you practice real programming syntax - brackets, semicolons, colons, operators - which is what developers actually type all day.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Is my data private?</summary>
+                <p>Yes. All typing data is processed in your browser. Nothing is sent to any server, logged, or stored. Close the tab and all data is gone.</p>
+            </details>
+            <details class="faq-item">
+                <summary>What does "raw WPM" mean?</summary>
+                <p>Raw WPM counts ALL typed characters (including errors), while net WPM only counts correct characters. Raw WPM is always higher than net WPM. Net WPM is the more useful metric.</p>
+            </details>
+        </section>
+    </main>
+
+    <div class="result-modal" id="result-modal" role="dialog" aria-labelledby="result-title" aria-modal="true">
+        <div class="result-content">
+            <h2 id="result-title">Test Complete! 🎉</h2>
+            <div class="result-grid">
+                <div class="result-item"><div class="label">Net WPM</div><div class="value" id="final-wpm">0</div></div>
+                <div class="result-item"><div class="label">Accuracy</div><div class="value" id="final-accuracy">0%</div></div>
+                <div class="result-item"><div class="label">Raw WPM</div><div class="value" id="final-raw">0</div></div>
+                <div class="result-item"><div class="label">Consistency</div><div class="value" id="final-consistency">0%</div></div>
+                <div class="result-item"><div class="label">Time</div><div class="value" id="final-time">0s</div></div>
+                <div class="result-item"><div class="label">Characters</div><div class="value" id="final-chars">0</div></div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">WPM Over Time</div>
+                <div class="chart" id="wpm-chart"></div>
+            </div>
+            <div class="controls" style="justify-content:center;">
+                <button class="btn btn-primary" onclick="closeResult()">Close</button>
+                <button class="btn" onclick="restartTest(); closeResult();">Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // Word lists
+        var COMMON_WORDS_EASY = ['the','be','to','of','and','a','in','that','have','I','it','for','not','on','with','he','as','you','do','at','this','but','his','by','from','they','we','say','her','she','or','an','will','my','one','all','would','there','their','what','so','up','out','if','about','who','get','which','go','me','when','make','can','like','time','no','just','him','know','take','people','into','year','your','good','some','could','them','see','other','than','then','now','look','only','come','its','over','think','also','back','after','use','two','how','our','work','first','well','way','even','new','want','because','any','these','give','day','most','us','is','was','are','were','been','has','had','did','got','may','find','way','even','new','give','day','part','child','eye','place','case','week','company','system','program','number','night','point','home','water','room','mother','area','money','story','fact','month','lot','right','study','book','eye','job','word','business','issue','side','kind','head','house','service','friend','father','power','hour','game','line','end','member','law','car','city','community','information','table','map','top','idea','body','family','real','team','minute','book','data','fact','figure','street','picture','art','cover','sight','place','sound','again','age','away','big','cold','fast','far','high','hot','important','large','late','left','low','main','major','open','public','same','small','social','special','sure','true','white','whole','young','small','sound','still','such','sure','table','take','tell','ten','test','than','that','them','then','there','they','thing','think','third','this','those','though','through','time','today','together','too','top','total','toward','town','travel','tree','trip','true','try','turn','two','type','under','unit','until','up','upon','use','used','useful','user','usual','value','various','very','view','village','visit','voice','vote','wait','walk','wall','want','war','watch','water','way','wear','week','well','west','what','wheel','when','where','whether','which','while','white','who','whole','whose','why','wide','wife','will','win','wind','window','wine','winter','wish','with','within','without','woman','wonder','word','work','world','worry','write','wrong','year','yes','yet','you','young','your'];
+        var COMMON_WORDS_MEDIUM = COMMON_WORDS_EASY.concat(['about','above','across','action','active','actor','actually','add','address','admit','adult','advance','advice','affect','afford','afraid','african','afternoon','against','agency','agenda','almost','alone','along','already','alright','aluminum','amazing','ambition','amount','analysis','ancient','anger','angle','angry','animal','announce','annual','answer','anxiety','anybody','anymore','anyone','anything','anyway','anywhere','apart','apartment','apparent','appeal','appear','apple','application','apply','appoint','approach','appropriate','approve','area','argue','argument','arise','arm','armed','army','around','arrange','arrest','arrival','arrive','article','artist','artistic','ashamed','aside','asleep','aspect','assault','asset','assign','assist','associate','assume','assure','athlete','atomic','attach','attack','attempt','attend','attention','attitude','attorney','attract','attractive','auction','audience','author','authority','autumn','available','average','avoid','await','awake','award','aware','awful','baby','background','backward','bacon','bacterial','badge','badly','baker','balance','balcony','balloon','ballot','banana','band','banker','banking','banner','barber','barely','bargain','barrel','barrier','baseball','basement','basic','basket','bathroom','battery','battle','beach','beard','beast','beauty','become','bedroom','beef','behalf','behave','behavior','behind','belief','believe','belong','below','bench','beneath','benefit','beside','betray','beyond','bicycle','biology','birthday','bitter','blanket','bless','blind','block','blood','bloom','blossom','blouse','board','boast','boat','body','boil','bold','bolt','bond','bone','bonus','border','bored','boring','born','boss','bother','bottle','bottom','bounce','boundary','brain','brake','branch','brand','brass','brave','bread','breakfast','breast','breath','breeze','brick','bride','bridge','brief','bright','brilliant','bring','broad','broken','bronze','brother','brown','brush','bubble','bucket','budget','buffalo','bug','build','builder','building','bullet','bundle','burden','bureau','burst','bury','business','busy','butter','button','cabin','cable','cage','cake','calcium','calculate','calendar','calf','call','calm','camera','campaign','canal','cancel','cancer','candidate','candle','cannon','canoe','canvas','canyon','capable','capacity','capital','captain','capture','carbon','career','careful','carrier','carrot','carry','cartoon','case','cashier','casino','cast','casual','catalog','catch','category','cattle','caught','cause','cease','ceiling','cellar','center','central','century','ceremony','certain','chain','chair','chalk','challenge','champion','chance','change','channel','chapter','character','charge','charity','charm','chart','chase','chat','cheap','cheat','check','cheek','cheer','cheese','chemical','cherry','chest','chicken','chief','child','chimney','china','choice','choose','chop','chord','chorus','chosen','chrome','chunk','cigar','circle','circuit','citizen','citrus','civilian','claim','clarify','clarity','clash','class','classic','classify','classroom','clause','claw','clay','clean','clear','clergy','clever','client','cliff','climate','climb','clinic','clock','close','cloth','clothes','cloud','clown','club','clue','cluster','clutch','coach','coal','coast','coat','code','coffee','cogent','coin','collar','collect','college','colony','color','column','combat','combine','comedy','comet','comfort','coming','command','comment','commerce','common','compact','company','compare','compete','complain','complete','complex','comply','compose','compress','computer','concept','concern','conclude','concrete','condemn','conduct','confess','confirm','conflict','confront','confuse','congress','connect','conquest','conscience','consent','consider','consist','console','constant','consume','contact','contain','content','contest','context','continue','contract','contrast','contribute','control','convert','convey','convict','convince','cook','cookie','cool','copper','copy','coral','cord','cordial','core','corn','corner','correct','cosmic','cosmos','cost','costume','cottage','cotton','council','count','counter','country','county','couple','courage','course','court','cousin','cover','cow','crack','craft','crash','crawl','crazy','cream','create','creation','credit','crew','cricket','crime','criminal','crisis','critic','crop','cross','crowd','crown','crucial','cruel','cruise','crush','cry','crystal','cube','cuisine','cultivate','cultural','culture','cunning','cup','cupboard','cure','curiosity','curious','curl','currency','current','curse','curtain','curve','cushion','custom','customer','cycle','daily','damage','damp','dance','danger','dare','darling','data','database','date','daughter','dawn','daylight','deadline','deadly','deaf','deal','dealer','dear','death','debate','debt','decade','deceive','decent','decide','decision','deck','declare','decline','decorate','decrease','deeply','deer','defeat','defend','define','degree','delay','deliberate','delicate','delight','deliver','demand','democracy','demonstrate','denote','dense','dental','deny','depart','depend','deposit','depress','depth','derive','descend','describe','desert','deserve','design','designer','desire','desk','despair','desperate','despite','destroy','detail','detect','develop','device','devote','dial','diamond','diary','dice','dictate','differ','difference','difficulty','digest','digital','dignity','dilemma','dimension','dinner','dinosaur','direct','direction','director','dirt','disabled','disagree','disappear','disaster','discipline','disco','discover','discuss','disease','disgust','dish','dismiss','disorder','display','dispose','dispute','distance','distant','district','disturb','dive','divide','divine','divorce','dizzy','doctor','document','dollar','domain','domestic','dominant','donate','donkey','donor','doom','door','dorm','dose','double','doubt','dough','downtown','dozen','draft','drag','dragon','drain','drama','drape','drawer','dream','dress','drift','drill','drink','drive','driver','drop','drown','drum','drunk','dryer','duck','duel','duet','duke','dull','duly','dump','dune','dusk','dust','duty','dwell','dye','dynamic','dynasty','eager','eagle','early','earn','earth','ease','east','easy','eaten','echo','ecology','economy','edge','edit','effect','effort','egg','eight','either','elaborate','elapse','elastic','elbow','elder','elect','electric','element','elephant','elevate','eleven','elite','else','elsewhere','embark','embarrass','embed','embrace','emerge','emergency','emit','emotion','emperor','emphasis','empire','employ','empty','enable','enclose','encounter','encourage','endeavor','endless','endorse','endure','enemy','energy','enforce','engage','engine','engineer','enhance','enjoy','enlarge','enormous','enrich','enroll','ensure','enter','entire','entrance','entry','envelope','environment','equal','equip','equivalent','era','erase','erect','erode','erotic','errand','error','erupt','escape','escort','essay','essence','establish','estate','esteem','estimate','eternal','ethnic','evaluate','evening','event','eventual','every','everybody','everyday','everyone','everything','everywhere','evident','evil','evoke','evolve','exact','examine','example','exceed','excel','except','exchange','excite','exclude','excuse','execute','exercise','exhaust','exhibit','exist','exit','expand','expect','expel','expense','expert','explain','explode','exploit','explore','expose','express','extend','external','extra','extract','extreme','fabric','face','facility','factor','factory','faculty','fade','faint','fair','fairly','faith','false','fame','familiar','family','famous','fancy','fantasy','farm','farmer','fashion','fast','fasten','fatal','fate','father','fatigue','fault','favor','favorite','fear','feast','feather','feature','feed','feedback','feel','fellow','female','fence','fertile','festival','fetch','fever','field','fierce','fifteen','fifth','fifty','fight','figure','file','fill','film','filter','final','finance','find','fine','finger','finish','fire','firm','first','fiscal','fish','fist','fitness','fitting','flag','flame','flash','flat','flavor','flee','fleet','flesh','flex','flight','flip','float','flock','flood','floor','flour','flourish','flow','flower','fluid','flush','flute','fly','focus','fold','folk','follow','fond','food','fool','foot','forbid','force','foreign','forest','forever','forge','forget','forgive','fork','form','formal','former','formula','fort','forth','fortune','forum','forward','found','founder','four','fourteen','fourth','fraction','fragile','frame','framework','frank','fraud','free','freedom','freeze','frequency','frequent','fresh','friend','friendly','frighten','front','frontier','frost','frown','frozen','fruit','fulfill','fully','fund','funny','fur','furniture','further','fury','future','gain','galaxy','gallery','game','gang','gap','garage','garbage','garden','garlic','gasoline','gate','gather','gauge','gaze','gear','gender','gene','general','generate','genius','gentle','genuine','gesture','ghost','giant','gift','giggle','ginger','giraffe','girl','give','glad','glance','glare','glass','gleam','glide','glimpse','global','globe','gloom','glory','glove','glow','glue','goal','goat','goddess','gold','golden','golf','good','goodbye','goods','gorge','gospel','govern','gown','grab','grace','grade','gradual','grain','grand','grant','grape','graph','graphic','grasp','grass','grateful','grave','gravity','great','green','greet','grid','grief','grind','grip','grocery','gross','ground','group','grow','growth','guarantee','guard','guess','guest','guide','guidance','guilt','guilty','guitar','gulf','gym','habit','hair','half','hall','halt','hammer','hand','handful','handle','handsome','handy','hang','happen','happy','harbor','hard','hardly','harm','harsh','harvest','haste','hatred','haunt','have','hay','hazard','hazel','head','header','headline','headquarters','heal','health','heap','hear','heart','heat','heater','heaven','heavily','heavy','height','helmet','help','helpful','hence','herald','herd','here','hero','hesitate','hidden','hide','high','highlight','highly','highway','hijack','hill','hint','hip','hire','history','hit','hobby','hockey','hold','holiday','hollow','holy','home','homeless','honest','honey','honor','hook','hop','hope','horizon','horror','horse','hose','host','hostage','hostile','hot','hotel','hour','household','housing','huge','human','humble','humor','hundred','hungry','hunt','hunter','hurry','hurt','husband','hybrid','ice','icon','idea','ideal','identify','identity','ideology','idiom','idle','ignore','illness','illustrate','image','imagine','imitate','immediate','immune','impact','implement','imply','import','impose','impress','improve','impulse','incident','include','income','increase','indeed','independent','index','indicate','indirect','indoor','induce','industry','infant','infect','infinite','inflate','inflict','inform','inherit','initial','initiate','inject','injury','inmate','inner','innocent','innovate','input','inquiry','insect','insert','inside','insight','insist','inspect','inspire','install','instance','instant','instead','instinct','institute','instruct','instrument','insult','insure','intact','intake','intend','intense','intent','interact','interest','interior','internal','interpret','interrupt','interval','intimate','introduce','invade','invent','invest','invite','involve','iron','irony','island','isolate','issue','item','ivory','jacket','jaguar','jail','jealous','jeans','jelly','jewel','job','join','joint','journal','journey','joy','judge','juice','jump','junction','jungle','junior','jury','justice','justify','keen','keep','kettle','keyboard','kick','kid','kidnap','kidney','kind','kingdom','kiss','kitchen','kite','kitten','knee','kneel','knife','knight','knit','knock','knot','know','knowledge','label','labor','lack','ladder','lady','lake','lamb','lamp','land','landscape','language','lantern','large','laser','last','lasting','late','laugh','laundry','lava','law','lawn','lawsuit','lawyer','lay','layer','lazy','leader','leadership','leaf','league','leak','lean','leap','learn','lease','least','leather','leave','lecture','left','legal','legend','legislation','legitimate','lemon','lend','length','lens','less','lesson','letter','level','lever','library','license','lid','lie','life','lifestyle','lifetime','lift','light','lightning','like','likely','limit','line','linen','linger','link','lion','lip','liquid','list','listen','liter','little','live','living','load','loan','lobby','local','locate','lock','lodge','log','logic','lonely','long','look','loop','loose','lord','lose','loss','lost','lot','loud','love','lovely','lower','loyal','luck','luggage','lumber','lunar','lunch','lung','luxury','machine','mad','magic','mail','main','mainly','major','make','male','mall','manage','manner','manufacture','many','map','marathon','marble','march','margin','mark','market','marriage','marvel','mask','mass','massive','master','match','mate','material','math','matter','mature','maximum','maybe','meadow','meal','mean','meaning','meanwhile','measure','meat','mechanic','medal','media','medical','medicine','medium','meet','meeting','melt','member','memorial','memory','mental','mention','menu','merchant','mercy','mere','merge','merit','merry','message','metal','method','middle','midnight','midst','might','mighty','migration','mild','mile','military','milk','mill','million','mimic','mind','mine','mineral','minimum','minister','minor','minute','miracle','mirror','misery','miss','mission','mistake','mix','mixed','mixture','mobile','mock','mode','model','modern','modest','modify','moment','monitor','monthly','mood','moon','moral','more','moreover','morning','mortal','mortgage','most','mostly','mother','motion','motivate','motor','mount','mountain','mouse','mouth','move','movie','much','mud','multiple','murder','murmur','muscle','museum','music','must','mutual','myself','mystery','nail','naked','name','narrative','narrow','nasty','nation','native','nature','naval','near','nearby','nearly','neat','necessary','neck','need','needle','negative','neglect','negotiate','neighbor','neither','nephew','nerve','nervous','nest','net','network','neutral','never','nevertheless','new','newly','news','newspaper','next','nice','nickel','night','nine','noble','nobody','node','noise','nominate','none','noon','nor','normal','north','nose','note','nothing','notice','notion','novel','now','nowhere','nuclear','number','numerous','nurse','nut','oath','obey','object','objection','objective','obligation','observe','obtain','obvious','occasion','occupy','occur','ocean','odd','odor','offend','offer','office','officer','official','often','oil','okay','old','olive','olympic','once','one','ongoing','onion','online','only','open','opening','operate','opinion','opponent','opportunity','oppose','opposite','oppress','option','oral','orange','orbit','order','ordinary','organ','organic','organization','organize','origin','original','orphan','other','otherwise','ought','ounce','outcome','outdoor','outline','output','outside','outstanding','oven','over','overall','overcome','overlook','overnight','overseas','overwhelm','owe','own','owner','oxygen','pace','pack','package','pad','page','pain','paint','pair','palace','pale','palm','panda','panel','panic','panorama','paper','parachute','parade','parallel','parcel','parent','park','parking','part','participate','particular','partly','partner','party','pass','passage','passenger','passion','passive','past','pasta','paste','patch','patent','path','patience','patient','patriot','patrol','patron','pattern','pause','pave','payment','peace','peak','peanut','pearl','peasant','pebble','peer','penalty','pencil','people','pepper','perfect','perform','perhaps','period','permit','person','personal','persuade','pet','phase','phenomenon','philosophy','phone','photo','phrase','physical','piano','picnic','picture','piece','pig','pigeon','pile','pilgrim','pill','pillar','pillow','pilot','pin','pine','pink','pioneer','pipe','pirate','pistol','pitch','pity','pizza','place','plain','plan','planet','plant','plastic','plate','platform','play','player','plead','pleasant','please','pleasure','plenty','plot','plug','plunge','plural','plus','pocket','poem','poet','point','poison','poke','polar','pole','police','policy','polish','polite','political','pond','pool','poor','pope','popular','population','porch','port','portion','portrait','portray','pose','position','positive','possess','possible','post','postpone','pot','potato','potential','pound','pour','poverty','powder','power','practice','praise','pray','preach','precise','predict','prefer','prepare','present','preserve','press','pretend','pretty','prevent','previous','price','pride','priest','primary','prime','prince','principal','principle','print','prior','priority','prison','private','prize','probable','problem','process','produce','product','profession','professor','profile','profit','program','progress','prohibit','project','prominent','promise','promote','prompt','prone','proof','proper','property','proportion','propose','prosecute','prospect','protect','protein','protest','proud','prove','provide','public','publication','publish','pull','pulse','pump','punch','punish','purchase','pure','purple','purpose','pursue','push','put','puzzle','pyramid','qualify','quality','quantity','quarrel','quarter','queen','query','quest','question','quick','quiet','quit','quite','quiz','quote','race','racial','radar','radiation','radical','radio','rage','raid','rail','rain','rainbow','raise','range','rank','rapid','rare','rate','rather','rating','ratio','raw','reach','react','read','ready','real','realistic','reality','realize','really','reason','rebel','recall','receive','recent','recipe','recipient','reckless','reclaim','recognize','recommend','record','recover','recruit','red','reduce','refer','reference','reflect','reform','refuge','refuse','regain','regard','regiment','region','register','regret','regular','regulate','reinforce','reject','relate','relation','relative','relax','release','relevant','relief','religion','rely','remain','remark','remedy','remember','remind','remote','remove','render','rent','repair','repeat','replace','reply','report','represent','reproduce','request','require','rescue','research','reserve','reside','resign','resist','resolve','resort','resource','respect','respond','response','restoration','restore','restrict','result','retain','retire','retreat','return','reveal','revenge','revenue','reverse','review','revise','revive','revolt','reward','rhythm','rice','rich','rid','riddle','ride','rider','ridge','rifle','right','rigid','ring','rinse','riot','ripe','rise','risk','ritual','rival','river','road','roam','roar','roast','rob','robe','robin','robot','rocket','rocky','rod','role','roll','romance','romantic','roof','room','root','rope','rose','rotate','rough','round','route','routine','row','royal','rub','rubber','rude','rug','ruin','rule','run','runner','rural','rush','sacred','sacrifice','sad','saddle','safari','safe','safety','sail','sailor','saint','sake','salad','salary','sale','salmon','salt','salute','same','sample','sand','satellite','sauce','save','saving','saw','scale','scan','scandal','scar','scarce','scare','scarf','scary','scatter','scenario','scene','schedule','scheme','scholar','school','science','scissors','scope','score','scorn','scratch','scream','screen','script','sea','search','season','seat','second','secret','section','sector','secure','seek','seem','segment','seize','seldom','select','self','sell','senate','send','senior','sense','sentence','separate','sequence','series','serious','serve','service','session','set','settle','seven','several','severe','shade','shadow','shake','shall','shallow','shame','shape','share','sharp','she','sheet','shelf','shell','shelter','shepherd','shield','shift','shine','ship','shirt','shoot','shop','shore','short','shot','shoulder','shout','show','shower','shred','shrimp','shrink','shut','shy','sibling','sick','side','siege','sigh','sight','sign','signal','silence','silent','silk','silly','silver','similar','simple','simply','sin','since','sincere','sing','single','sink','sip','sir','sister','sit','site','situation','six','size','skate','skeleton','sketch','ski','skill','skin','skip','skirt','sky','slam','slap','slash','slave','sleep','slice','slide','slight','slim','slip','slogan','slope','slot','slow','slug','smart','smell','smile','smoke','smooth','snack','snake','snap','sneak','snow','soap','soccer','social','society','sock','soda','sofa','soft','soil','solar','soldier','sole','solid','solve','some','somebody','somehow','someone','something','sometimes','somewhat','somewhere','son','song','soon','soothe','sophisticated','sore','sorry','sort','soul','sound','soup','source','south','space','spare','spark','speak','speaker','special','specialist','species','specific','spectrum','speech','speed','spell','spend','sphere','spice','spider','spike','spill','spin','spine','spirit','spite','splash','split','spoil','spoken','sponsor','spoon','sport','spot','spouse','spray','spread','spring','sprinkle','sprout','spur','spy','square','squeeze','squirrel','stable','stack','stadium','staff','stage','stair','stake','stamp','stand','standard','standing','star','stare','start','state','station','stay','steady','steam','steel','steep','steer','stem','step','stick','stiff','still','sting','stir','stitch','stock','stomach','stone','stool','stop','store','storm','story','stove','straight','strange','strategy','stream','street','strength','stress','stretch','strict','strike','string','strip','stroke','strong','structure','struggle','stub','student','studied','study','stuff','stumble','stupid','style','subject','submit','subway','succeed','success','such','sudden','sue','suffer','sugar','suggest','suit','sulfur','sullen','sum','summer','summit','summon','sun','sunny','sunset','super','supply','support','suppose','sure','surface','surge','surprise','surround','survey','suspect','sustain','swallow','swamp','swap','swarm','sway','swear','sweat','sweet','swell','swift','swim','swing','switch','sword','syllable','symbol','sympathy','symptom','synthetic','system','table','tackle','tactic','tag','tail','take','tale','talent','talk','tall','tank','tap','tape','target','task','taste','tattoo','taxi','teach','teacher','team','tear','tease','technique','teen','telescope','television','tell','temper','temple','tenant','tend','tendency','tennis','tension','tent','term','test','text','than','thank','theft','their','them','theme','then','theory','therapy','there','these','they','thick','thigh','thin','thing','think','third','thirst','this','thorn','thorough','those','though','thought','thousand','threat','three','thrill','thrive','throat','through','throw','thrust','thumb','thunder','thus','ticket','tide','tiger','tight','tile','till','tilt','timber','time','tin','tiny','tip','tire','tired','tissue','title','toast','tobacco','today','toddler','toe','together','toil','token','tolerance','tolerate','toll','tomato','tomorrow','tone','tongue','tonight','tool','tooth','top','topic','torch','total','touch','tough','tour','tourist','tournament','toward','tower','town','toy','trace','track','trade','tradition','traffic','tragedy','trail','train','trait','traitor','tramp','transaction','transfer','transform','transit','transition','translate','transport','trap','travel','tray','tread','treason','treasure','treat','treaty','tree','trek','tremble','tremendous','trend','trial','triangle','tribe','trick','trigger','trim','trip','triple','triumph','troop','trophy','tropic','trouble','truck','true','truly','trumpet','trust','truth','try','tube','tuition','tumble','tuna','tune','tunnel','turkey','turn','turtle','twelve','twenty','twice','twig','twilight','twin','twist','type','typical','ugly','ultimate','unable','unaware','uncle','uncover','under','undergo','understand','undertake','uneasy','unfair','unfold','unhappy','uniform','union','unique','unit','unite','unity','universal','universe','unknown','unless','unlike','unlock','until','unusual','unveil','update','upgrade','uphold','upload','upon','upper','upright','uprising','upset','upside','upstairs','urban','urge','urgent','usage','use','useful','user','usual','utilize','vacant','vacation','vaccine','vacuum','vague','vain','valid','valley','valuable','value','van','vanish','vapor','various','vary','vast','vault','vehicle','velvet','vendor','venture','venue','verb','verdict','verify','version','very','vessel','veteran','viable','vibrant','victim','victory','video','view','village','violate','violent','violet','virgin','virtual','virtue','virus','visa','visible','vision','visit','visual','vital','vivid','vocal','voice','void','volcano','volume','vote','voucher','vow','vulnerable','wage','wagon','waist','wait','waiter','wake','walk','wall','wallet','walnut','wander','want','war','warm','warn','warrior','wash','watch','water','wave','wavy','wax','way','weak','wealth','weapon','wear','weather','weave','wedding','weed','week','weekend','weep','weigh','weight','weird','welcome','welfare','well','west','wet','whale','what','wheat','wheel','when','where','whether','which','while','whip','whisper','whistle','white','who','whole','whom','whose','why','wicked','wide','widow','width','wife','wild','will','willow','win','wind','window','wine','wing','wink','winner','winter','wipe','wire','wisdom','wise','wish','witch','with','withdraw','within','without','witness','woman','wonder','wonderful','wood','wooden','wool','word','work','worker','workshop','world','worm','worry','worse','worship','worst','worth','would','wound','wrap','wrist','write','writer','wrong','yard','year','yell','yellow','yes','yet','yield','yoga','young','your','yours','yourself','youth','zero','zone','zoo']);
+
+        var QUOTES = [
+            'The only way to do great work is to love what you do. - Steve Jobs',
+            'Innovation distinguishes between a leader and a follower. - Steve Jobs',
+            'Life is what happens when you are busy making other plans. - John Lennon',
+            'The future belongs to those who believe in the beauty of their dreams. - Eleanor Roosevelt',
+            'It is during our darkest moments that we must focus to see the light. - Aristotle',
+            'Do not go where the path may lead, go instead where there is no path and leave a trail. - Ralph Waldo Emerson',
+            'Be yourself; everyone else is already taken. - Oscar Wilde',
+            'In the middle of difficulty lies opportunity. - Albert Einstein',
+            'Success is not final, failure is not fatal: it is the courage to continue that counts. - Winston Churchill',
+            'The only impossible journey is the one you never begin. - Tony Robbins'
+        ];
+
+        var CODE_SNIPPETS = {
+            javascript: [
+                'const sum = (a, b) => a + b;\nconsole.log(sum(2, 3));',
+                'function fibonacci(n) {\n  if (n <= 1) return n;\n  return fibonacci(n - 1) + fibonacci(n - 2);\n}',
+                'const arr = [1, 2, 3, 4, 5];\nconst doubled = arr.map(x => x * 2);\nconsole.log(doubled);',
+                'class Animal {\n  constructor(name) {\n    this.name = name;\n  }\n  speak() {\n    return this.name + " makes a sound.";\n  }\n}',
+                'const promise = new Promise((resolve, reject) => {\n  setTimeout(() => resolve("done"), 1000);\n});\npromise.then(value => console.log(value));',
+                'const obj = {a: 1, b: 2, c: 3};\nfor (const key in obj) {\n  console.log(key, obj[key]);\n}',
+                'async function fetchData(url) {\n  const response = await fetch(url);\n  const data = await response.json();\n  return data;\n}',
+                'const numbers = [1, 2, 3, 4, 5];\nconst total = numbers.reduce((acc, n) => acc + n, 0);\nconsole.log(total);',
+                'if (x > 0 && y < 10) {\n  console.log("x is positive and y is less than 10");\n}',
+                'const [first, second, ...rest] = [1, 2, 3, 4, 5];\nconsole.log(first, second, rest);'
+            ],
+            python: [
+                'def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)',
+                'numbers = [1, 2, 3, 4, 5]\nsquared = [n**2 for n in numbers]\nprint(squared)',
+                'class Dog:\n    def __init__(self, name):\n        self.name = name\n    def bark(self):\n        return f"{self.name} says woof!"',
+                'import json\ndata = {"name": "Alice", "age": 30}\njson_str = json.dumps(data)\nprint(json_str)',
+                'with open("file.txt", "r") as f:\n    content = f.read()\n    print(content)',
+                'try:\n    result = 10 / 0\nexcept ZeroDivisionError as e:\n    print(f"Error: {e}")',
+                'for i in range(10):\n    if i % 2 == 0:\n        print(f"{i} is even")',
+                'squares = {x: x**2 for x in range(5)}\nprint(squares)',
+                'def greet(name, greeting="Hello"):\n    return f"{greeting}, {name}!"',
+                'numbers = [3, 1, 4, 1, 5, 9, 2, 6]\nsorted_nums = sorted(numbers)\nprint(sorted_nums)'
+            ],
+            sql: [
+                'SELECT name, age FROM users WHERE age > 18 ORDER BY name;',
+                'INSERT INTO products (name, price) VALUES ("Widget", 9.99);',
+                'UPDATE customers SET email = "new@example.com" WHERE id = 5;',
+                'DELETE FROM orders WHERE created_at < "2026-01-01";',
+                'SELECT COUNT(*) FROM users WHERE active = true;',
+                'SELECT u.name, COUNT(o.id) AS order_count\nFROM users u\nLEFT JOIN orders o ON u.id = o.user_id\nGROUP BY u.id;',
+                'CREATE TABLE employees (\n  id INT PRIMARY KEY,\n  name VARCHAR(100),\n  salary DECIMAL(10, 2)\n);',
+                'SELECT * FROM products WHERE price BETWEEN 10 AND 50;',
+                'SELECT category, AVG(price) AS avg_price\nFROM products\nGROUP BY category\nHAVING AVG(price) > 20;',
+                'SELECT DISTINCT country FROM customers ORDER BY country;'
+            ],
+            html: [
+                '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>Page</title>\n</head>\n<body>\n  <h2>Hello</h2>\n</body>\n</html>',
+                'body {\n  font-family: Arial, sans-serif;\n  margin: 0;\n  padding: 20px;\n  background: #f5f5f5;\n}',
+                '.container {\n  max-width: 1200px;\n  margin: 0 auto;\n  display: flex;\n  gap: 20px;\n}',
+                '<div class="card">\n  <img src="image.jpg" alt="Description">\n  <h2>Title</h2>\n  <p>Content goes here.</p>\n</div>',
+                '@media (max-width: 768px) {\n  .sidebar {\n    display: none;\n  }\n  .main {\n    width: 100%;\n  }\n}',
+                'const button = document.querySelector(".btn");\nbutton.addEventListener("click", () => {\n  alert("Clicked!");\n});',
+                'function calculateTotal(items) {\n  return items.reduce((sum, item) => sum + item.price, 0);\n}',
+                'input[type="text"] {\n  padding: 10px;\n  border: 1px solid #ccc;\n  border-radius: 4px;\n  font-size: 16px;\n}',
+                'function fetchUser(id) {\n  return fetch(`/api/users/${id}`)\n    .then(res => res.json())\n    .catch(err => console.error(err));\n}',
+                'ul.nav {\n  list-style: none;\n  display: flex;\n  gap: 1rem;\n  padding: 0;\n}'
+            ]
+        };
+
+        // State
+        var state = {
+            mode: 'time',
+            modeValue: 15,
+            category: 'common',
+            difficulty: 'medium',
+            codeLang: 'javascript',
+            targetText: '',
+            typedText: '',
+            startTime: null,
+            endTime: null,
+            totalChars: 0,
+            correctChars: 0,
+            errors: 0,
+            wpmSamples: [],
+            isActive: false,
+            intervalId: null
+        };
+
+        var elements = {};
+
+        function init() {
+            elements = {
+                textDisplay: document.getElementById('text-display'),
+                textContent: document.getElementById('text-content'),
+                timerDisplay: document.getElementById('timer-display'),
+                wpmDisplay: document.getElementById('wpm-display'),
+                accuracyDisplay: document.getElementById('accuracy-display'),
+                rawDisplay: document.getElementById('raw-display'),
+                consistencyDisplay: document.getElementById('consistency-display'),
+                progressFill: document.getElementById('progress-fill'),
+                typingInput: document.getElementById('typing-input'),
+                resultModal: document.getElementById('result-modal'),
+                statusInfo: document.getElementById('status-info'),
+                categorySelect: document.getElementById('text-category'),
+                difficultySelect: document.getElementById('difficulty'),
+                codeLangRow: document.getElementById('code-lang-row')
+            };
+            bindEvents();
+            generateNewText();
+            updateTimerDisplay();
+        }
+
+        function bindEvents() {
+            // Mode buttons
+            document.querySelectorAll('.mode-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.mode-btn').forEach(function(b) {
+                        b.classList.remove('active');
+                        b.setAttribute('aria-pressed', 'false');
+                    });
+                    btn.classList.add('active');
+                    btn.setAttribute('aria-pressed', 'true');
+                    state.mode = btn.getAttribute('data-mode');
+                    var val = btn.getAttribute('data-value');
+                    state.modeValue = val ? parseInt(val) : null;
+                    elements.codeLangRow.style.display = (state.mode === 'code') ? 'flex' : 'none';
+                    if (state.mode === 'code') {
+                        elements.categorySelect.value = 'code';
+                        state.category = 'code';
+                    }
+                    generateNewText();
+                    updateTimerDisplay();
+                });
+            });
+
+            // Code language tabs
+            document.querySelectorAll('.code-tab').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.code-tab').forEach(function(t) { t.classList.remove('active'); });
+                    tab.classList.add('active');
+                    state.codeLang = tab.getAttribute('data-lang');
+                    if (state.mode === 'code') generateNewText();
+                });
+            });
+
+            // Category change
+            elements.categorySelect.addEventListener('change', function() {
+                state.category = elements.categorySelect.value;
+                generateNewText();
+            });
+
+            // Difficulty change
+            elements.difficultySelect.addEventListener('change', function() {
+                state.difficulty = elements.difficultySelect.value;
+                if (state.category === 'common') generateNewText();
+            });
+
+            // Focus text display to start
+            elements.textDisplay.addEventListener('click', function() {
+                if (!state.isActive) startTest();
+                elements.typingInput.focus();
+            });
+
+            // Typing input
+            elements.typingInput.addEventListener('input', handleTyping);
+            elements.typingInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    restartTest();
+                }
+            });
+
+            // Global keydown to start
+            document.addEventListener('keydown', function(e) {
+                if (!state.isActive && !elements.resultModal.classList.contains('show') && document.activeElement !== elements.typingInput) {
+                    if (e.key.length === 1 || e.key === 'Backspace') {
+                        e.preventDefault();
+                        startTest();
+                        elements.typingInput.focus();
+                    }
+                }
+            });
+        }
+
+        function generateNewText() {
+            var text = '';
+            if (state.category === 'code' || state.mode === 'code') {
+                var snippets = CODE_SNIPPETS[state.codeLang] || CODE_SNIPPETS.javascript;
+                text = snippets[Math.floor(Math.random() * snippets.length)];
+            } else if (state.category === 'quotes') {
+                text = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+            } else if (state.category === 'numbers') {
+                text = generateNumbers();
+            } else if (state.category === 'punctuation') {
+                text = generatePunctuation();
+            } else {
+                text = generateWords();
+            }
+            state.targetText = text;
+            state.typedText = '';
+            state.totalChars = 0;
+            state.correctChars = 0;
+            state.errors = 0;
+            state.wpmSamples = [];
+            state.startTime = null;
+            state.endTime = null;
+            state.isActive = false;
+            if (state.intervalId) clearInterval(state.intervalId);
+            renderText();
+            updateStats();
+            updateProgress();
+        }
+
+        function generateWords() {
+            var wordList = state.difficulty === 'easy' ? COMMON_WORDS_EASY : COMMON_WORDS_MEDIUM;
+            var count = state.mode === 'words' ? state.modeValue : 30;
+            var words = [];
+            for (var i = 0; i < count; i++) {
+                words.push(wordList[Math.floor(Math.random() * wordList.length)]);
+            }
+            return words.join(' ');
+        }
+
+        function generateNumbers() {
+            var chars = '0123456789';
+            var symbols = '-+*/=';
+            var length = 40;
+            var result = '';
+            for (var i = 0; i < length; i++) {
+                if (Math.random() < 0.2) result += symbols[Math.floor(Math.random() * symbols.length)];
+                else result += chars[Math.floor(Math.random() * chars.length)];
+                if (i < length - 1 && Math.random() < 0.15) result += ' ';
+            }
+            return result;
+        }
+
+        function generatePunctuation() {
+            var sentences = [
+                'Hello, world! How are you today?',
+                'The quick brown fox jumps over the lazy dog.',
+                'Pack my box with five dozen liquor jugs.',
+                'How vexingly quick daft zebras jump!',
+                'Sphinx of black quartz, judge my vow.',
+                'Mr. Jock, TV quiz Ph.D., bags few lynx.',
+                'Glib jocks quiz nymph to vex dwarf.',
+                'Crazy Fredrick bought many very exquisite opal jewels.',
+                'We promptly judged antique ivory buckles for the next prize.',
+                'A mad boxer shot a quick, gloved jab to the jaw of his opponent.'
+            ];
+            return sentences[Math.floor(Math.random() * sentences.length)];
+        }
+
+        function renderText() {
+            var html = '';
+            for (var i = 0; i < state.targetText.length; i++) {
+                var ch = state.targetText[i];
+                var cls = 'char';
+                if (i < state.typedText.length) {
+                    cls += state.typedText[i] === ch ? ' correct' : ' wrong';
+                } else if (i === state.typedText.length) {
+                    cls += ' current';
+                }
+                var displayCh = ch === ' ' ? ' ' : ch.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); // BUG-342: was `&nbsp;` — one unbreakable line. `.text-display` is now pre-wrap.
+                html += '<span class="' + cls + '">' + displayCh + '</span>';
+            }
+            elements.textContent.innerHTML = html;
+            elements.textDisplay.classList.toggle('code-mode', state.category === 'code' || state.mode === 'code');
+        }
+
+        function startTest() {
+            if (state.isActive) return;
+            state.isActive = true;
+            state.startTime = Date.now();
+            state.wpmSamples = [];
+            elements.typingInput.value = '';
+            elements.typingInput.focus();
+            elements.statusInfo.textContent = 'Test in progress... (Tab+Enter to restart)';
+
+            if (state.mode === 'time') {
+                state.intervalId = setInterval(function() {
+                    var elapsed = (Date.now() - state.startTime) / 1000;
+                    var remaining = Math.max(0, state.modeValue - elapsed);
+                    state.timerDisplay = remaining;
+                    if (remaining <= 0) {
+                        finishTest();
+                    }
+                }, 100);
+            } else if (state.mode === 'words') {
+                state.intervalId = setInterval(function() {
+                    var elapsed = (Date.now() - state.startTime) / 1000;
+                    state.timerDisplay = elapsed;
+                }, 100);
+            } else if (state.mode === 'code') {
+                state.intervalId = setInterval(function() {
+                    var elapsed = (Date.now() - state.startTime) / 1000;
+                    state.timerDisplay = elapsed;
+                }, 100);
+            }
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            if (state.mode === 'time') {
+                var remaining = state.modeValue;
+                elements.timerDisplay.textContent = Math.ceil(remaining);
+            } else {
+                elements.timerDisplay.textContent = state.modeValue;
+            }
+        }
+
+        function handleTyping(e) {
+            if (!state.isActive) {
+                startTest();
+            }
+            state.typedText = elements.typingInput.value;
+            state.totalChars = state.typedText.length;
+            state.correctChars = 0;
+            state.errors = 0;
+            for (var i = 0; i < state.typedText.length; i++) {
+                if (i < state.targetText.length && state.typedText[i] === state.targetText[i]) {
+                    state.correctChars++;
+                } else {
+                    state.errors++;
+                }
+            }
+            renderText();
+            updateStats();
+            updateProgress();
+
+            // Sample WPM every second
+            var now = Date.now();
+            if (!state._lastSample || now - state._lastSample > 1000) {
+                state._lastSample = now;
+                var elapsed = (now - state.startTime) / 60000;
+                if (elapsed > 0) {
+                    var wpm = Math.round((state.correctChars / 5) / elapsed);
+                    state.wpmSamples.push(wpm);
+                }
+            }
+
+            // End conditions
+            if (state.mode === 'words' && state.typedText.length >= state.targetText.length) {
+                finishTest();
+            } else if (state.mode === 'code' && state.typedText.length >= state.targetText.length) {
+                finishTest();
+            }
+        }
+
+        function updateStats() {
+            var elapsed = state.startTime ? (Date.now() - state.startTime) / 60000 : 0;
+            var minutes = Math.max(elapsed, 1/60);
+            var wpm = elapsed > 0 ? Math.round((state.correctChars / 5) / elapsed) : 0;
+            var rawWpm = elapsed > 0 ? Math.round((state.totalChars / 5) / elapsed) : 0;
+            var accuracy = state.totalChars > 0 ? Math.round((state.correctChars / state.totalChars) * 100) : 100;
+            var consistency = 0;
+            if (state.wpmSamples.length > 1) {
+                var mean = state.wpmSamples.reduce(function(a,b){return a+b;}, 0) / state.wpmSamples.length;
+                var variance = state.wpmSamples.reduce(function(a,b){return a + Math.pow(b - mean, 2);}, 0) / state.wpmSamples.length;
+                var stdDev = Math.sqrt(variance);
+                consistency = mean > 0 ? Math.round((1 - stdDev / mean) * 100) : 0;
+                consistency = Math.max(0, Math.min(100, consistency));
+            }
+            elements.wpmDisplay.textContent = wpm;
+            elements.accuracyDisplay.textContent = accuracy + '%';
+            elements.rawDisplay.textContent = rawWpm;
+            elements.consistencyDisplay.textContent = consistency + '%';
+        }
+
+        function updateProgress() {
+            var pct = state.targetText.length > 0 ? (state.typedText.length / state.targetText.length) * 100 : 0;
+            elements.progressFill.style.width = Math.min(100, pct) + '%';
+        }
+
+        function finishTest() {
+            if (!state.isActive) return;
+            state.isActive = false;
+            state.endTime = Date.now();
+            if (state.intervalId) clearInterval(state.intervalId);
+            var elapsed = (state.endTime - state.startTime) / 1000;
+            var wpm = Math.round((state.correctChars / 5) / (elapsed / 60));
+            var rawWpm = Math.round((state.totalChars / 5) / (elapsed / 60));
+            var accuracy = state.totalChars > 0 ? Math.round((state.correctChars / state.totalChars) * 100) : 100;
+            var consistency = 0;
+            if (state.wpmSamples.length > 1) {
+                var mean = state.wpmSamples.reduce(function(a,b){return a+b;}, 0) / state.wpmSamples.length;
+                var variance = state.wpmSamples.reduce(function(a,b){return a + Math.pow(b - mean, 2);}, 0) / state.wpmSamples.length;
+                var stdDev = Math.sqrt(variance);
+                consistency = mean > 0 ? Math.max(0, Math.min(100, Math.round((1 - stdDev / mean) * 100))) : 0;
+            }
+            document.getElementById('final-wpm').textContent = wpm;
+            document.getElementById('final-accuracy').textContent = accuracy + '%';
+            document.getElementById('final-raw').textContent = rawWpm;
+            document.getElementById('final-consistency').textContent = consistency + '%';
+            document.getElementById('final-time').textContent = Math.round(elapsed) + 's';
+            document.getElementById('final-chars').textContent = state.correctChars + '/' + state.totalChars;
+            // Render chart
+            var chart = document.getElementById('wpm-chart');
+            chart.innerHTML = '';
+            var maxWpm = Math.max.apply(null, state.wpmSamples.concat([1]));
+            state.wpmSamples.forEach(function(w) {
+                var bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.height = (w / maxWpm * 100) + '%';
+                bar.title = w + ' WPM';
+                chart.appendChild(bar);
+            });
+            if (state.wpmSamples.length === 0) {
+                chart.innerHTML = '<div style="color:#888;width:100%;text-align:center;font-size:0.85rem;padding:30px;">Not enough data</div>';
+            }
+            elements.resultModal.classList.add('show');
+            elements.statusInfo.textContent = 'Test complete! Click "Try Again" or press Tab to restart.';
+        }
+
+        function closeResult() {
+            elements.resultModal.classList.remove('show');
+        }
+
+        function restartTest() {
+            generateNewText();
+            setTimeout(function() { elements.typingInput.focus(); }, 50);
+        }
+
+        function newText() {
+            restartTest();
+        }
+
+        // Make functions global for onclick handlers
+        window.restartTest = restartTest;
+        window.newText = newText;
+        window.closeResult = closeResult;
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
+</body>
+</html>

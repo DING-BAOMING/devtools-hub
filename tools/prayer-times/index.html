@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prayer Times - Salah Countdown &amp; Qibla | DevTools Hub</title>
+    <meta name="description" content="Salah times for your exact coordinates with a next-prayer countdown, six calculation methods, Hanafi Asr option, and Qibla bearing. 100% in your browser.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/prayer-times/">
+    <meta property="og:title" content="Prayer Times - Salah Countdown &amp; Qibla | DevTools Hub">
+    <meta property="og:description" content="Salah times for your exact coordinates: a live next-prayer countdown, six calculation methods, Hanafi Asr option, Qibla bearing. 100% in your browser.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/prayer-times/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"WebApplication","datePublished":"2026-10-21","dateModified":"2026-10-21","author":{"@type":"Person","name":"BAOMING"},"name":"Prayer Times Calculator","description":"Salah times for your exact coordinates with a live next-prayer countdown, six calculation methods, Hanafi Asr option, and Qibla bearing. Computed entirely in your browser, no signup, no data leaves your device.","url":"https://tools.scoreroute.com/tools/prayer-times/","applicationCategory":"UtilityApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How are prayer times calculated for my exact location?","acceptedAnswer":{"@type":"Answer","text":"Solar declination and the equation of time are derived from your latitude and longitude, then the five salah windows follow from your chosen twilight angles and Asr school. Nothing is fetched from a server; every number is computed in your browser."}},{"@type":"Question","name":"Why do prayer times differ from my mosque's timetable?","acceptedAnswer":{"@type":"Answer","text":"Mosques routinely apply local minute adjustments, publish jama'ah (congregation) times after the calculation time, or follow a different method or madhab than the one you selected. Pick your community's settings here, then follow the mosque for congregational prayer."}},{"@type":"Question","name":"Which calculation method should I choose?","acceptedAnswer":{"@type":"Answer","text":"Choose the one your local community or Islamic authority uses. ISNA is common across North America, the Muslim World League across Europe and much of Asia, Umm al-Qura in Saudi Arabia, and the Egyptian Authority in Egypt. The method decides the Fajr and Isha twilight angles."}},{"@type":"Question","name":"Is my location private?","acceptedAnswer":{"@type":"Answer","text":"Yes. Browser geolocation hands the coordinates to the page without any server call, all calculations run on your device, and your last settings are stored only in your own browser's localStorage."}}]}]}
+    </script>
+    <style>
+        .pt-card { background:#1a1a2e; border-radius:12px; padding:20px; margin-bottom:16px; }
+        .pt-hero { background:linear-gradient(135deg,#0f2027 0%,#153a4a 50%,#0f2027 100%); border:1px solid #2a3a4a; border-radius:14px; padding:24px; margin-bottom:18px; text-align:center; }
+        .pt-hero h2 { color:#fff; margin:0 0 8px; font-size:1.5rem; }
+        .pt-hero p { color:#9fb8c8; margin:0; font-size:0.95rem; }
+        .pt-countdown { margin-top:14px; }
+        .pt-countdown-name { color:#7ec8ff; font-size:1rem; font-weight:600; }
+        .pt-countdown-time { color:#fff; font-size:2.2rem; font-weight:700; letter-spacing:1px; margin-top:6px; font-variant-numeric:tabular-nums; }
+        .pt-countdown-copy { color:#9fb8c8; font-size:0.85rem; margin-top:4px; }
+        .pt-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+        @media(max-width:700px){ .pt-grid { grid-template-columns:repeat(2,1fr); } }
+        .pt-slot { background:#0f0f23; border:1px solid #2a3a4a; border-radius:10px; padding:12px; }
+        .pt-slot.passed { opacity:0.55; }
+        .pt-slot.next { border-color:#7ec8ff; box-shadow:0 0 14px rgba(126,200,255,0.25); }
+        .pt-slot-name { color:#9fb8c8; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; }
+        .pt-slot-name span { margin-right:6px; }
+        .pt-slot-time { color:#fff; font-size:1.35rem; font-weight:700; margin-top:2px; font-variant-numeric:tabular-nums; }
+        .pt-slot-badge { display:inline-block; margin-top:5px; padding:2px 8px; border-radius:10px; font-size:0.7rem; font-weight:600; }
+        .pt-slot-badge.done { background:#252540; color:#8a93a6; }
+        .pt-slot-badge.up { background:#7ec8ff; color:#0f2027; }
+        .pt-row { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+        .pt-group { flex:1; min-width:150px; }
+        .pt-label { display:block; color:#9fb8c8; font-size:0.85rem; margin-bottom:5px; }
+        .pt-input { width:100%; padding:9px 12px; background:#0f0f23; border:1px solid #2a3a4a; color:#fff; border-radius:8px; font-size:0.95rem; font-family:inherit; box-sizing:border-box; }
+        .pt-input:focus { outline:2px solid transparent; border-color:#7ec8ff; }
+        .pt-btn { padding:10px 20px; background:#7ec8ff; border:none; color:#0f2027; border-radius:8px; font-size:0.95rem; font-weight:600; cursor:pointer; }
+        .pt-btn:hover { background:#5ab3ef; }
+        .pt-btn-sec { background:#252540; color:#9fb8c8; border:1px solid #2a3a4a; }
+        .pt-btn-sec:hover { background:#2f3555; color:#fff; }
+        .pt-error { display:none; background:#2d1a1a; border:1px solid #ff5555; color:#ff8a8a; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:0.9rem; }
+        .pt-qibla { text-align:center; }
+        .pt-qibla-deg { color:#fff; font-size:1.6rem; font-weight:700; }
+        .pt-qibla-sub { color:#9fb8c8; font-size:0.85rem; margin-top:2px; }
+        .pt-note { color:#8a93a6; font-size:0.8rem; margin-top:10px; line-height:1.6; }
+        .pt-warn { display:none; background:#2a2416; border:1px solid #b8860b; color:#e8c66b; border-radius:8px; padding:10px 14px; margin:12px 0; font-size:0.9rem; }
+        @media(max-width:700px){ .pt-row { flex-direction:column; align-items:stretch; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Prayer Times Calculator</h1>
+            <p class="subtitle">Salah times for your exact coordinates - live countdown, six methods, Qibla bearing</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Prayer Times</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="pt-hero">
+                    <h2>When is the next prayer at my location?</h2>
+                    <p>Exact astronomical times from your coordinates - not a city list, no signup, nothing leaves your browser.</p>
+                    <div class="pt-countdown" id="pt-countdown" style="display:none;">
+                        <div class="pt-countdown-name" id="cd-name"></div>
+                        <div class="pt-countdown-time" id="cd-time">--:--:--</div>
+                        <div class="pt-countdown-copy" id="cd-copy"></div>
+                    </div>
+                </div>
+
+                <div class="pt-card">
+                    <div class="pt-row">
+                        <div class="pt-group">
+                            <label class="pt-label" for="pt-date">Date</label>
+                            <input type="date" id="pt-date" class="pt-input">
+                        </div>
+                        <div class="pt-group">
+                            <label class="pt-label" for="pt-method">Calculation method</label>
+                            <select id="pt-method" class="pt-input">
+                                <option value="MWL">Muslim World League</option>
+                                <option value="ISNA" selected>ISNA (North America)</option>
+                                <option value="MAKKAH">Umm al-Qura (Makkah)</option>
+                                <option value="EGYPT">Egyptian General Authority</option>
+                                <option value="KARACHI">University of Karachi</option>
+                                <option value="TEHRAN">Institute of Geophysics, Tehran</option>
+                            </select>
+                        </div>
+                        <div class="pt-group" style="max-width:170px;">
+                            <label class="pt-label" for="pt-madhab">Asr school</label>
+                            <select id="pt-madhab" class="pt-input">
+                                <option value="standard" selected>Shafi'i, Maliki, Hanbali</option>
+                                <option value="hanafi">Hanafi</option>
+                            </select>
+                        </div>
+                        <div class="pt-group" style="flex:0;">
+                            <button class="pt-btn" onclick="useMyLocation()" id="pt-gps-btn">&#8982; Use my location</button>
+                        </div>
+                    </div>
+                    <div class="pt-row" style="margin-top:12px;">
+                        <div class="pt-group">
+                            <label class="pt-label" for="pt-lat">Latitude (&#176;)</label>
+                            <input type="number" step="0.0001" value="21.4225" id="pt-lat" class="pt-input" min="-89.9999" max="89.9999">
+                        </div>
+                        <div class="pt-group">
+                            <label class="pt-label" for="pt-lng">Longitude (&#176;)</label>
+                            <input type="number" step="0.0001" value="39.8262" id="pt-lng" class="pt-input" min="-179.9999" max="179.9999">
+                        </div>
+                        <div class="pt-group" style="flex:2;">
+                            <label class="pt-label" for="pt-tz">Time zone</label>
+                            <select id="pt-tz" class="pt-input"></select>
+                        </div>
+                        <div class="pt-group" style="flex:0;">
+                            <button class="pt-btn" onclick="compute()" id="pt-calc-btn">Calculate times</button>
+                        </div>
+                    </div>
+                    <div id="pt-error" class="pt-error"></div>
+                    <div id="pt-warn" class="pt-warn"></div>
+                    <p class="pt-note">Your coordinates are read from this page's inputs, never uploaded. Down the exact minute, mosque timetables may still differ by one or two minutes because of local adjustments and fixed clocks - always follow your local mosque for jama'ah times.</p>
+                </div>
+
+                <div class="pt-card" id="pt-results" style="display:none;">
+                    <div class="pt-grid" id="pt-grid"></div>
+                </div>
+
+                <div class="pt-card pt-qibla" id="pt-qibla-card" style="display:none;">
+                    <h3 style="color:#fff;margin:0 0 10px;font-size:1.1rem;">Qibla direction</h3>
+                    <div class="pt-qibla-deg" id="pt-qibla-deg"></div>
+                    <div class="pt-qibla-sub" id="pt-qibla-sub"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>Fajr, Dhuhr, Asr, Maghrib and Isha, computed for you</h2>
+                <p>Prayer windows are decided by the position of the Sun, and the Sun's position depends on exactly where you are standing. The daily Fajr in one part of a city can differ from another by more than a bus ride. This page solves that the precise way: it works out solar declination and the equation of time for your own latitude and longitude, then derives the five salah times, sunrise, a countdown to the next one, and the direction of the Kaaba from the same numbers. There is no city dropdown list to disagree with, no timetable PDF, and nothing is uploaded - every number is computed on your device.</p>
+
+                <h2>Why this beats asking an AI chatbot</h2>
+                <p>Large language models cannot run the iterative solar calculations a timetable depends on. Ask about prayer times in a smaller city and you get either a guess from training data or an average across the country, and they routinely mishandle daylight saving, the twilight angle for your chosen method, and the Hanafi Asr rule. This tool performs the astronomy for the exact minute, date, and method you select, recalculates when any input changes, and shows you the individual twilight parameters behind the result - the same way the official observatory engines do.</p>
+
+                <h2>About the calculation</h2>
+                <table class="pt-table-a" style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+                    <caption class="sr-only">Calculation methods, and the Fajr and Isha twilight angles each one uses</caption>
+                    <thead><tr><th style="text-align:left;color:#9fb8c8;padding:6px;">Method</th><th style="text-align:left;color:#9fb8c8;padding:6px;">Fajr angle</th><th style="text-align:left;color:#9fb8c8;padding:6px;">Isha</th></tr></thead>
+                    <tbody>
+                        <tr><td style="color:#c8c8e0;padding:6px;">Muslim World League</td><td style="color:#c8c8e0;padding:6px;">18&#176;</td><td style="color:#c8c8e0;padding:6px;">17&#176;</td></tr>
+                        <tr><td style="color:#c8c8e0;padding:6px;">ISNA (North America)</td><td style="color:#c8c8e0;padding:6px;">15&#176;</td><td style="color:#c8c8e0;padding:6px;">15&#176;</td></tr>
+                        <tr><td style="color:#c8c8e0;padding:6px;">Umm al-Qura (Makkah)</td><td style="color:#c8c8e0;padding:6px;">18.5&#176;</td><td style="color:#c8c8e0;padding:6px;">90 min after Maghrib</td></tr>
+                        <tr><td style="color:#c8c8e0;padding:6px;">Egyptian General Authority</td><td style="color:#c8c8e0;padding:6px;">19.5&#176;</td><td style="color:#c8c8e0;padding:6px;">17.5&#176;</td></tr>
+                        <tr><td style="color:#c8c8e0;padding:6px;">University of Karachi</td><td style="color:#c8c8e0;padding:6px;">18&#176;</td><td style="color:#c8c8e0;padding:6px;">18&#176;</td></tr>
+                        <tr><td style="color:#c8c8e0;padding:6px;">Tehran Geophysics Institute</td><td style="color:#c8c8e0;padding:6px;">17.7&#176;</td><td style="color:#c8c8e0;padding:6px;">14&#176;</td></tr>
+                    </tbody>
+                </table>
+                <p class="pt-note">Sunrise and Maghrib use the standard 0.833&#176; horizon dip that accounts for refraction. Asr follows Shafi'i-style one-shadow or Hanafi two-shadow. At extreme latitudes where twilight never ends (summer in Reykjavik), Fajr and Isha have no valid solar angle, and the tool tells you so instead of showing a fabricated time.</p>
+
+                <details class="faq-item"><summary>How accurate are these times?</summary><p>The solar core is derived and iterated to about one minute, which matches what prayer timetable engines publish. A mosque clock can legitimately differ by one or two minutes for local adjustments or jama'ah scheduling, so treat this as a datebook-grade result, then suit your community timetable.</p>
+                </details>
+                <details class="faq-item"><summary>Is my location private?</summary><p>Yes. When you use GPS, the browser gives the page the coordinates without sending them to any server. The numbers are computed with JavaScript in your device, and your last location and settings are saved in your browser only.</p>
+                </details>
+                <details class="faq-item"><summary>What if I don't want to share GPS?</summary><p>Type your latitude and longitude in the fields directly. Any coordinate works, including traveling or offline use - the calculations run entirely in your browser after the page loads.</p>
+                </details>
+                <details class="faq-item"><summary>Why does my mosque list different times?</summary><p>Most often because your mosque applies local adjustments in minutes, follows a method or madhab you didn't select, or publishes jama'ah (congregation) times after the calculation time. Choose the settings your community uses, and follow your mosque for congregational prayer.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+    <script>
+var METHODS = {
+    MWL: { name: 'Muslim World League', fajr: 18, isha: 17 },
+    ISNA: { name: 'ISNA (North America)', fajr: 15, isha: 15 },
+    MAKKAH: { name: 'Umm al-Qura (Makkah)', fajr: 18.5, isha: 90 },
+    EGYPT: { name: 'Egyptian General Authority', fajr: 19.5, isha: 17.5 },
+    KARACHI: { name: 'University of Karachi', fajr: 18, isha: 18 },
+    TEHRAN: { name: 'Institute of Geophysics, Tehran', fajr: 17.7, isha: 14 }
+};
+var PRAYERS = [
+    { key: 'fajr', name: 'Fajr', icon: '\ud83c\udf19' },
+    { key: 'sunrise', name: 'Sunrise', icon: '\ud83c\udd74' },
+    { key: 'dhuhr', name: 'Dhuhr', icon: '\u2600\ufe0f' },
+    { key: 'asr', name: 'Asr', icon: '\ud83c\udf05' },
+    { key: 'maghrib', name: 'Maghrib', icon: '\ud83c\udf07' },
+    { key: 'isha', name: 'Isha', icon: '✨' }
+];
+var CHAIN = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+var MECCA = { lat: 21.422487, lng: 39.826206 };
+var lastSchedule = null;
+var cachedNextDay = null;
+
+function dtr(d) { return d * Math.PI / 180; }
+function rtd(r) { return r * 180 / Math.PI; }
+function fix(a, b) { var v = a - b * Math.floor(a / b); return v < 0 ? v + b : v; }
+function fixHour(h) { return fix(h, 24); }
+
+function julian(y, m, d) {
+    if (m <= 2) { y -= 1; m += 12; }
+    var a = Math.floor(y / 100);
+    var b = 2 - a + Math.floor(a / 4);
+    return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + b - 1524.5;
+}
+
+function sunPosition(jd) {
+    var d = jd - 2451545.0;
+    var g = fix(357.529 + 0.98560028 * d, 360);
+    var q = fix(280.459 + 0.98564736 * d, 360);
+    var o = q + 1.915 * Math.sin(dtr(g)) + 0.020 * Math.sin(dtr(2 * g));
+    var e = 23.439 - 0.00000036 * d;
+    var decl = rtd(Math.asin(Math.sin(dtr(e)) * Math.sin(dtr(o))));
+    var ra = rtd(Math.atan2(Math.cos(dtr(e)) * Math.sin(dtr(o)), Math.cos(dtr(o)))) / 15;
+    var eqt = q / 15 - fixHour(ra);
+    return { decl: decl, eqt: eqt };
+}
+
+function tzOffsetMinutes(y, m, d, tz) {
+    var noon = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+    var off = rawOffset(noon, tz);
+    off = rawOffset(new Date(noon.getTime() - off * 60000), tz);
+    return off;
+}
+
+function rawOffset(date, tz) {
+    try {
+        var dtf = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        var p = {};
+        dtf.formatToParts(date).forEach(function (x) { p[x.type] = x.value; });
+        var asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+        return Math.round((asUTC - date.getTime()) / 60000);
+    } catch (e) {
+        return 0;
+    }
+}
+
+function computeDay(y, m, d, lat, lng, tz, methodKey, madhab) {
+    var method = METHODS[methodKey] || METHODS.MWL;
+    var offMin = tzOffsetMinutes(y, m, d, tz);
+    var tzHours = offMin / 60;
+    var noonUTC = new Date(Date.UTC(y, m - 1, d, 12, 0, 0) - offMin * 60000);
+    var jdNoon = julian(noonUTC.getUTCFullYear(), noonUTC.getUTCMonth() + 1, noonUTC.getUTCDate()) + 0.5;
+    var out = {};
+
+    function sunAt(utcHours) {
+        return sunPosition(jdNoon + (utcHours - 12) / 24);
+    }
+
+    var spNoon = sunAt(12);
+    var dhuhrUTC = 12 - spNoon.eqt - lng / 15;
+    for (var tries = 0; tries < 2; tries++) {
+        var sp = sunAt(dhuhrUTC);
+        dhuhrUTC = 12 - sp.eqt - lng / 15;
+    }
+    out.dhuhr = dhuhrUTC;
+
+    function hourAngle(angle, phi, decl) {
+        var cosA = (Math.sin(dtr(angle)) - Math.sin(dtr(phi)) * Math.sin(dtr(decl))) / (Math.cos(dtr(phi)) * Math.cos(dtr(decl)));
+        if (cosA > 1 || cosA < -1) return null;
+        return Math.acos(cosA) * 12 / Math.PI;
+    }
+
+    function arcHours(angle, sign) {
+        var t0 = hourAngle(angle, lat, spNoon.decl);
+        if (t0 === null) return null;
+        var sp1 = sunAt(dhuhrUTC + sign * t0);
+        var t1 = hourAngle(angle, lat, sp1.decl);
+        return t1 === null ? null : dhuhrUTC + sign * t1;
+    }
+
+    out.sunrise = arcHours(-0.833, -1);
+    out.sunset = arcHours(-0.833, 1);
+    out.fajr = arcHours(-method.fajr, -1);
+    out.maghrib = out.sunset;
+    if (method.isha === 90) out.isha = out.maghrib === null ? null : out.maghrib + 1.5;
+    else out.isha = arcHours(-method.isha, 1);
+    var asrShadow = madhab === 'hanafi' ? 2 : 1;
+    var asrSp = sunAt(dhuhrUTC + 3);
+    var asrAngle = rtd(Math.atan(1 / (asrShadow + Math.tan(dtr(Math.abs(lat - asrSp.decl))))));
+    var asrT = hourAngle(asrAngle, lat, asrSp.decl);
+    out.asr = asrT === null ? null : dhuhrUTC + asrT;
+
+    ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'].forEach(function (k) {
+        out[k] = out[k] === null || out[k] === undefined || isNaN(out[k]) ? null : fixHour(out[k] + tzHours);
+    });
+    out.valid = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'].every(function (k) { return out[k] !== null; });
+    out.missing = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'].filter(function (k) { return out[k] === null; });
+    out.tzHours = tzHours;
+    return out;
+}
+
+function formatT(h) {
+    h = fixHour(h + 0.5 / 60);
+    var hh = Math.floor(h), mm = Math.floor((h - hh) * 60);
+    return pad2(hh) + ':' + pad2(mm);
+}
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+function qiblaBearing(lat, lng) {
+    var dLng = dtr(MECCA.lng - lng);
+    var p1 = dtr(lat), p2 = dtr(MECCA.lat);
+    var y = Math.sin(dLng);
+    var x = Math.cos(p1) * Math.tan(p2) - Math.sin(p1) * Math.cos(dLng);
+    return fix(rtd(Math.atan2(y, x)), 360);
+}
+function cardial(b) {
+    var dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    return dirs[Math.round(b / 22.5) % 16];
+}
+
+function fillTz() {
+    var sel = document.getElementById('pt-tz');
+    var browser;
+    try { browser = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch (e) { browser = 'UTC'; }
+    var list;
+    try { list = Intl.supportedValuesOf ? Intl.supportedValuesOf('timeZone') : []; } catch (e) { list = []; }
+    if (list.length === 0) list = ['UTC', 'America/Los_Angeles', 'America/New_York', 'America/Chicago', 'America/Denver', 'Europe/London', 'Europe/Berlin', 'Europe/Istanbul', 'Africa/Cairo', 'Africa/Algiers', 'Asia/Riyadh', 'Asia/Dubai', 'Asia/Karachi', 'Asia/Dhaka', 'Asia/Tehran', 'Asia/Jakarta', 'Asia/Kuala_Lumpur', 'Asia/Singapore', 'Asia/Kolkata', 'Australia/Sydney'];
+    sel.innerHTML = '';
+    list.forEach(function (z) { var o = document.createElement('option'); o.value = z; o.textContent = z; sel.appendChild(o); });
+    sel.value = browser;
+    if (sel.value !== browser) {
+        var b = document.createElement('option'); b.value = browser; b.textContent = browser;
+        sel.appendChild(b); sel.value = browser;
+    }
+}
+
+function showWarn(msg) { var w = document.getElementById('pt-warn'); w.textContent = msg; w.style.display = 'block'; }
+function hideWarn() { document.getElementById('pt-warn').style.display = 'none'; }
+function showError(msg) { var e = document.getElementById('pt-error'); e.textContent = msg; e.style.display = 'block'; }
+function hideError() { document.getElementById('pt-error').style.display = 'none'; }
+
+function readInputs() {
+    var dateVal = document.getElementById('pt-date').value;
+    var parts = dateVal ? dateVal.match(/^(\d{4})-(\d{2})-(\d{2})$/) : null;
+    if (!parts) return { err: 'Pick a date first.' };
+    var y = +parts[1], m = +parts[2], d = +parts[3];
+    if (y < 1900 || y > 2100) return { err: 'Year must be between 1900 and 2100.' };
+    var lat = parseFloat(document.getElementById('pt-lat').value);
+    var lng = parseFloat(document.getElementById('pt-lng').value);
+    if (isNaN(lat) || isNaN(lng)) return { err: 'Fill in latitude and longitude (decimals).' };
+    if (Math.abs(lat) > 89.9999 || Math.abs(lng) > 179.9999) return { err: 'Latitude 90 is the pole; longitude within 180.' };
+    return { y: y, m: m, d: d, lat: lat, lng: lng, tz: document.getElementById('pt-tz').value, method: document.getElementById('pt-method').value, madhab: document.getElementById('pt-madhab').value };
+}
+
+function saveState() {
+    try {
+        localStorage.setItem('pt-loc', JSON.stringify({ lat: document.getElementById('pt-lat').value, lng: document.getElementById('pt-lng').value, tz: document.getElementById('pt-tz').value }));
+        localStorage.setItem('pt-method', document.getElementById('pt-method').value);
+        localStorage.setItem('pt-madhab', document.getElementById('pt-madhab').value);
+    } catch (e) {}
+}
+function loadState() {
+    try {
+        var loc = JSON.parse(localStorage.getItem('pt-loc') || 'null');
+        if (loc && loc.lat !== undefined) {
+            document.getElementById('pt-lat').value = loc.lat;
+            document.getElementById('pt-lng').value = loc.lng;
+            if (loc.tz) { var s = document.getElementById('pt-tz'); if (s.querySelector('option[value="' + loc.tz + '"]')) s.value = loc.tz; }
+        }
+        var m = localStorage.getItem('pt-method'); if (m && document.getElementById('pt-method').querySelector('option[value="' + m + '"]')) document.getElementById('pt-method').value = m;
+        var h = localStorage.getItem('pt-madhab'); if (h) document.getElementById('pt-madhab').value = h;
+    } catch (e) {}
+}
+
+function useMyLocation() {
+    hideError();
+    if (!navigator.geolocation) { showError('Your browser does not expose Geolocation. Type latitude and longitude instead.'); return; }
+    var btn = document.getElementById('pt-gps-btn');
+    btn.textContent = 'Locating...';
+    navigator.geolocation.getCurrentPosition(function (pos) {
+        document.getElementById('pt-lat').value = Math.round(pos.coords.latitude * 10000) / 10000;
+        document.getElementById('pt-lng').value = Math.round(pos.coords.longitude * 10000) / 10000;
+        btn.textContent = '\u2316 Use my location';
+        compute();
+    }, function (err) {
+        btn.textContent = '\u2316 Use my location';
+        showError('Location unavailable: ' + err.message + '. Type latitude and longitude manually.');
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+}
+
+function compute() {
+    hideError();
+    var inputs = readInputs();
+    if (inputs.err) { showError(inputs.err); return; }
+    try {
+        var r = computeDay(inputs.y, inputs.m, inputs.d, inputs.lat, inputs.lng, inputs.tz, inputs.method, inputs.madhab);
+        if (!r.valid) {
+            var allMissing = r.missing.length >= 4;
+            if (allMissing) { showError('No valid prayer times for this date at this latitude - polar day/night region. Try a moderate latitude.'); return; }
+        }
+        if (!r.valid && r.missing.length > 0) {
+            showWarn('Not every window is defined for this date - missing: ' + r.missing.join(', ') + '. This happens at extreme latitudes for twilight angles. Follow your mosque for these.');
+        } else hideWarn();
+        lastSchedule = { times: r, y: inputs.y, m: inputs.m, d: inputs.d, tz: inputs.tz, lat: inputs.lat, lng: inputs.lng, method: inputs.method, madhab: inputs.madhab };
+        renderGrid();
+        var q = qiblaBearing(inputs.lat, inputs.lng);
+        document.getElementById('pt-qibla-deg').textContent = q.toFixed(1) + '\u00b0 ' + cardial(q);
+        document.getElementById('pt-qibla-sub').textContent = 'Bearing clockwise from true North, from ' + inputs.lat.toFixed(4) + ', ' + inputs.lng.toFixed(4) + ' to the Kaaba';
+        document.getElementById('pt-qibla-card').style.display = 'block';
+        document.getElementById('pt-countdown').style.display = 'block';
+        saveState();
+        tick();
+    } catch (e) {
+        showError('Calculation error: ' + e.message);
+    }
+}
+
+function dateInTz(y, m, d, hHours, tz) {
+    var mins = Math.round(hHours * 60);
+    var base = Date.UTC(y, m - 1, d, 0, 0, 0);
+    var off = tzOffsetMinutes(y, m, d, tz);
+    return new Date(base + mins * 60000 - off * 60000);
+}
+
+function scheduleInTz() {
+    var t = lastSchedule.times;
+    var o = {};
+    PRAYERS.forEach(function (p) { if (t[p.key] !== null && t[p.key] !== undefined) o[p.key] = dateInTz(lastSchedule.y, lastSchedule.m, lastSchedule.d, t[p.key], lastSchedule.tz); });
+    return o;
+}
+
+function nextDayKey() {
+    if (!lastSchedule) return null;
+    return lastSchedule.y + '-' + lastSchedule.m + '-' + lastSchedule.d + '-' + lastSchedule.tz + '-' + lastSchedule.method + '-' + lastSchedule.madhab + '-' + document.getElementById('pt-lat').value + '-' + document.getElementById('pt-lng').value;
+}
+function nextDayFajr() {
+    var key = nextDayKey();
+    if (cachedNextDay && cachedNextDay.key === key) return cachedNextDay.date;
+    var pp = new Intl.DateTimeFormat('en-CA', { timeZone: lastSchedule.tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()).match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!pp) return null;
+    var off = tzOffsetMinutes(+pp[1], +pp[2], +pp[3], lastSchedule.tz);
+    var localNoon = Date.UTC(+pp[1], +pp[2] - 1, +pp[3], 0, 0, 0) - off * 60000 + 43200000;
+    var nextDate = new Intl.DateTimeFormat('en-CA', { timeZone: lastSchedule.tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(localNoon + 86400000)).match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!nextDate) return null;
+    var y2 = +nextDate[1], m2 = +nextDate[2], d2 = +nextDate[3];
+    var r2 = computeDay(y2, m2, d2, lastSchedule.lat, lastSchedule.lng, lastSchedule.tz, lastSchedule.method, lastSchedule.madhab);
+    if (r2.fajr === null || r2.fajr === undefined) return null;
+    var at2 = dateInTz(y2, m2, d2, r2.fajr, lastSchedule.tz);
+    cachedNextDay = { key: key, date: at2 };
+    return at2;
+}
+function assessNow() {
+    var times = scheduleInTz();
+    var now = Date.now();
+    var next = null;
+    CHAIN.forEach(function (k) {
+        if (times[k] && times[k].getTime() > now && !next) next = { key: k, at: times[k] };
+    });
+    if (!next) {
+        var nf = nextDayFajr();
+        if (nf) next = { key: 'fajr', at: nf };
+    }
+    return { times: times, next: next };
+}
+
+function renderGrid() {
+    var t = lastSchedule.times, nun = new Date();
+    var html = '';
+    var marked = assessNow();
+    PRAYERS.forEach(function (p) {
+        var h = t[p.key];
+        if (h === null || h === undefined) return;
+        var gt = marked.times[p.key];
+        var isNext = marked.next && marked.next.key === p.key;
+        var passed = gt && gt.getTime() <= Date.now();
+        var badge = p.key === 'sunrise' ? '' : (isNext ? '<span class="pt-slot-badge up">Next</span>' : (passed ? '<span class="pt-slot-badge done">Passed</span>' : ''));
+        html += '<div class="pt-slot' + (passed ? ' passed' : '') + (isNext ? ' next' : '') + '">' +
+            '<div class="pt-slot-name"><span>' + p.icon + '</span>' + p.name + '</div>' +
+            '<div class="pt-slot-time" data-prayer="' + p.key + '">' + formatT(h) + '</div>' +
+            '<div>' + badge + '</div>' +
+            '</div>';
+    });
+    document.getElementById('pt-grid').innerHTML = html;
+    document.getElementById('pt-results').style.display = 'block';
+}
+
+function tick() {
+    if (!lastSchedule) return;
+    var a = assessNow();
+    if (a.next) {
+        var mins = Math.max(0, a.next.at.getTime() - Date.now()) / 1000;
+        var s = Math.floor(mins) % 60;
+        var mi = Math.floor(mins / 60) % 60;
+        var h = Math.floor(mins / 3600);
+        document.getElementById('cd-name').textContent = 'Next: ' + (lastSchedule.times && lastSchedule.times[a.next.key] !== undefined ? a.next.key.charAt(0).toUpperCase() + a.next.key.slice(1) : 'Fajr');
+        document.getElementById('cd-time').textContent = pad2(h) + ':' + pad2(mi) + ':' + pad2(s);
+        var lh19 = new Intl.DateTimeFormat('en-GB', { timeZone: lastSchedule.tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(a.next.at);
+        document.getElementById('cd-copy').textContent = a.next.key.charAt(0).toUpperCase() + a.next.key.slice(1) + ' at ' + lh19;
+    } else {
+        document.getElementById('cd-time').textContent = '--:--:--';
+        document.getElementById('cd-name').textContent = '';
+        document.getElementById('cd-copy').textContent = '';
+    }
+    refreshBadges();
+}
+
+function refreshBadges() {
+    var marked = assessNow();
+    PRAYERS.forEach(function (p) {
+        var cell = document.querySelector('div[data-prayer="' + p.key + '"]');
+        if (!cell) return;
+        var slot = cell.parentElement;
+        var gt = marked.times[p.key];
+        var passed = gt && gt.getTime() <= Date.now();
+        var isNext = marked.next && marked.next.key === p.key;
+        slot.classList.toggle('passed', !!passed && !isNext);
+        slot.classList.toggle('next', !!isNext);
+        var holder = cell.parentElement.querySelector('div:last-child');
+        if (holder && p.key !== 'sunrise') {
+            var want = isNext ? '<span class="pt-slot-badge up">Next</span>' : (passed ? '<span class="pt-slot-badge done">Passed</span>' : '');
+            if (holder.innerHTML !== want) holder.innerHTML = want;
+        }
+    });
+}
+
+setInterval(function () { tick(); }, 1000);
+
+(function init() {
+    var today = new Date();
+    document.getElementById('pt-date').value = today.getFullYear() + '-' + pad2(today.getMonth() + 1) + '-' + pad2(today.getDate());
+    fillTz();
+    loadState();
+    document.getElementById('pt-method').addEventListener('change', compute);
+    document.getElementById('pt-madhab').addEventListener('change', compute);
+    document.getElementById('pt-lng').addEventListener('change', compute);
+    document.getElementById('pt-lat').addEventListener('change', compute);
+    document.getElementById('pt-tz').addEventListener('change', compute);
+    document.getElementById('pt-date').addEventListener('change', compute);
+    compute();
+})();
+    </script>
+</body>
+</html>

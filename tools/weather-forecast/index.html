@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Weather Forecast | DevTools Hub</title>
+    <meta name="description" content="Free weather forecast tool. See current weather, 7-day forecast, hourly details. AI cannot show real-time weather with visual charts.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/weather-forecast/">
+    <meta property="og:title" content="Free Weather Forecast | DevTools Hub">
+    <meta property="og:description" content="Free weather forecast with beautiful charts. See hourly & weekly forecasts instantly. No signup.">
+    <meta property="og:image" content="/og-image.png">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .weather-header { text-align: center; margin-bottom: 30px; }
+        .location-search { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+        .location-search input { padding: 10px 16px; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; border-radius: 8px; width: 200px; font-size: 0.95rem; }
+        .location-search input:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .location-search input::placeholder { color: #555; }
+        .current-weather { background: linear-gradient(135deg, #1a3a5c 0%, #0f2744 100%); border-radius: 16px; padding: 30px; margin-bottom: 24px; border: 1px solid #2a4a6a; text-align: center; }
+        .current-temp { font-size: 5rem; font-weight: 700; color: #fff; line-height: 1; margin: 10px 0; }
+        .current-desc { font-size: 1.3rem; color: #a0c4e8; text-transform: capitalize; margin-bottom: 8px; }
+        .current-location { font-size: 1rem; color: #7a9fc0; margin-bottom: 20px; }
+        .current-icon { font-size: 4rem; margin-bottom: 10px; }
+        .current-details { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 20px; }
+        .current-detail { text-align: center; }
+        .current-detail .cd-value { font-size: 1.2rem; color: #fff; font-weight: 600; }
+        .current-detail .cd-label { font-size: 0.75rem; color: #7a9fc0; text-transform: uppercase; margin-top: 4px; }
+        .forecast-section { margin-top: 24px; }
+        .forecast-section h3 { color: #667eea; margin-bottom: 16px; font-size: 1.1rem; }
+        .daily-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+        .day-card { background: #0f0f23; border-radius: 12px; padding: 16px 12px; text-align: center; border: 1px solid #2a2a4a; }
+        .day-card .day-name { color: #888; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px; }
+        .day-card .day-icon { font-size: 2rem; margin: 8px 0; }
+        .day-card .day-temp { color: #fff; font-size: 1.1rem; font-weight: 600; }
+        .day-card .day-temp span { color: #888; font-weight: 400; }
+        .day-card .day-precip { color: #4a9eff; font-size: 0.75rem; margin-top: 6px; }
+        .hourly-section { margin-top: 24px; }
+        .hourly-scroll { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; }
+        .hour-card { background: #0f0f23; border-radius: 12px; padding: 16px 12px; text-align: center; min-width: 80px; border: 1px solid #2a2a4a; flex-shrink: 0; }
+        .hour-card .hour-time { color: #888; font-size: 0.75rem; margin-bottom: 8px; }
+        .hour-card .hour-icon { font-size: 1.8rem; margin: 8px 0; }
+        .hour-card .hour-temp { color: #fff; font-weight: 600; }
+        .hour-card .hour-precip { color: #4a9eff; font-size: 0.7rem; margin-top: 4px; }
+        .sun-times { display: flex; justify-content: center; gap: 30px; margin-top: 20px; padding: 16px; background: #0f0f23; border-radius: 12px; }
+        .sun-item { text-align: center; }
+        .sun-item .sun-icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .sun-item .sun-label { color: #888; font-size: 0.7rem; text-transform: uppercase; }
+        .sun-item .sun-time { color: #fff; font-size: 1rem; font-weight: 600; margin-top: 4px; }
+        .loading-weather { text-align: center; padding: 60px 20px; }
+        .loading-spinner { display: inline-block; width: 40px; height: 40px; border: 3px solid #2a2a4a; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-msg { text-align: center; padding: 40px; color: #ef4444; background: rgba(239,68,68,0.1); border-radius: 12px; margin: 20px 0; }
+        @media (max-width: 600px) { .current-temp { font-size: 3.5rem; } .current-details { gap: 16px; } .daily-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Weather Forecast","url":"https://tools.scoreroute.com/tools/weather-forecast/","description":"Free weather forecast. Check current weather and 7-day forecast for any location.","applicationCategory":"Utility","operatingSystem":"All"}
+</script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Weather Forecast</h1>
+            <p class="subtitle">Live 7-Day Forecast · Hourly Details · Beautiful Charts</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Weather Forecast</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="weather-header">
+                    <div class="location-search">
+                        <input type="text" id="city-input" placeholder="City name (e.g. New York)" aria-label="City name">
+                        <button class="btn btn-primary" onclick="searchCity()">Search</button>
+                        <button class="btn" onclick="useMyLocation()">Use My Location</button>
+                    </div>
+                </div>
+                <div id="weather-content">
+                    <div class="loading-weather">
+                        <div class="loading-spinner"></div>
+                        <p style="color:#888;margin-top:16px;">Fetching your weather data...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="info-section">
+            <h2>Why This Tool Beats AI Chatbots for Weather</h2>
+            <p>Ask ChatGPT "What's the weather today?" and it gives you a generic answer based on old training data. This tool shows <strong>real-time weather</strong> with a beautiful visual interface — no signup, no AI hallucination, just accurate data from Open-Meteo.</p>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <h3>Real-Time Data</h3>
+                    <p>Live weather from Open-Meteo's global network</p>
+                </div>
+                <div class="feature-item">
+                    <h4>7-Day Forecast</h4>
+                    <p>Plan ahead with weekly weather predictions</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Hourly Details</h4>
+                    <p>See hour-by-hour temperature & precipitation</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Sunrise & Sunset</h4>
+                    <p>Never miss a sunrise or sunset time</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="container">
+            <p>DevTools Hub · Free developer tools · <a href="/tools/">Browse All Tools</a></p>
+        </div>
+    </footer>
+    <script>
+        var WMO_CODES = {
+            0: { label: 'Clear sky', icon: '☀️' },
+            1: { label: 'Mainly clear', icon: '🌤️' },
+            2: { label: 'Partly cloudy', icon: '⛅' },
+            3: { label: 'Overcast', icon: '☁️' },
+            45: { label: 'Foggy', icon: '🌫️' },
+            48: { label: 'Depositing rime fog', icon: '🌫️' },
+            51: { label: 'Light drizzle', icon: '🌧️' },
+            53: { label: 'Moderate drizzle', icon: '🌧️' },
+            55: { label: 'Dense drizzle', icon: '🌧️' },
+            61: { label: 'Slight rain', icon: '🌧️' },
+            63: { label: 'Moderate rain', icon: '🌧️' },
+            65: { label: 'Heavy rain', icon: '🌧️' },
+            71: { label: 'Slight snow', icon: '🌨️' },
+            73: { label: 'Moderate snow', icon: '🌨️' },
+            75: { label: 'Heavy snow', icon: '❄️' },
+            77: { label: 'Snow grains', icon: '❄️' },
+            80: { label: 'Slight rain showers', icon: '🌦️' },
+            81: { label: 'Moderate rain showers', icon: '🌦️' },
+            82: { label: 'Violent rain showers', icon: '⛈️' },
+            85: { label: 'Slight snow showers', icon: '🌨️' },
+            86: { label: 'Heavy snow showers', icon: '🌨️' },
+            95: { label: 'Thunderstorm', icon: '⛈️' },
+            96: { label: 'Thunderstorm with slight hail', icon: '⛈️' },
+            99: { label: 'Thunderstorm with heavy hail', icon: '⛈️' }
+        };
+        var currentLat = 40.71, currentLon = -74.01;
+        async function fetchWeather(lat, lon) {
+            var url = "/api/weather?lat=" + lat + "&lon=" + lon;
+            try {
+                var r = await fetch(url);
+                if (!r.ok) {
+                    throw new Error('HTTP ' + r.status);
+                }
+                var data = await r.json();
+                if (!data.current_weather) {
+                    throw new Error('No weather data');
+                }
+                return data;
+            } catch(e) {
+                console.error('fetchWeather error:', e);
+                throw e;
+            }
+        }
+        async function geolocateByIP() {
+            try {
+                var r = await fetch('https://ipapi.co/json/');
+                var d = await r.json();
+                if (d.latitude && d.longitude) {
+                    currentLat = d.latitude;
+                    currentLon = d.longitude;
+                    var inp = document.getElementById('city-input');
+                    if (inp) inp.placeholder = d.city || 'Your Location';
+                }
+            } catch(e) {}
+        }
+        async function searchCityGeocode(city) {
+            var url = "https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(city) + "&limit=1";
+            var r = await fetch(url, { headers: { 'User-Agent': 'DevToolsHub/1.0' } });
+            var d = await r.json();
+            if (d && d[0]) {
+                currentLat = parseFloat(d[0].lat);
+                currentLon = parseFloat(d[0].lon);
+            }
+        }
+        async function useMyLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation not supported');
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(async function(pos) {
+                currentLat = pos.coords.latitude;
+                currentLon = pos.coords.longitude;
+                await loadWeather();
+            }, function(err) {
+                alert('Location access denied. Using default location.');
+            });
+        }
+        async function searchCity() {
+            var city = document.getElementById('city-input').value.trim();
+            if (!city) return;
+            await searchCityGeocode(city);
+            await loadWeather();
+        }
+        function getDayName(dateStr, idx) {
+            var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            var d = new Date(dateStr);
+            if (idx === 0) return 'Today';
+            if (idx === 1) return 'Tomorrow';
+            return days[d.getDay()];
+        }
+        function formatHour(timeStr) {
+            var parts = timeStr.split('T')[1].split(':');
+            var h = parseInt(parts[0]);
+            var ampm = h >= 12 ? 'PM' : 'AM';
+            var h12 = h % 12 || 12;
+            return h12 + ampm;
+        }
+        function formatTime(timeStr) {
+            var parts = timeStr.split('T')[1].split(':');
+            var h = parseInt(parts[0]);
+            var ampm = h >= 12 ? 'PM' : 'AM';
+            return (h % 12 || 12) + ':' + parts[1] + ' ' + ampm;
+        }
+        async function loadWeather() {
+            var el = document.getElementById('weather-content');
+            el.innerHTML = '<div class="loading-weather"><div class="loading-spinner"></div><p style="color:#888;margin-top:16px;">Loading weather...</p></div>';
+            try {
+                var data = await fetchWeather(currentLat, currentLon);
+                if (!data.current_weather) {
+                    el.innerHTML = '<div class="error-msg">Failed to load weather data. Please try again.</div>';
+                    return;
+                }
+                var cw = data.current_weather;
+                var daily = data.daily;
+                var hourly = data.hourly;
+                var wcode = cw.weathercode;
+                var winfo = WMO_CODES[wcode] || { label: 'Unknown', icon: '🌡️' };
+                var todayStr = cw.time.split('T')[0];
+                var hourIdx = hourly.time.findIndex(function(t) { return t.startsWith(todayStr); });
+                var humidity = 0;
+                if (hourIdx >= 0 && hourly.relativehumidity_2m) {
+                    humidity = hourly.relativehumidity_2m[hourIdx] || 0;
+                }
+                var html = '<div class="current-weather"><div class="current-location" id="current-loc">Loading location...</div><div class="current-icon">' + winfo.icon + '</div><div class="current-desc">' + winfo.label + '</div><div class="current-temp">' + Math.round(cw.temperature) + '°C</div><div class="current-details"><div class="current-detail"><div class="cd-value">' + Math.round(cw.temperature * 9/5 + 32) + '°F</div><div class="cd-label">Fahrenheit</div></div><div class="current-detail"><div class="cd-value">' + Math.round(cw.windspeed) + ' km/h</div><div class="cd-label">Wind Speed</div></div><div class="current-detail"><div class="cd-value">' + humidity + '%</div><div class="cd-label">Humidity</div></div><div class="current-detail"><div class="cd-value">' + cw.winddirection + '°</div><div class="cd-label">Wind Dir</div></div></div></div>';
+                html += '<div class="forecast-section"><h3>7-Day Forecast</h3><div class="daily-grid">';
+                for (var i = 0; i < daily.time.length; i++) {
+                    var dwcode = daily.weathercode[i];
+                    var dwinfo = WMO_CODES[dwcode] || { label: 'Unknown', icon: '🌡️' };
+                    html += '<div class="day-card"><div class="day-name">' + getDayName(daily.time[i], i) + '</div><div class="day-icon">' + dwinfo.icon + '</div><div class="day-temp">' + Math.round(daily.temperature_2m_max[i]) + '° <span>/ ' + Math.round(daily.temperature_2m_min[i]) + '°</span></div><div class="day-precip">' + Math.round(daily.precipitation_sum[i] || 0) + ' mm</div></div>';
+                }
+                html += '</div></div><div class="hourly-section"><h3>Hourly Forecast</h3><div class="hourly-scroll">';
+                var hourStart = hourly.time.findIndex(function(t) { return t.startsWith(todayStr); });
+                if (hourStart < 0) hourStart = 0;
+                var hourEnd = Math.min(hourStart + 24, hourly.time.length);
+                for (var j = hourStart; j < hourEnd; j++) {
+                    var hwcode = daily.weathercode[0] || wcode;
+                    html += '<div class="hour-card"><div class="hour-time">' + formatHour(hourly.time[j]) + '</div><div class="hour-icon">' + (WMO_CODES[hwcode] || winfo).icon + '</div><div class="hour-temp">' + Math.round(hourly.temperature_2m[j]) + '°</div><div class="hour-precip">' + (hourly.precipitation_probability[j] || 0) + '%</div></div>';
+                }
+                html += '</div></div>';
+                if (daily.sunrise && daily.sunset) {
+                    html += '<div class="sun-times"><div class="sun-item"><div class="sun-icon">🌅</div><div class="sun-label">Sunrise</div><div class="sun-time">' + formatTime(daily.sunrise[0]) + '</div></div><div class="sun-item"><div class="sun-icon">🌇</div><div class="sun-label">Sunset</div><div class="sun-time">' + formatTime(daily.sunset[0]) + '</div></div></div>';
+                }
+                el.innerHTML = html;
+                (async function() {
+                    try {
+                        var gl = await fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + currentLat + '&lon=' + currentLon + '&zoom=10', { headers: { 'User-Agent': 'DevToolsHub/1.0' } });
+                        var gd = await gl.json();
+                        var locEl = document.getElementById('current-loc');
+                        if (locEl && gd && gd.address) {
+                            var city = gd.address.city || gd.address.town || gd.address.village || gd.address.county || '';
+                            var country = gd.address.country || '';
+                            locEl.textContent = city ? (city + ', ' + country) : (gd.display_name || currentLat.toFixed(2) + ', ' + currentLon.toFixed(2));
+                        }
+                    } catch(e) {
+                        var locEl = document.getElementById('current-loc');
+                        if (locEl) locEl.textContent = currentLat.toFixed(2) + ', ' + currentLon.toFixed(2);
+                    }
+                })();
+            } catch(e) {
+                el.innerHTML = '<div class="error-msg">Failed to load weather. Check your connection and try again.</div>';
+            }
+        }
+        document.getElementById('city-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') searchCity();
+        });
+        geolocateByIP().then(function() { loadWeather(); });
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

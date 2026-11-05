@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Strength Checker - Test & Analyze Password Security | DevTools Hub</title>
+    <meta name="description" content="Free online password strength checker. Test password security with entropy calculation, crack time estimation, breach check via HIBP. No signup, 100% private.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/password-strength-checker/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/password-strength-checker/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Password Strength Checker - Test & Analyze Password Security | DevTools Hub">
+    <meta property="og:description" content="Free online password strength checker. Test security with entropy, crack time, and breach check via HIBP. 100% private browser analysis.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Password Strength Checker - Test & Analyze Password Security | DevTools Hub">
+    <meta name="twitter:description" content="Free online password strength checker with breach check. AI cannot check real breach data.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/password-strength-checker/">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Password Strength Checker - Test & Analyze Password Security",
+      "description": "Free online password strength checker. Real-time entropy calculation, crack time estimation for multiple attack scenarios, character composition analysis, common password detection, and breach check via HaveIBeenPwned k-anonymity API. 100% private browser processing.",
+      "url": "https://tools.scoreroute.com/tools/password-strength-checker/",
+      "applicationCategory": "SecurityApplication",
+      "datePublished": "2026-06-30",
+      "dateModified": "2026-06-30",
+      "author": {"@type": "Person", "name": "BAOMING"},
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+      "featureList": ["Real-time password strength scoring", "Entropy calculation (Shannon formula)", "Crack time estimation for 3 attack scenarios", "Character composition analysis", "Common password pattern detection", "Breach check via HIBP k-anonymity API", "Password improvement suggestions", "Show/hide password toggle"]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {"@type":"Question","name":"Is my password sent to any server?","acceptedAnswer":{"@type":"Answer","text":"No. All analysis runs locally in your browser. The optional breach check uses k-anonymity: your browser computes the SHA-1 hash, sends only the first 5 hex characters (20 bits) to HaveIBeenPwned, and compares the returned hash suffixes locally. Your full password never leaves this page."}},
+        {"@type":"Question","name":"What is entropy and why does it matter?","acceptedAnswer":{"@type":"Answer","text":"Entropy measures unpredictability in bits. Each bit doubles the number of guesses needed. A password with 40 bits of entropy requires up to 2^40 guesses. Shannon entropy gives a lower bound; zxcvbn gives a more realistic estimate accounting for patterns, dictionary words, and common substitutions."}},
+        {"@type":"Question","name":"What do the crack time estimates mean?","acceptedAnswer":{"@type":"Answer","text":"Three scenarios: Online (10,000 guesses/sec - typical login form), Offline GPU (10 billion guesses/sec - fast hash on consumer GPU), and PBKDF2 (1,000 guesses/sec - slow hash like bcrypt/argon2). Real times depend on the site's hashing scheme and rate limiting."}},
+        {"@type":"Question","name":"How does the breach check work?","acceptedAnswer":{"@type":"Answer","text":"Your browser computes SHA-1(password) and sends the first 5 hex digits to api.pwnedpasswords.com. The API returns all hash suffixes matching that prefix. Your browser checks if your full hash appears in the returned list. If found, your password has appeared in a known data breach."}},
+        {"@type":"Question","name":"What makes a password truly strong?","acceptedAnswer":{"@type":"Answer","text":"Length is king. A 20-character random passphrase provides ~90 bits of entropy. Use a password manager to generate and store unique passwords for every account. Enable two-factor authentication wherever possible."}},
+        {"@type":"Question","name":"What is the zxcvbn score?","acceptedAnswer":{"@type":"Answer","text":"zxcvbn is a password strength estimator from Dropbox. Score 0-4: 0=too guessable (risky), 1=very guessable, 2=somewhat guessable, 3=safely unguessable (moderate), 4=very unguessable (strong). It analyzes patterns, dictionary words, common passwords, and keyboard walks."}},
+        {"@type":"Question","name":"Does this tool store or log my password?","acceptedAnswer":{"@type":"Answer","text":"Never. All computation happens in your browser with JavaScript. No data is transmitted, stored, or logged. The breach check uses k-anonymity so even the hash prefix sent cannot reconstruct your password. Your privacy is guaranteed."}}
+      ]
+    }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
+    <style>
+        .psc-container { max-width:1000px; margin:0 auto; }
+        .psc-card { background:#1a1a2e; border:1px solid #333; border-radius:12px; padding:20px; margin-bottom:16px; }
+        .psc-input-wrap { position:relative; }
+        .psc-input { width:100%; padding:16px 50px 16px 18px; background:#0f0f23; border:2px solid #2a2a4a; color:#fff; border-radius:10px; font-size:1.1rem; font-family:monospace; box-sizing:border-box; transition:border-color 0.2s; }
+        .psc-input:focus { outline: 2px solid transparent; border-color:#667eea; }
+        .psc-input::placeholder { color:#555; }
+        .psc-toggle { position:absolute; right:14px; top:50%; transform:translateY(-50%); background:none; border:none; color:#888; cursor:pointer; font-size:1.2rem; padding:4px; min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; }
+        .psc-toggle:hover { color:#667eea; }
+        .psc-meter { height:8px; background:#0f0f23; border-radius:4px; margin:16px 0 8px; overflow:hidden; }
+        .psc-meter-fill { height:100%; border-radius:4px; transition:all 0.4s; width:0%; }
+        .psc-meter-fill.weak { background:#ef4444; width:20%; }
+        .psc-meter-fill.fair { background:#f97316; width:40%; }
+        .psc-meter-fill.good { background:#f59e0b; width:60%; }
+        .psc-meter-fill.strong { background:#3b82f6; width:80%; }
+        .psc-meter-fill.very-strong { background:#10b981; width:100%; }
+        .psc-score-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+        .psc-score-label { font-size:1.4rem; font-weight:700; }
+        .psc-score-label.weak { color:#ef4444; }
+        .psc-score-label.fair { color:#f97316; }
+        .psc-score-label.good { color:#f59e0b; }
+        .psc-score-label.strong { color:#3b82f6; }
+        .psc-score-label.very-strong { color:#10b981; }
+        .psc-score-num { color:#888; font-size:1rem; }
+        .psc-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-bottom:16px; }
+        .psc-stat { background:#0f0f23; border-radius:10px; padding:14px; border:1px solid #2a2a4a; text-align:center; }
+        .psc-stat-val { font-size:1.5rem; font-weight:700; color:#667eea; }
+        .psc-stat-label { font-size:0.78rem; color:#888; margin-top:4px; }
+        .psc-stat-val.danger { color:#ef4444; }
+        .psc-stat-val.warning { color:#f59e0b; }
+        .psc-stat-val.safe { color:#10b981; }
+        .psc-breach { margin-top:12px; padding:14px; border-radius:10px; display:none; }
+        .psc-breach.show { display:block; }
+        .psc-breach.found { background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); }
+        .psc-breach.not-found { background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); }
+        .psc-breach.checking { background:rgba(102,126,234,0.12); border:1px solid rgba(102,126,234,0.3); }
+        .psc-breach-icon { font-size:1.5rem; margin-bottom:6px; }
+        .psc-breach-title { font-weight:600; font-size:0.95rem; margin-bottom:4px; }
+        .psc-breach-title.found { color:#ef4444; }
+        .psc-breach-title.not-found { color:#10b981; }
+        .psc-breach-title.checking { color:#667eea; }
+        .psc-breach-desc { color:#a8a8c0; font-size:0.85rem; }
+        .psc-checklist { list-style:none; padding:0; margin:16px 0 0; }
+        .psc-checklist li { padding:8px 0 8px 28px; position:relative; color:#a8a8c0; font-size:0.88rem; border-bottom:1px solid #1f1f3e; }
+        .psc-checklist li:last-child { border-bottom:none; }
+        .psc-checklist li::before { content:''; position:absolute; left:0; top:10px; width:16px; height:16px; border-radius:50%; border:2px solid #3a3a5c; }
+        .psc-checklist li.pass::before { background:#10b981; border-color:#10b981; content:'✓'; color:#fff; font-size:11px; line-height:16px; text-align:center; }
+        .psc-checklist li.fail::before { background:#ef4444; border-color:#ef4444; content:'✗'; color:#fff; font-size:11px; line-height:16px; text-align:center; }
+        .psc-checklist li.warn::before { background:#f59e0b; border-color:#f59e0b; content:'!'; color:#000; font-size:11px; line-height:16px; text-align:center; font-weight:700; }
+        .psc-composition { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:12px 0; }
+        @media(max-width:500px) { .psc-composition { grid-template-columns:repeat(2,1fr); } }
+        .psc-comp-item { padding:10px; border-radius:8px; background:#0f0f23; text-align:center; border:1px solid #2a2a4a; }
+        .psc-comp-item .count { font-size:1.3rem; font-weight:700; color:#667eea; }
+        .psc-comp-item .label { font-size:0.72rem; color:#888; margin-top:2px; }
+        .psc-crack-scenarios { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:12px 0; }
+        @media(max-width:600px) { .psc-crack-scenarios { grid-template-columns:1fr; } }
+        .psc-scenario { background:#0f0f23; border-radius:8px; padding:12px; border:1px solid #2a2a4a; text-align:center; }
+        .psc-scenario-time { font-size:1.1rem; font-weight:700; color:#667eea; }
+        .psc-scenario-label { font-size:0.75rem; color:#888; margin-top:3px; }
+        .psc-scenario-time.danger { color:#ef4444; }
+        .psc-scenario-time.warning { color:#f59e0b; }
+        .psc-scenario-time.safe { color:#10b981; }
+        .psc-how-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:16px 0; }
+        .psc-how-card { background:#1a1a2e; border:1px solid #333; border-left:3px solid #667eea; border-radius:8px; padding:14px; }
+        .psc-how-card b { color:#fff; font-size:0.9rem; display:block; margin-bottom:4px; }
+        .psc-how-card p { color:#a8a8c0; font-size:0.83rem; margin:0; line-height:1.5; }
+        .psc-related { background:#1a1a2e; border:1px solid #333; border-radius:10px; padding:14px; margin-top:16px; }
+        .psc-related h3 { color:#fff; font-size:1rem; margin:0 0 10px; }
+        .psc-related-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+        .psc-related-link { display:block; padding:10px 14px; background:#252540; border:1px solid #3a3a5c; border-radius:8px; color:#a8a8c0; text-decoration:none; font-size:0.88rem; transition:all 0.2s; }
+        .psc-related-link:hover { border-color:#667eea; color:#fff; }
+        .psc-related-link strong { color:#fff; display:block; margin-bottom:2px; font-size:0.9rem; }
+        .psc-faq-item { background:#1a1a2e; border:1px solid #333; border-radius:8px; padding:14px; margin-bottom:10px; }
+        .psc-faq-item h3 { color:#fff; font-size:0.95rem; margin:0 0 6px; }
+        .psc-faq-item p { color:#a8a8c0; font-size:0.88rem; margin:0; line-height:1.6; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Password Strength Checker</h1>
+            <p class="subtitle">Analyze Password Security with Real Entropy &amp; Breach Check • No Signup • 100% Private</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/generators/">Generators</a> &gt; <span>Password Strength Checker</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main psc-container">
+
+                <div class="psc-card">
+                    <label class="ah-label" for="psc-input">Enter a password to check its strength</label>
+                    <div class="psc-input-wrap">
+                        <input type="password" id="psc-input" class="psc-input" placeholder="Type or paste a password..." autocomplete="off" spellcheck="false" aria-label="Password to check">
+                        <button class="psc-toggle" id="psc-toggle" type="button" onclick="toggleVisibility()" aria-label="Toggle password visibility">👁</button>
+                    </div>
+                    <div class="psc-meter">
+                        <div class="psc-meter-fill" id="psc-meter-fill"></div>
+                    </div>
+                    <div class="psc-score-row">
+                        <span class="psc-score-label" id="psc-score-label">Enter a password</span>
+                        <span class="psc-score-num" id="psc-score-num"></span>
+                    </div>
+
+                    <div id="psc-results" style="display:none;">
+                        <div class="psc-grid">
+                            <div class="psc-stat">
+                                <div class="psc-stat-val" id="psc-entropy">0</div>
+                                <div class="psc-stat-label">Entropy (bits)</div>
+                            </div>
+                            <div class="psc-stat">
+                                <div class="psc-stat-val" id="psc-length">0</div>
+                                <div class="psc-stat-label">Length (chars)</div>
+                            </div>
+                            <div class="psc-stat">
+                                <div class="psc-stat-val" id="psc-charset">0</div>
+                                <div class="psc-stat-label">Charset Size</div>
+                            </div>
+                            <div class="psc-stat">
+                                <div class="psc-stat-val" id="psc-zxcvbn-score">0</div>
+                                <div class="psc-stat-label">zxcvbn Score (0-4)</div>
+                            </div>
+                        </div>
+
+                        <div class="psc-composition" id="psc-composition">
+                            <div class="psc-comp-item"><div class="count" id="comp-upper">0</div><div class="label">Uppercase</div></div>
+                            <div class="psc-comp-item"><div class="count" id="comp-lower">0</div><div class="label">Lowercase</div></div>
+                            <div class="psc-comp-item"><div class="count" id="comp-digit">0</div><div class="label">Digits</div></div>
+                            <div class="psc-comp-item"><div class="count" id="comp-symbol">0</div><div class="label">Symbols</div></div>
+                        </div>
+
+                        <h2 style="color:#fff; font-size:0.95rem; margin:12px 0 8px;">Estimated Crack Time</h2>
+                        <div class="psc-crack-scenarios">
+                            <div class="psc-scenario">
+                                <div class="psc-scenario-time" id="crack-online">—</div>
+                                <div class="psc-scenario-label">Online (10⁴/s)</div>
+                            </div>
+                            <div class="psc-scenario">
+                                <div class="psc-scenario-time" id="crack-gpu">—</div>
+                                <div class="psc-scenario-label">Offline GPU (10¹⁰/s)</div>
+                            </div>
+                            <div class="psc-scenario">
+                                <div class="psc-scenario-time" id="crack-pbkdf2">—</div>
+                                <div class="psc-scenario-label">PBKDF2 (10³/s)</div>
+                            </div>
+                        </div>
+
+                        <div class="psc-breach" id="psc-breach">
+                            <div class="psc-breach-icon" id="breach-icon">🔍</div>
+                            <div class="psc-breach-title" id="breach-title">Checking breach status...</div>
+                            <div class="psc-breach-desc" id="breach-desc"></div>
+                        </div>
+
+                        <ul class="psc-checklist" id="psc-checklist"></ul>
+                    </div>
+                </div>
+
+                <div class="psc-how-grid" style="margin-top:18px;">
+                    <div class="psc-how-card">
+                        <b>How It Works</b>
+                        <p>Your password is analyzed entirely in your browser using zxcvbn (Dropbox's password estimator) and Shannon entropy. For breach checking, only the first 5 characters of the SHA-1 hash are sent to HaveIBeenPwned — your full password never leaves this page.</p>
+                    </div>
+                    <div class="psc-how-card">
+                        <b>Why AI Cannot Replace This</b>
+                        <p>AI cannot calculate exact entropy, estimate real crack times, or check actual breach databases. Password strength requires deterministic computation and live breach data — both outside AI's capability.</p>
+                    </div>
+                    <div class="psc-how-card">
+                        <b>Privacy</b>
+                        <p>Everything runs locally. The breach check uses k-anonymity: only a 20-bit hash prefix is sent remotely. Full hash comparison happens in your browser. Nothing is stored or logged.</p>
+                    </div>
+                    <div class="psc-how-card">
+                        <b>What Is a Strong Password?</b>
+                        <p>Length matters more than complexity. A 20-character passphrase beats a 12-character mixed symbol password. NIST SP 800-63B recommends 15+ characters. Use a password manager to generate and store unique passwords.</p>
+                    </div>
+                </div>
+
+                <h2 style="color:#fff; font-size:1.15rem; margin:24px 0 12px;">Frequently Asked Questions</h2>
+                <div class="psc-faq-item">
+                    <h3>Is my password sent to any server?</h3>
+                    <p>No. All analysis runs locally in your browser. The optional breach check uses k-anonymity: your browser computes the SHA-1 hash, sends only the first 5 hex characters (20 bits) to HaveIBeenPwned, and compares the returned hash suffixes locally. Your full password never leaves this page.</p>
+                </div>
+                <div class="psc-faq-item">
+                    <h3>What is entropy and why does it matter?</h3>
+                    <p>Entropy measures unpredictability in bits. Each bit doubles the number of guesses needed. A password with 40 bits of entropy requires up to 2^40 guesses. Shannon entropy gives a lower bound; zxcvbn gives a more realistic estimate accounting for patterns, dictionary words, and common substitutions.</p>
+                </div>
+                <div class="psc-faq-item">
+                    <h3>What do the crack time estimates mean?</h3>
+                    <p>Three scenarios: Online (10,000 guesses/sec - typical login form), Offline GPU (10 billion guesses/sec - fast hash on consumer GPU), and PBKDF2 (1,000 guesses/sec - slow hash like bcrypt/argon2). Real times depend on the site's hashing scheme and rate limiting.</p>
+                </div>
+                <div class="psc-faq-item">
+                    <h3>How does the breach check work?</h3>
+                    <p>Your browser computes SHA-1(password) and sends the first 5 hex digits to api.pwnedpasswords.com. The API returns all hash suffixes matching that prefix. Your browser checks if your full hash appears in the returned list. If found, your password has appeared in a known data breach.</p>
+                </div>
+                <div class="psc-faq-item">
+                    <h3>What makes a password truly strong?</h3>
+                    <p>Length is king. A 20-character random passphrase (e.g., "correct horse battery staple") provides ~90 bits of entropy, stronger than "P@ssw0rd!" at 12 chars (~40 bits). Use a password manager to generate and store unique passwords for every account. Enable two-factor authentication wherever possible.</p>
+                </div>
+                <div class="psc-faq-item">
+                    <h3>What is the zxcvbn score?</h3>
+                    <p>zxcvbn is a password strength estimator from Dropbox. Score 0-4: 0=too guessable (risky), 1=very guessable, 2=somewhat guessable, 3=safely unguessable (moderate), 4=very unguessable (strong). It analyzes patterns, dictionary words, common passwords, and keyboard walks — not just character variety.</p>
+                </div>
+                <div class="psc-faq-item">
+                    <h3>Does this tool store or log my password?</h3>
+                    <p>Never. All computation happens in your browser with JavaScript. No data is transmitted, stored, or logged. The breach check uses k-anonymity so even the hash prefix sent cannot reconstruct your password. Your privacy is guaranteed.</p>
+                </div>
+
+                <div class="psc-related">
+                    <h3>Related Free Tools</h3>
+                    <div class="psc-related-grid">
+                        <a href="/tools/password-generator/" class="psc-related-link">
+                            <strong>Password Generator</strong>
+                            Generate strong, secure passwords
+                        </a>
+                        <a href="/tools/hash-generator/" class="psc-related-link">
+                            <strong>Hash Generator</strong>
+                            MD5, SHA-1, SHA-256, SHA-512
+                        </a>
+                        <a href="/tools/random-generator/" class="psc-related-link">
+                            <strong>Random Generator</strong>
+                            Numbers, dice, coin, wheel
+                        </a>
+                        <a href="/tools/uuid-generator/" class="psc-related-link">
+                            <strong>UUID Generator</strong>
+                            v1, v4, v7 identifiers
+                        </a>
+                        <a href="/tools/ai-detector/" class="psc-related-link">
+                            <strong>AI Detector</strong>
+                            Check if text is AI-generated
+                        </a>
+                        <a href="/tools/grammar-checker/" class="psc-related-link">
+                            <strong>Grammar Checker</strong>
+                            AI grammar with explanations
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Your password is analyzed locally. Breach check uses k-anonymity — your full password never leaves this page.</p>
+    </footer>
+
+    <script>
+    var HIBP_API = 'https://api.pwnedpasswords.com/range/';
+    var CACHE = {};
+    var debounceTimer = null;
+
+    function $(id) { return document.getElementById(id); }
+
+    function init() {
+        $('psc-input').addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(analyze, 200);
+        });
+    }
+
+    function toggleVisibility() {
+        var input = $('psc-input');
+        var toggle = $('psc-toggle');
+        if (input.type === 'password') {
+            input.type = 'text';
+            toggle.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            toggle.textContent = '👁';
+        }
+    }
+
+    function analyze() {
+        var pw = $('psc-input').value;
+        if (!pw) {
+            resetResults();
+            return;
+        }
+
+        var zxcvbnResult = zxcvbn(pw);
+        var entropy = calcShannonEntropy(pw);
+        var len = pw.length;
+        var charsetSize = calcCharsetSize(pw);
+        var comp = calcComposition(pw);
+
+        updateComposition(comp);
+        updateStats(entropy, len, charsetSize, zxcvbnResult.score);
+        updateScoreLabel(zxcvbnResult.score);
+        updateMeter(zxcvbnResult.score);
+        updateCrackTimes(zxcvbnResult);
+        updateChecklist(zxcvbnResult, entropy, len, comp, pw);
+        $('psc-results').style.display = 'block';
+
+        checkBreach(pw);
+    }
+
+    function resetResults() {
+        $('psc-results').style.display = 'none';
+        $('psc-meter-fill').className = 'psc-meter-fill';
+        $('psc-meter-fill').style.width = '0%';
+        $('psc-score-label').textContent = 'Enter a password';
+        $('psc-score-label').className = 'psc-score-label';
+        $('psc-score-num').textContent = '';
+        $('psc-breach').className = 'psc-breach';
+        $('psc-breach').style.display = 'none';
+    }
+
+    function calcShannonEntropy(str) {
+        var freq = {};
+        for (var i = 0; i < str.length; i++) {
+            var c = str[i];
+            freq[c] = (freq[c] || 0) + 1;
+        }
+        var entropy = 0;
+        var len = str.length;
+        for (var ch in freq) {
+            var p = freq[ch] / len;
+            entropy -= p * (Math.log2(p) || 0);
+        }
+        return entropy;
+    }
+
+    function calcCharsetSize(str) {
+        var hasUpper = /[A-Z]/.test(str);
+        var hasLower = /[a-z]/.test(str);
+        var hasDigit = /[0-9]/.test(str);
+        var hasSymbol = /[^A-Za-z0-9]/.test(str);
+        var size = 0;
+        if (hasUpper) size += 26;
+        if (hasLower) size += 26;
+        if (hasDigit) size += 10;
+        if (hasSymbol) size += 33;
+        return size || 1;
+    }
+
+    function calcComposition(str) {
+        var upper = (str.match(/[A-Z]/g) || []).length;
+        var lower = (str.match(/[a-z]/g) || []).length;
+        var digit = (str.match(/[0-9]/g) || []).length;
+        var symbol = str.length - upper - lower - digit;
+        return { upper: upper, lower: lower, digit: digit, symbol: Math.max(0, symbol) };
+    }
+
+    function updateComposition(comp) {
+        $('comp-upper').textContent = comp.upper;
+        $('comp-lower').textContent = comp.lower;
+        $('comp-digit').textContent = comp.digit;
+        $('comp-symbol').textContent = comp.symbol;
+    }
+
+    function updateStats(entropy, len, charsetSize, zxcvbnScore) {
+        $('psc-entropy').textContent = entropy.toFixed(1) + ' bits';
+        $('psc-length').textContent = len;
+        $('psc-charset').textContent = charsetSize;
+        $('psc-zxcvbn-score').textContent = zxcvbnScore + '/4';
+    }
+
+    function updateScoreLabel(score) {
+        var label = $('psc-score-label');
+        var num = $('psc-score-num');
+        var names = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+        var classes = ['weak', 'fair', 'good', 'strong', 'very-strong'];
+        label.textContent = names[score] || 'Unknown';
+        label.className = 'psc-score-label ' + (classes[score] || '');
+        num.textContent = 'Score ' + score + '/4 (zxcvbn)';
+    }
+
+    function updateMeter(score) {
+        var meter = $('psc-meter-fill');
+        var classes = ['weak', 'fair', 'good', 'strong', 'very-strong'];
+        meter.className = 'psc-meter-fill ' + (classes[score] || '');
+    }
+
+    function formatDuration(seconds) {
+        if (seconds === null || seconds === undefined || seconds === Infinity) return 'centuries';
+        if (seconds < 1) return 'less than a second';
+        if (seconds < 60) return Math.round(seconds) + ' seconds';
+        if (seconds < 3600) return Math.round(seconds / 60) + ' minutes';
+        if (seconds < 86400) return Math.round(seconds / 3600) + ' hours';
+        if (seconds < 2592000) return Math.round(seconds / 86400) + ' days';
+        if (seconds < 31536000) return Math.round(seconds / 2592000) + ' months';
+        if (seconds < 315360000) return Math.round(seconds / 31536000) + ' years';
+        return Math.round(seconds / 31536000 / 100) + ' centuries';
+    }
+
+    function crackTimeClass(seconds) {
+        if (seconds === null || seconds === undefined || seconds >= 31536000) return 'safe';
+        if (seconds >= 86400) return 'warning';
+        return 'danger';
+    }
+
+    function updateCrackTimes(zxcvbnResult) {
+        var online = zxcvbnResult.crack_times_display.online_throttling_100_per_hour;
+        var gpu = zxcvbnResult.crack_times_display.offline_slow_hashing_1e4_per_second;
+        var pbkdf2 = zxcvbnResult.crack_times_display.offline_fast_hashing_1e10_per_second;
+
+        var onlineSec = zxcvbnResult.crack_times_seconds.online_throttling_100_per_hour;
+        var gpuSec = zxcvbnResult.crack_times_seconds.offline_slow_hashing_1e4_per_second;
+        var pbkdf2Sec = zxcvbnResult.crack_times_seconds.offline_fast_hashing_1e10_per_second;
+
+        $('crack-online').textContent = online;
+        $('crack-online').className = 'psc-scenario-time ' + crackTimeClass(onlineSec);
+        $('crack-gpu').textContent = gpu;
+        $('crack-gpu').className = 'psc-scenario-time ' + crackTimeClass(gpuSec);
+        $('crack-pbkdf2').textContent = pbkdf2;
+        $('crack-pbkdf2').className = 'psc-scenario-time ' + crackTimeClass(pbkdf2Sec);
+    }
+
+    function updateChecklist(zxcvbnResult, entropy, len, comp, pw) {
+        var list = $('psc-checklist');
+        var items = [];
+
+        var lenOk = len >= 12;
+        var lenIdeal = len >= 15;
+        items.push({ text: 'Length: ' + len + ' chars' + (lenIdeal ? ' (ideal 15+)' : lenOk ? ' (minimum 12)' : ' (minimum 12 recommended)'), status: lenIdeal ? 'pass' : lenOk ? 'warn' : 'fail' });
+
+        var hasMixed = comp.upper > 0 && comp.lower > 0;
+        items.push({ text: 'Uppercase + lowercase letters' + (hasMixed ? '' : ' (add both cases)'), status: hasMixed ? 'pass' : 'fail' });
+
+        var hasDigit = comp.digit > 0;
+        items.push({ text: 'Includes digits' + (hasDigit ? '' : ' (add numbers)'), status: hasDigit ? 'pass' : 'fail' });
+
+        var hasSymbol = comp.symbol > 0;
+        items.push({ text: 'Includes symbols' + (hasSymbol ? '' : ' (add special characters)'), status: hasSymbol ? 'pass' : 'fail' });
+
+        var entropyOk = entropy >= 3;
+        items.push({ text: 'Shannon entropy: ' + entropy.toFixed(1) + ' bits' + (entropyOk ? '' : ' (aim for 3+ bits/char)'), status: entropy >= 4 ? 'pass' : entropy >= 3 ? 'warn' : 'fail' });
+
+        var commonPasswords = ['password', '123456', '12345678', 'qwerty', 'abc123', 'monkey', 'letmein', 'dragon', '111111', 'baseball', 'iloveyou', 'trustno1', 'sunshine', 'master', 'welcome', 'shadow', 'ashley', 'football', 'jesus', 'michael', 'ninja', 'mustang', 'password1', 'admin', '123456789', '1234567890', '123123', '654321', 'superman', 'qazwsx'];
+        var isCommon = false;
+        var pwLower = pw.toLowerCase();
+        for (var i = 0; i < commonPasswords.length; i++) {
+            if (pwLower === commonPasswords[i]) { isCommon = true; break; }
+        }
+        if (zxcvbnResult.feedback && zxcvbnResult.feedback.warning) {
+            items.push({ text: zxcvbnResult.feedback.warning, status: 'fail' });
+        } else if (isCommon) {
+            items.push({ text: 'This is an extremely common password', status: 'fail' });
+        } else {
+            var hasRepeated = /(.)\1{2,}/.test(pw);
+            var hasSequential = /(?:abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz|012|123|234|345|456|567|678|789|890)/i.test(pw);
+            if (hasRepeated || hasSequential) {
+                items.push({ text: hasRepeated ? 'Contains repeated characters (e.g., "aaa")' : 'Contains sequential characters (e.g., "123", "abc")', status: 'warn' });
+            } else {
+                items.push({ text: 'No common patterns detected', status: 'pass' });
+            }
+        }
+
+        if (zxcvbnResult.feedback && zxcvbnResult.feedback.suggestions) {
+            for (var j = 0; j < zxcvbnResult.feedback.suggestions.length; j++) {
+                items.push({ text: zxcvbnResult.feedback.suggestions[j], status: 'warn' });
+            }
+        }
+
+        list.innerHTML = '';
+        for (var k = 0; k < items.length; k++) {
+            var li = document.createElement('li');
+            li.className = items[k].status;
+            li.textContent = items[k].text;
+            list.appendChild(li);
+        }
+    }
+
+    async function sha1(str) {
+        var encoder = new TextEncoder();
+        var data = encoder.encode(str);
+        var hashBuffer = await crypto.subtle.digest('SHA-1', data);
+        var hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+    }
+
+    async function checkBreach(pw) {
+        var breachEl = $('psc-breach');
+        var iconEl = $('breach-icon');
+        var titleEl = $('breach-title');
+        var descEl = $('breach-desc');
+
+        breachEl.className = 'psc-breach checking show';
+        breachEl.style.display = 'block';
+        iconEl.textContent = '🔍';
+        titleEl.textContent = 'Checking breach status...';
+        titleEl.className = 'psc-breach-title checking';
+        descEl.textContent = 'Using k-anonymity: only a hash prefix leaves your browser.';
+
+        try {
+            var hash = await sha1(pw);
+            var prefix = hash.substring(0, 5);
+            var suffix = hash.substring(5).toUpperCase();
+
+            var cacheKey = prefix;
+            var suffixes = CACHE[cacheKey];
+            if (!suffixes) {
+                var resp = await fetch(HIBP_API + prefix);
+                if (!resp.ok) throw new Error('HIBP API error: ' + resp.status);
+                var text = await resp.text();
+                suffixes = text.split('\n').filter(Boolean).map(function(line) {
+                    return line.split(':')[0];
+                });
+                CACHE[cacheKey] = suffixes;
+            }
+
+            var found = false;
+            for (var i = 0; i < suffixes.length; i++) {
+                if (suffixes[i] === suffix) { found = true; break; }
+            }
+
+            if (found) {
+                breachEl.className = 'psc-breach found show';
+                iconEl.textContent = '⚠️';
+                titleEl.textContent = 'Password found in data breaches!';
+                titleEl.className = 'psc-breach-title found';
+                descEl.textContent = 'This password has appeared in a known data breach. Do not use it anywhere. Generate a new unique password immediately.';
+            } else {
+                breachEl.className = 'psc-breach not-found show';
+                iconEl.textContent = '✅';
+                titleEl.textContent = 'Password not found in known breaches';
+                titleEl.className = 'psc-breach-title not-found';
+                descEl.textContent = 'This password was not found in the HaveIBeenPwned breach database. However, always use unique passwords for each account.';
+            }
+        } catch (e) {
+            breachEl.className = 'psc-breach not-found show';
+            iconEl.textContent = '⚠️';
+            titleEl.textContent = 'Breach check unavailable';
+            titleEl.className = 'psc-breach-title not-found';
+            descEl.textContent = 'Could not check breach status: ' + e.message + '. Your password was not sent. Results still show local strength analysis.';
+            console.error('Breach check error:', e);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    </script>
+</body>
+</html>

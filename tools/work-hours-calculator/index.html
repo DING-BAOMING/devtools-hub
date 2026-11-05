@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Hours Calculator - Free Time Card & Timesheet | DevTools Hub</title>
+    <meta name="description" content="Free work hours calculator. Calculate weekly time card hours, overtime, break deductions, and pay. Supports 12h/24h format. No signup, 100% private browser tool.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/work-hours-calculator/">
+    <meta property="og:title" content="Work Hours Calculator - Free Time Card & Timesheet | DevTools Hub">
+    <meta property="og:description" content="Free work hours calculator. Calculate weekly time card hours, overtime, break deductions, and pay. 100% private browser tool.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/work-hours-calculator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Work Hours Calculator - Free Time Card & Timesheet | DevTools Hub">
+    <meta name="twitter:description" content="Free work hours calculator. Calculate weekly time card hours, overtime, break deductions, and pay. 100% private browser tool.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/work-hours-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-06-26","dateModified":"2026-06-26","author":{"@type":"Person","name":"BAOMING"},"name":"Work Hours Calculator","description":"Free weekly work hours and time card calculator. Calculate daily hours, overtime, break deductions, and payroll with hourly rate.","url":"https://tools.scoreroute.com/tools/work-hours-calculator/","applicationCategory":"BusinessApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        :root {
+            --bg: #0f0f23;
+            --card-bg: #1a1a2e;
+            --border: #2a2a4a;
+            --primary: #667eea;
+            --text: #fff;
+            --text-secondary: #888;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+        .whc-settings {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            padding: 20px;
+            background: var(--bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .whc-settings label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .whc-settings select, .whc-settings input {
+            padding: 10px 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        .whc-settings select:focus, .whc-settings input:focus {
+            outline: 2px solid transparent;
+            border-color: var(--primary);
+        }
+        .whc-settings .whc-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .whc-day-row {
+            display: grid;
+            /* minmax(0,1fr), not 1fr: a 1fr track floors at min-content, and a
+               <input type="time"> is wider than the track, so the row pushed the page
+               sideways on a 375px phone. BUG-356. */
+            grid-template-columns: 100px minmax(0, 1fr) minmax(0, 1fr) 80px 80px;
+            gap: 8px;
+            align-items: center;
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            background: var(--bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .whc-day-row .day-label {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        .whc-day-row .day-label.today {
+            color: var(--primary);
+        }
+        .whc-day-row input[type="time"] {
+            padding: 8px 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .whc-day-row input[type="time"]:focus {
+            outline: 2px solid transparent;
+            border-color: var(--primary);
+        }
+        .whc-day-row .whc-break-input {
+            width: 100%;
+        }
+        .whc-day-row .whc-daily-total {
+            font-weight: 600;
+            text-align: right;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            min-width: 60px;
+        }
+        .whc-day-row .whc-daily-total.has-hours {
+            color: var(--primary);
+        }
+        .whc-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .whc-summary-card {
+            padding: 20px;
+            background: var(--bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .whc-summary-card .label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .whc-summary-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 8px;
+        }
+        .whc-summary-card .value.primary {
+            color: var(--primary);
+        }
+        .whc-summary-card .value.success {
+            color: var(--success);
+        }
+        .whc-summary-card .value.warning {
+            color: #f59e0b;
+        }
+        .whc-pay-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .whc-pay-section h3 {
+            color: var(--text);
+            font-size: 1rem;
+            margin-bottom: 16px;
+        }
+        .whc-pay-input-row {
+            display: flex;
+            gap: 16px;
+            align-items: end;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .whc-pay-input-row label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .whc-pay-input-row input {
+            padding: 10px 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            width: 140px;
+        }
+        .whc-pay-input-row input:focus {
+            outline: 2px solid transparent;
+            border-color: var(--primary);
+        }
+        .whc-pay-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+        .whc-pay-card {
+            padding: 16px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .whc-pay-card .label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+        .whc-pay-card .value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 6px;
+        }
+        .whc-pay-card .value.pay-primary {
+            color: var(--primary);
+        }
+        .whc-pay-card .value.pay-overtime {
+            color: #f59e0b;
+        }
+        .whc-pay-card .value.pay-total {
+            color: var(--success);
+        }
+        .whc-btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 768px) {
+            .whc-day-row {
+                grid-template-columns: 70px minmax(0, 1fr) minmax(0, 1fr) 60px 50px;
+                gap: 4px;
+                padding: 8px 10px;
+            }
+            .whc-day-row .day-label { font-size: 0.8rem; }
+            .whc-day-row input[type="time"] { font-size: 0.8rem; padding: 6px; }
+            .whc-summary { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 480px) {
+            .whc-day-row {
+                grid-template-columns: 55px minmax(0, 1fr) minmax(0, 1fr) 50px 40px;
+                gap: 3px;
+                padding: 6px 8px;
+            }
+            .whc-day-row .day-label { font-size: 0.75rem; }
+            .whc-day-row input[type="time"] { font-size: 0.7rem; padding: 4px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Work Hours Calculator</h1>
+            <p class="subtitle">Weekly Time Card & Timesheet with Overtime & Pay</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Work Hours Calculator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Calculate Your Work Hours</h2>
+                <p style="color:var(--text-secondary);margin-bottom:20px;font-size:0.9rem;">AI cannot do precise time math with break deductions and overtime rules. Get accurate results instantly.</p>
+
+                <div class="whc-settings">
+                    <div class="whc-field">
+                        <label for="whc-format">Time Format</label>
+                        <select id="whc-format" onchange="recalc()">
+                            <option value="12h">12-hour (AM/PM)</option>
+                            <option value="24h" selected>24-hour</option>
+                        </select>
+                    </div>
+                    <div class="whc-field">
+                        <label for="whc-overtime-threshold">Overtime After (hours/week)</label>
+                        <input type="number" id="whc-overtime-threshold" value="40" min="0" max="168" step="1" oninput="recalc()">
+                    </div>
+                    <div class="whc-field">
+                        <label for="whc-overtime-rate">Overtime Rate (×)</label>
+                        <input type="number" id="whc-overtime-rate" value="1.5" min="1" max="5" step="0.5" oninput="recalc()">
+                    </div>
+                </div>
+
+                <div id="whc-rows"></div>
+
+                <div class="whc-summary" id="whc-summary">
+                    <div class="whc-summary-card">
+                        <div class="label">Total Hours</div>
+                        <div class="value primary" id="whc-total-hours">0:00</div>
+                    </div>
+                    <div class="whc-summary-card">
+                        <div class="label">Regular Hours</div>
+                        <div class="value" id="whc-regular-hours">0:00</div>
+                    </div>
+                    <div class="whc-summary-card">
+                        <div class="label">Overtime Hours</div>
+                        <div class="value warning" id="whc-overtime-hours">0:00</div>
+                    </div>
+                    <div class="whc-summary-card">
+                        <div class="label">Days Worked</div>
+                        <div class="value success" id="whc-days-worked">0</div>
+                    </div>
+                </div>
+
+                <div class="whc-pay-section" id="whc-pay-section">
+                    <h3>Payroll Calculation</h3>
+                    <div class="whc-pay-input-row">
+                        <div>
+                            <label for="whc-hourly-rate">Hourly Rate ($)</label>
+                            <input type="number" id="whc-hourly-rate" value="0" min="0" step="0.5" oninput="recalc()">
+                        </div>
+                        <div>
+                            <label for="whc-currency">Currency</label>
+                            <select id="whc-currency" onchange="recalc()">
+                                <option value="$">$ (USD)</option>
+                                <option value="€">€ (EUR)</option>
+                                <option value="£">£ (GBP)</option>
+                                <option value="¥">¥ (JPY/CNY)</option>
+                                <option value="C$">C$ (CAD)</option>
+                                <option value="A$">A$ (AUD)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="whc-pay-results">
+                        <div class="whc-pay-card">
+                            <div class="label">Regular Pay</div>
+                            <div class="value pay-primary" id="whc-regular-pay">$0.00</div>
+                        </div>
+                        <div class="whc-pay-card">
+                            <div class="label">Overtime Pay</div>
+                            <div class="value pay-overtime" id="whc-overtime-pay">$0.00</div>
+                        </div>
+                        <div class="whc-pay-card">
+                            <div class="label">Gross Pay</div>
+                            <div class="value pay-total" id="whc-gross-pay">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="whc-btn-group">
+                    <button class="btn btn-primary" onclick="fillWeekdays()">Fill Mon-Fri 9-5</button>
+                    <button class="btn" onclick="clearAll()">Clear All</button>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Why Use This Work Hours Calculator?</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:20px 0;">
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">⏱ Precise Time Math</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">Handles overnight shifts, break deductions, and calculates exact hours:minutes. No rounding errors.</p>
+                    </div>
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">💰 Built-in Payroll</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">Enter your hourly rate and see regular pay, overtime pay (1.5× by default), and gross pay instantly.</p>
+                    </div>
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">🔒 100% Private</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">All calculations happen in your browser. No data uploaded. No signup. Nothing leaves your device.</p>
+                    </div>
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">📊 Visual Summary</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">See total hours, regular vs overtime breakdown, days worked, and per-day totals at a glance.</p>
+                    </div>
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">🔄 Flexible Formats</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">Switch between 12-hour (AM/PM) and 24-hour (military) time. Custom overtime threshold and rate.</p>
+                    </div>
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">🌐 Multiple Currencies</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">USD, EUR, GBP, JPY, CAD, AUD — all supported. Perfect for freelancers and remote workers worldwide.</p>
+                    </div>
+                </div>
+
+                <h3>Common Use Cases</h3>
+                <ul style="color:#aaa;margin:12px 0 20px 24px;line-height:1.8;">
+                    <li><strong>Timesheet completion:</strong> Fill in daily start/end times and get your weekly total in seconds</li>
+                    <li><strong>Payroll verification:</strong> Double-check your pay stub by calculating regular and overtime hours</li>
+                    <li><strong>Freelance billing:</strong> Track hours across client projects with accurate time math</li>
+                    <li><strong>Overtime tracking:</strong> Know exactly how many overtime hours you've worked this week</li>
+                    <li><strong>Break deduction:</strong> See how unpaid lunch breaks affect your total hours</li>
+                    <li><strong>Budget planning:</strong> Estimate weekly and monthly earnings with the payroll calculator</li>
+                </ul>
+
+                <h3>How to Use</h3>
+                <ol style="color:#aaa;margin:12px 0 20px 24px;line-height:1.8;">
+                    <li>Set your time format (12-hour or 24-hour)</li>
+                    <li>Enter start time, end time, and break duration for each day worked</li>
+                    <li>Optional: adjust overtime threshold (default 40h/week) and overtime rate (default 1.5×)</li>
+                    <li>Optional: enter your hourly rate to calculate pay</li>
+                    <li>Results update instantly — see daily totals, weekly summary, and payroll</li>
+                </ol>
+
+                <h3>Frequently Asked Questions</h3>
+
+                <div class="faq-item">
+                    <h4>How do I calculate my work hours?</h4>
+                    <p>Enter your start time and end time for each day, plus any unpaid break time. The calculator subtracts the break and gives you the exact hours:minutes worked that day. The weekly total automatically accumulates.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Does it handle overnight shifts?</h4>
+                    <p>Yes. If your end time is earlier than your start time (e.g., start 22:00, end 06:00), the calculator correctly handles it as an overnight shift.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>How is overtime calculated?</h4>
+                    <p>Overtime is calculated after the weekly threshold (default 40 hours). Hours worked beyond the threshold are counted as overtime. You can customize the threshold and overtime rate.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Can I calculate pay with this tool?</h4>
+                    <p>Yes. Enter your hourly rate and the tool will compute regular pay, overtime pay (at the rate you specify), and gross weekly pay. Supports multiple currencies.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Is my data private?</h4>
+                    <p>Absolutely. All calculations happen locally in your browser. No data is sent to any server. No signup or account needed.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Is this really free?</h4>
+                    <p>Yes, completely free with no signup, no ads, no usage limits, and no watermark. Just open and use.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        function initForm() {
+            const container = document.getElementById('whc-rows');
+            const todayIdx = (new Date().getDay() + 6) % 7;
+            let html = '';
+            for (let i = 0; i < 7; i++) {
+                const isToday = i === todayIdx;
+                html += '<div class="whc-day-row">';
+                html += '<span class="day-label' + (isToday ? ' today' : '') + '">' + DAY_NAMES[i] + '</span>';
+                html += '<input type="time" id="start-' + i + '" aria-label="' + DAY_NAMES[i] + ' start time" oninput="recalc()">';
+                html += '<input type="time" id="end-' + i + '" aria-label="' + DAY_NAMES[i] + ' end time" oninput="recalc()">';
+                html += '<input type="number" class="whc-break-input" id="break-' + i + '" min="0" max="480" value="0" aria-label="' + DAY_NAMES[i] + ' break minutes" oninput="recalc()" placeholder="min">';
+                html += '<span class="whc-daily-total" id="daily-' + i + '">--</span>';
+                html += '</div>';
+            }
+            container.innerHTML = html;
+            recalc();
+        }
+
+        function recalc() {
+            const format24 = document.getElementById('whc-format').value === '24h';
+            const overtimeThreshold = parseFloat(document.getElementById('whc-overtime-threshold').value) || 40;
+            const overtimeRate = parseFloat(document.getElementById('whc-overtime-rate').value) || 1.5;
+            const hourlyRate = parseFloat(document.getElementById('whc-hourly-rate').value) || 0;
+            const currency = document.getElementById('whc-currency').value;
+
+            let totalMinutes = 0;
+            let daysWorked = 0;
+
+            for (let i = 0; i < 7; i++) {
+                const startInput = document.getElementById('start-' + i);
+                const endInput = document.getElementById('end-' + i);
+                const breakMin = parseInt(document.getElementById('break-' + i).value) || 0;
+                const dailyEl = document.getElementById('daily-' + i);
+
+                if (!startInput.value || !endInput.value) {
+                    dailyEl.textContent = '--';
+                    dailyEl.classList.remove('has-hours');
+                    continue;
+                }
+
+                const startMin = timeToMinutes(startInput.value);
+                let endMin = timeToMinutes(endInput.value);
+                if (endMin <= startMin) endMin += 1440;
+                let dailyMin = endMin - startMin - breakMin;
+                if (dailyMin < 0) dailyMin = 0;
+
+                dailyEl.textContent = formatHours(dailyMin);
+                dailyEl.classList.add('has-hours');
+                totalMinutes += dailyMin;
+                if (dailyMin > 0) daysWorked++;
+            }
+
+            const totalHours = totalMinutes / 60;
+            const overtimeMinutes = Math.max(0, totalMinutes - (overtimeThreshold * 60));
+            const regularMinutes = totalMinutes - overtimeMinutes;
+
+            document.getElementById('whc-total-hours').textContent = formatHours(totalMinutes);
+            document.getElementById('whc-regular-hours').textContent = formatHours(regularMinutes);
+            document.getElementById('whc-overtime-hours').textContent = formatHours(overtimeMinutes);
+            document.getElementById('whc-days-worked').textContent = daysWorked;
+
+            if (hourlyRate > 0) {
+                const regularPay = (regularMinutes / 60) * hourlyRate;
+                const overtimePay = (overtimeMinutes / 60) * hourlyRate * overtimeRate;
+                const grossPay = regularPay + overtimePay;
+                document.getElementById('whc-regular-pay').textContent = currency + regularPay.toFixed(2);
+                document.getElementById('whc-overtime-pay').textContent = currency + overtimePay.toFixed(2);
+                document.getElementById('whc-gross-pay').textContent = currency + grossPay.toFixed(2);
+            } else {
+                document.getElementById('whc-regular-pay').textContent = '--';
+                document.getElementById('whc-overtime-pay').textContent = '--';
+                document.getElementById('whc-gross-pay').textContent = '--';
+            }
+        }
+
+        function timeToMinutes(val) {
+            const parts = val.split(':');
+            return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        }
+
+        function formatHours(minutes) {
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            return h + ':' + String(m).padStart(2, '0');
+        }
+
+        function fillWeekdays() {
+            for (let i = 0; i < 5; i++) {
+                document.getElementById('start-' + i).value = '09:00';
+                document.getElementById('end-' + i).value = '17:00';
+                document.getElementById('break-' + i).value = '30';
+            }
+            recalc();
+        }
+
+        function clearAll() {
+            for (let i = 0; i < 7; i++) {
+                document.getElementById('start-' + i).value = '';
+                document.getElementById('end-' + i).value = '';
+                document.getElementById('break-' + i).value = '0';
+            }
+            recalc();
+        }
+
+        document.addEventListener('DOMContentLoaded', initForm);
+    </script>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Calculator - Stock Profit & Portfolio Tracker Free</title>
+    <meta name="description" content="Free investment calculator with portfolio tracker. Calculate stock profit, ROI, dividend yield, and average cost basis across multiple lots. No signup, 100% private, browser-based.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/investment-calculator/">
+    <meta property="og:title" content="Investment Calculator - Stock Profit & Portfolio Tracker Free">
+    <meta property="og:description" content="Free investment calculator with portfolio tracker. Calculate stock profit, ROI, dividend yield, and average cost basis across multiple lots. No signup, 100% private, browser-based.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/investment-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .ic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 16px; }
+        .ic-card { background: rgba(102, 126, 234, 0.08); border: 1px solid rgba(102, 126, 234, 0.25); border-radius: 8px; padding: 12px; }
+        .ic-card .label { font-size: 0.78rem; color: #b3b8c0; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .ic-card .value { font-size: 1.3rem; font-weight: 700; color: #e2e8f0; font-family: 'Courier New', monospace; }
+        .ic-card .sub { font-size: 0.78rem; color: #94a3b8; margin-top: 4px; }
+        .ic-card.green .value { color: #10b981; }
+        .ic-card.red .value { color: #f87171; }
+        .ic-section { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+        .ic-section h3 { margin-top: 0; color: #c4c8d4; font-size: 1.05rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; }
+        .ic-form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 8px; }
+        .ic-form-row label { display: block; font-size: 0.78rem; color: #b3b8c0; margin-bottom: 3px; }
+        .ic-form-row input, .ic-form-row select { width: 100%; padding: 7px 10px; background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 6px; color: #e2e8f0; font-size: 0.9rem; box-sizing: border-box; }
+        .ic-form-row input:focus, .ic-form-row select:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .ic-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+        .ic-table th { background: rgba(102, 126, 234, 0.12); color: #c4c8d4; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .ic-table td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); color: #e2e8f0; }
+        .ic-table tr:hover { background: rgba(102, 126, 234, 0.05); }
+        .ic-table .symbol { font-weight: 700; color: #667eea; font-family: 'Courier New', monospace; }
+        .ic-pos { color: #10b981; font-weight: 600; }
+        .ic-neg { color: #f87171; font-weight: 600; }
+        .ic-pos-bg { background: rgba(16, 185, 129, 0.12); }
+        .ic-neg-bg { background: rgba(239, 68, 68, 0.12); }
+        .ic-mini-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #e2e8f0; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; margin-right: 4px; }
+        .ic-mini-btn:hover { background: rgba(255,255,255,0.15); }
+        .ic-mini-btn.danger { color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+        .ic-mini-btn.danger:hover { background: rgba(239, 68, 68, 0.15); }
+        .ic-chart-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .ic-chart-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; min-height: 240px; }
+        .ic-chart-box h4 { margin: 0 0 8px 0; color: #c4c8d4; font-size: 0.92rem; }
+        .ic-empty { text-align: center; padding: 30px 10px; color: #94a3b8; font-size: 0.92rem; }
+        .ic-modal-bg { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; }
+        .ic-modal-bg.active { display: flex; }
+        .ic-modal { background: #131826; border: 1px solid #2d2d44; border-radius: 12px; padding: 20px; max-width: 460px; width: 90%; }
+        .ic-modal h3 { margin-top: 0; color: #c4c8d4; }
+        .ic-bar { height: 22px; background: #1a1a2e; border-radius: 4px; overflow: hidden; margin: 2px 0; }
+        .ic-bar-fill { height: 100%; background: linear-gradient(90deg, #667eea, #7eb3ff); display: flex; align-items: center; padding: 0 6px; font-size: 0.74rem; color: white; font-weight: 600; }
+        .ic-bar-fill.pos { background: linear-gradient(90deg, #10b981, #34d399); }
+        .ic-bar-fill.neg { background: linear-gradient(90deg, #ef4444, #f87171); }
+        .ic-div-list { font-size: 0.84rem; color: #c4c8d4; margin-top: 6px; }
+        .ic-div-list span { display: inline-block; padding: 2px 8px; background: rgba(102, 126, 234, 0.15); border-radius: 4px; margin: 2px 4px 2px 0; font-family: 'Courier New', monospace; }
+        .ic-tag { display: inline-block; font-size: 0.7rem; padding: 2px 6px; border-radius: 3px; margin-left: 4px; background: rgba(102, 126, 234, 0.2); color: #7eb3ff; text-transform: uppercase; }
+        .ic-tag.realized { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        @media (max-width: 768px) {
+            .ic-chart-wrap { grid-template-columns: 1fr; }
+            .ic-table { font-size: 0.78rem; }
+            .ic-table th, .ic-table td { padding: 5px 6px; }
+        }
+    </style>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-08-25",
+        "dateModified": "2026-08-25",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "Investment Calculator",
+        "description": "Track stocks, crypto, and ETFs across multiple buy lots. Calculate profit, ROI, dividend yield, and cost basis using FIFO, LIFO, or average cost methods. Persistent browser storage with JSON export.",
+        "url": "https://tools.scoreroute.com/tools/investment-calculator/",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["Multi-lot portfolio tracking", "FIFO / LIFO / Average Cost methods", "Realized and unrealized profit", "Dividend yield calculator", "ROI percentage tracking", "JSON export and import", "CSV export for tax reports", "8 currency displays", "Browser local storage persistence", "No signup required"]
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Investment Calculator</h1>
+            <p class="subtitle">Stock Profit, ROI, Dividend Yield &amp; Portfolio Tracker</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Investment Calculator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Portfolio Summary</h2>
+                <div class="ic-grid">
+                    <div class="ic-card">
+                        <div class="label">Total Invested</div>
+                        <div class="value" id="sum-invested">$0.00</div>
+                        <div class="sub" id="sum-holdings">0 holdings</div>
+                    </div>
+                    <div class="ic-card">
+                        <div class="label">Market Value</div>
+                        <div class="value" id="sum-value">$0.00</div>
+                        <div class="sub" id="sum-day-change">No price data</div>
+                    </div>
+                    <div class="ic-card" id="card-unrealized">
+                        <div class="label">Unrealized P/L</div>
+                        <div class="value" id="sum-unrealized">$0.00</div>
+                        <div class="sub" id="sum-unrealized-pct">0.00%</div>
+                    </div>
+                    <div class="ic-card" id="card-realized">
+                        <div class="label">Realized P/L</div>
+                        <div class="value" id="sum-realized">$0.00</div>
+                        <div class="sub" id="sum-sells">0 closed trades</div>
+                    </div>
+                    <div class="ic-card">
+                        <div class="label">Total Return</div>
+                        <div class="value" id="sum-total">$0.00</div>
+                        <div class="sub" id="sum-total-pct">0.00% ROI</div>
+                    </div>
+                    <div class="ic-card">
+                        <div class="label">Dividends</div>
+                        <div class="value" id="sum-div">$0.00</div>
+                        <div class="sub" id="sum-yield">0.00% yield</div>
+                    </div>
+                </div>
+
+                <div class="ic-section">
+                    <h3>Add a New Holding</h3>
+                    <div class="ic-form-row">
+                        <div>
+                            <label for="f-symbol">Symbol</label>
+                            <input id="f-symbol" placeholder="AAPL, BTC" autocomplete="off">
+                        </div>
+                        <div>
+                            <label for="f-type">Type</label>
+                            <select id="f-type">
+                                <option value="stock">Stock</option>
+                                <option value="crypto">Crypto</option>
+                                <option value="etf">ETF / Fund</option>
+                                <option value="bond">Bond</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="f-date">Buy Date</label>
+                            <input id="f-date" type="date">
+                        </div>
+                        <div>
+                            <label for="f-shares">Shares</label>
+                            <input id="f-shares" type="number" step="any" min="0" placeholder="10">
+                        </div>
+                        <div>
+                            <label for="f-price">Buy Price</label>
+                            <input id="f-price" type="number" step="any" min="0" placeholder="150.00">
+                        </div>
+                        <div>
+                            <label for="f-fees">Fees</label>
+                            <input id="f-fees" type="number" step="any" min="0" placeholder="0.00" value="0">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="addHolding()" class="btn btn-primary">Add Holding</button>
+                        <button onclick="loadSample()" class="btn">Load Sample</button>
+                        <button onclick="document.getElementById('file-import').click()" class="btn">Import JSON</button>
+                        <button onclick="document.getElementById('file-import-csv').click()" class="btn">Import CSV</button>
+                        <input aria-label="Import portfolio JSON file" type="file" id="file-import" accept=".json" style="display:none">
+                        <input aria-label="Import holdings CSV file" type="file" id="file-import-csv" accept=".csv" style="display:none">
+                        <button onclick="exportJSON()" class="btn">Export JSON</button>
+                        <button onclick="exportCSV()" class="btn">Export CSV</button>
+                    </div>
+                    <div id="form-status" class="status"></div>
+                </div>
+
+                <div class="ic-section">
+                    <h3>Holdings</h3>
+                    <div id="holdings-wrap">
+                        <p class="ic-empty">No holdings yet. Add one above or load the sample portfolio to see how it works.</p>
+                    </div>
+                </div>
+
+                <div class="ic-section">
+                    <h3>Actions</h3>
+                    <div class="ic-form-row">
+                        <div>
+                            <label for="act-symbol">Symbol</label>
+                            <select id="act-symbol"><option value="">Select holding</option></select>
+                        </div>
+                        <div>
+                            <label for="act-action">Action</label>
+                            <select id="act-action" onchange="toggleActionForm()">
+                                <option value="update">Update Current Price</option>
+                                <option value="sell">Sell Shares</option>
+                                <option value="div">Add Dividend</option>
+                                <option value="delete">Delete Holding</option>
+                            </select>
+                        </div>
+                        <div id="act-shares-wrap">
+                            <label for="act-shares" id="act-shares-label">Current Price</label>
+                            <input id="act-shares" type="number" step="any" min="0" placeholder="0">
+                        </div>
+                        <div id="act-date-wrap">
+                            <label for="act-date">Date</label>
+                            <input id="act-date" type="date">
+                        </div>
+                        <div>
+                            <label for="act-method">Cost Method</label>
+                            <select id="act-method">
+                                <option value="avg">Average Cost</option>
+                                <option value="fifo">FIFO</option>
+                                <option value="lifo">LIFO</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="runAction()" class="btn btn-primary">Run Action</button>
+                        <button onclick="resetAll()" class="btn btn-secondary">Reset Portfolio</button>
+                    </div>
+                    <div id="act-status" class="status"></div>
+                </div>
+
+                <div class="ic-section">
+                    <h3>Portfolio Charts</h3>
+                    <div class="ic-chart-wrap">
+                        <div class="ic-chart-box">
+                            <h4>Allocation by Holding</h4>
+                            <div id="chart-alloc"></div>
+                        </div>
+                        <div class="ic-chart-box">
+                            <h4>Profit / Loss by Holding</h4>
+                            <div id="chart-pl"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ic-section">
+                    <h3>Settings</h3>
+                    <div class="ic-form-row">
+                        <div>
+                            <label for="set-currency">Display Currency</label>
+                            <select id="set-currency">
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (&euro;)</option>
+                                <option value="GBP">GBP (&pound;)</option>
+                                <option value="INR">INR (&#8377;)</option>
+                                <option value="JPY">JPY (&yen;)</option>
+                                <option value="CNY">CNY (&yen;)</option>
+                                <option value="AUD">AUD ($)</option>
+                                <option value="CAD">CAD ($)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="set-fx">FX Rate (1 USD = )</label>
+                            <input id="set-fx" type="number" step="any" min="0" value="1" placeholder="1.0">
+                        </div>
+                        <div>
+                            <label>&nbsp;</label>
+                            <button onclick="saveSettings()" class="btn">Save Settings</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>What is the Investment Calculator?</h3>
+                <p>The Investment Calculator is a free, no signup browser tool that tracks your stock, ETF, crypto, and bond holdings across multiple buy lots. It calculates profit and loss using your choice of cost basis method, tracks dividends, and gives you a real time view of how your portfolio is doing. Everything stays in your browser through local storage, so your financial data is never uploaded or shared.</p>
+
+                <h3>How It Works</h3>
+                <p>Start by adding a holding with the ticker symbol, the number of shares you bought, the price per share, the date, and any broker fees. You can add the same symbol again later if you bought more at a different price, and the tool will treat each purchase as a separate lot. Then enter the current market price whenever you want an updated portfolio value. The calculator does all the math: average cost basis, unrealized profit, realized profit from any sales, dividend yield, total return, and percentage ROI.</p>
+
+                <h3>Cost Basis Methods Explained</h3>
+                <p>Cost basis is what you actually paid for an investment, including fees. The tool supports three methods. Average Cost adds up all your buy prices weighted by share count and divides, giving one blended cost per share. FIFO, or First In First Out, assumes the shares you sell came from the oldest lot first, which often lowers your taxable gain when prices have risen. LIFO, or Last In First Out, assumes the newest shares were sold first. Average Cost is the simplest and is the default in many brokers. FIFO is required by the IRS in the United States for most stocks unless you specifically elect Average Cost for mutual funds.</p>
+
+                <h3>Realized vs Unrealized Profit</h3>
+                <p>Unrealized profit is the gain or loss on shares you still own, calculated against the current market price. It is paper profit that becomes real only when you sell. Realized profit is locked in once you sell shares. The Investment Calculator tracks both. When you use the Sell action, the tool removes shares from your open lots using your chosen cost basis method and books the realized profit or loss. Your running total appears in the summary cards at the top.</p>
+
+                <h3>Why a Browser-Based Tool</h3>
+                <p>Most online portfolio trackers require an account, sell your data to brokers, or charge for advanced features like FIFO cost basis or dividend tracking. This calculator runs entirely in your browser. Holdings, prices, and dividends are saved to local storage on your device, so they survive page reloads but never leave your computer. You can export to JSON or CSV anytime to back up your data or import it into a spreadsheet for tax filing.</p>
+
+                <h3>Real-World Use Cases</h3>
+                <ul>
+                    <li><strong>Day traders and swing traders:</strong> Quickly enter buy and sell prices with fees to see exact net profit across multiple lots</li>
+                    <li><strong>Long term investors:</strong> Track dividend income and total return for retirement accounts or taxable brokerage accounts</li>
+                    <li><strong>Crypto holders:</strong> Use the tool for Bitcoin, Ethereum, or altcoin holdings bought at different prices across exchanges</li>
+                    <li><strong>Tax preparation:</strong> Export your realized trades to CSV at year end and feed into your tax software</li>
+                    <li><strong>Comparison shopping:</strong> Compare FIFO versus Average Cost methods to see which gives a more favorable outcome for your situation</li>
+                    <li><strong>Teaching and learning:</strong> Show students or new investors how cost basis, dividends, and ROI work with real numbers</li>
+                </ul>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>How is profit calculated for a single holding?</summary>
+                    <p>For each holding, the tool multiplies your shares by the current price to get market value, subtracts total cost including fees, and divides by total cost to get the return percentage. If you have multiple buy lots, the cost basis is calculated using your selected method, average cost, FIFO, or LIFO. The result is split into realized profit (already sold) and unrealized profit (still held).</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is the difference between ROI and total return?</summary>
+                    <p>ROI, or return on investment, is the percentage gain or loss on your invested capital. Total return includes both price appreciation and dividends received. For example, if you invested $1000, the position is now worth $1100, and you collected $30 in dividends, your ROI is 10 percent and your total return is 13 percent. The calculator shows both numbers.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How does the dividend yield work?</summary>
+                    <p>Dividend yield is the annual dividend income divided by the current market value of the holding. When you add a dividend payment, the tool records the amount per share and the date. The yield is recalculated using the most recent annual payout or the sum of the last four quarterly payments, divided by your current price.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is my portfolio data sent to a server?</summary>
+                    <p>No. All data stays in your browser using local storage. The page never makes API calls to send your holdings, prices, or transactions anywhere. You can clear everything anytime with the Reset Portfolio button, or export to JSON for backup before clearing your browser data.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I use this for crypto and stocks at the same time?</summary>
+                    <p>Yes. The Asset Type field lets you tag each holding as stock, crypto, ETF, bond, or other. The math is identical, but the labels help when you export to CSV or review your allocation. Crypto holdings in particular benefit from the multi-lot support because most people buy coins at different prices across months or years.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why does the cost basis method matter?</summary>
+                    <p>Different methods can give very different realized profit numbers, which directly affects your tax bill. FIFO usually produces a higher gain when prices have risen over time because the oldest shares had the lowest cost. Average Cost smooths things out. LIFO often produces the smallest taxable gain in a rising market. Check with a tax professional for your specific situation, but the calculator lets you see all three side by side.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How do I update prices across all holdings?</summary>
+                    <p>Currently you update prices one holding at a time using the Update Current Price action. For a bulk import, use the JSON or CSV import buttons. Each row should include the symbol, current price, and any updated fields. The tool will merge without duplicating existing lots.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What happens if I clear my browser data?</summary>
+                    <p>Your portfolio is stored in local storage in your browser. If you clear site data or use a private browsing window, the holdings will be gone. To prevent loss, export to JSON regularly. The exported file can be re-imported on the same or a different browser, with no server needed.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function() {
+        const STORAGE_KEY = 'ic_portfolio_v1';
+        const SETTINGS_KEY = 'ic_settings_v1';
+        const CURRENCY_SYMBOLS = { USD: '$', EUR: '\u20ac', GBP: '\u00a3', INR: '\u20b9', JPY: '\u00a5', CNY: '\u00a5', AUD: 'A$', CAD: 'C$' };
+
+        let state = {
+            holdings: [],
+            sells: [],
+            dividends: []
+        };
+        let settings = { currency: 'USD', fxRate: 1 };
+
+        function fmt(num) {
+            if (!isFinite(num)) num = 0;
+            const sym = CURRENCY_SYMBOLS[settings.currency] || '$';
+            const v = num * settings.fxRate;
+            const abs = Math.abs(v);
+            let str;
+            if (abs >= 1000) str = v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            else if (abs >= 1) str = v.toFixed(2);
+            else str = v.toFixed(4);
+            return sym + str;
+        }
+        function fmtPct(num) {
+            if (!isFinite(num)) num = 0;
+            return (num >= 0 ? '+' : '') + (num * 100).toFixed(2) + '%';
+        }
+        function fmtSigned(num) {
+            if (!isFinite(num)) num = 0;
+            const sym = CURRENCY_SYMBOLS[settings.currency] || '$';
+            const v = num * settings.fxRate;
+            return (v >= 0 ? '+' : '-') + sym + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        function showStatus(id, msg, type) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'status' + (type ? ' ' + type : '');
+            if (type === 'success' || type === 'error') {
+                setTimeout(function() { el.textContent = ''; el.className = 'status'; }, 3500);
+            }
+        }
+        function uid() {
+            return 'h_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+        }
+
+        function save() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {
+                showStatus('form-status', 'Local storage error: ' + e.message, 'error');
+            }
+        }
+        function load() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) state = Object.assign({ holdings: [], sells: [], dividends: [] }, JSON.parse(raw));
+            } catch (e) {}
+            try {
+                const rs = localStorage.getItem(SETTINGS_KEY);
+                if (rs) settings = Object.assign(settings, JSON.parse(rs));
+            } catch (e) {}
+        }
+
+        function groupLotsBySymbol() {
+            const groups = {};
+            for (const lot of state.holdings) {
+                const key = lot.symbol.toUpperCase();
+                if (!groups[key]) groups[key] = { symbol: key, type: lot.type, lots: [], currentPrice: lot.currentPrice || 0, totalDividends: 0 };
+                groups[key].lots.push(lot);
+            }
+            for (const key in groups) {
+                const g = groups[key];
+                const lots = g.lots.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+                let totalShares = 0;
+                let totalCost = 0;
+                let totalFees = 0;
+                for (const lot of lots) {
+                    totalShares += lot.shares;
+                    totalCost += lot.shares * lot.price;
+                    totalFees += (lot.fees || 0);
+                }
+                g.totalShares = totalShares;
+                g.totalCost = totalCost;
+                g.totalFees = totalFees;
+                g.avgCost = totalShares > 0 ? (totalCost + totalFees) / totalShares : 0;
+                g.marketValue = totalShares * (g.currentPrice || 0);
+                g.unrealized = g.marketValue - (totalCost + totalFees);
+                g.unrealizedPct = totalCost + totalFees > 0 ? g.unrealized / (totalCost + totalFees) : 0;
+                g.realized = state.sells.filter(function(s) { return s.symbol === key; }).reduce(function(a, s) { return a + s.pnl; }, 0);
+                g.dividends = state.dividends.filter(function(d) { return d.symbol === key; }).reduce(function(a, d) { return a + d.amount; }, 0);
+                g.totalReturn = g.unrealized + g.realized + g.dividends;
+                g.totalReturnPct = totalCost + totalFees > 0 ? g.totalReturn / (totalCost + totalFees) : 0;
+            }
+            return Object.values(groups);
+        }
+
+        function render() {
+            const groups = groupLotsBySymbol();
+            const totalInvested = groups.reduce(function(a, g) { return a + g.totalCost + g.totalFees; }, 0);
+            const marketValue = groups.reduce(function(a, g) { return a + g.marketValue; }, 0);
+            const unrealized = groups.reduce(function(a, g) { return a + g.unrealized; }, 0);
+            const realized = groups.reduce(function(a, g) { return a + g.realized; }, 0);
+            const dividends = groups.reduce(function(a, g) { return a + g.dividends; }, 0);
+            const totalReturn = unrealized + realized + dividends;
+            const totalReturnPct = totalInvested > 0 ? totalReturn / totalInvested : 0;
+
+            document.getElementById('sum-invested').textContent = fmt(totalInvested);
+            document.getElementById('sum-value').textContent = fmt(marketValue);
+            document.getElementById('sum-unrealized').textContent = fmtSigned(unrealized);
+            document.getElementById('sum-unrealized-pct').textContent = fmtPct(unrealized / Math.max(totalInvested, 1));
+            document.getElementById('sum-realized').textContent = fmtSigned(realized);
+            document.getElementById('sum-sells').textContent = state.sells.length + ' closed trades';
+            document.getElementById('sum-total').textContent = fmtSigned(totalReturn);
+            document.getElementById('sum-total-pct').textContent = fmtPct(totalReturnPct) + ' ROI';
+            document.getElementById('sum-div').textContent = fmt(dividends);
+            document.getElementById('sum-yield').textContent = totalInvested > 0 ? ((dividends / totalInvested) * 100).toFixed(2) + '% yield' : '0.00% yield';
+            document.getElementById('sum-holdings').textContent = groups.length + ' unique symbol' + (groups.length !== 1 ? 's' : '') + ', ' + state.holdings.length + ' lot' + (state.holdings.length !== 1 ? 's' : '');
+
+            document.getElementById('card-unrealized').classList.toggle('green', unrealized >= 0);
+            document.getElementById('card-unrealized').classList.toggle('red', unrealized < 0);
+            document.getElementById('card-realized').classList.toggle('green', realized >= 0);
+            document.getElementById('card-realized').classList.toggle('red', realized < 0);
+
+            renderHoldings(groups);
+            renderSymbolDropdown(groups);
+            renderCharts(groups);
+            save();
+        }
+
+        function renderHoldings(groups) {
+            const wrap = document.getElementById('holdings-wrap');
+            if (groups.length === 0) {
+                wrap.innerHTML = '<p class="ic-empty">No holdings yet. Add one above or load the sample portfolio to see how it works.</p>';
+                return;
+            }
+            let html = '<div style="overflow-x:auto"><table class="ic-table"><thead><tr>';
+            html += '<th>Symbol</th><th>Type</th><th>Lots</th><th>Shares</th><th>Avg Cost</th><th>Current</th><th>Market Value</th><th>Unrealized P/L</th><th>Realized P/L</th><th>Div Income</th><th>Total Return</th><th>Actions</th>';
+            html += '</tr></thead><tbody>';
+            groups.sort(function(a, b) { return b.marketValue - a.marketValue; });
+            for (const g of groups) {
+                html += '<tr>';
+                html += '<td class="symbol">' + esc(g.symbol) + '</td>';
+                html += '<td>' + esc(g.type) + '</td>';
+                html += '<td>' + g.lots.length + '</td>';
+                html += '<td>' + g.totalShares.toLocaleString('en-US', { maximumFractionDigits: 4 }) + '</td>';
+                html += '<td>' + fmt(g.avgCost) + '</td>';
+                html += '<td>' + (g.currentPrice ? fmt(g.currentPrice) : '<span style="color:#94a3b8">unset</span>') + '</td>';
+                html += '<td>' + fmt(g.marketValue) + '</td>';
+                html += '<td class="' + (g.unrealized >= 0 ? 'ic-pos' : 'ic-neg') + '">' + fmtSigned(g.unrealized) + ' <span style="font-size:0.78rem">(' + fmtPct(g.unrealizedPct) + ')</span></td>';
+                html += '<td class="' + (g.realized >= 0 ? 'ic-pos' : 'ic-neg') + '">' + fmtSigned(g.realized) + '</td>';
+                html += '<td class="' + (g.dividends >= 0 ? 'ic-pos' : 'ic-neg') + '">' + fmt(g.dividends) + '</td>';
+                html += '<td class="' + (g.totalReturn >= 0 ? 'ic-pos' : 'ic-neg') + '">' + fmtSigned(g.totalReturn) + ' <span style="font-size:0.78rem">(' + fmtPct(g.totalReturnPct) + ')</span></td>';
+                html += '<td><button class="ic-mini-btn" onclick="quickUpdate(\'' + esc(g.symbol) + '\')">Price</button><button class="ic-mini-btn danger" onclick="quickDelete(\'' + esc(g.symbol) + '\')">Delete</button></td>';
+                html += '</tr>';
+            }
+            html += '</tbody></table></div>';
+            html += '<div class="ic-div-list">Total portfolio cost: ' + fmt(groups.reduce(function(a, g) { return a + g.totalCost + g.totalFees; }, 0)) + '</div>';
+            wrap.innerHTML = html;
+        }
+
+        function renderSymbolDropdown(groups) {
+            const sel = document.getElementById('act-symbol');
+            const cur = sel.value;
+            sel.innerHTML = '<option value="">Select holding</option>';
+            for (const g of groups) {
+                const o = document.createElement('option');
+                o.value = g.symbol;
+                o.textContent = g.symbol + ' (' + g.totalShares + ' sh @ ' + fmt(g.avgCost) + ')';
+                sel.appendChild(o);
+            }
+            if (cur) sel.value = cur;
+        }
+
+        function renderCharts(groups) {
+            const alloc = document.getElementById('chart-alloc');
+            const pl = document.getElementById('chart-pl');
+            if (groups.length === 0) {
+                alloc.innerHTML = '<p class="ic-empty">No data yet.</p>';
+                pl.innerHTML = '<p class="ic-empty">No data yet.</p>';
+                return;
+            }
+            const total = groups.reduce(function(a, g) { return a + g.marketValue; }, 0) || 1;
+            let allocHtml = '';
+            for (const g of groups) {
+                const pct = total > 0 ? (g.marketValue / total) * 100 : 0;
+                allocHtml += '<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:#b3b8c0"><span>' + esc(g.symbol) + '</span><span>' + pct.toFixed(1) + '%</span></div>';
+                allocHtml += '<div class="ic-bar"><div class="ic-bar-fill" style="width:' + pct.toFixed(1) + '%">' + fmt(g.marketValue) + '</div></div>';
+            }
+            alloc.innerHTML = allocHtml;
+
+            let plHtml = '';
+            const sorted = groups.slice().sort(function(a, b) { return (b.unrealized + b.realized) - (a.unrealized + a.realized); });
+            const max = Math.max.apply(null, sorted.map(function(g) { return Math.abs(g.unrealized + g.realized); }).concat([1]));
+            for (const g of sorted) {
+                const total = g.unrealized + g.realized + g.dividends;
+                const pct = (Math.abs(total) / max) * 100;
+                const cls = total >= 0 ? 'pos' : 'neg';
+                plHtml += '<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:#b3b8c0"><span>' + esc(g.symbol) + '</span><span>' + fmtSigned(total) + '</span></div>';
+                plHtml += '<div class="ic-bar"><div class="ic-bar-fill ' + cls + '" style="width:' + pct.toFixed(1) + '%">' + fmtSigned(total) + '</div></div>';
+            }
+            pl.innerHTML = plHtml;
+        }
+
+        function esc(s) {
+            if (s === null || s === undefined) return '';
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        window.addHolding = function() {
+            const symbol = document.getElementById('f-symbol').value.trim().toUpperCase();
+            const type = document.getElementById('f-type').value;
+            const date = document.getElementById('f-date').value || new Date().toISOString().slice(0, 10);
+            const shares = parseFloat(document.getElementById('f-shares').value);
+            const price = parseFloat(document.getElementById('f-price').value);
+            const fees = parseFloat(document.getElementById('f-fees').value) || 0;
+            if (!symbol) return showStatus('form-status', 'Please enter a symbol', 'error');
+            if (!isFinite(shares) || shares <= 0) return showStatus('form-status', 'Shares must be greater than 0', 'error');
+            if (!isFinite(price) || price < 0) return showStatus('form-status', 'Buy price must be 0 or greater', 'error');
+            if (!isFinite(fees) || fees < 0) return showStatus('form-status', 'Fees must be 0 or greater', 'error');
+
+            const existing = state.holdings.find(function(h) { return h.symbol === symbol; });
+            const currentPrice = existing ? existing.currentPrice : price;
+            state.holdings.push({
+                id: uid(),
+                symbol: symbol,
+                type: type,
+                date: date,
+                shares: shares,
+                price: price,
+                fees: fees,
+                currentPrice: currentPrice
+            });
+            document.getElementById('f-symbol').value = '';
+            document.getElementById('f-shares').value = '';
+            document.getElementById('f-price').value = '';
+            document.getElementById('f-fees').value = '0';
+            showStatus('form-status', 'Added ' + shares + ' shares of ' + symbol, 'success');
+            render();
+        };
+
+        window.loadSample = function() {
+            if (state.holdings.length > 0) {
+                if (!confirm('This will replace your current portfolio. Continue?')) return;
+            }
+            state.holdings = [
+                { id: uid(), symbol: 'AAPL', type: 'stock', date: '2024-03-15', shares: 20, price: 170.50, fees: 1.00, currentPrice: 195.00 },
+                { id: uid(), symbol: 'AAPL', type: 'stock', date: '2024-09-10', shares: 10, price: 220.00, fees: 1.00, currentPrice: 195.00 },
+                { id: uid(), symbol: 'MSFT', type: 'stock', date: '2023-11-20', shares: 15, price: 370.00, fees: 1.00, currentPrice: 420.00 },
+                { id: uid(), symbol: 'BTC', type: 'crypto', date: '2024-01-05', shares: 0.1, price: 44000, fees: 5, currentPrice: 62000 },
+                { id: uid(), symbol: 'BTC', type: 'crypto', date: '2024-07-22', shares: 0.05, price: 65000, fees: 3, currentPrice: 62000 },
+                { id: uid(), symbol: 'VTI', type: 'etf', date: '2023-06-01', shares: 25, price: 215.00, fees: 0, currentPrice: 260.00 }
+            ];
+            state.sells = [
+                { id: uid(), symbol: 'TSLA', date: '2024-04-12', shares: 5, sellPrice: 175.00, costBasis: 900.00, pnl: -25.00 }
+            ];
+            state.dividends = [
+                { id: uid(), symbol: 'AAPL', date: '2024-08-15', amount: 4.80 },
+                { id: uid(), symbol: 'MSFT', date: '2024-09-12', amount: 9.00 },
+                { id: uid(), symbol: 'VTI', date: '2024-09-20', amount: 17.50 }
+            ];
+            showStatus('form-status', 'Sample portfolio loaded (5 holdings, 1 closed trade, 3 dividends)', 'success');
+            render();
+        };
+
+        window.exportJSON = function() {
+            const blob = new Blob([JSON.stringify({ state: state, settings: settings, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'investment-portfolio-' + new Date().toISOString().slice(0, 10) + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatus('form-status', 'Exported to JSON file', 'success');
+        };
+
+        window.exportCSV = function() {
+            const rows = [['symbol', 'type', 'date', 'shares', 'buy_price', 'fees', 'current_price', 'cost_basis', 'market_value', 'unrealized_pl', 'realized_pl', 'dividends', 'total_return']];
+            const groups = groupLotsBySymbol();
+            for (const g of groups) {
+                for (const lot of g.lots) {
+                    const lotCost = lot.shares * lot.price + (lot.fees || 0);
+                    rows.push([lot.symbol, lot.type, lot.date, lot.shares, lot.price, lot.fees || 0, lot.currentPrice || 0, lotCost.toFixed(2), (lot.shares * (lot.currentPrice || 0)).toFixed(2), '', '', '', '']);
+                }
+                const symbolRealized = state.sells.filter(function(s) { return s.symbol === g.symbol; }).map(function(s) { return s.pnl.toFixed(2); }).join(';');
+                const symbolDivs = state.dividends.filter(function(d) { return d.symbol === g.symbol; }).map(function(d) { return d.amount.toFixed(2); }).join(';');
+                rows.push([g.symbol + ' TOTAL', g.type, '', g.totalShares, g.avgCost.toFixed(2), g.totalFees.toFixed(2), g.currentPrice || 0, (g.totalCost + g.totalFees).toFixed(2), g.marketValue.toFixed(2), g.unrealized.toFixed(2), g.realized.toFixed(2), symbolDivs, g.totalReturn.toFixed(2)]);
+            }
+            for (const s of state.sells) {
+                rows.push(['SELL ' + s.symbol, '', s.date, s.shares, s.sellPrice, '', '', s.costBasis.toFixed(2), '', '', s.pnl.toFixed(2), '', '']);
+            }
+            for (const d of state.dividends) {
+                rows.push(['DIV ' + d.symbol, '', d.date, '', '', '', '', '', '', '', '', d.amount.toFixed(2), '']);
+            }
+            const csv = rows.map(function(r) { return r.map(function(c) { return String(c).includes(',') ? '"' + String(c).replace(/"/g, '""') + '"' : c; }).join(','); }).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'investment-portfolio-' + new Date().toISOString().slice(0, 10) + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatus('form-status', 'Exported to CSV file', 'success');
+        };
+
+        window.resetAll = function() {
+            if (!confirm('Delete all holdings, sells, dividends, and settings? This cannot be undone.')) return;
+            state = { holdings: [], sells: [], dividends: [] };
+            settings = { currency: 'USD', fxRate: 1 };
+            document.getElementById('set-currency').value = 'USD';
+            document.getElementById('set-fx').value = '1';
+            render();
+            showStatus('act-status', 'Portfolio reset', 'success');
+        };
+
+        window.toggleActionForm = function() {
+            const action = document.getElementById('act-action').value;
+            const lbl = document.getElementById('act-shares-label');
+            const inp = document.getElementById('act-shares');
+            const dw = document.getElementById('act-date-wrap');
+            if (action === 'update') { lbl.textContent = 'Current Price'; inp.placeholder = '190.00'; dw.style.display = 'none'; }
+            else if (action === 'sell') { lbl.textContent = 'Shares to Sell'; inp.placeholder = '5'; dw.style.display = ''; }
+            else if (action === 'div') { lbl.textContent = 'Dividend / Share'; inp.placeholder = '0.24'; dw.style.display = ''; }
+            else { lbl.textContent = 'Confirm'; inp.placeholder = '0'; dw.style.display = 'none'; }
+        };
+
+        window.runAction = function() {
+            const symbol = document.getElementById('act-symbol').value;
+            const action = document.getElementById('act-action').value;
+            const num = parseFloat(document.getElementById('act-shares').value);
+            const date = document.getElementById('act-date').value || new Date().toISOString().slice(0, 10);
+            const method = document.getElementById('act-method').value;
+            if (!symbol) return showStatus('act-status', 'Pick a symbol first', 'error');
+
+            if (action === 'update') {
+                if (!isFinite(num) || num < 0) return showStatus('act-status', 'Enter a valid price', 'error');
+                let count = 0;
+                for (const h of state.holdings) {
+                    if (h.symbol === symbol) { h.currentPrice = num; count++; }
+                }
+                render();
+                return showStatus('act-status', 'Updated price for ' + count + ' lot' + (count !== 1 ? 's' : ''), 'success');
+            }
+
+            if (action === 'sell') {
+                if (!isFinite(num) || num <= 0) return showStatus('act-status', 'Enter shares to sell', 'error');
+                const lots = state.holdings.filter(function(h) { return h.symbol === symbol; });
+                const totalShares = lots.reduce(function(a, h) { return a + h.shares; }, 0);
+                if (num > totalShares + 0.0001) return showStatus('act-status', 'You only own ' + totalShares + ' shares', 'error');
+                const sellPrice = parseFloat(prompt('Sell price per share for ' + num + ' shares of ' + symbol + '?', '200'));
+                if (!isFinite(sellPrice) || sellPrice <= 0) return showStatus('act-status', 'Invalid sell price', 'error');
+                const sorted = lots.slice().sort(function(a, b) {
+                    if (method === 'fifo') return new Date(a.date) - new Date(b.date);
+                    if (method === 'lifo') return new Date(b.date) - new Date(a.date);
+                    return 0;
+                });
+                let remaining = num;
+                let costBasis = 0;
+                for (const lot of sorted) {
+                    if (remaining <= 0) break;
+                    const take = Math.min(remaining, lot.shares);
+                    const feeShare = (lot.fees || 0) * (take / lot.shares);
+                    costBasis += take * lot.price + feeShare;
+                    remaining -= take;
+                }
+                const sellProceeds = num * sellPrice;
+                const pnl = sellProceeds - costBasis;
+                state.sells.push({ id: uid(), symbol: symbol, date: date, shares: num, sellPrice: sellPrice, costBasis: costBasis, pnl: pnl, method: method });
+                let leftToRemove = num;
+                for (const lot of sorted) {
+                    if (leftToRemove <= 0) break;
+                    const take = Math.min(leftToRemove, lot.shares);
+                    lot.shares -= take;
+                    leftToRemove -= take;
+                }
+                state.holdings = state.holdings.filter(function(h) { return h.shares > 0.0000001; });
+                render();
+                return showStatus('act-status', 'Sold ' + num + ' shares of ' + symbol + ' (' + method.toUpperCase() + '), realized ' + fmtSigned(pnl), 'success');
+            }
+
+            if (action === 'div') {
+                if (!isFinite(num) || num < 0) return showStatus('act-status', 'Enter dividend per share', 'error');
+                const totalShares = state.holdings.filter(function(h) { return h.symbol === symbol; }).reduce(function(a, h) { return a + h.shares; }, 0);
+                if (totalShares <= 0) return showStatus('act-status', 'No shares for dividend calc', 'error');
+                const amount = num * totalShares;
+                state.dividends.push({ id: uid(), symbol: symbol, date: date, perShare: num, amount: amount });
+                render();
+                return showStatus('act-status', 'Added ' + fmt(amount) + ' dividend for ' + symbol, 'success');
+            }
+
+            if (action === 'delete') {
+                if (!confirm('Delete all lots of ' + symbol + '? This also removes sells and dividends for this symbol.')) return;
+                state.holdings = state.holdings.filter(function(h) { return h.symbol !== symbol; });
+                state.sells = state.sells.filter(function(s) { return s.symbol !== symbol; });
+                state.dividends = state.dividends.filter(function(d) { return d.symbol !== symbol; });
+                render();
+                return showStatus('act-status', 'Deleted ' + symbol, 'success');
+            }
+        };
+
+        window.quickUpdate = function(symbol) {
+            document.getElementById('act-symbol').value = symbol;
+            document.getElementById('act-action').value = 'update';
+            toggleActionForm();
+            document.getElementById('act-shares').focus();
+        };
+
+        window.quickDelete = function(symbol) {
+            if (!confirm('Delete all lots of ' + symbol + '?')) return;
+            state.holdings = state.holdings.filter(function(h) { return h.symbol !== symbol; });
+            state.sells = state.sells.filter(function(s) { return s.symbol !== symbol; });
+            state.dividends = state.dividends.filter(function(d) { return d.symbol !== symbol; });
+            render();
+        };
+
+        window.saveSettings = function() {
+            settings.currency = document.getElementById('set-currency').value;
+            const fx = parseFloat(document.getElementById('set-fx').value);
+            if (isFinite(fx) && fx > 0) settings.fxRate = fx;
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            render();
+            showStatus('act-status', 'Settings saved', 'success');
+        };
+
+        document.getElementById('file-import').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (data.state) state = data.state;
+                    else if (data.holdings) state = data;
+                    if (data.settings) settings = Object.assign(settings, data.settings);
+                    showStatus('form-status', 'Imported portfolio from JSON', 'success');
+                    render();
+                } catch (err) {
+                    showStatus('form-status', 'Invalid JSON: ' + err.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+
+        document.getElementById('file-import-csv').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const text = ev.target.result;
+                    const lines = text.split(/\r?\n/).filter(function(l) { return l.trim().length > 0; });
+                    if (lines.length < 2) return showStatus('form-status', 'CSV needs header + at least one row', 'error');
+                    const headers = lines[0].split(',').map(function(h) { return h.trim().toLowerCase(); });
+                    let added = 0;
+                    for (let i = 1; i < lines.length; i++) {
+                        const cells = lines[i].split(',').map(function(c) { return c.replace(/^"|"$/g, '').trim(); });
+                        if (cells.length < 4) continue;
+                        const row = {};
+                        for (let j = 0; j < headers.length; j++) row[headers[j]] = cells[j];
+                        if (!row.symbol || !row.shares || !row.buy_price) continue;
+                        if (isNaN(parseFloat(row.shares)) || isNaN(parseFloat(row.buy_price))) continue;
+                        state.holdings.push({
+                            id: uid(),
+                            symbol: row.symbol.toUpperCase(),
+                            type: row.type || 'stock',
+                            date: row.date || new Date().toISOString().slice(0, 10),
+                            shares: parseFloat(row.shares),
+                            price: parseFloat(row.buy_price),
+                            fees: parseFloat(row.fees) || 0,
+                            currentPrice: parseFloat(row.current_price) || parseFloat(row.buy_price)
+                        });
+                        added++;
+                    }
+                    showStatus('form-status', 'Imported ' + added + ' rows from CSV', 'success');
+                    render();
+                } catch (err) {
+                    showStatus('form-status', 'CSV error: ' + err.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+
+        load();
+        document.getElementById('set-currency').value = settings.currency;
+        document.getElementById('set-fx').value = settings.fxRate;
+        document.getElementById('f-date').value = new Date().toISOString().slice(0, 10);
+        render();
+    })();
+    </script>
+</body>
+</html>

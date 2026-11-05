@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Printable Calendar Generator - Free PDF | DevTools Hub</title>
+    <meta name="description" content="Free printable calendar generator. Monthly or yearly calendars with US federal holidays, week numbers and Monday-Sunday start. Print-ready PDF, no signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/printable-calendar-generator/">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <meta property="og:title" content="Printable Calendar Generator - Free PDF">
+    <meta property="og:description" content="Free printable calendar generator. Monthly or yearly calendars with US federal holidays, week numbers and Monday-Sunday start. Print-ready PDF, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/printable-calendar-generator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Printable Calendar Generator - Free PDF">
+    <meta name="twitter:description" content="Free printable calendar generator. Monthly or yearly calendars with US federal holidays, week numbers and Monday-Sunday start. Print-ready PDF, no signup.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/printable-calendar-generator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-08-20","dateModified":"2026-08-20","author":{"@type":"Person","name":"BAOMING"},"name":"Printable Calendar Generator","description":"Free printable calendar generator that builds monthly, quarterly or full-year print-ready calendars for any year from 1800 to 2199. Includes US federal holidays with official observed dates, ISO 8601 week numbers, Monday or Sunday week start, and weekend shading. Everything is computed in the browser and prints as a clean PDF with no signup or watermark.","url":"https://tools.scoreroute.com/tools/printable-calendar-generator/","applicationCategory":"UtilitiesApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        :root {
+            --pc-bg: #0f0f23;
+            --pc-card: #1a1a2e;
+            --pc-border: #2a2a4a;
+            --pc-primary: #667eea;
+            --pc-success: #10b981;
+            --pc-warn: #f59e0b;
+            --pc-danger: #ef4444;
+            --pc-muted: #888;
+            --pc-text: #fff;
+        }
+        .pc-panel {
+            background: var(--pc-bg);
+            border: 1px solid var(--pc-border);
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 18px;
+        }
+        .pc-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .pc-field label {
+            display: block;
+            color: var(--pc-muted);
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        .pc-field input,
+        .pc-field select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            background: var(--pc-card);
+            border: 1px solid var(--pc-border);
+            border-radius: 8px;
+            color: var(--pc-text);
+            font-size: 0.9rem;
+        }
+        .pc-field input:focus, .pc-field select:focus {
+            outline: 2px solid var(--pc-primary);
+            border-color: transparent;
+        }
+        .pc-checkrow {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 4px 0 14px;
+        }
+        .pc-checkrow label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--pc-text);
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .pc-checkrow input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--pc-primary);
+        }
+        .pc-gridwrap {
+            display: grid;
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .pc-gridwrap.year { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+        .pc-gridwrap.quarter { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .pc-gridwrap.single { max-width: 760px; margin: 16px auto 0; }
+        .pc-month {
+            background: var(--pc-bg);
+            border: 1px solid var(--pc-border);
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .pc-month-title {
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--pc-primary);
+            margin-bottom: 6px;
+        }
+        .pc-row {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            border-top: 1px solid var(--pc-border);
+        }
+        .pc-row.pc-has-wn { grid-template-columns: 30px repeat(7, 1fr); }
+        .pc-dow {
+            text-align: center;
+            font-size: 0.68rem;
+            color: var(--pc-muted);
+            font-weight: 600;
+            padding: 5px 0;
+        }
+        .pc-day {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 54px;
+            padding: 4px 2px;
+            font-size: 0.8rem;
+            color: var(--pc-text);
+            border-right: 1px solid var(--pc-border);
+        }
+        .pc-row > .pc-day:last-child { border-right: none; }
+        .pc-day.pc-empty { opacity: 0.08; }
+        .pc-day.pc-weekend { background: rgba(102, 126, 234, 0.08); }
+        .pc-day.pc-holiday { background: rgba(16, 185, 129, 0.14); }
+        .pc-day.pc-today { outline: 2px solid var(--pc-primary); border-radius: 6px; }
+        .pc-day b { font-weight: 600; }
+        .pc-day i {
+            font-style: normal;
+            font-size: 0.6rem;
+            color: var(--pc-success);
+            margin-top: 2px;
+            text-align: center;
+            line-height: 1.15;
+        }
+        .pc-compact .pc-day { min-height: 32px; font-size: 0.7rem; padding: 2px; }
+        .pc-compact .pc-day i { display: none; }
+        .pc-wn {
+            text-align: center;
+            font-size: 0.62rem;
+            color: var(--pc-muted);
+            padding-top: 5px;
+            border-right: 1px solid var(--pc-border);
+            background: var(--pc-card);
+        }
+        .pc-head-wn { font-weight: 700; }
+        .pc-legend { margin-top: 14px; font-size: 0.75rem; color: var(--pc-muted); }
+        .pc-legend-title { font-weight: 600; margin-bottom: 6px; }
+        .pc-legend-items span { display: inline-block; margin: 0 12px 4px 0; }
+        .pc-preview-empty {
+            color: var(--pc-muted);
+            text-align: center;
+            padding: 40px 10px;
+            border: 1px dashed var(--pc-border);
+            border-radius: 10px;
+            margin-top: 16px;
+            font-size: 0.9rem;
+        }
+        .pc-tip {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid var(--pc-success);
+            color: var(--pc-success);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            margin: 8px 0;
+        }
+        #pc-print-area { display: none; }
+        @media (max-width: 640px) {
+            .pc-gridwrap.year, .pc-gridwrap.quarter { grid-template-columns: 1fr; }
+        }
+        @media print {
+            body > header, body > footer, main.container { display: none !important; }
+            #pc-print-area {
+                display: block !important;
+                color: #111;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            }
+            @page { margin: 10mm; }
+            #pc-print-area .pc-gridwrap { display: grid; gap: 12px; margin: 0; }
+            #pc-print-area .pc-gridwrap.year { grid-template-columns: repeat(2, 1fr); }
+            #pc-print-area .pc-gridwrap.quarter { grid-template-columns: repeat(3, 1fr); }
+            #pc-print-area .pc-gridwrap.single { grid-template-columns: 1fr; max-width: 100%; }
+            #pc-print-area .pc-month {
+                background: #fff;
+                border: 1px solid #888;
+                border-radius: 4px;
+                color: #111;
+                padding: 7px;
+                margin: 0;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            #pc-print-area .pc-month-title { color: #000; font-size: 13px; margin-bottom: 4px; }
+            #pc-print-area .pc-dow { color: #555; font-size: 8px; padding: 3px 0; }
+            #pc-print-area .pc-row { border-top: 1px solid #999; }
+            #pc-print-area .pc-day {
+                color: #111;
+                border-right: 1px solid #ddd;
+                min-height: 40px;
+                font-size: 10px;
+                padding: 2px;
+            }
+            #pc-print-area .pc-day.pc-weekend { background: #eef1f7; }
+            #pc-print-area .pc-day.pc-holiday { background: #e7f3ea; }
+            #pc-print-area .pc-day.pc-today { outline: 2px solid #333; }
+            #pc-print-area .pc-day i { color: #1b5e20; font-size: 7px; }
+            #pc-print-area .pc-compact .pc-day { min-height: 26px; font-size: 8px; }
+            #pc-print-area .pc-wn {
+                color: #888;
+                border-right: 1px solid #ddd;
+                background: #fafafa;
+                font-size: 7px;
+                padding-top: 3px;
+            }
+            #pc-print-area .pc-head-wn { font-weight: 700; }
+            #pc-print-area .pc-printhead { text-align: center; margin-bottom: 12px; }
+            #pc-print-area .pc-print-title { font-size: 22px; font-weight: 700; color: #000; }
+            #pc-print-area .pc-print-sub { font-size: 11px; color: #666; margin-top: 2px; }
+            #pc-print-area .pc-legend { color: #444; margin-top: 12px; font-size: 9px; }
+            #pc-print-area .pc-legend-title { font-weight: 700; }
+            #pc-print-area .pc-printfoot { margin-top: 10px; font-size: 8px; color: #999; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Printable Calendar Generator</h1>
+            <p class="subtitle">Free print-ready monthly, quarterly &amp; yearly calendars with holidays</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/generators/">Generators</a> &gt; <span>Printable Calendar Generator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" role="main">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Build Your Calendar</h2>
+
+                <div class="pc-panel">
+                    <div class="pc-fields">
+                        <div class="pc-field">
+                            <label for="pc-year">Year</label>
+                            <input type="number" id="pc-year" name="year" data-testid="year" min="1800" max="2199" step="1" value="2026" aria-label="Calendar year">
+                        </div>
+                        <div class="pc-field">
+                            <label for="pc-view">Layout</label>
+                            <select id="pc-view" name="view" data-testid="view">
+                                <option value="year">Full Year (12 months)</option>
+                                <option value="quarter">Quarter (3 months)</option>
+                                <option value="single">Single Month</option>
+                            </select>
+                        </div>
+                        <div class="pc-field">
+                            <label for="pc-month">Start month</label>
+                            <select id="pc-month" name="month" data-testid="month"></select>
+                        </div>
+                        <div class="pc-field">
+                            <label for="pc-first-day">Week starts</label>
+                            <select id="pc-first-day" name="first-day" data-testid="first-day">
+                                <option value="0">Sunday</option>
+                                <option value="1">Monday</option>
+                            </select>
+                        </div>
+                        <div class="pc-field">
+                            <label for="pc-title">Calendar title / notes</label>
+                            <input type="text" id="pc-title" name="title" data-testid="title" maxlength="80" placeholder="Optional title shown on the printed page" aria-label="Calendar title or notes">
+                        </div>
+                    </div>
+
+                    <div class="pc-checkrow">
+                        <label><input type="checkbox" id="pc-holidays" data-testid="holidays" checked> US federal holidays</label>
+                        <label><input type="checkbox" id="pc-weeknum" data-testid="weeknum"> Week numbers</label>
+                        <label><input type="checkbox" id="pc-weekend" data-testid="weekend" checked> Shade weekends</label>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" id="pc-generate" class="btn btn-primary">Generate Calendar</button>
+                        <button type="button" id="pc-print" class="btn">Print / Save as PDF</button>
+                        <button type="button" id="pc-clear" class="btn btn-secondary">Clear</button>
+                    </div>
+                    <div id="pc-status" class="status" role="status" aria-live="polite"></div>
+                </div>
+
+                <div id="pc-preview">
+                    <div class="pc-preview-empty">Set the year and options above, then click Generate Calendar.</div>
+                </div>
+
+                <div class="pc-tip">To save a PDF: click Print / Save as PDF, pick "Save as PDF" as the destination, keep the default margins, and enable background graphics so holiday shading prints.</div>
+            </div>
+
+            <div class="info-section">
+                <h2>About this calendar generator</h2>
+                <p>A ready-to-print calendar for any year between 1800 and 2199. Choose the layout, the day the week starts on, and whether to include US federal holidays and ISO week numbers. The grid lines weekdays up exactly, so the printed page matches the preview. No account, no watermark, no signup wall.</p>
+
+                <h2>How it works</h2>
+                <p>The calendar is built in your browser the moment you click Generate. The page counts the days in each month, works out which weekday the first day lands on, and fills the grid row by row. Federal holidays follow the official observed rule, so a Saturday holiday is marked on the Friday before and a Sunday holiday on the Monday after. To keep a copy, open the print dialog and choose "Save as PDF" as the destination.</p>
+
+                <h2>Why AI chat cannot make your calendar</h2>
+                <p>Ask a chatbot for next year's calendar and you get a text table or a block of code, not a sheet you can print. Chat models routinely misplace weekdays, miscount leap days, and guess at holiday dates. This tool does the date math directly and renders a clean, paginated grid with the real observed holidays, so the printed sheet is correct the first time.</p>
+
+                <h2>Frequently asked questions</h2>
+
+                <details class="faq-item">
+                    <summary>Is this calendar generator free?</summary>
+                    <p>Every feature here is free. There is no account, no signup, no watermark, and no limit on how many calendars you make.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Why do some holidays move to a different day?</summary>
+                    <p>Federal holidays have fixed dates, but when those dates land on a Saturday or Sunday, employees get the next available weekday off instead. The tool adheres to the standard rule for observing holidays and notes both the actual holiday date and the observed date, if they're different.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Can I make a calendar for any year?</summary>
+                    <p>Yes. Enter any year between 1800 and 2199 and generate a full year, a single month, or a three-month block.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How do I save a PDF?</summary>
+                    <p>Click Print / Save as PDF, choose Save as PDF in the print dialog, and keep the default margins. Turn background graphics on so the holiday shading prints. The grid always fits the page width.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Which holidays are included?</summary>
+                    <p>The eleven US federal holidays: New Year's Day, Martin Luther King Jr. Day, Washington's Birthday, Memorial Day, Juneteenth, Independence Day, Labor Day, Columbus Day, Veterans Day, Thanksgiving, and Christmas.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Do fixed-date holidays ever change day?</summary>
+                    <p>The dates never change; only the observed weekday shifts. Juneteenth, Independence Day, Veterans Day and Christmas keep their set dates every year.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Is my data private?</summary>
+                    <p>The tool runs entirely in your browser. Nothing you type is sent to a server, and you can use it offline once the page has loaded.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What does the week number column mean?</summary>
+                    <p>It is the ISO 8601 week number, where the week runs Monday to Sunday and week 1 contains the first Thursday of the year.</p>
+                </details>
+
+                <h2>Related tools</h2>
+                <ul>
+                    <li><a href="/tools/date-calculator/">Date Calculator</a></li>
+                    <li><a href="/tools/days-until-calculator/">Days Until Calculator</a></li>
+                    <li><a href="/tools/what-day-is-it/">What Day Is It</a></li>
+                    <li><a href="/tools/on-this-day/">On This Day</a></li>
+                    <li><a href="/tools/work-hours-calculator/">Work Hours Calculator</a></li>
+                    <li><a href="/tools/online-notepad/">Online Notepad</a></li>
+                </ul>
+
+                <h3>References</h3>
+                <ul>
+                    <li><a href="https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/" target="_blank" rel="noopener">U.S. Office of Personnel Management &ndash; Federal Holidays</a></li>
+                    <li><a href="https://en.wikipedia.org/wiki/ISO_8601" target="_blank" rel="noopener">ISO 8601 &ndash; Date and Time Format</a></li>
+                    <li><a href="https://en.wikipedia.org/wiki/ISO_week_date" target="_blank" rel="noopener">ISO 8601 &ndash; ISO Week Date</a></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <div id="pc-print-area"></div>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+(function () {
+    var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    var US_HOLIDAYS = [
+        { n: "New Year's Day", m: 0, d: 1 },
+        { n: 'Martin Luther King Jr. Day', m: 0, rule: 'nth', wd: 1, nth: 3 },
+        { n: "Washington's Birthday", m: 1, rule: 'nth', wd: 1, nth: 3 },
+        { n: 'Memorial Day', m: 4, rule: 'last', wd: 1 },
+        { n: 'Juneteenth National Independence Day', m: 5, d: 19 },
+        { n: 'Independence Day', m: 6, d: 4 },
+        { n: 'Labor Day', m: 8, rule: 'nth', wd: 1, nth: 1 },
+        { n: 'Columbus Day', m: 9, rule: 'nth', wd: 1, nth: 2 },
+        { n: 'Veterans Day', m: 10, d: 11 },
+        { n: 'Thanksgiving Day', m: 10, rule: 'nth', wd: 4, nth: 4 },
+        { n: 'Christmas Day', m: 11, d: 25 }
+    ];
+
+    function nthWeekday(y, mo, wd, nth) {
+        var first = new Date(y, mo, 1);
+        var d = 1 + ((wd - first.getDay() + 7) % 7);
+        return new Date(y, mo, d + (nth - 1) * 7);
+    }
+
+    function lastWeekday(y, mo, wd) {
+        var last = new Date(y, mo + 1, 0);
+        var d = last.getDate() - ((last.getDay() - wd + 7) % 7);
+        return new Date(y, mo, d);
+    }
+
+    function isoWeekNumber(dt) {
+        var date = new Date(Date.UTC(dt.getFullYear(), dt.getMonth(), dt.getDate()));
+        var d = date.getUTCDay() || 7;
+        date.setUTCDate(date.getUTCDate() + 4 - d);
+        var y = date.getUTCFullYear();
+        var ys = new Date(Date.UTC(y, 0, 1));
+        return Math.ceil(((date - ys) / 86400000 + 1) / 7);
+    }
+
+    function getUSHolidays(year) {
+        var out = {};
+        US_HOLIDAYS.forEach(function (h) {
+            var dt;
+            if (h.rule === 'nth') dt = nthWeekday(year, h.m, h.wd, h.nth);
+            else if (h.rule === 'last') dt = lastWeekday(year, h.m, h.wd);
+            else dt = new Date(year, h.m, h.d);
+            var key = dt.getMonth() + '/' + dt.getDate();
+            (out[key] = out[key] || []).push({ n: h.n, observed: false });
+            var dow = dt.getDay();
+            if (dow === 0 || dow === 6) {
+                var ob = new Date(year, h.m, dt.getDate() + (dow === 0 ? 1 : -1));
+                var okey = ob.getMonth() + '/' + ob.getDate();
+                (out[okey] = out[okey] || []).push({ n: h.n, observed: true });
+            }
+        });
+        return out;
+    }
+
+    function monthGrid(y, mo, opts, holidays) {
+        var firstDow = new Date(y, mo, 1).getDay();
+        var dim = new Date(y, mo + 1, 0).getDate();
+        var lead = (firstDow - opts.firstDay + 7) % 7;
+        var cells = [];
+        var i, d;
+        for (i = 0; i < lead; i++) cells.push(null);
+        for (d = 1; d <= dim; d++) cells.push(d);
+        while (cells.length % 7 !== 0) cells.push(null);
+
+        var rows = [];
+        for (i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+
+        var now = new Date();
+        var todayKey = (now.getFullYear() === y && now.getMonth() === mo) ? now.getDate() : 0;
+
+        var html = '';
+        rows.forEach(function (row) {
+            var rhtml = '';
+            if (opts.weekNumbers) {
+                var iso = null;
+                for (i = 0; i < row.length; i++) {
+                    if (row[i] !== null) { iso = isoWeekNumber(new Date(y, mo, row[i])); break; }
+                }
+                rhtml += '<span class="pc-wn">' + (iso === null ? '' : iso) + '</span>';
+            }
+            row.forEach(function (d) {
+                if (d === null) { rhtml += '<span class="pc-day pc-empty"></span>'; return; }
+                var key = mo + '/' + d;
+                var hs = holidays[key];
+                var dow = new Date(y, mo, d).getDay();
+                var cls = 'pc-day';
+                if (d === todayKey) cls += ' pc-today';
+                if (opts.shadeWeekends && (dow === 0 || dow === 6)) cls += ' pc-weekend';
+                if (hs && hs.length) cls += ' pc-holiday';
+                var label = '';
+                if (hs && hs.length && opts.showHolidayNames) {
+                    label = '<i title="' + hs[0].n + '">' + hs[0].n + (hs[0].observed ? ' (obs)' : '') + '</i>';
+                }
+                rhtml += '<span class="' + cls + '"><b>' + d + '</b>' + label + '</span>';
+            });
+            html += '<div class="pc-row' + (opts.weekNumbers ? ' pc-has-wn' : '') + '">' + rhtml + '</div>';
+        });
+        return html;
+    }
+
+    function renderMonthCard(y, mo, opts, holidays, compact) {
+        var wd = opts.firstDay === 0 ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        var html = '<div class="pc-month' + (compact ? ' pc-compact' : '') + '">';
+        html += '<div class="pc-month-title">' + MONTHS[mo] + ' ' + y + '</div>';
+        html += '<div class="pc-row pc-head' + (opts.weekNumbers ? ' pc-has-wn' : '') + '">';
+        if (opts.weekNumbers) html += '<span class="pc-wn pc-head-wn">WK</span>';
+        wd.forEach(function (w) { html += '<span class="pc-dow">' + w + '</span>'; });
+        html += '</div>';
+        html += monthGrid(y, mo, opts, holidays);
+        html += '</div>';
+        return html;
+    }
+
+    function legendHtml(year) {
+        var html = '<div class="pc-legend"><div class="pc-legend-title">US federal holidays included (observed scheme):</div><div class="pc-legend-items">';
+        US_HOLIDAYS.forEach(function (h) { html += '<span>' + h.n + '</span>'; });
+        html += '</div></div>';
+        return html;
+    }
+
+    function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function fillMonthSelect() {
+        var sel = document.getElementById('pc-month');
+        var now = new Date();
+        MONTHS.forEach(function (m, i) {
+            var opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = m;
+            sel.appendChild(opt);
+        });
+        sel.value = now.getMonth();
+    }
+
+    function setPreviewEmpty() {
+        var p = document.getElementById('pc-preview');
+        p.className = '';
+        p.innerHTML = '<div class="pc-preview-empty">Set the year and options above, then click Generate Calendar.</div>';
+        document.getElementById('pc-print-area').innerHTML = '';
+    }
+
+    function generateCalendar() {
+        var yearEl = document.getElementById('pc-year');
+        var year = parseInt(yearEl.value, 10);
+        if (!year || isNaN(year) || year < 1800 || year > 2199) {
+            showStatus('pc-status', 'Enter a year between 1800 and 2199.', 'error');
+            return;
+        }
+        var view = document.getElementById('pc-view').value;
+        var startMonth = parseInt(document.getElementById('pc-month').value, 10);
+        var opts = {
+            firstDay: parseInt(document.getElementById('pc-first-day').value, 10) || 0,
+            holidays: document.getElementById('pc-holidays').checked,
+            weekNumbers: document.getElementById('pc-weeknum').checked,
+            shadeWeekends: document.getElementById('pc-weekend').checked,
+            showHolidayNames: view === 'single'
+        };
+        var title = document.getElementById('pc-title').value.trim();
+
+        var months = [];
+        var i;
+        if (view === 'year') { for (i = 0; i < 12; i++) months.push({ y: year, m: i }); }
+        else if (view === 'quarter') { for (i = 0; i < 3; i++) { var mm = startMonth + i; months.push({ y: year + Math.floor(mm / 12), m: mm % 12 }); } }
+        else { months.push({ y: year, m: startMonth }); }
+
+        var holidays = opts.holidays ? getUSHolidays(year) : {};
+
+        var html = '';
+        months.forEach(function (mi) {
+            html += renderMonthCard(mi.y, mi.m, opts, holidays, view !== 'single');
+        });
+
+        var preview = document.getElementById('pc-preview');
+        preview.className = 'pc-gridwrap ' + view;
+        preview.innerHTML = html;
+
+        var printTitle = title || (view === 'year' ? year + ' Calendar' : MONTHS[months[0].m] + ' ' + months[0].y + ' Calendar');
+        var pa = document.getElementById('pc-print-area');
+        var printHtml = '<div class="pc-printhead"><div class="pc-print-title">' + escHtml(printTitle) + '</div>' +
+            '<div class="pc-print-sub">' + (view === 'year' ? 'Year ' : '') + year + ' • ' + (opts.firstDay === 0 ? 'Week starts Sunday' : 'Week starts Monday') + (opts.weekNumbers ? ' • ISO week numbers' : '') + '</div></div>';
+        printHtml += '<div class="pc-gridwrap ' + view + '">' + html + '</div>';
+        if (opts.holidays) printHtml += legendHtml(year);
+        printHtml += '<div class="pc-printfoot">Generated free at tools.scoreroute.com/tools/printable-calendar-generator/</div>';
+        pa.innerHTML = printHtml;
+
+        var count = months.length;
+        showStatus('pc-status', count + ' month' + (count > 1 ? 's' : '') + ' generated for ' + year + '. Use Print / Save as PDF for a PDF file.', 'success');
+    }
+
+    function clearCalendar() {
+        document.getElementById('pc-title').value = '';
+        setPreviewEmpty();
+        showStatus('pc-status', 'Preview cleared.', 'success');
+    }
+
+    function printCalendar() {
+        var printArea = document.getElementById('pc-print-area');
+        if (!printArea.innerHTML || printArea.innerHTML.length < 50) {
+            showStatus('pc-status', 'Generate a calendar first.', 'error');
+            return;
+        }
+        window.print();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        fillMonthSelect();
+        setPreviewEmpty();
+        document.getElementById('pc-generate').addEventListener('click', generateCalendar);
+        document.getElementById('pc-print').addEventListener('click', printCalendar);
+        document.getElementById('pc-clear').addEventListener('click', clearCalendar);
+        document.getElementById('pc-view').addEventListener('change', function () {
+            var p = document.getElementById('pc-month').parentElement;
+            p.style.display = (this.value === 'year') ? 'none' : '';
+        });
+    });
+
+    window.generateCalendar = generateCalendar;
+    window.clearCalendar = clearCalendar;
+    window.printCalendar = printCalendar;
+    window.getUSHolidays = getUSHolidays;
+    window.isoWeekNumber = isoWeekNumber;
+})();
+    </script>
+</body>
+</html>

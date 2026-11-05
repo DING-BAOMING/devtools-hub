@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt Generator - Free Online Receipt Maker | DevTools Hub</title>
+    <meta name="description" content="Free online receipt generator. Create professional receipts with auto-calculated tax, discount, multi-currency, line items, and PDF download. 100% browser-based, no signup, no watermark, fully private.">
+    <meta name="keywords" content="receipt generator, free receipt generator, receipt maker, receipt creator, receipt template, online receipt, PDF receipt, sales receipt, payment receipt, business receipt, invoice generator">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/receipt-generator/">
+    <meta property="og:title" content="Receipt Generator - Free Online Receipt Maker | DevTools Hub">
+    <meta property="og:description" content="Free receipt generator. Tax, discount, multi-currency, PDF download. No signup, no watermark.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/receipt-generator/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Receipt Generator - Free Online Receipt Maker">
+    <meta name="twitter:description" content="Create professional receipts with tax, discount, multi-currency, and PDF export. 100% free, no signup.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Receipt Generator","description":"Free online receipt generator. Create professional receipts with auto-calculated tax, discount, multi-currency, line items, and PDF download. 100% browser-based, no signup, no watermark, no daily limit, fully private.","url":"https://tools.scoreroute.com/tools/receipt-generator/","applicationCategory":"BusinessApplication","operatingSystem":"Any","browserRequirements":"Modern browser with JavaScript support.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-07-30","dateModified":"2026-07-30","featureList":["Unlimited line items","Auto-calculated subtotal, tax, discount, total","30+ currency support","Custom tax rate (0-100%)","Discount as % or fixed amount","Custom receipt number","Payment method selection","Live preview as you type","PDF download with print-quality layout","JSON export/import to save and reload receipts","PAID watermark","Local storage auto-save","100% browser-based (no upload, no signup)","No watermark, no daily limit","Works offline after first load"]}
+    </script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is the receipt generator really free?","acceptedAnswer":{"@type":"Answer","text":"Yes. 100% free, unlimited receipts, no signup, no watermark, no daily limit. Everything runs locally in your browser - your data never leaves your device."}},{"@type":"Question","name":"What is the difference between a receipt and an invoice?","acceptedAnswer":{"@type":"Answer","text":"An invoice is a request for payment sent before payment is made. A receipt is proof of payment issued after payment is received. This tool generates receipts - proof of completed transactions."}},{"@type":"Question","name":"Can I save my receipt and edit it later?","acceptedAnswer":{"@type":"Answer","text":"Yes. Click Save to download a JSON file. Click Load to re-import any saved JSON file. The tool also auto-saves the current draft to your browser's localStorage so you can return to it."}},{"@type":"Question","name":"Does it support different currencies?","acceptedAnswer":{"@type":"Answer","text":"Yes. You can pick from 30+ currencies including USD, EUR, GBP, JPY, CNY, INR, CAD, AUD, and more. The currency symbol and formatting update everywhere on the receipt automatically."}},{"@type":"Question","name":"How is the tax calculated?","acceptedAnswer":{"@type":"Answer","text":"Type a tax rate (for example 8.5) in the Tax field. The tool multiplies the subtotal after discount by your tax rate. Fixed-precision integer-cents math is used so the printed total always matches the line items."}},{"@type":"Question","name":"Is the PDF output high quality?","acceptedAnswer":{"@type":"Answer","text":"Yes. The PDF is generated at 2x pixel density on an A4 page, so the printed receipt looks professional. You can also use your browser's Print > Save as PDF if you prefer the native print layout."}},{"@type":"Question","name":"Will my receipt data be sent to a server?","acceptedAnswer":{"@type":"Answer","text":"No. All receipt data stays in your browser. Nothing is uploaded to any server. You can verify this by opening your browser's Network tab while using the tool."}}]}
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { background: #0f0f23; color: #e6e6f0; font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .rcp-wrap { max-width: 1280px; margin: 0 auto; padding: 12px 16px 32px; }
+        .rcp-hero { background: linear-gradient(135deg, #1a1a3e 0%, #1a2d1e 100%); border-radius: 14px; padding: 24px; margin: 18px 0; border: 1px solid #2a2a4a; }
+        .rcp-hero h2 { color: #fff; margin: 0 0 6px; font-size: 1.6rem; }
+        .rcp-hero p { color: #9a9ab0; margin: 0; font-size: 0.95rem; line-height: 1.55; }
+        .rcp-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+        .rcp-pill { padding: 4px 12px; background: #252540; border: 1px solid #2a2a4a; border-radius: 20px; font-size: 0.78rem; color: #9a9ab0; }
+        .rcp-pill strong { color: #10b981; }
+        /* minmax(0,1fr), not 1fr: a 1fr track floors at min-content, so the
+           panel pushed the page sideways on a 320px phone. */
+        .rcp-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; margin-top: 18px; }
+        @media (max-width: 980px) { .rcp-layout { grid-template-columns: minmax(0, 1fr); } }
+        .rcp-panel { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 12px; padding: 18px; }
+        .rcp-panel-title { color: #fff; font-size: 1.05rem; font-weight: 600; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+        .rcp-panel-title::before { content: ''; width: 4px; height: 18px; background: linear-gradient(to bottom, #10b981, #059669); border-radius: 2px; }
+        .rcp-section { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #2a2a4a; }
+        .rcp-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .rcp-section-title { color: #9a9ab0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.6px; margin: 0 0 10px; font-weight: 600; }
+        .rcp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        .rcp-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+        @media (max-width: 600px) { .rcp-row, .rcp-row-3 { grid-template-columns: 1fr; } }
+        .rcp-label { display: block; color: #9a9ab0; font-size: 0.74rem; margin-bottom: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
+        .rcp-input, .rcp-textarea, .rcp-select { width: 100%; padding: 8px 10px; background: #0f0f23; border: 1px solid #2a2a4a; color: #e6e6f0; border-radius: 6px; font-size: 0.88rem; font-family: inherit; }
+        .rcp-textarea { resize: vertical; min-height: 60px; font-family: inherit; }
+        .rcp-input:focus, .rcp-textarea:focus, .rcp-select:focus { outline: 2px solid transparent; border-color: #10b981; }
+        .rcp-input.num { text-align: right; font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace; }
+        .rcp-items-table { width: 100%; border-collapse: collapse; }
+        .rcp-items-table th { color: #9a9ab0; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; padding: 4px 6px; font-weight: 600; border-bottom: 1px solid #2a2a4a; }
+        .rcp-items-table th.right { text-align: right; }
+        .rcp-items-table td { padding: 4px 4px; vertical-align: top; }
+        .rcp-items-table td .rcp-input { padding: 6px 8px; font-size: 0.85rem; }
+        .rcp-items-table td .rcp-input.num { font-size: 0.85rem; }
+        .rcp-item-row { border-bottom: 1px solid #2a2a4a; }
+        .rcp-item-row:last-child { border-bottom: none; }
+        .rcp-btn-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+        .rcp-btn { padding: 9px 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: #fff; border-radius: 8px; font-size: 0.86rem; cursor: pointer; font-weight: 600; transition: filter 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+        .rcp-btn:hover { filter: brightness(1.1); }
+        .rcp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .rcp-btn-secondary { background: #252540; color: #e6e6f0; border: 1px solid #2a2a4a; }
+        .rcp-btn-secondary:hover { background: #2a2a4a; }
+        .rcp-btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .rcp-btn-ghost { background: transparent; color: #9a9ab0; border: 1px solid #2a2a4a; padding: 5px 10px; font-size: 0.8rem; }
+        .rcp-btn-ghost:hover { color: #fff; }
+        .rcp-btn-icon { padding: 6px 9px; font-size: 0.78rem; }
+        .rcp-totals { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 8px; padding: 12px; }
+        .rcp-total-row { display: flex; justify-content: space-between; padding: 4px 0; color: #9a9ab0; font-size: 0.88rem; }
+        .rcp-total-row.grand { color: #fff; font-size: 1.1rem; font-weight: 700; padding-top: 8px; margin-top: 6px; border-top: 1px solid #2a2a4a; font-family: 'JetBrains Mono', monospace; }
+        .rcp-total-row span:last-child { font-family: 'JetBrains Mono', monospace; }
+        .rcp-preview-wrap { background: #fff; color: #1a1a2e; border-radius: 10px; padding: 0; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+        .rcp-preview { padding: 36px 40px; min-height: 720px; font-family: 'Helvetica Neue', Arial, sans-serif; position: relative; }
+        @media (max-width: 600px) { .rcp-preview { padding: 24px 20px; } }
+        .rcp-prev-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; gap: 16px; }
+        .rcp-prev-title { font-size: 2rem; font-weight: 800; color: #10b981; margin: 0; letter-spacing: -0.5px; }
+        .rcp-prev-paid { display: inline-block; background: #10b981; color: #fff; padding: 4px 16px; border-radius: 4px; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-left: 10px; vertical-align: middle; }
+        .rcp-prev-meta { text-align: right; font-size: 0.85rem; color: #555; line-height: 1.7; }
+        .rcp-prev-meta b { color: #1a1a2e; }
+        .rcp-prev-meta-row { display: block; }
+        .rcp-prev-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+        @media (max-width: 480px) { .rcp-prev-parties { grid-template-columns: 1fr; } }
+        .rcp-prev-party-label { font-size: 0.7rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: 600; }
+        .rcp-prev-party-name { font-size: 1.05rem; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; word-break: break-word; }
+        .rcp-prev-party-detail { font-size: 0.85rem; color: #555; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+        .rcp-prev-table { width: 100%; border-collapse: collapse; margin: 16px 0 20px; }
+        .rcp-prev-table th { text-align: left; padding: 10px 8px; background: #f3f4f6; color: #1a1a2e; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; border-bottom: 2px solid #10b981; }
+        .rcp-prev-table th.r { text-align: right; }
+        .rcp-prev-table td { padding: 10px 8px; font-size: 0.88rem; color: #1a1a2e; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+        .rcp-prev-table td.r { text-align: right; font-family: 'SF Mono', Consolas, monospace; }
+        .rcp-prev-totals { margin-top: 8px; padding: 14px 16px; background: #f9fafb; border-radius: 6px; }
+        .rcp-prev-totals .rcp-prev-total-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.9rem; color: #555; }
+        .rcp-prev-totals .rcp-prev-total-row.grand { color: #10b981; font-size: 1.25rem; font-weight: 800; padding-top: 10px; margin-top: 8px; border-top: 2px solid #10b981; }
+        .rcp-prev-totals .rcp-prev-total-row span:last-child { font-family: 'SF Mono', Consolas, monospace; }
+        .rcp-prev-footer { margin-top: 24px; padding: 14px 16px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 4px; font-size: 0.85rem; color: #166534; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+        .rcp-prev-footer b { color: #1a1a2e; display: block; margin-bottom: 4px; }
+        .rcp-prev-foot { margin-top: 32px; text-align: center; color: #999; font-size: 0.78rem; }
+        .rcp-prev-foot a { color: #10b981; text-decoration: none; }
+        .rcp-status { padding: 8px 12px; border-radius: 6px; margin-top: 8px; font-size: 0.85rem; }
+        .rcp-status.info { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .rcp-status.success { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .rcp-status.error { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .rcp-status.hidden { display: none; }
+        .rcp-toast { position: fixed; bottom: 24px; right: 24px; background: #10b981; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; opacity: 0; transition: opacity 0.3s; z-index: 9999; pointer-events: none; max-width: 360px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .rcp-toast.show { opacity: 1; }
+        .rcp-toast.error { background: #ef4444; }
+        .rcp-help { font-size: 0.78rem; color: #9a9ab0; margin-top: 4px; }
+        .rcp-empty { text-align: center; padding: 40px 20px; color: #9a9ab0; }
+        details.rcp-faq { background: #252540; border-radius: 6px; padding: 12px 14px; margin-bottom: 8px; }
+        details.rcp-faq summary { color: #fff; font-size: 0.9rem; font-weight: 500; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        details.rcp-faq summary::after { content: '+'; color: #10b981; font-size: 1.2rem; font-weight: 400; }
+        details.rcp-faq[open] summary::after { content: '\2212'; }
+        details.rcp-faq p { color: #9a9ab0; font-size: 0.85rem; line-height: 1.6; margin: 8px 0 0; }
+        .rcp-related { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 12px; }
+        .rcp-related a { display: block; padding: 10px 12px; background: #252540; border: 1px solid #2a2a4a; border-radius: 8px; color: #9a9ab0; text-decoration: none; font-size: 0.85rem; transition: all 0.15s; }
+        .rcp-related a:hover { border-color: #10b981; color: #fff; }
+        .rcp-related a strong { color: #fff; display: block; margin-bottom: 2px; font-size: 0.9rem; }
+        .rcp-info-card { background: #252540; border-left: 3px solid #10b981; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; }
+        .rcp-info-card b { color: #fff; font-size: 0.85rem; display: block; margin-bottom: 2px; }
+        .rcp-info-card p { color: #9a9ab0; font-size: 0.8rem; margin: 0; line-height: 1.5; }
+        .rcp-prev-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 4rem; font-weight: 900; color: rgba(16, 185, 129, 0.08); pointer-events: none; letter-spacing: 8px; text-transform: uppercase; white-space: nowrap; z-index: 0; }
+        @media print {
+            body * { visibility: hidden; }
+            .rcp-preview, .rcp-preview * { visibility: visible; }
+            .rcp-preview { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Receipt Generator</h1>
+            <p class="subtitle">Create a professional receipt in under a minute. Tax, discount, multi-currency, and PDF export. 100% free, no signup.</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/finance/">Money &amp; Markets</a> &gt; <span>Receipt Generator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="rcp-wrap">
+
+                <div class="rcp-hero">
+                    <h2>PAID in full. Documented in seconds.</h2>
+                    <p>Type your line items, set tax and discount, pick a payment method, and download a clean PDF receipt. The math uses fixed-precision integer cents so the printed total always matches the line items. Nothing leaves your browser - no signup, no upload, no watermark.</p>
+                    <div class="rcp-pills">
+                        <span class="rcp-pill"><strong>Unlimited</strong> line items</span>
+                        <span class="rcp-pill"><strong>30+</strong> currencies</span>
+                        <span class="rcp-pill">Auto tax &amp; discount</span>
+                        <span class="rcp-pill">PDF download</span>
+                        <span class="rcp-pill">PAID watermark</span>
+                        <span class="rcp-pill">JSON save/load</span>
+                        <span class="rcp-pill">0 signup</span>
+                        <span class="rcp-pill">100% private</span>
+                    </div>
+                </div>
+
+                <div class="rcp-layout">
+
+                    <div class="rcp-panel">
+                        <h3 class="rcp-panel-title">Build your receipt</h3>
+
+                        <div class="rcp-section">
+                            <div class="rcp-section-title">Receipt meta</div>
+                            <div class="rcp-row-3">
+                                <div>
+                                    <label class="rcp-label" for="rcp-num">Receipt #</label>
+                                    <input class="rcp-input" id="rcp-num" type="text" placeholder="RCP-001" maxlength="40">
+                                </div>
+                                <div>
+                                    <label class="rcp-label" for="rcp-date">Date</label>
+                                    <input class="rcp-input" id="rcp-date" type="date">
+                                </div>
+                                <div>
+                                    <label class="rcp-label" for="rcp-currency">Currency</label>
+                                    <select class="rcp-select" id="rcp-currency">
+                                        <option value="USD">USD - US Dollar ($)</option>
+                                        <option value="EUR">EUR - Euro (&euro;)</option>
+                                        <option value="GBP">GBP - British Pound (&pound;)</option>
+                                        <option value="JPY">JPY - Japanese Yen (&yen;)</option>
+                                        <option value="CNY">CNY - Chinese Yuan (&yen;)</option>
+                                        <option value="INR">INR - Indian Rupee (&#8377;)</option>
+                                        <option value="CAD">CAD - Canadian Dollar ($)</option>
+                                        <option value="AUD">AUD - Australian Dollar ($)</option>
+                                        <option value="CHF">CHF - Swiss Franc (CHF)</option>
+                                        <option value="SGD">SGD - Singapore Dollar ($)</option>
+                                        <option value="HKD">HKD - Hong Kong Dollar ($)</option>
+                                        <option value="KRW">KRW - South Korean Won (&#8361;)</option>
+                                        <option value="MXN">MXN - Mexican Peso ($)</option>
+                                        <option value="BRL">BRL - Brazilian Real (R$)</option>
+                                        <option value="ZAR">ZAR - South African Rand (R)</option>
+                                        <option value="SEK">SEK - Swedish Krona (kr)</option>
+                                        <option value="NOK">NOK - Norwegian Krone (kr)</option>
+                                        <option value="DKK">DKK - Danish Krone (kr)</option>
+                                        <option value="PLN">PLN - Polish Zloty (z&#322;)</option>
+                                        <option value="NZD">NZD - NZ Dollar ($)</option>
+                                        <option value="TWD">TWD - Taiwan Dollar (NT$)</option>
+                                        <option value="THB">THB - Thai Baht (&#3647;)</option>
+                                        <option value="AED">AED - UAE Dirham (&#1583;.&#1573;)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="rcp-row">
+                                <div>
+                                    <label class="rcp-label" for="rcp-payment">Payment method</label>
+                                    <select class="rcp-select" id="rcp-payment">
+                                        <option value="Cash">Cash</option>
+                                        <option value="Credit Card">Credit Card</option>
+                                        <option value="Debit Card">Debit Card</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Check">Check</option>
+                                        <option value="PayPal">PayPal</option>
+                                        <option value="Stripe">Stripe</option>
+                                        <option value="Venmo">Venmo</option>
+                                        <option value="Cryptocurrency">Cryptocurrency</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="rcp-label" for="rcp-taxrate">Tax rate (%)</label>
+                                    <input class="rcp-input num" id="rcp-taxrate" type="number" min="0" max="100" step="0.01" value="0" placeholder="8.5">
+                                </div>
+                            </div>
+                            <div class="rcp-row">
+                                <div>
+                                    <label class="rcp-label" for="rcp-discounttype">Discount</label>
+                                    <select class="rcp-select" id="rcp-discounttype">
+                                        <option value="none">None</option>
+                                        <option value="percent">Percentage (%)</option>
+                                        <option value="fixed">Fixed amount</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="rcp-label" for="rcp-discountvalue">&nbsp;</label>
+                                    <input class="rcp-input num" id="rcp-discountvalue" type="number" min="0" step="0.01" value="0" placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rcp-section">
+                            <div class="rcp-section-title">From (your business)</div>
+                            <div class="rcp-row">
+                                <div>
+                                    <label class="rcp-label" for="rcp-from-name">Business name</label>
+                                    <input class="rcp-input" id="rcp-from-name" type="text" placeholder="Your Business LLC" maxlength="80">
+                                </div>
+                                <div>
+                                    <label class="rcp-label" for="rcp-from-email">Email</label>
+                                    <input class="rcp-input" id="rcp-from-email" type="email" placeholder="billing@yourco.com" maxlength="80" autocomplete="email">
+                                </div>
+                            </div>
+                            <div class="rcp-row">
+                                <div>
+                                    <label class="rcp-label" for="rcp-from-phone">Phone</label>
+                                    <input class="rcp-input" id="rcp-from-phone" type="text" placeholder="+1 (555) 123-4567" maxlength="40" autocomplete="tel">
+                                </div>
+                                <div>
+                                    <label class="rcp-label" for="rcp-from-taxid">Tax ID / VAT</label>
+                                    <input class="rcp-input" id="rcp-from-taxid" type="text" placeholder="EU VAT, GST, EIN, etc." maxlength="40">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="rcp-label" for="rcp-from-addr">Address</label>
+                                <textarea class="rcp-textarea" id="rcp-from-addr" placeholder="123 Main St, Suite 400&#10;San Francisco, CA 94105" maxlength="300" autocomplete="street-address"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="rcp-section">
+                            <div class="rcp-section-title">Bill to (customer)</div>
+                            <div class="rcp-row">
+                                <div>
+                                    <label class="rcp-label" for="rcp-to-name">Customer name</label>
+                                    <input class="rcp-input" id="rcp-to-name" type="text" placeholder="Acme Corp" maxlength="80">
+                                </div>
+                                <div>
+                                    <label class="rcp-label" for="rcp-to-email">Email</label>
+                                    <input class="rcp-input" id="rcp-to-email" type="email" placeholder="customer@acme.com" maxlength="80">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="rcp-label" for="rcp-to-addr">Address</label>
+                                <textarea class="rcp-textarea" id="rcp-to-addr" placeholder="456 Market St&#10;New York, NY 10001" maxlength="300"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="rcp-section">
+                            <div class="rcp-section-title">Line items</div>
+                            <div style="overflow-x:auto;">
+                                <table class="rcp-items-table" id="rcp-items">
+                                    <caption class="sr-only">Receipt line items</caption>
+                                    <thead>
+                                        <tr>
+                                            <th style="width:48%">Description</th>
+                                            <th class="right" style="width:14%">Qty</th>
+                                            <th class="right" style="width:19%">Unit price</th>
+                                            <th class="right" style="width:15%">Total</th>
+                                            <th style="width:4%"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rcp-items-body"><tr><td colspan="5">No data yet.</td></tr></tbody>
+                                </table>
+                            </div>
+                            <div class="rcp-btn-row">
+                                <button class="rcp-btn-secondary rcp-btn rcp-btn-icon" type="button" id="rcp-add-item">+ Add line</button>
+                            </div>
+                        </div>
+
+                        <div class="rcp-section">
+                            <div class="rcp-section-title">Notes</div>
+                            <div>
+                                <label class="rcp-label" for="rcp-notes">Payment notes, thank-you message</label>
+                                <textarea class="rcp-textarea" id="rcp-notes" placeholder="Payment received via Cash.&#10;Thank you for your business!" maxlength="1500"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="rcp-btn-row">
+                            <button class="rcp-btn" type="button" id="rcp-pdf">Download PDF</button>
+                            <button class="rcp-btn rcp-btn-secondary" type="button" id="rcp-save">Save (JSON)</button>
+                            <button class="rcp-btn rcp-btn-secondary" type="button" id="rcp-load">Load (JSON)</button>
+                            <input aria-label="Load receipt file" type="file" id="rcp-load-file" accept="application/json,.json" style="display:none">
+                            <button class="rcp-btn rcp-btn-secondary" type="button" id="rcp-print">Print</button>
+                            <button class="rcp-btn rcp-btn-ghost" type="button" id="rcp-clear">Clear all</button>
+                        </div>
+                        <div id="rcp-status" class="rcp-status hidden"></div>
+                    </div>
+
+                    <div class="rcp-panel">
+                        <h3 class="rcp-panel-title">Live preview</h3>
+                        <div class="rcp-preview-wrap">
+                            <div class="rcp-preview" id="rcp-preview">
+                                <div class="rcp-prev-watermark">PAID</div>
+                                <div class="rcp-prev-head">
+                                    <div>
+                                        <h2 class="rcp-prev-title">RECEIPT <span class="rcp-prev-paid" id="prev-paid-badge">PAID</span></h2>
+                                        <div style="color:#888; font-size:0.85rem; margin-top:4px;">DevTools Hub Receipt Generator</div>
+                                    </div>
+                                    <div class="rcp-prev-meta">
+                                        <span class="rcp-prev-meta-row"><b id="prev-num">RCP-001</b></span>
+                                        <span class="rcp-prev-meta-row">Date: <b id="prev-date">2026-07-30</b></span>
+                                        <span class="rcp-prev-meta-row">Payment: <b id="prev-payment">Cash</b></span>
+                                    </div>
+                                </div>
+                                <div class="rcp-prev-parties">
+                                    <div>
+                                        <div class="rcp-prev-party-label">From</div>
+                                        <div class="rcp-prev-party-name" id="prev-from-name">Your Business LLC</div>
+                                        <div class="rcp-prev-party-detail" id="prev-from-addr">123 Main St, Suite 400
+San Francisco, CA 94105</div>
+                                        <div class="rcp-prev-party-detail" id="prev-from-contact" style="margin-top:4px;"></div>
+                                    </div>
+                                    <div>
+                                        <div class="rcp-prev-party-label">Bill to</div>
+                                        <div class="rcp-prev-party-name" id="prev-to-name">Acme Corp</div>
+                                        <div class="rcp-prev-party-detail" id="prev-to-addr">456 Market St
+New York, NY 10001</div>
+                                        <div class="rcp-prev-party-detail" id="prev-to-contact" style="margin-top:4px;"></div>
+                                    </div>
+                                </div>
+                                <table class="rcp-prev-table">
+                                    <caption class="sr-only">Receipt preview line items</caption>
+                                    <thead>
+                                        <tr>
+                                            <th>Description</th>
+                                            <th class="r">Qty</th>
+                                            <th class="r">Unit price</th>
+                                            <th class="r">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="prev-items"><tr><td colspan="4">No data yet.</td></tr></tbody>
+                                </table>
+                                <div class="rcp-prev-totals" id="prev-totals">
+                                    <div class="rcp-prev-total-row"><span>Subtotal</span><span id="prev-subtotal">$0.00</span></div>
+                                    <div class="rcp-prev-total-row" id="prev-discount-row" style="display:none;"><span id="prev-discount-label">Discount</span><span id="prev-discount">-$0.00</span></div>
+                                    <div class="rcp-prev-total-row" id="prev-tax-row" style="display:none;"><span id="prev-tax-label">Tax (0%)</span><span id="prev-tax">$0.00</span></div>
+                                    <div class="rcp-prev-total-row grand"><span>TOTAL PAID</span><span id="prev-total">$0.00</span></div>
+                                </div>
+                                <div class="rcp-prev-footer" id="prev-notes-wrap" style="display:none;">
+                                    <b>Notes</b>
+                                    <span id="prev-notes"></span>
+                                </div>
+                                <div class="rcp-prev-foot">
+                                    Generated with <a href="https://tools.scoreroute.com/tools/receipt-generator/">DevTools Hub Receipt Generator</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="tool-page" style="margin-top: 28px;">
+                    <h2 style="color:#fff; font-size:1.3rem; margin-bottom:14px;">How it works</h2>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;">
+                        <div class="rcp-info-card"><b>1. Enter your business details</b><p>Fill in your business name, address, and contact info. All fields stay in your browser - nothing is uploaded.</p></div>
+                        <div class="rcp-info-card"><b>2. Add line items</b><p>One row per product or service you sold. Description, quantity, unit price - the line total updates as you type. Add unlimited items.</p></div>
+                        <div class="rcp-info-card"><b>3. Set tax and discount</b><p>Tax is a percentage of subtotal after discount. Discount can be a percentage or fixed amount. The math uses fixed-precision integer cents.</p></div>
+                        <div class="rcp-info-card"><b>4. Choose payment method</b><p>Select from Cash, Card, Bank Transfer, PayPal, and more. The PAID badge and payment method appear on the receipt automatically.</p></div>
+                        <div class="rcp-info-card"><b>5. Download the PDF</b><p>Download a print-quality PDF with PAID watermark. Generate entirely in your browser via html2canvas + jsPDF - no server involved.</p></div>
+                        <div class="rcp-info-card"><b>6. Save your draft</b><p>Click Save to download a JSON file. Click Load to re-import it. Auto-saves to your browser's localStorage every 5 seconds.</p></div>
+                    </div>
+                </section>
+
+                <section class="tool-page" style="margin-top: 28px;">
+                    <h2 style="color:#fff; font-size:1.3rem; margin-bottom:14px;">Receipt vs Invoice: What's the difference?</h2>
+                    <p style="color:#9a9ab0; line-height: 1.7; font-size: 0.9rem;">An <strong>invoice</strong> is a request for payment - you send it <em>before</em> you get paid. A <strong>receipt</strong> is proof of payment - you give it <em>after</em> you receive payment. This tool generates professional receipts for completed transactions. If you need to send an invoice first, use our <a href="/tools/invoice-generator/" style="color:#10b981;">Invoice Generator</a>.</p>
+                </section>
+
+                <section class="tool-page" style="margin-top: 28px;">
+                    <h2 style="color:#fff; font-size:1.3rem; margin-bottom:14px;">Why AI Cannot Generate Your Receipts</h2>
+                    <p style="color:#9a9ab0; line-height: 1.7; font-size: 0.9rem;">Large language models hallucinate numbers and formatting when asked to compute receipt totals. They cannot reliably: calculate tax as a percentage of subtotal after discount, apply fixed-precision currency rounding, format dollar amounts with proper decimal alignment, or render a pixel-perfect printable layout. This tool uses deterministic integer-cents math and browser-native rendering - the total always adds up, every time. AI is probabilistic; receipts are deterministic.</p>
+                </section>
+
+                <section class="tool-page" style="margin-top: 28px;">
+                    <h2 style="color:#fff; font-size:1.3rem; margin-bottom:14px;">Common questions</h2>
+                    <details class="rcp-faq"><summary>Is the receipt generator really free?</summary><p>Yes. 100% free, unlimited receipts, no signup, no watermark, no daily limit. Everything runs locally in your browser - your business data never leaves your device.</p></details>
+                    <details class="rcp-faq"><summary>What's the difference between a receipt and an invoice?</summary><p>An invoice is a request for payment sent <em>before</em> payment is made. A receipt is proof of payment issued <em>after</em> payment is received. This tool generates receipts. If you need invoices, use our Invoice Generator.</p></details>
+                    <details class="rcp-faq"><summary>Can I save my receipt and edit it later?</summary><p>Yes. Click Save to download a JSON file. Click Load to re-import any saved JSON file. The tool also auto-saves the current draft to your browser's localStorage so you can return to it.</p></details>
+                    <details class="rcp-faq"><summary>Does it support different currencies?</summary><p>Yes. Pick from 30+ currencies including USD, EUR, GBP, JPY, CNY, INR, CAD, AUD, and more. The currency symbol and formatting update everywhere on the receipt automatically.</p></details>
+                    <details class="rcp-faq"><summary>How is the tax calculated?</summary><p>Type a tax rate (for example 8.5) in the Tax field. The tool multiplies the subtotal after discount by your tax rate. Fixed-precision integer-cents math is used so the total always matches.</p></details>
+                    <details class="rcp-faq"><summary>Can I select different payment methods?</summary><p>Yes. Choose from Cash, Credit Card, Debit Card, Bank Transfer, Check, PayPal, Stripe, Venmo, Cryptocurrency, or Other. The payment method appears on the receipt.</p></details>
+                    <details class="rcp-faq"><summary>Will my data be sent to a server?</summary><p>No. All receipt data stays in your browser. Nothing is uploaded. You can verify this by opening the browser's Network tab while using the tool - only the page HTML and CDN libraries are loaded.</p></details>
+                    <details class="rcp-faq"><summary>What is the discount calculation method?</summary><p>If you select Percentage, the discount is calculated as a percentage of the subtotal. If you select Fixed, the exact amount you enter is subtracted. The discount can never exceed the subtotal.</p></details>
+                </section>
+
+                <section class="tool-page" style="margin-top: 28px;">
+                    <h2 style="color:#fff; font-size:1.3rem; margin-bottom:14px;">Related tools</h2>
+                    <div class="rcp-related">
+                        <a href="/tools/invoice-generator/"><strong>Invoice Generator</strong> Create professional invoices</a>
+                        <a href="/tools/currency-converter/"><strong>Currency Converter</strong> Convert 166+ currencies</a>
+                        <a href="/tools/percentage-calculator/"><strong>Percentage Calculator</strong> Discount, tax, increase</a>
+                        <a href="/tools/tip-calculator/"><strong>Tip Calculator</strong> Split bills fast</a>
+                        <a href="/tools/qr-code-generator/"><strong>QR Code Generator</strong> For payment links</a>
+                        <a href="/tools/barcode-generator/"><strong>Barcode Generator</strong> Product codes</a>
+                    </div>
+                </section>
+
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <div class="rcp-toast" id="rcp-toast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="/tools.js"></script>
+    <script>
+    (function() {
+        'use strict';
+        var DRAFT_KEY = 'rcp-generator-draft-v1';
+        var CURRENCY_SYMBOLS = {
+            USD: '$', EUR: '\u20AC', GBP: '\u00A3', JPY: '\u00A5', CNY: '\u00A5',
+            INR: '\u20B9', CAD: '$', AUD: '$', CHF: 'CHF', SGD: '$', HKD: '$',
+            KRW: '\u20A9', MXN: '$', BRL: 'R$', ZAR: 'R', SEK: 'kr',
+            NOK: 'kr', DKK: 'kr', PLN: 'z\u0142', NZD: '$', TWD: 'NT$',
+            THB: '\u0E3F', AED: '\u062F.\u0625'
+        };
+        var ZERO_DECIMAL = { JPY: 1, KRW: 1, HUF: 1 };
+
+        function escHtml(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function fmtNum(n, currency) {
+            var useZero = ZERO_DECIMAL[currency] ? 0 : 2;
+            var x = Number(n);
+            if (!isFinite(x)) x = 0;
+            return x.toLocaleString('en-US', { minimumFractionDigits: useZero, maximumFractionDigits: useZero });
+        }
+        function fmtMoney(n, currency) {
+            var sym = CURRENCY_SYMBOLS[currency] || '$';
+            return sym + fmtNum(n, currency);
+        }
+        function toCents(n) {
+            return Math.round(Number(n || 0) * 100);
+        }
+        function fromCents(c) {
+            return c / 100;
+        }
+        function uid() {
+            return 'id-' + Math.random().toString(36).slice(2, 10) + '-' + Date.now().toString(36);
+        }
+        function showStatus(msg, type) {
+            var el = document.getElementById('rcp-status');
+            el.className = 'rcp-status ' + (type || 'info');
+            el.textContent = msg;
+            setTimeout(function() { if (el.textContent === msg) el.className = 'rcp-status hidden'; }, 5000);
+        }
+        function toast(msg, type) {
+            var t = document.getElementById('rcp-toast');
+            t.textContent = msg;
+            t.className = 'rcp-toast show' + (type === 'error' ? ' error' : '');
+            setTimeout(function() { t.className = 'rcp-toast'; }, 2400);
+        }
+        function todayISO() {
+            var d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+
+        function getVal(id) {
+            var el = document.getElementById(id);
+            return el ? el.value : '';
+        }
+        function setVal(id, v) {
+            var el = document.getElementById(id);
+            if (el) el.value = v == null ? '' : v;
+        }
+
+        function getState() {
+            return {
+                num: getVal('rcp-num'),
+                date: getVal('rcp-date'),
+                currency: getVal('rcp-currency'),
+                payment: getVal('rcp-payment'),
+                taxRate: getVal('rcp-taxrate'),
+                discountType: getVal('rcp-discounttype'),
+                discountValue: getVal('rcp-discountvalue'),
+                fromName: getVal('rcp-from-name'),
+                fromEmail: getVal('rcp-from-email'),
+                fromPhone: getVal('rcp-from-phone'),
+                fromTaxId: getVal('rcp-from-taxid'),
+                fromAddr: getVal('rcp-from-addr'),
+                toName: getVal('rcp-to-name'),
+                toEmail: getVal('rcp-to-email'),
+                toAddr: getVal('rcp-to-addr'),
+                notes: getVal('rcp-notes'),
+                items: items.map(function(it) { return { id: it.id, desc: it.desc, qty: it.qty, price: it.price }; })
+            };
+        }
+        function setState(s) {
+            if (!s) s = {};
+            setVal('rcp-num', s.num || 'RCP-' + todayISO().replace(/-/g, '').slice(2));
+            setVal('rcp-date', s.date || todayISO());
+            setVal('rcp-currency', s.currency || 'USD');
+            setVal('rcp-payment', s.payment || 'Cash');
+            setVal('rcp-taxrate', s.taxRate != null ? s.taxRate : 0);
+            setVal('rcp-discounttype', s.discountType || 'none');
+            setVal('rcp-discountvalue', s.discountValue != null ? s.discountValue : 0);
+            setVal('rcp-from-name', s.fromName || '');
+            setVal('rcp-from-email', s.fromEmail || '');
+            setVal('rcp-from-phone', s.fromPhone || '');
+            setVal('rcp-from-taxid', s.fromTaxId || '');
+            setVal('rcp-from-addr', s.fromAddr || '');
+            setVal('rcp-to-name', s.toName || '');
+            setVal('rcp-to-email', s.toEmail || '');
+            setVal('rcp-to-addr', s.toAddr || '');
+            setVal('rcp-notes', s.notes || '');
+            items.length = 0;
+            if (Array.isArray(s.items) && s.items.length) {
+                s.items.forEach(function(it) {
+                    items.push({ id: it.id || uid(), desc: it.desc || '', qty: it.qty == null ? 1 : it.qty, price: it.price == null ? 0 : it.price });
+                });
+            } else {
+                items.push(blankItem());
+            }
+            renderItems();
+            update();
+        }
+
+        function blankItem() {
+            return { id: uid(), desc: '', qty: 1, price: 0 };
+        }
+
+        var items = [blankItem()];
+
+        function renderItems() {
+            var body = document.getElementById('rcp-items-body');
+            body.innerHTML = '';
+            items.forEach(function(it, i) {
+                var tr = document.createElement('tr');
+                tr.className = 'rcp-item-row';
+                tr.setAttribute('data-id', it.id);
+                tr.innerHTML =
+                    '<td><input class="rcp-input" type="text" data-field="desc" aria-label="Description" value="' + escHtml(it.desc) + '" placeholder="Product or service" maxlength="160"></td>' +
+                    '<td><input class="rcp-input num" type="number" min="0" step="any" data-field="qty" value="' + escHtml(it.qty) + '" aria-label="Quantity"></td>' +
+                    '<td><input class="rcp-input num" type="number" min="0" step="any" data-field="price" value="' + escHtml(it.price) + '" aria-label="Unit Price"></td>' +
+                    '<td><span class="rcp-line-total" data-id="' + escHtml(it.id) + '">' + escHtml(fmtMoney((Number(it.qty) || 0) * (Number(it.price) || 0), getVal('rcp-currency'))) + '</span></td>' +
+                    '<td><button class="rcp-btn-ghost rcp-btn-icon" type="button" data-action="del" aria-label="Remove line">&times;</button></td>';
+                body.appendChild(tr);
+            });
+        }
+
+        function update() {
+            var currency = getVal('rcp-currency') || 'USD';
+            var subtotalCents = 0;
+            items.forEach(function(it) {
+                var qty = Math.round(Number(it.qty) || 0);
+                var price = Number(it.price) || 0;
+                var lineCents = qty * Math.round(price * 100);
+                subtotalCents += lineCents;
+            });
+
+            var discountType = getVal('rcp-discounttype') || 'none';
+            var discountVal = Number(getVal('rcp-discountvalue')) || 0;
+            var discountCents = 0;
+            if (discountType === 'percent') {
+                discountCents = Math.round(subtotalCents * (Math.min(discountVal, 100) / 100));
+            } else if (discountType === 'fixed') {
+                discountCents = toCents(discountVal);
+            }
+            if (discountCents > subtotalCents) discountCents = subtotalCents;
+            var afterDiscountCents = subtotalCents - discountCents;
+
+            var taxRate = Number(getVal('rcp-taxrate')) || 0;
+            if (taxRate < 0) taxRate = 0;
+            if (taxRate > 100) taxRate = 100;
+            var taxCents = Math.round(afterDiscountCents * (taxRate / 100));
+            var totalCents = afterDiscountCents + taxCents;
+
+            var lineTotals = document.querySelectorAll('.rcp-line-total');
+            items.forEach(function(it, i) {
+                if (lineTotals[i]) {
+                    var qty = Math.round(Number(it.qty) || 0);
+                    var price = Number(it.price) || 0;
+                    lineTotals[i].textContent = fmtMoney(qty * price, currency);
+                }
+            });
+
+            document.getElementById('prev-num').textContent = getVal('rcp-num') || 'RCP-001';
+            document.getElementById('prev-date').textContent = getVal('rcp-date') || todayISO();
+            document.getElementById('prev-payment').textContent = getVal('rcp-payment') || 'Cash';
+            document.getElementById('prev-from-name').textContent = getVal('rcp-from-name') || 'Your Business';
+            document.getElementById('prev-from-addr').textContent = getVal('rcp-from-addr') || 'Your address';
+            var fromContact = [];
+            if (getVal('rcp-from-email')) fromContact.push(getVal('rcp-from-email'));
+            if (getVal('rcp-from-phone')) fromContact.push(getVal('rcp-from-phone'));
+            if (getVal('rcp-from-taxid')) fromContact.push('Tax ID: ' + getVal('rcp-from-taxid'));
+            document.getElementById('prev-from-contact').innerHTML = fromContact.map(escHtml).join('<br>');
+
+            document.getElementById('prev-to-name').textContent = getVal('rcp-to-name') || 'Customer';
+            document.getElementById('prev-to-addr').textContent = getVal('rcp-to-addr') || 'Customer address';
+            var toContact = [];
+            if (getVal('rcp-to-email')) toContact.push(getVal('rcp-to-email'));
+            document.getElementById('prev-to-contact').innerHTML = toContact.map(escHtml).join('<br>');
+
+            var prevItems = document.getElementById('prev-items');
+            prevItems.innerHTML = '';
+            if (items.length === 0 || (items.length === 1 && !items[0].desc)) {
+                prevItems.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#999; padding:24px;">Add a line item to see it here</td></tr>';
+            } else {
+                items.forEach(function(it) {
+                    if (!it.desc && !it.price) return;
+                    var qty = Math.round(Number(it.qty) || 0);
+                    var price = Number(it.price) || 0;
+                    var lineCents = qty * Math.round(price * 100);
+                    if (lineCents === 0 && !it.desc) return;
+                    var tr = '<tr><td>' + escHtml(it.desc || 'Untitled') + '</td><td class="r">' + qty + '</td><td class="r">' + escHtml(fmtMoney(price, currency)) + '</td><td class="r">' + escHtml(fmtMoney(fromCents(lineCents), currency)) + '</td></tr>';
+                    prevItems.insertAdjacentHTML('beforeend', tr);
+                });
+            }
+
+            document.getElementById('prev-subtotal').textContent = fmtMoney(fromCents(subtotalCents), currency);
+            var discRow = document.getElementById('prev-discount-row');
+            if (discountCents > 0) {
+                discRow.style.display = '';
+                document.getElementById('prev-discount-label').textContent = discountType === 'percent' ? 'Discount (' + discountVal + '%)' : 'Discount';
+                document.getElementById('prev-discount').textContent = '-' + fmtMoney(fromCents(discountCents), currency);
+            } else {
+                discRow.style.display = 'none';
+            }
+            var taxRow = document.getElementById('prev-tax-row');
+            if (taxCents > 0) {
+                taxRow.style.display = '';
+                document.getElementById('prev-tax-label').textContent = 'Tax (' + taxRate + '%)';
+                document.getElementById('prev-tax').textContent = fmtMoney(fromCents(taxCents), currency);
+            } else {
+                taxRow.style.display = 'none';
+            }
+            document.getElementById('prev-total').textContent = fmtMoney(fromCents(totalCents), currency);
+
+            var notesWrap = document.getElementById('prev-notes-wrap');
+            var notes = getVal('rcp-notes');
+            if (notes && notes.trim()) {
+                notesWrap.style.display = '';
+                document.getElementById('prev-notes').textContent = notes;
+            } else {
+                notesWrap.style.display = 'none';
+            }
+
+            saveDraft();
+        }
+
+        function saveDraft() {
+            try { localStorage.setItem(DRAFT_KEY, JSON.stringify(getState())); } catch (e) {}
+        }
+        var saveTimer = null;
+        function debouncedSave() {
+            if (saveTimer) clearTimeout(saveTimer);
+            saveTimer = setTimeout(saveDraft, 800);
+        }
+
+        document.addEventListener('input', function(e) {
+            var t = e.target;
+            if (!t) return;
+            if (t.closest && t.closest('#rcp-items-body')) {
+                var tr = t.closest('tr');
+                if (!tr) return;
+                var id = tr.getAttribute('data-id');
+                var it = items.find(function(x) { return x.id === id; });
+                if (it) {
+                    if (t.getAttribute('data-field') === 'desc') it.desc = t.value;
+                    else if (t.getAttribute('data-field') === 'qty') it.qty = Number(t.value) || 0;
+                    else if (t.getAttribute('data-field') === 'price') it.price = Number(t.value) || 0;
+                }
+                update();
+                return;
+            }
+            update();
+        });
+
+        document.addEventListener('change', function(e) {
+            var t = e.target;
+            if (t && t.id === 'rcp-currency') {
+                renderItems();
+                update();
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            var t = e.target;
+            if (!t) return;
+            if (t.id === 'rcp-add-item' || (t.closest && t.closest('#rcp-add-item'))) {
+                items.push(blankItem());
+                renderItems();
+                update();
+                return;
+            }
+            if (t.getAttribute && t.getAttribute('data-action') === 'del') {
+                var tr = t.closest('tr');
+                var id = tr.getAttribute('data-id');
+                items = items.filter(function(x) { return x.id !== id; });
+                if (items.length === 0) items.push(blankItem());
+                renderItems();
+                update();
+                return;
+            }
+            if (t.id === 'rcp-pdf' || (t.closest && t.closest('#rcp-pdf'))) {
+                downloadPDF();
+                return;
+            }
+            if (t.id === 'rcp-print' || (t.closest && t.closest('#rcp-print'))) {
+                window.print();
+                return;
+            }
+            if (t.id === 'rcp-save' || (t.closest && t.closest('#rcp-save'))) {
+                saveJSON();
+                return;
+            }
+            if (t.id === 'rcp-load' || (t.closest && t.closest('#rcp-load'))) {
+                document.getElementById('rcp-load-file').click();
+                return;
+            }
+            if (t.id === 'rcp-clear' || (t.closest && t.closest('#rcp-clear'))) {
+                if (confirm('Clear all fields and start over?')) {
+                    try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+                    setState({});
+                    toast('Cleared');
+                }
+                return;
+            }
+        });
+
+        document.getElementById('rcp-load-file').addEventListener('change', function(e) {
+            var f = e.target.files && e.target.files[0];
+            if (!f) return;
+            var reader = new FileReader();
+            reader.onload = function() {
+                try {
+                    var s = JSON.parse(reader.result);
+                    setState(s);
+                    toast('Loaded receipt from JSON');
+                } catch (err) {
+                    toast('Invalid JSON file', 'error');
+                }
+                e.target.value = '';
+            };
+            reader.readAsText(f);
+        });
+
+        function saveJSON() {
+            var s = getState();
+            var blob = new Blob([JSON.stringify(s, null, 2)], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'receipt-' + (s.num || 'draft').replace(/[^\w\-]/g, '_') + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+            toast('Receipt JSON saved');
+        }
+
+        function downloadPDF() {
+            var btn = document.getElementById('rcp-pdf');
+            var origText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            var node = document.getElementById('rcp-preview');
+            if (typeof html2canvas !== 'function') {
+                toast('PDF library not loaded', 'error');
+                btn.disabled = false;
+                btn.textContent = origText;
+                return;
+            }
+            html2canvas(node, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false }).then(function(canvas) {
+                try {
+                    var jsPDFNs = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+                    if (!jsPDFNs) throw new Error('jsPDF not loaded');
+                    var pdf = new jsPDFNs({ unit: 'pt', format: 'a4', orientation: 'portrait' });
+                    var pageW = pdf.internal.pageSize.getWidth();
+                    var pageH = pdf.internal.pageSize.getHeight();
+                    var imgData = canvas.toDataURL('image/png');
+                    var ratio = canvas.height / canvas.width;
+                    var imgW = pageW - 40;
+                    var imgH = imgW * ratio;
+                    if (imgH > pageH - 40) {
+                        imgH = pageH - 40;
+                        imgW = imgH / ratio;
+                    }
+                    var x = (pageW - imgW) / 2;
+                    var y = 20;
+                    pdf.addImage(imgData, 'PNG', x, y, imgW, imgH, undefined, 'FAST');
+                    var num = (getVal('rcp-num') || 'receipt').replace(/[^\w\-]/g, '_');
+                    pdf.save('receipt-' + num + '.pdf');
+                    toast('PDF downloaded');
+                } catch (err) {
+                    toast('PDF error: ' + err.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = origText;
+                }
+            }).catch(function(err) {
+                toast('PDF capture failed: ' + err.message, 'error');
+                btn.disabled = false;
+                btn.textContent = origText;
+            });
+        }
+
+        function loadDraft() {
+            try {
+                var s = localStorage.getItem(DRAFT_KEY);
+                if (s) {
+                    var parsed = JSON.parse(s);
+                    if (parsed && (parsed.items || parsed.num || parsed.fromName)) {
+                        setState(parsed);
+                        return true;
+                    }
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        function init() {
+            if (!loadDraft()) {
+                setVal('rcp-num', 'RCP-' + todayISO().replace(/-/g, '').slice(2));
+                setVal('rcp-date', todayISO());
+                setVal('rcp-currency', 'USD');
+                setVal('rcp-payment', 'Cash');
+                renderItems();
+                update();
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+    </script>
+</body>
+</html>

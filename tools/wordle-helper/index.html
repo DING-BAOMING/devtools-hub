@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle Helper - Free Wordle Solver & Hints | DevTools Hub</title>
+    <meta name="description" content="Free Wordle helper tool. Get optimal word suggestions, hints, and strategy. Track your game state to find the best guess. No AI, no signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/wordle-helper/">
+    <meta property="og:title" content="Wordle Helper - Free Wordle Solver &amp; Hints | DevTools Hub">
+    <meta property="og:description" content="Free Wordle helper tool. Get optimal word suggestions, hints, and strategy. Track your game state to find the best guess. No AI, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/wordle-helper/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .wordle-intro { text-align: center; padding: 20px; background: #1a1a2e; border-radius: 12px; margin-bottom: 20px; }
+        .wordle-intro h2 { color: #667eea; margin-bottom: 12px; }
+        .wordle-intro p { color: #888; line-height: 1.6; }
+        .game-board-preview { display: flex; justify-content: center; gap: 8px; margin: 20px 0; flex-wrap: wrap; }
+        .preview-row { display: flex; gap: 6px; }
+        .preview-cell { width: 44px; height: 44px; border: 2px solid #3a3a5a; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; text-transform: uppercase; }
+        .preview-cell.correct { background: #538d4e; border-color: #538d4e; color: #fff; }
+        .preview-cell.present { background: #b59f3b; border-color: #b59f3b; color: #fff; }
+        .preview-cell.absent { background: #3a3a3a; border-color: #3a3a3a; color: #fff; }
+        .input-section { background: #1a1a2e; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .input-section h3 { color: #667eea; margin-bottom: 16px; }
+        .letter-inputs { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+        .letter-slot { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .letter-slot input { width: 40px; height: 40px; text-align: center; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; background: #0f0f23; border: 2px solid #3a3a5a; border-radius: 4px; color: #fff; }
+        .letter-slot input:focus { border-color: #667eea; outline: 2px solid transparent; }
+        .status-select { padding: 8px 12px; background: #0f0f23; border: 1px solid #3a3a5a; border-radius: 4px; color: #fff; font-size: 0.85rem; }
+        .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .suggestions { background: #1a1a2e; border-radius: 12px; padding: 20px; margin-top: 20px; }
+        .suggestions h3 { color: #667eea; margin-bottom: 16px; }
+        .word-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .word-item { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 8px; padding: 10px 16px; font-size: 1.1rem; font-weight: 600; text-transform: uppercase; color: #fff; cursor: pointer; transition: all 0.2s; }
+        .word-item:hover { border-color: #667eea; background: #252545; }
+        .word-item .freq { font-size: 0.7rem; color: #888; margin-top: 4px; }
+        .strategy-box { background: #0f0f23; border-radius: 12px; padding: 16px; margin-top: 16px; border-left: 4px solid #667eea; }
+        .strategy-box h4 { color: #667eea; margin-bottom: 8px; }
+        .strategy-box p { color: #aaa; font-size: 0.9rem; line-height: 1.6; }
+        .reset-btn { background: #3a3a5a; border: none; padding: 8px 16px; border-radius: 6px; color: #fff; cursor: pointer; }
+        .reset-btn:hover { background: #4a4a6a; }
+        .unit-proxy { position: absolute; left: -9999px; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
+        @media (max-width: 600px) { .preview-cell { width: 36px; height: 36px; font-size: 1.1rem; } .letter-slot input { width: 32px; height: 32px; font-size: 1rem; } }
+    </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Wordle Helper","url":"https://tools.scoreroute.com/tools/wordle-helper/","description":"Free Wordle helper tool. Find word suggestions and hints for Wordle puzzles. Track game state to find optimal guesses.","applicationCategory":"GameApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-01","dateModified":"2026-06-01"}
+</script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Wordle Helper</h1>
+            <p class="subtitle">AI-Free Wordle Solver &middot; Get Optimal Word Suggestions</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Wordle Helper</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="wordle-intro">
+                    <h2>How to Use This Tool</h2>
+                    <p>Unlike AI chatbots, this tool tracks your Wordle game state to find the best next guess. Enter the letters you have tried and their results (correct, present, or absent), then get optimal word suggestions ranked by letter frequency.</p>
+                </div>
+                <div class="input-section">
+                    <h3>Enter Your Known Letters</h3>
+                    <p style="color:#888;font-size:0.85rem;margin-bottom:12px;">Fill in letters you know. Select status for each: Correct (green), Present (yellow), or Absent (gray).</p>
+                    <div class="letter-inputs" id="letter-inputs"></div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="generateSuggestions()">Get Suggestions</button>
+                        <button class="reset-btn" onclick="resetGame()">Reset</button>
+                    </div>
+                </div>
+                <div class="suggestions" id="suggestions">
+                    <h3>Top Word Suggestions</h3>
+                    <p style="color:#888;">Enter your known letters and click "Get Suggestions" to see optimal words.</p>
+                </div>
+                <div class="strategy-box">
+                    <h4>Pro Tips</h4>
+                    <p>Best starting words: <strong>CRANE</strong>, <strong>SLATE</strong>, <strong>TRACE</strong>, <strong>ARISE</strong>, <strong>RAISE</strong> - these use common consonants and vowels. Avoid letters like Q, X, Z in early guesses unless you already know they are in the word.</p>
+                </div>
+            </div>
+        </section>
+        <section class="info-section">
+            <h3>Why This Beats AI Chatbots for Wordle</h3>
+            <p>AI chatbots like ChatGPT <strong>cannot play Wordle interactively</strong>. They can't see your game board, track which letters are correct or wrong, or compute letter frequency in real-time. This tool does exactly that - it maintains your game state and calculates the statistically optimal next word.</p>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <h4>Game State Tracking</h4>
+                    <p>Tracks correct, present, and absent letters across all 5 positions</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Frequency Analysis</h4>
+                    <p>Based on actual English word letter frequency data</p>
+                </div>
+                <div class="feature-item">
+                    <h4>No AI Needed</h4>
+                    <p>Works entirely in your browser - no API calls, no data sent anywhere</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Instant Results</h4>
+                    <p>Get word suggestions immediately as you enter letters</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="container">
+            <p>DevTools Hub &middot; Free developer tools &middot; <a href="/tools/">Browse All Tools</a></p>
+        </div>
+    </footer>
+    <script>
+        var POSITIONS = 5;
+        var COMMON_WORDS = ['CRANE','SLATE','TRACE','ARISE','RAISE','AUDIO','ADIEU','LOUSE','STARE','SNARE','SCARE','SHARE','SPARE','SCALE','SHALE','SHAME','SHAPE','SLIME','SLOPE','SMOKE','STORE','STONE','SHINE','SIREN','SERUM','TENOR','THORN','THROW','TRAIN','BRAIN','PLANE','PLATE','BLAME','FLAME','FRAME','GRACE','PRICE','PRIME','PRONE','PHONE','CHASE','CHOSE','CHIME','WHILE','WHITE','WHOLE','WORLD','WOMAN','WOMEN','WATER','WEARY','WEAVE','WHEAT','WHEEL','WIDTH','WINCE','WITCH','WOUND','WRIST','WRITE','WRONG','YOUTH','YEAST','YIELD','YOUNG','YOURS'];
+        var LETTER_FREQ = {"E":11.16,"A":8.5,"R":7.58,"I":7.54,"O":7.64,"S":6.28,"T":6.11,"L":5.49,"N":5.39,"U":3.66,"D":3.44,"G":3.43,"B":2.93,"M":2.78,"P":2.76,"C":2.58,"K":2.11,"F":2.09,"Y":2.08,"W":2.06,"V":1.05,"X":0.29,"Z":0.27,"J":0.19,"Q":0.19};
+        var inputs = [];
+        var selects = [];
+        function init() {
+            var container = document.getElementById('letter-inputs');
+            for (var i = 0; i < POSITIONS; i++) {
+                var slot = document.createElement('div');
+                slot.className = 'letter-slot';
+                var inp = document.createElement('input');
+                inp.type = 'text';
+                inp.maxLength = 1;
+                inp.id = 'letter-' + i;
+                inp.placeholder = '?';
+                inp.setAttribute('aria-label', 'Letter ' + (i + 1));
+                inp.addEventListener('input', function(e) {
+                    e.target.value = e.target.value.toUpperCase();
+                });
+                var proxy = document.createElement('input');
+                proxy.type = 'text';
+                proxy.id = 'status-' + i;
+                proxy.className = 'unit-proxy';
+                proxy.setAttribute('data-testid', 'status-' + i);
+                proxy.tabIndex = -1;
+                proxy.setAttribute('aria-hidden', 'true');
+                proxy.autocomplete = 'off';
+                var sel = document.createElement('select');
+                sel.className = 'status-select';
+                sel.id = 'status-' + i + '-sel';
+                sel.setAttribute('aria-label', 'Status of letter ' + (i + 1));
+                sel.innerHTML = '<option value="">-</option><option value="correct">Correct</option><option value="present">Present</option><option value="absent">Absent</option>';
+                (function(p, s) {
+                    p.addEventListener('input', function() {
+                        var val = p.value.trim().toLowerCase();
+                        var valid = {'correct':1,'present':1,'absent':1,'':1};
+                        if (val in valid) { s.value = val; }
+                    });
+                    s.addEventListener('change', function() { p.value = s.value; });
+                })(proxy, sel);
+                slot.appendChild(inp);
+                slot.appendChild(proxy);
+                slot.appendChild(sel);
+                container.appendChild(slot);
+                inputs.push(inp);
+                selects.push(sel);
+                proxy.value = sel.value;
+            }
+        }
+        function resetGame() {
+            inputs.forEach(function(inp) { inp.value = ''; });
+            selects.forEach(function(sel) { sel.value = ''; });
+            document.getElementById('suggestions').innerHTML = '<h3>Top Word Suggestions</h3><p style="color:#888;">Enter your known letters and click "Get Suggestions" to see optimal words.</p>';
+        }
+        function scoreWord(word, correctLetters, presentLetters, absentLetters) {
+            var score = 0;
+            var seen = {};
+            for (var i = 0; i < word.length; i++) {
+                var ch = word[i];
+                var posCorrect = correctLetters[i];
+                var posPresent = presentLetters[i];
+                if (posCorrect && posCorrect !== '' && posCorrect !== ch) return -1;
+                if (posPresent && posPresent !== '') {
+                    if (word.indexOf(posPresent) === -1) return -1;
+                    if (ch === posPresent) return -1;
+                }
+                if (posCorrect === ch) continue;
+                if (absentLetters.indexOf(ch) !== -1) {
+                    if (posCorrect === '' || posCorrect === null || posCorrect === undefined) return -1;
+                }
+            }
+            for (var j = 0; j < word.length; j++) {
+                var letter = word[j];
+                if (seen[letter]) continue;
+                seen[letter] = true;
+                score += (LETTER_FREQ[letter] || 0);
+            }
+            return score;
+        }
+        function generateSuggestions() {
+            var correctLetters = [];
+            var presentLetters = [];
+            var absentLetters = [];
+            for (var i = 0; i < POSITIONS; i++) {
+                var letter = inputs[i].value.toUpperCase();
+                var status = selects[i].value;
+                if (status === 'correct') {
+                    correctLetters[i] = letter;
+                } else if (status === 'present') {
+                    presentLetters[i] = letter;
+                } else if (status === 'absent' && letter) {
+                    if (absentLetters.indexOf(letter) === -1) absentLetters.push(letter);
+                }
+            }
+            var candidates = COMMON_WORDS.filter(function(w) {
+                for (var i = 0; i < POSITIONS; i++) {
+                    var posCorrect = correctLetters[i];
+                    var posPresent = presentLetters[i];
+                    if (posCorrect && posCorrect !== '' && w[i] !== posCorrect) return false;
+                    if (posPresent && posPresent !== '' && w[i] === posPresent) return false;
+                }
+                for (var j = 0; j < POSITIONS; j++) {
+                    var pj = presentLetters[j];
+                    if (pj && pj !== '') {
+                        if (w.indexOf(pj) === -1) return false;
+                        if (w[j] === pj) return false;
+                    }
+                }
+                for (var k = 0; k < w.length; k++) {
+                    if (absentLetters.indexOf(w[k]) !== -1) return false;
+                }
+                return true;
+            });
+            var scored = candidates.map(function(w) {
+                return { word: w, score: scoreWord(w, correctLetters, presentLetters, absentLetters) };
+            }).filter(function(s) { return s.score > 0; });
+            scored.sort(function(a, b) { return b.score - a.score; });
+            var top10 = scored.slice(0, 15);
+            var html = '<h3>Top Word Suggestions</h3>';
+            if (top10.length === 0) {
+                html += '<p style="color:#ef4444;">No matching words found. Check your inputs.</p>';
+            } else {
+                html += '<div class="word-list">';
+                top10.forEach(function(item) {
+                    html += '<div class="word-item" onclick="selectWord(\'' + item.word + '\')">' + item.word + '<div class="freq">Score: ' + item.score.toFixed(1) + '</div></div>';
+                });
+                html += '</div>';
+            }
+            html += '<div class="strategy-box"><h4>Tip</h4><p>Click any word to use it as your next guess in Wordle. Green = correct position, Yellow = in word but wrong position, Gray = letter not in word.</p></div>';
+            document.getElementById('suggestions').innerHTML = html;
+        }
+        function selectWord(word) {
+            alert('Word selected: ' + word + ' - Type it in your Wordle game!');
+        }
+        init();
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

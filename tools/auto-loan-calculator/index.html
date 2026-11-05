@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Loan Calculator - Free Car Payment Calculator | DevTools Hub</title>
+    <meta name="description" content="Free auto loan calculator. Calculate monthly car payments with tax, trade-in, down payment. Compare loan terms, total interest, amortization schedule. No signup, 100% private browser tool. AI cannot calculate auto loan math reliably.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/auto-loan-calculator/">
+    <meta property="og:title" content="Auto Loan Calculator - Free Car Payment Calculator | DevTools Hub">
+    <meta property="og:description" content="Free auto loan calculator. Calculate monthly car payments with tax, trade-in, down payment. Compare loan terms, total interest, amortization schedule. 100% private.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/auto-loan-calculator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Auto Loan Calculator - Free Car Payment Calculator | DevTools Hub">
+    <meta name="twitter:description" content="Free auto loan calculator. Calculate monthly car payments with tax, trade-in, down payment. Compare loan terms, total interest, amortization schedule. 100% private.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/auto-loan-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-07-27","dateModified":"2026-07-27","author":{"@type":"Person","name":"BAOMING"},"name":"Auto Loan Calculator","description":"Free auto loan and car payment calculator. Calculate monthly payments with vehicle price, down payment, trade-in, sales tax, APR, and loan term.","url":"https://tools.scoreroute.com/tools/auto-loan-calculator/","applicationCategory":"FinanceApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        :root {
+            --bg: #0f0f23;
+            --card-bg: #1a1a2e;
+            --border: #2a2a4a;
+            --primary: #667eea;
+            --text: #fff;
+            --text-secondary: #888;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+        .alc-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 20px;
+            background: var(--bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .alc-form .full-width {
+            grid-column: 1 / -1;
+        }
+        .alc-form label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .alc-form input, .alc-form select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+        .alc-form input:focus, .alc-form select:focus {
+            outline: 2px solid var(--primary);
+            border-color: transparent;
+        }
+        .alc-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .alc-result-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .alc-result-card .value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 8px;
+        }
+        .alc-result-card .label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .alc-result-card.total-cost .value { color: var(--text); }
+        .alc-result-card.interest .value { color: var(--success); }
+        .alc-toggles {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .alc-toggles button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .alc-toggles button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .alc-breakdown {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .alc-breakdown th {
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            padding: 10px 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        .alc-breakdown th:first-child { text-align: left; }
+        .alc-breakdown td {
+            padding: 10px 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        .alc-breakdown td:first-child { text-align: left; }
+        .alc-breakdown tr:hover { background: var(--card-bg); }
+        .alc-breakdown tr.total td {
+            font-weight: 700;
+            border-top: 2px solid var(--primary);
+        }
+        .alc-term-compare {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+        .alc-term-compare th {
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            padding: 10px 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        .alc-term-compare th:first-child { text-align: left; }
+        .alc-term-compare td {
+            padding: 10px 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        .alc-term-compare td:first-child { text-align: left; }
+        .alc-term-compare tr.best td {
+            color: var(--success);
+            font-weight: 600;
+        }
+        .alc-examples {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .alc-examples button {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .alc-examples button:hover {
+            background: var(--primary);
+            color: white;
+        }
+        @media (max-width: 640px) {
+            .alc-form { grid-template-columns: 1fr; }
+            /* minmax(0,1fr), not 1fr: a 1fr track floors at min-content, so a long
+               value ("$32,187.50") pushes the card past the viewport. */
+            .alc-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            /* The value has to fit INSIDE its card too: one column below 480px, a
+               smaller figure above it (the longest value is ~13 characters). */
+            .alc-result-card .value { font-size: 1.25rem; overflow-wrap: anywhere; }
+        }
+        @media (max-width: 480px) {
+            .alc-results { grid-template-columns: minmax(0, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Auto Loan Calculator</h1>
+            <p class="subtitle">Calculate Your Monthly Car Payment and Total Loan Cost</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/finance/">Finance</a> &gt; <span>Auto Loan Calculator</span>
+              <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" role="main">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Calculate Your Car Payment</h2>
+
+                <div class="alc-examples">
+                    <button onclick="loadExample('sedan')">Family Sedan</button>
+                    <button onclick="loadExample('suv')">SUV</button>
+                    <button onclick="loadExample('sports')">Sports Car</button>
+                    <button onclick="loadExample('truck')">Pickup Truck</button>
+                </div>
+
+                <div class="alc-form">
+                    <div>
+                        <label for="vehiclePrice">Vehicle Price ($)</label>
+                        <input type="number" id="vehiclePrice" value="35000" min="1000" max="500000" step="500" aria-label="Vehicle price">
+                    </div>
+                    <div>
+                        <label for="downPayment">Down Payment ($)</label>
+                        <input type="number" id="downPayment" value="5000" min="0" step="500" aria-label="Down payment amount">
+                    </div>
+                    <div>
+                        <label for="tradeIn">Trade-In Value ($)</label>
+                        <input type="number" id="tradeIn" value="0" min="0" step="500" aria-label="Trade-in value">
+                    </div>
+                    <div>
+                        <label for="apr">Interest Rate (APR %)</label>
+                        <input type="number" id="apr" value="6.97" min="0" max="30" step="0.01" aria-label="Annual percentage rate">
+                    </div>
+                    <div>
+                        <label for="termMonths">Loan Term</label>
+                        <select id="termMonths">
+                            <option value="24">24 months (2 years)</option>
+                            <option value="36">36 months (3 years)</option>
+                            <option value="48">48 months (4 years)</option>
+                            <option value="60" selected>60 months (5 years)</option>
+                            <option value="72">72 months (6 years)</option>
+                            <option value="84">84 months (7 years)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="taxRate">Sales Tax Rate (%)</label>
+                        <input type="number" id="taxRate" value="6.25" min="0" max="15" step="0.25" aria-label="Sales tax rate percentage">
+                    </div>
+                    <div>
+                        <label for="extraPayment">Extra Monthly Payment ($)</label>
+                        <input type="number" id="extraPayment" value="0" min="0" max="10000" step="25" aria-label="Extra monthly payment">
+                    </div>
+                    <div>
+                        <label for="creditTier">Estimated Credit Tier</label>
+                        <select id="creditTier" onchange="updateAPR()">
+                            <option value="super-prime">Super Prime (FICO 781+)</option>
+                            <option value="prime" selected>Prime (FICO 661-780)</option>
+                            <option value="near-prime">Near Prime (FICO 601-660)</option>
+                            <option value="subprime">Subprime (FICO 501-600)</option>
+                            <option value="deep-subprime">Deep Subprime (FICO 300-500)</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="btn-group full-width">
+                        <button onclick="calculate()" class="btn btn-primary">Calculate</button>
+                        <button onclick="clearAll()" class="btn btn-secondary">Clear</button>
+                    </div>
+                </div>
+
+                <div id="alcStatus" class="status"></div>
+
+                <div id="alcResults" style="display:none;">
+                    <div class="alc-results">
+                        <div class="alc-result-card">
+                            <div class="label">Monthly Payment</div>
+                            <div class="value" id="monthlyPayment">$0.00</div>
+                        </div>
+                        <div class="alc-result-card total-cost">
+                            <div class="label">Loan Amount</div>
+                            <div class="value" id="loanAmount">$0.00</div>
+                        </div>
+                        <div class="alc-result-card interest">
+                            <div class="label">Total Interest</div>
+                            <div class="value" id="totalInterest">$0.00</div>
+                        </div>
+                        <div class="alc-result-card total-cost">
+                            <div class="label">Total Cost</div>
+                            <div class="value" id="totalCost">$0.00</div>
+                        </div>
+                    </div>
+
+                    <div id="extraSection" style="display:none;">
+                        <div class="alc-results">
+                            <div class="alc-result-card interest">
+                                <div class="label">Interest Saved</div>
+                                <div class="value" id="interestSaved">$0.00</div>
+                            </div>
+                            <div class="alc-result-card">
+                                <div class="label">Payoff Time Saved</div>
+                                <div class="value" id="timeSaved">0 mo</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>Term Comparison</h3>
+                    <div style="overflow-x:auto;margin-bottom:24px;">
+                        <table class="alc-term-compare" id="termCompare" aria-label="Auto loan term comparison (monthly payment, total interest, total cost per term length)">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Term</th>
+                                    <th scope="col">Monthly Payment</th>
+                                    <th scope="col">Total Interest</th>
+                                    <th scope="col">Total Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody id="termCompareBody"><tr><td colspan="4">Click Calculate to see term comparison</td></tr></tbody>
+                        </table>
+                    </div>
+
+                    <div class="alc-toggles">
+                        <button class="active" onclick="showSection('table')">Amortization Schedule</button>
+                        <button onclick="showSection('summary')">Loan Summary</button>
+                    </div>
+
+                    <div id="sectionTable">
+                        <div style="overflow-x:auto;">
+<table class="alc-breakdown" id="alcTable" aria-label="Auto loan amortization schedule (year, payment, principal, interest, balance)">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Year</th>
+                                                <th scope="col">Payment</th>
+                                                <th scope="col">Principal</th>
+                                                <th scope="col">Interest</th>
+                                                <th scope="col">Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="alcTableBody"><tr><td colspan="5">Click Calculate to see the amortization schedule</td></tr></tbody>
+                                    </table>
+                        </div>
+                    </div>
+
+                    <div id="sectionSummary" style="display:none;">
+                        <div style="padding:20px;background:var(--bg);border-radius:12px;border:1px solid var(--border);">
+                            <p id="summaryText" style="line-height:1.8;color:var(--text);"></p>
+                        </div>
+                    </div>
+
+                    <div class="btn-group" style="margin-top:16px;">
+                        <button onclick="copyResults()" class="copy-btn">Copy Results</button>
+                    </div>
+                </div>
+            </div>
+
+            <section class="info-section">
+                <h2>Vehicle Loan Calculator: US Rates, Terms and Taxes</h2>
+                <p>This vehicle loan calculator works out the monthly car payment a US buyer would actually make, not a rough estimate: it adds sales tax to the sticker price, subtracts your down payment and trade-in value, and amortizes the rest at the APR a lender would quote. A car payment estimator is only as honest as its inputs, so every number below is editable - price, down payment, trade-in, APR, term, tax rate and any extra monthly payment. Nothing is uploaded and nothing is stored; the arithmetic runs in your browser.</p>
+
+                <h3>APR is not the same as the interest rate</h3>
+                <p>The interest rate is the cost of borrowing the money; the APR is that rate plus the lender fees, and it is the APR that decides your payment. A car loan interest rate calculator is only useful if it takes the APR, because a 6.00% interest rate with a $400 origination fee is a 6.40% APR on a $30,000 loan. This tool takes the APR directly, so the payment it shows is the one a US lender would quote.</p>
+
+                <h3>What the payment looks like at each loan term</h3>
+                <p>The same $35,000 car with $5,000 down, 6.25% sales tax and a 6.97% APR (the prime rate this tool starts on) costs a very different amount depending on the term. The loan is $32,187.50 either way; only the spread changes.</p>
+                <table>
+                    <caption class="sr-only">Monthly payment, total interest and total of payments for a 35,000 dollar vehicle with 5,000 down at 6.97 percent APR, by loan term</caption>
+                    <thead>
+                        <tr><th scope="col">Loan term</th><th scope="col">Monthly payment</th><th scope="col">Total interest</th><th scope="col">Total of payments</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><th scope="row">36 months (3 years)</th><td>$993.42</td><td>$3,575.44</td><td>$35,762.94</td></tr>
+                        <tr><th scope="row">48 months (4 years)</th><td>$770.32</td><td>$4,787.95</td><td>$36,975.45</td></tr>
+                        <tr><th scope="row">60 months (5 years)</th><td>$636.90</td><td>$6,026.24</td><td>$38,213.74</td></tr>
+                        <tr><th scope="row">72 months (6 years)</th><td>$548.30</td><td>$7,290.20</td><td>$39,477.70</td></tr>
+                    </tbody>
+                </table>
+                <p>Going from 60 to 72 months takes $88.60 off the monthly payment and adds $1,263.96 of interest. That is the trade a car loan interest rate calculator makes visible: a longer term always lowers the payment and always raises the cost.</p>
+
+                <h3>Down payment, sales tax and the fees the dealer adds</h3>
+                <p>The down payment comes off first, so a bigger one reduces the amount you borrow and the interest you pay on it. The common US guideline is 20% down on a new car and 10% on a used one, which on a $35,000 car means putting $7,000 on the table instead of $5,000.</p>
+                <p>Sales tax is charged on the vehicle price and, in most states, is financed - so you pay interest on your tax. Rates vary widely: Oregon charges 0%, Texas 6.25%, California 7.25% plus local district tax. The title and registration fees a dealer charges are not part of this calculation, so add them to the price yourself if you want the out-the-door number; use the trade-in field for the value of the car you are replacing.</p>
+
+                <h3>Where this fits in your overall money plan</h3>
+                <p>A car payment is only one line of a budget. If you want to see the same math applied to a home, use the <a href="/tools/mortgage-calculator/">mortgage calculator with PMI, tax and insurance</a>. If the car loan is the debt you are trying to clear, the <a href="/tools/debt-payoff-calculator/">debt payoff calculator</a> compares snowball against avalanche and shows the payoff date. For the income side of the equation, the <a href="/tools/paycheck-calculator/">paycheck calculator</a> works out take-home pay after federal, state and FICA deductions, and the <a href="/tools/loan-calculator/">loan calculator</a> shows what extra monthly payments do to any loan. The <a href="/tools/compound-interest-calculator/">compound interest calculator</a> is the mirror image: what a down payment earns if you keep it instead of putting it in the car.</p>
+            </section>
+
+            <div class="info-section">
+                <h2>How This Auto Loan Calculator Works</h2>
+                <p>This calculator uses the standard amortization formula to compute your monthly car payment. The formula is: M = P × [r(1+r)^n] / [(1+r)^n - 1], where M is the monthly payment, P is the loan principal (vehicle price + tax - down payment - trade-in), r is the monthly interest rate (APR / 12), and n is the number of months.</p>
+
+                <h2>Why AI Cannot Replace This Tool</h2>
+                <p>Large language models frequently hallucinate auto loan calculations. They misapply amortization formulas, confuse APR with monthly rates, mishandle sales tax, and produce inconsistent results for the same inputs across different conversations. This tool uses deterministic JavaScript math with no approximation, no hallucination, and no variability. Every calculation is bit-exact and reproducible.</p>
+
+                <h2>Frequently Asked Questions</h2>
+
+                <details class="faq-item">
+                    <summary>What is a good APR for a car loan in 2026?</summary>
+                    <p>As of mid-2026, the average APR for a 60-month new car loan is approximately 6.97%. Super prime borrowers (FICO 781+) can qualify for rates as low as 4.66%, while deep subprime borrowers (FICO below 500) face rates up to 16.01%. Credit unions typically offer rates 0.4-0.6% below commercial banks.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How much car can I afford?</summary>
+                    <p>The standard guidance is to keep total monthly auto costs (loan payment + insurance + fuel + maintenance) under 15% of your monthly take-home pay. The 20/4/10 rule recommends: at least 20% down payment, maximum 4-year loan term, and total transportation costs under 10% of gross income.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Should I get a 72-month or 84-month car loan?</summary>
+                    <p>Longer terms lower your monthly payment but significantly increase total interest paid and extend the period you are underwater on the loan. For example, a $30,000 loan at 7% costs $594/month for 60 months ($5,640 interest) vs $476/month for 84 months ($9,969 interest). The 84-month term costs $4,377 more in interest. Choose the shortest term you can afford.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How does sales tax affect my car loan?</summary>
+                    <p>Sales tax is typically added to the vehicle price and financed as part of the loan. Rates vary by state: Oregon charges 0%, Texas 6.25%, California 7.25% (higher with local additions). Rolling tax into the loan means you pay interest on it for the entire term, increasing your total cost. This calculator includes sales tax in the loan amount for an accurate estimate.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What is the difference between APR and interest rate?</summary>
+                    <p>APR (Annual Percentage Rate) includes both the interest rate and any fees or costs associated with the loan, giving you the true cost of borrowing. The interest rate is just the cost of borrowing the principal. APR is always equal to or higher than the interest rate. When comparing loans, always compare APR, not just the interest rate.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Can I pay off my auto loan early?</summary>
+                    <p>Yes, and this calculator shows you exactly how much you save by making extra payments. Even an extra $50/month can save hundreds in interest and shorten your loan by months. However, check your loan agreement for prepayment penalties before making extra payments. Some lenders charge a fee for early payoff, typically 1-2% of the remaining balance.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Does this tool save my financial data?</summary>
+                    <p>No. All calculations happen entirely in your browser using JavaScript. Your financial data never leaves your device, is never stored on any server, and is never transmitted over the internet. This is 100% private. You can verify this by checking the Network tab in your browser's developer tools.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How accurate is this calculator compared to a dealer's quote?</summary>
+                    <p>This calculator uses the standard amortization formula that matches what banks and credit unions use. The results will match a dealer's quote within pennies if the same inputs are used. However, dealer quotes may include additional fees (documentation, title, registration, extended warranty) that this calculator does not include. Always get the out-the-door price before comparing.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        var lastResults = null;
+
+        function getVals() {
+            return {
+                vehiclePrice: parseFloat(document.getElementById('vehiclePrice').value) || 0,
+                downPayment: parseFloat(document.getElementById('downPayment').value) || 0,
+                tradeIn: parseFloat(document.getElementById('tradeIn').value) || 0,
+                apr: parseFloat(document.getElementById('apr').value) || 0,
+                term: parseInt(document.getElementById('termMonths').value) || 60,
+                taxRate: parseFloat(document.getElementById('taxRate').value) || 0,
+                extra: parseFloat(document.getElementById('extraPayment').value) || 0
+            };
+        }
+
+        function updateAPR() {
+            var tier = document.getElementById('creditTier').value;
+            var rates = {
+                'super-prime': 4.66,
+                'prime': 6.97,
+                'near-prime': 9.50,
+                'subprime': 13.00,
+                'deep-subprime': 16.01,
+                'custom': parseFloat(document.getElementById('apr').value) || 6.97
+            };
+            if (tier !== 'custom') {
+                document.getElementById('apr').value = rates[tier];
+            }
+            if (tier === 'custom') return;
+            calculate();
+        }
+
+        function calculate() {
+            var v = getVals();
+            var price = v.vehiclePrice;
+            var down = v.downPayment;
+            var trade = v.tradeIn;
+            var apr = v.apr;
+            var term = v.term;
+            var taxRate = v.taxRate;
+            var extra = v.extra;
+
+            if (price <= 0) { showStatus('alcStatus', 'Please enter a vehicle price.', 'error'); return; }
+            if (apr < 0) { showStatus('alcStatus', 'Please enter a valid APR.', 'error'); return; }
+
+            var taxAmount = price * (taxRate / 100);
+            var loanAmount = price + taxAmount - down - trade;
+            if (loanAmount <= 0) {
+                showStatus('alcStatus', 'Your down payment and trade-in cover the full vehicle price. No loan needed!', 'success');
+                document.getElementById('alcResults').style.display = 'none';
+                return;
+            }
+
+            var monthlyRate = (apr / 100) / 12;
+            var monthlyPayment = 0;
+            if (monthlyRate > 0) {
+                var factor = Math.pow(1 + monthlyRate, term);
+                monthlyPayment = loanAmount * (monthlyRate * factor) / (factor - 1);
+            } else {
+                monthlyPayment = loanAmount / term;
+            }
+
+            var totalPaid = monthlyPayment * term;
+            var totalInterest = totalPaid - loanAmount;
+            var totalCost = totalPaid + down + trade;
+
+            document.getElementById('monthlyPayment').textContent = formatCurrency(monthlyPayment);
+            document.getElementById('loanAmount').textContent = formatCurrency(loanAmount);
+            document.getElementById('totalInterest').textContent = formatCurrency(totalInterest);
+            document.getElementById('totalCost').textContent = formatCurrency(totalCost);
+
+            var balance = loanAmount;
+            var yearData = [];
+            var totalPrincipalPaid = 0;
+            var totalInterestPaid = 0;
+
+            for (var y = 1; y <= Math.ceil(term / 12); y++) {
+                var yearPrincipal = 0;
+                var yearInterest = 0;
+                var monthsInYear = Math.min(12, term - (y - 1) * 12);
+                if (monthsInYear <= 0) break;
+
+                for (var m = 0; m < monthsInYear; m++) {
+                    if (balance <= 0) break;
+                    var intPart = balance * monthlyRate;
+                    var prinPart = monthlyPayment - intPart;
+                    if (prinPart > balance) prinPart = balance;
+                    balance -= prinPart;
+                    yearPrincipal += prinPart;
+                    yearInterest += intPart;
+                    totalPrincipalPaid += prinPart;
+                    totalInterestPaid += intPart;
+                }
+
+                yearData.push({
+                    year: y,
+                    payment: round2(monthlyPayment * monthsInYear),
+                    principal: round2(yearPrincipal),
+                    interest: round2(yearInterest),
+                    balance: round2(Math.max(0, balance))
+                });
+            }
+
+            var termCompare = getTermCompareData(loanAmount, monthlyRate);
+
+            var extraSection = document.getElementById('extraSection');
+            if (extra > 0 && monthlyRate > 0) {
+                var extraBalance = loanAmount;
+                var extraMonths = 0;
+                var extraInterest = 0;
+                var regularPayment = monthlyPayment;
+                var totalExtraPayment = regularPayment + extra;
+
+                while (extraBalance > 0 && extraMonths < term * 2) {
+                    var intE = extraBalance * monthlyRate;
+                    extraInterest += intE;
+                    var prinE = totalExtraPayment - intE;
+                    if (prinE <= 0) { extraMonths = term; break; }
+                    if (prinE > extraBalance) prinE = extraBalance;
+                    extraBalance -= prinE;
+                    extraMonths++;
+                    if (extraBalance <= 0.01) break;
+                }
+
+                if (extraMonths < term) {
+                    var interestSaved = totalInterest - extraInterest;
+                    var timeSavedMonths = term - extraMonths;
+                    document.getElementById('interestSaved').textContent = formatCurrency(Math.max(0, interestSaved));
+                    document.getElementById('timeSaved').textContent = timeSavedMonths + ' mo';
+                    extraSection.style.display = 'block';
+                } else {
+                    extraSection.style.display = 'none';
+                }
+            } else {
+                extraSection.style.display = 'none';
+            }
+
+            renderTermCompare(termCompare, term);
+            renderTable(yearData);
+            renderSummary(v, loanAmount, monthlyPayment, totalInterest, totalCost, taxAmount);
+
+            lastResults = {
+                v: v,
+                loanAmount: loanAmount,
+                monthlyPayment: monthlyPayment,
+                totalInterest: totalInterest,
+                totalCost: totalCost,
+                taxAmount: taxAmount,
+                yearData: yearData,
+                termCompare: termCompare,
+                selectedTerm: term
+            };
+
+            document.getElementById('alcResults').style.display = 'block';
+            showStatus('alcStatus', 'Calculation complete. Results shown below.', 'success');
+        }
+
+        function getTermCompareData(loanAmount, monthlyRate) {
+            var terms = [24, 36, 48, 60, 72, 84];
+            var data = [];
+            for (var i = 0; i < terms.length; i++) {
+                var t = terms[i];
+                var mp = 0;
+                if (monthlyRate > 0) {
+                    var factor = Math.pow(1 + monthlyRate, t);
+                    mp = loanAmount * (monthlyRate * factor) / (factor - 1);
+                } else {
+                    mp = loanAmount / t;
+                }
+                var totalP = mp * t;
+                var totalInt = totalP - loanAmount;
+                data.push({
+                    term: t,
+                    monthly: mp,
+                    interest: totalInt,
+                    total: totalP
+                });
+            }
+            return data;
+        }
+
+        function renderTermCompare(data, selectedTerm) {
+            var tbody = document.getElementById('termCompareBody');
+            tbody.innerHTML = '';
+            var minInterest = Infinity;
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].interest < minInterest) minInterest = data[i].interest;
+            }
+            for (var i = 0; i < data.length; i++) {
+                var d = data[i];
+                var tr = document.createElement('tr');
+                if (d.term === selectedTerm) tr.className = 'best';
+                tr.innerHTML =
+                    '<td>' + d.term + ' months' + (d.term === selectedTerm ? ' ← Selected' : '') + '</td>' +
+                    '<td>' + formatCurrency(d.monthly) + '</td>' +
+                    '<td>' + formatCurrency(d.interest) + '</td>' +
+                    '<td>' + formatCurrency(d.total) + '</td>';
+                tbody.appendChild(tr);
+            }
+        }
+
+        function renderTable(data) {
+            var tbody = document.getElementById('alcTableBody');
+            tbody.innerHTML = '';
+            for (var i = 0; i < data.length; i++) {
+                var r = data[i];
+                var tr = document.createElement('tr');
+                if (i === data.length - 1) tr.className = 'total';
+                tr.innerHTML =
+                    '<td>Year ' + r.year + '</td>' +
+                    '<td>' + formatCurrency(r.payment) + '</td>' +
+                    '<td>' + formatCurrency(r.principal) + '</td>' +
+                    '<td>' + formatCurrency(r.interest) + '</td>' +
+                    '<td>' + formatCurrency(r.balance) + '</td>';
+                tbody.appendChild(tr);
+            }
+        }
+
+        function renderSummary(v, loanAmount, monthlyPayment, totalInterest, totalCost, taxAmount) {
+            var txt = 'Vehicle Price: ' + formatCurrency(v.vehiclePrice) + '\n';
+            txt += 'Down Payment: ' + formatCurrency(v.downPayment) + '\n';
+            txt += 'Trade-In Value: ' + formatCurrency(v.tradeIn) + '\n';
+            txt += 'Sales Tax (' + v.taxRate + '%): ' + formatCurrency(taxAmount) + '\n';
+            txt += 'Loan Amount: ' + formatCurrency(loanAmount) + '\n';
+            txt += 'APR: ' + v.apr + '%\n';
+            txt += 'Loan Term: ' + v.term + ' months\n';
+            txt += 'Extra Payment: ' + formatCurrency(v.extra) + '/month\n';
+            txt += '---\n';
+            txt += 'Monthly Payment: ' + formatCurrency(monthlyPayment) + '\n';
+            txt += 'Total Interest: ' + formatCurrency(totalInterest) + '\n';
+            txt += 'Total Cost (including down payment & trade-in): ' + formatCurrency(totalCost);
+            document.getElementById('summaryText').textContent = txt;
+        }
+
+        function showSection(section) {
+            var table = document.getElementById('sectionTable');
+            var summary = document.getElementById('sectionSummary');
+            var buttons = document.querySelectorAll('.alc-toggles button');
+            if (section === 'table') {
+                table.style.display = 'block';
+                summary.style.display = 'none';
+                buttons[0].classList.add('active');
+                buttons[1].classList.remove('active');
+            } else {
+                table.style.display = 'none';
+                summary.style.display = 'block';
+                buttons[0].classList.remove('active');
+                buttons[1].classList.add('active');
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('vehiclePrice').value = '35000';
+            document.getElementById('downPayment').value = '5000';
+            document.getElementById('tradeIn').value = '0';
+            document.getElementById('apr').value = '6.97';
+            document.getElementById('termMonths').value = '60';
+            document.getElementById('taxRate').value = '6.25';
+            document.getElementById('extraPayment').value = '0';
+            document.getElementById('creditTier').value = 'prime';
+            document.getElementById('alcResults').style.display = 'none';
+            showStatus('alcStatus', '', '');
+        }
+
+        function copyResults() {
+            if (!lastResults) return;
+            var v = lastResults.v;
+            var text = 'Auto Loan Calculator Results\n';
+            text += '==============================\n';
+            text += 'Vehicle Price: ' + formatCurrency(v.vehiclePrice) + '\n';
+            text += 'Down Payment: ' + formatCurrency(v.downPayment) + '\n';
+            text += 'Trade-In Value: ' + formatCurrency(v.tradeIn) + '\n';
+            text += 'Sales Tax (' + v.taxRate + '%): ' + formatCurrency(lastResults.taxAmount) + '\n';
+            text += 'APR: ' + v.apr + '%\n';
+            text += 'Loan Term: ' + v.term + ' months\n';
+            text += 'Extra Monthly Payment: ' + formatCurrency(v.extra) + '\n';
+            text += '--------------------------------\n';
+            text += 'Monthly Payment: ' + formatCurrency(lastResults.monthlyPayment) + '\n';
+            text += 'Loan Amount: ' + formatCurrency(lastResults.loanAmount) + '\n';
+            text += 'Total Interest: ' + formatCurrency(lastResults.totalInterest) + '\n';
+            text += 'Total Cost: ' + formatCurrency(lastResults.totalCost) + '\n';
+            text += '==============================\n\n';
+            text += 'Term Comparison:\n';
+            for (var i = 0; i < lastResults.termCompare.length; i++) {
+                var d = lastResults.termCompare[i];
+                text += d.term + 'mo: ' + formatCurrency(d.monthly) + '/mo, ' + formatCurrency(d.interest) + ' interest, ' + formatCurrency(d.total) + ' total\n';
+            }
+            copyToClipboardRaw(text);
+            showStatus('alcStatus', 'Results copied to clipboard!', 'success');
+        }
+
+        function loadExample(name) {
+            var examples = {
+                sedan: { price: 35000, down: 5000, trade: 0, apr: 6.97, term: 60, tax: 6.25, extra: 0, tier: 'prime' },
+                suv: { price: 48000, down: 9600, trade: 5000, apr: 6.97, term: 60, tax: 7.25, extra: 0, tier: 'prime' },
+                sports: { price: 65000, down: 13000, trade: 0, apr: 7.50, term: 72, tax: 6.25, extra: 100, tier: 'near-prime' },
+                truck: { price: 55000, down: 11000, trade: 8000, apr: 4.66, term: 48, tax: 6.25, extra: 0, tier: 'super-prime' }
+            };
+            var ex = examples[name];
+            if (!ex) return;
+            document.getElementById('vehiclePrice').value = ex.price;
+            document.getElementById('downPayment').value = ex.down;
+            document.getElementById('tradeIn').value = ex.trade;
+            document.getElementById('apr').value = ex.apr;
+            document.getElementById('termMonths').value = ex.term;
+            document.getElementById('taxRate').value = ex.tax;
+            document.getElementById('extraPayment').value = ex.extra;
+            document.getElementById('creditTier').value = ex.tier;
+            calculate();
+        }
+
+        function round2(v) { return Math.round(v * 100) / 100; }
+
+        function formatCurrency(v) {
+            if (v >= 1000000) return '$' + (v / 1000000).toFixed(2) + 'M';
+            if (v >= 1000) return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (v < 0) return '-$' + Math.abs(v).toFixed(2);
+            return '$' + v.toFixed(2);
+        }
+
+        function copyToClipboardRaw(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch(e) {}
+            document.body.removeChild(ta);
+        }
+
+        calculate();
+    </script>
+</body>
+</html>

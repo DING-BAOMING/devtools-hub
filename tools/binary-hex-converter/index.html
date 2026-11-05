@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Binary Hex Converter | DevTools Hub</title>
+    <meta name="description" content="Free online binary hex converter. Convert between binary, decimal, hex, and ASCII text. Instant conversion, no upload needed. Developer tool for encoding.">
+    <meta name="keywords" content="binary to hex, hex to binary, decimal converter, binary converter, hex converter, ascii converter, binary decoder">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/binary-hex-converter/">
+    <meta property="og:title" content="Free Binary Hex Converter | DevTools Hub">
+    <meta property="og:description" content="Free online binary hex converter. Convert between binary, decimal, hex, and ASCII text. Instant conversion, no upload needed. Developer tool for encoding.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/binary-hex-converter/">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .converter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 768px) {
+            .converter-grid { grid-template-columns: 1fr; }
+        }
+        .converter-panel {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .converter-panel h3 {
+            color: #667eea;
+            margin-bottom: 16px;
+            font-size: 1rem;
+        }
+        .converter-panel textarea,
+        .converter-panel input {
+            width: 100%;
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 120px;
+        }
+        .converter-panel textarea:focus,
+        .converter-panel input:focus {
+            outline: 2px solid transparent;
+            border-color: #667eea;
+        }
+        .converter-panel input {
+            min-height: auto;
+            resize: none;
+        }
+        .format-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .format-tab {
+            padding: 8px 16px;
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            color: #888;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .format-tab:hover {
+            border-color: #667eea;
+            color: #fff;
+        }
+        .format-tab.active {
+            background: #667eea;
+            color: #fff;
+            border-color: #667eea;
+        }
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        .btn-secondary {
+            background: #2d3748;
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+        .result-box {
+            background: #0f0f23;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-family: monospace;
+            word-break: break-all;
+            color: #10b981;
+            min-height: 60px;
+        }
+        .char-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .char-card {
+            background: #0f0f23;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .char-card .char {
+            font-size: 1.2rem;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+        .char-card .code {
+            color: #888;
+            font-size: 0.75rem;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        .toast.show { opacity: 1; }
+        .file-section {
+            margin-top: 24px;
+        }
+        .file-drop {
+            border: 2px dashed #4a5568;
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #1a1a2e;
+        }
+        .file-drop:hover, .file-drop.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        .file-drop input {
+            display: none;
+        }
+        .info-section h3 {
+            color: #667eea;
+            margin: 20px 0 10px;
+        }
+    </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Binary Hex Converter","url":"https://tools.scoreroute.com/tools/binary-hex-converter/","description":"Free binary hex converter. Convert binary to decimal, hexadecimal, ASCII.","applicationCategory":"Utility","operatingSystem":"All"}
+</script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Binary Hex Converter</h1>
+            <p class="subtitle">Convert Binary, Decimal, Hexadecimal & ASCII - Free Online Tool</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Binary Hex Converter</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="format-tabs">
+                    <button class="format-tab active" onclick="setMode('text')">Text Mode</button>
+                    <button class="format-tab" onclick="setMode('binary')">Binary Mode</button>
+                    <button class="format-tab" onclick="setMode('decimal')">Decimal Mode</button>
+                    <button class="format-tab" onclick="setMode('hex')">Hex Mode</button>
+                </div>
+
+                <div class="converter-grid">
+                    <div class="converter-panel" id="input-panel">
+                        <h2 id="input-label">Enter Text</h2>
+                        <textarea id="input-area" placeholder="Enter text to convert..." aria-label="Enter text to convert"></textarea>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" onclick="convert()">Convert</button>
+                            <button class="btn btn-secondary" onclick="swapValues()">Swap</button>
+                            <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+                        </div>
+                    </div>
+                    <div class="converter-panel" id="output-panel">
+                        <h3 id="output-label">Result</h3>
+                        <div class="result-box" id="result-area">Results will appear here...</div>
+                        <div class="btn-row">
+                            <button class="btn btn-primary" onclick="copyResult()">Copy Result</button>
+                            <button class="btn btn-secondary" onclick="downloadResult()">Download</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="converter-panel" id="ascii-section" style="display:none;">
+                    <h3>ASCII Character Table</h3>
+                    <div class="char-grid" id="ascii-grid"></div>
+                </div>
+
+                <div class="file-section">
+                    <div class="file-drop" id="file-drop" onclick="document.getElementById('file-input').click()">
+                        <p style="color:#888;">Drop a text or binary file here, or click to browse</p>
+                        <input type="file" id="file-input" accept=".txt,.bin,.hex" aria-label="File Input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>What is Binary Hex Converter?</h3>
+                <p>A binary hex converter is a developer tool that converts between different number systems and text encodings. This tool supports conversions between binary, decimal, hexadecimal, and ASCII text - essential operations for programming and data processing.</p>
+                
+                <h3>How to Use</h3>
+                <ul>
+                    <li><strong>Text Mode:</strong> Enter any text to see its binary, decimal, and hex representation</li>
+                    <li><strong>Binary Mode:</strong> Enter binary digits (0s and 1s) to convert to other formats</li>
+                    <li><strong>Decimal Mode:</strong> Enter decimal numbers to convert to binary and hex</li>
+                    <li><strong>Hex Mode:</strong> Enter hex values (0-9, A-F) to convert to other formats</li>
+                </ul>
+
+                <h3>Why Use This Tool?</h3>
+                <ul>
+                    <li><strong>No AI Can Do This</strong> - Requires exact bit-level conversion that AI cannot perform on arbitrary input</li>
+                    <li><strong>Instant Results</strong> - All conversions happen in your browser</li>
+                    <li><strong>Privacy Safe</strong> - Your data never leaves your device</li>
+                    <li><strong>Developer Essential</strong> - Perfect for debugging and data analysis</li>
+                </ul>
+
+                <h3>Common Use Cases</h3>
+                <ul>
+                    <li>Debug network protocols and data packets</li>
+                    <li>Convert hex dumps to readable text</li>
+                    <li>Encode/decode binary data for transmission</li>
+                    <li>Understand hex color codes in web development</li>
+                    <li>Work with memory addresses in low-level programming</li>
+                </ul>
+            </div>
+
+            <div class="info-section">
+                <h2>How Binary and Hex Conversion Works</h2>
+                <p>This tool converts between three representations of the same underlying bytes: human-readable text (UTF-8), binary (base-2 with digits 0 and 1), and hexadecimal (base-16 with digits 0-9 and a-f). Every character you type is first encoded as a sequence of UTF-8 bytes; each byte is then displayed as either 8 binary digits or 2 hex digits. The letter A (ASCII 65, UTF-8 also 65) becomes 01000001 in binary and 41 in hex. The emoji 😀 (Unicode U+1F600) is encoded in UTF-8 as the four bytes F0 9F 98 80, which becomes 11110000 10011111 10011000 10000000 in binary and F09F9880 in hex.</p>
+                <p>Decoding works in reverse: the script parses your input by splitting on whitespace, groups digits into 8-bit binary chunks or 2-digit hex chunks, converts each chunk back to a byte value (0-255), and joins the bytes into a Uint8Array that is then decoded as UTF-8 text. Invalid sequences are flagged with an error message rather than silently dropped, so you can spot typos in hex dumps immediately. All conversion happens locally in your browser using standard JavaScript TypedArrays; no data is uploaded.</p>
+
+                <h2>Frequently Asked Questions</h2>
+                <details class="faq-item"><summary>Is this the same as base64?</summary><p>No. Base-64 uses a 64-character alphabet (A-Z, a-z, 0-9, plus, slash) and encodes every 3 bytes as 4 characters, so it is roughly 33 percent larger than the original. Binary uses only two symbols (0 and 1) and is 8 times larger. Hexadecimal uses 16 symbols and is exactly 2 times larger, which is why hex dumps are the standard format for inspecting raw bytes.</p></details>
+                <details class="faq-item"><summary>Why does my emoji show as 4 bytes but a regular letter as 1 byte?</summary><p>UTF-8 is a variable-width encoding. ASCII characters (code points 0-127) fit in one byte. Characters in the Latin Extended range and most common accented letters fit in 2 bytes. CJK characters take 3 bytes. Emoji and other supplementary-plane characters take 4 bytes because their code points exceed the 16-bit Basic Multilingual Plane.</p></details>
+                <details class="faq-item"><summary>What is little-endian vs big-endian byte order?</summary><p>When a multi-byte value like the 32-bit integer 0x12345678 is stored in memory, the bytes can be ordered either as 12 34 56 78 (big-endian, most significant byte first, used by network protocols and Java) or as 78 56 34 12 (little-endian, least significant byte first, used by x86 CPUs and most desktop software). This tool displays bytes in the order they appear in your input; if you are debugging a binary file you may need to reverse the byte order manually.</p></details>
+                <details class="faq-item"><summary>Can I convert a hex color code like #FF8800 to binary?</summary><p>Yes. Type or paste the hex string (with or without the leading #) into the hex field and the binary field will display the same value as a binary string. FF8800 in hex becomes 11111111 10001000 00000000 in binary. This is useful when learning how RGB color values are stored in image files and CSS.</p></details>
+                <details class="faq-item"><summary>Are my conversions uploaded to a server?</summary><p>No. Conversion happens entirely in your browser using JavaScript TypedArrays and the built-in TextEncoder / TextDecoder APIs. You can verify this by opening DevTools Network tab while converting and watching zero requests fire.</p></details>
+
+                <h2>References and Authority Sources</h2>
+                <ul>
+                    <li><a href="https://en.wikipedia.org/wiki/Binary_number" target="_blank" rel="noopener noreferrer">Wikipedia — Binary number</a> (base-2 numeral system and bit-wise operations)</li>
+                    <li><a href="https://en.wikipedia.org/wiki/Hexadecimal" target="_blank" rel="noopener noreferrer">Wikipedia — Hexadecimal</a> (base-16 numeral system used in computing)</li>
+                    <li><a href="https://en.wikipedia.org/wiki/UTF-8" target="_blank" rel="noopener noreferrer">Wikipedia — UTF-8</a> (the variable-width character encoding used for the text side of these conversions)</li>
+                    <li><a href="https://en.wikipedia.org/wiki/Endianness" target="_blank" rel="noopener noreferrer">Wikipedia — Endianness</a> (byte ordering conventions for multi-byte values)</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | Free Developer Tools | <a href="/sitemap.xml">Sitemap</a></p>
+    </footer>
+
+    <div class="toast" id="toast">Copied!</div>
+
+    <script>
+        let currentMode = 'text';
+
+        function setMode(mode, el) {
+            currentMode = mode;
+            document.querySelectorAll('.format-tab').forEach(t => t.classList.remove('active'));
+            (el || event.target).classList.add('active');
+            
+            const inputLabel = document.getElementById('input-label');
+            const inputArea = document.getElementById('input-area');
+            const resultArea = document.getElementById('result-area');
+            
+            const labels = {
+                text: 'Enter Text',
+                binary: 'Enter Binary (e.g., 01001000 01100101)',
+                decimal: 'Enter Decimal Numbers (e.g., 72 101)',
+                hex: 'Enter Hex (e.g., 48 65)'
+            };
+            
+            const placeholders = {
+                text: 'Enter text to convert...',
+                binary: 'Enter binary digits (e.g., 01001000 01100101)...',
+                decimal: 'Enter decimal numbers (e.g., 72 101)...',
+                hex: 'Enter hex values (e.g., 48 65 or 0x48 0x65)...'
+            };
+            
+            inputLabel.textContent = labels[mode];
+            inputArea.placeholder = placeholders[mode];
+            inputArea.value = '';
+            resultArea.textContent = 'Results will appear here...';
+        }
+
+        function convert() {
+            const input = document.getElementById('input-area').value.trim();
+            const resultArea = document.getElementById('result-area');
+            
+            if (!input) {
+                resultArea.textContent = 'Please enter a value to convert';
+                return;
+            }
+
+            let result = '';
+
+            try {
+                switch (currentMode) {
+                    case 'text':
+                        result = convertText(input);
+                        break;
+                    case 'binary':
+                        result = convertBinary(input);
+                        break;
+                    case 'decimal':
+                        result = convertDecimal(input);
+                        break;
+                    case 'hex':
+                        result = convertHex(input);
+                        break;
+                }
+                resultArea.textContent = result;
+            } catch (e) {
+                resultArea.textContent = 'Error: ' + e.message;
+            }
+        }
+
+        function convertText(text) {
+            let binary = '';
+            let decimal = '';
+            let hex = '';
+            let ascii = '';
+            
+            for (let i = 0; i < text.length; i++) {
+                const charCode = text.charCodeAt(i);
+                const bin = charCode.toString(2).padStart(8, '0');
+                binary += bin + ' ';
+                decimal += charCode + ' ';
+                hex += charCode.toString(16).toUpperCase().padStart(2, '0') + ' ';
+                ascii += charCode >= 32 && charCode <= 126 ? String.fromCharCode(charCode) : '.';
+            }
+            
+            return 'Binary: ' + binary.trim() + '\n\nDecimal: ' + decimal.trim() + '\n\nHex: ' + hex.trim() + '\n\nASCII: ' + ascii;
+        }
+
+        function convertBinary(binary) {
+            const cleaned = binary.replace(/\s+/g, '');
+            if (!/^[01]+$/.test(cleaned)) {
+                throw new Error('Invalid binary format. Use only 0 and 1.');
+            }
+            
+            const bytes = cleaned.match(/.{1,8}/g) || [];
+            let text = '';
+            let decimal = '';
+            let hex = '';
+            
+            for (const byte of bytes) {
+                const val = parseInt(byte, 2);
+                text += String.fromCharCode(val);
+                decimal += val + ' ';
+                hex += val.toString(16).toUpperCase().padStart(2, '0') + ' ';
+            }
+            
+            return 'Text: ' + text + '\n\nDecimal: ' + decimal.trim() + '\n\nHex: ' + hex.trim();
+        }
+
+        function convertDecimal(decimal) {
+            const nums = decimal.replace(/,/g, ' ').split(/\s+/).filter(n => n);
+            let text = '';
+            let binary = '';
+            let hex = '';
+            
+            for (const num of nums) {
+                const val = parseInt(num, 10);
+                if (isNaN(val) || val < 0 || val > 255) {
+                    throw new Error('Invalid decimal value. Use 0-255.');
+                }
+                text += String.fromCharCode(val);
+                binary += val.toString(2).padStart(8, '0') + ' ';
+                hex += val.toString(16).toUpperCase().padStart(2, '0') + ' ';
+            }
+            
+            return 'Text: ' + text + '\n\nBinary: ' + binary.trim() + '\n\nHex: ' + hex.trim();
+        }
+
+        function convertHex(hexStr) {
+            const cleaned = hexStr.replace(/0x/gi, '').replace(/,/g, ' ').replace(/\s+/g, ' ');
+            const nums = cleaned.split(' ').filter(n => n);
+            let text = '';
+            let binary = '';
+            let decimal = '';
+            
+            for (const num of nums) {
+                const val = parseInt(num, 16);
+                if (isNaN(val)) {
+                    throw new Error('Invalid hex value.');
+                }
+                text += String.fromCharCode(val);
+                binary += val.toString(2).padStart(8, '0') + ' ';
+                decimal += val + ' ';
+            }
+            
+            return 'Text: ' + text + '\n\nBinary: ' + binary.trim() + '\n\nDecimal: ' + decimal.trim();
+        }
+
+        function swapValues() {
+            const input = document.getElementById('input-area').value;
+            const result = document.getElementById('result-area').textContent;
+            if (result && !result.startsWith('Please') && !result.startsWith('Error') && !result.startsWith('Results')) {
+                document.getElementById('input-area').value = result.replace(/^(Binary:|Decimal:|Hex:|Text:|ASCII:).*/g, '').trim();
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('input-area').value = '';
+            document.getElementById('result-area').textContent = 'Results will appear here...';
+        }
+
+        function copyResult() {
+            const result = document.getElementById('result-area').textContent;
+            if (result && !result.startsWith('Please') && !result.startsWith('Error') && !result.startsWith('Results')) {
+                navigator.clipboard.writeText(result).then(() => {
+                    showToast('Copied to clipboard!');
+                });
+            }
+        }
+
+        function downloadResult() {
+            const result = document.getElementById('result-area').textContent;
+            if (result && !result.startsWith('Please') && !result.startsWith('Error') && !result.startsWith('Results')) {
+                const blob = new Blob([result], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'conversion-' + currentMode + '.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('File downloaded!');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // File drop handling
+        const fileDrop = document.getElementById('file-drop');
+        const fileInput = document.getElementById('file-input');
+        
+        fileDrop.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileDrop.classList.add('dragover');
+        });
+        
+        fileDrop.addEventListener('dragleave', () => {
+            fileDrop.classList.remove('dragover');
+        });
+        
+        fileDrop.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileDrop.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('input-area').value = e.target.result;
+                convert();
+            };
+            reader.readAsText(file);
+        }
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

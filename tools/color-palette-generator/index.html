@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>Color Palette Generator | DevTools Hub</title>
+    <meta name="description" content="Free color palette generator. Create harmonious schemes with 7 harmony rules. Export as CSS, Tailwind, SCSS, JSON. Lock colors, WCAG checker. No signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/color-palette-generator/">
+    <meta property="og:title" content="Color Palette Generator | DevTools Hub">
+    <meta property="og:description" content="Generate beautiful color palettes with 7 harmony rules. Export as CSS, Tailwind, SCSS, JSON. Free, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/color-palette-generator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Free Color Palette Generator","description":"Generate harmonious color palettes from any base color using 7 color theory rules. Export as CSS variables, Tailwind config, SCSS, or JSON. Built-in WCAG contrast checker.","url":"https://tools.scoreroute.com/tools/color-palette-generator/","applicationCategory":"DesignApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-03","dateModified":"2026-06-03"}
+    </script>
+    <style>
+        .cp-top-controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+        .cp-top-controls label { color:#aaa; font-size:0.85rem; margin-right:4px; }
+        .cp-top-controls select, .cp-top-controls input[type="color"] { background:#1a1a2e; border:1px solid #333; color:#fff; padding:8px 12px; border-radius:6px; font-size:0.9rem; }
+        .cp-top-controls select:focus, .cp-top-controls input:focus { outline: 2px solid transparent; border-color:#667eea; }
+        .cp-hint { color:#888; font-size:0.8rem; margin-bottom:16px; }
+        .cp-hint kbd { background:#252540; padding:2px 8px; border-radius:4px; border:1px solid #333; font-size:0.8rem; }
+        .cp-palette { display:flex; gap:0; border-radius:12px; overflow:hidden; margin-bottom:20px; min-height:120px; }
+        .cp-color { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px 8px; position:relative; min-height:140px; transition:all 0.3s; cursor:pointer; }
+        .cp-color:hover { transform:scaleY(1.05); z-index:2; }
+        .cp-color.locked { outline:3px solid #fff; outline-offset:-3px; }
+        .cp-color-value { font-family:monospace; font-size:0.8rem; background:rgba(0,0,0,0.5); padding:3px 8px; border-radius:4px; color:#fff; margin-bottom:6px; }
+        .cp-color-label { font-size:0.7rem; color:rgba(255,255,255,0.6); margin-bottom:6px; }
+        .cp-lock-btn { background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.2); color:#fff; border-radius:50%; width:28px; height:28px; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+        .cp-lock-btn:hover { background:rgba(255,255,255,0.2); }
+        .cp-lock-btn.locked { background:#667eea; border-color:#667eea; }
+        .cp-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+        .cp-export-section { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        .cp-export-section select { background:#1a1a2e; border:1px solid #333; color:#fff; padding:10px 14px; border-radius:8px; font-size:0.9rem; }
+        .cp-contrast { background:#1a1a2e; border-radius:12px; padding:20px; margin-bottom:24px; }
+        .cp-contrast h3 { color:#fff; font-size:1rem; margin-bottom:12px; }
+        .cp-contrast-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .cp-contrast-item { display:flex; align-items:center; gap:12px; background:#0f0f23; padding:10px 14px; border-radius:8px; }
+        .cp-contrast-swatch { width:40px; height:40px; border-radius:6px; flex-shrink:0; }
+        .cp-contrast-info { flex:1; }
+        .cp-contrast-ratio { font-size:0.85rem; color:#fff; font-weight:600; }
+        .cp-contrast-wcag { font-size:0.75rem; color:#888; }
+        .cp-contrast-pass { color:#10b981; }
+        .cp-contrast-fail { color:#ef4444; }
+        .cp-bg-preview { display:flex; gap:0; border-radius:12px; overflow:hidden; margin-bottom:20px; }
+        .cp-bg-half { flex:1; padding:32px 16px; text-align:center; }
+        .cp-bg-half p { font-size:1rem; margin-bottom:4px; }
+        .cp-bg-half small { font-size:0.75rem; opacity:0.6; }
+        .toast { position:fixed; bottom:20px; right:20px; background:#10b981; color:#fff; padding:12px 24px; border-radius:8px; font-weight:500; opacity:0; transition:opacity 0.3s; z-index:2000; }
+        .toast.show { opacity:1; }
+        .info-section a { color:#667eea; }
+        .info-section a:hover { text-decoration:underline; }
+        @media (max-width:700px) {
+            .cp-palette { flex-direction:column; min-height:auto; }
+            .cp-color { min-height:80px; padding:12px; flex-direction:row; gap:10px; }
+            .cp-color-value { margin-bottom:0; }
+            .cp-contrast-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Color Palette Generator</h1>
+            <p class="subtitle">Harmonious Color Schemes • 7 Color Rules • Export CSS / Tailwind / SCSS / JSON</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Color Palette Generator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="cp-top-controls">
+                    <label for="harmony">Harmony:</label>
+                    <select id="harmony" onchange="generate()">
+                        <option value="complementary">Complementary</option>
+                        <option value="analogous" selected>Analogous</option>
+                        <option value="triadic">Triadic</option>
+                        <option value="split-complementary">Split Complementary</option>
+                        <option value="tetradic">Tetradic</option>
+                        <option value="square">Square</option>
+                        <option value="monochromatic">Monochromatic</option>
+                    </select>
+                    <label for="colorCount">Colors:</label>
+                    <select id="colorCount" onchange="generate()">
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5" selected>5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                    </select>
+                    <label for="baseColor">Base:</label>
+                    <input type="color" id="baseColor" value="#667eea" onchange="generate()">
+                    <input type="text" id="baseHex" value="#667eea" placeholder="#HEX" style="background:#1a1a2e;border:1px solid #333;color:#fff;padding:8px 12px;border-radius:6px;font-size:0.9rem;width:100px;font-family:monospace;" onchange="setBaseFromHex()" aria-label="#HEX">
+                </div>
+
+                <p class="cp-hint">Press <kbd>Space</kbd> or click Generate for a new palette. Click a color to copy its HEX. Click <span style="color:#667eea;">&#128274;</span> to lock.</p>
+
+                <div class="cp-palette" id="palette"></div>
+
+                <div class="cp-actions">
+                    <button onclick="generate()" class="btn btn-primary" id="generateBtn">Generate</button>
+                    <button onclick="randomBase()" class="btn">Random Base</button>
+                    <div class="cp-export-section">
+                        <label class="sr-only" for="exportFormat">Export format</label><select id="exportFormat" title="Export format">
+                            <option value="css">CSS Variables</option>
+                            <option value="tailwind">Tailwind Config</option>
+                            <option value="scss">SCSS Variables</option>
+                            <option value="json">JSON</option>
+                        </select>
+                        <button onclick="exportPalette()" class="btn btn-secondary">Export</button>
+                        <button onclick="copyAllAsHex()" class="btn btn-secondary">Copy All HEX</button>
+                    </div>
+                </div>
+
+                <div class="cp-bg-preview" id="bgPreview"></div>
+
+                <div class="cp-contrast" id="contrastSection">
+                    <h2>WCAG Contrast Checker</h2>
+                    <div class="cp-contrast-grid" id="contrastGrid"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>What is a Color Palette Generator?</h3>
+                <p>A color palette generator helps designers and developers create harmonious color schemes using color theory rules. Instead of guessing which colors work together, you can generate professional palettes based on proven harmony patterns and export them directly into your project's code.</p>
+
+                <h3>How It Works</h3>
+                <p>Select a harmony rule and a base color. The generator applies color theory algorithms — rotating hues, adjusting saturation and lightness — to create a balanced palette. Each harmony rule follows a specific geometric relationship on the color wheel:</p>
+                <ul>
+                    <li><strong>Complementary</strong> — Colors opposite each other on the color wheel for high contrast</li>
+                    <li><strong>Analogous</strong> — Adjacent colors for a harmonious, serene feel</li>
+                    <li><strong>Triadic</strong> — Three evenly spaced colors for vibrant, balanced schemes</li>
+                    <li><strong>Split Complementary</strong> — A base color plus two adjacent to its complement</li>
+                    <li><strong>Tetradic</strong> — Two complementary pairs for rich, multi-color schemes</li>
+                    <li><strong>Square</strong> — Four evenly spaced colors for dynamic variety</li>
+                    <li><strong>Monochromatic</strong> — Variations of a single hue for clean, unified designs</li>
+                </ul>
+
+                <h3>Why Use This Tool?</h3>
+                <ul>
+                    <li><strong>No AI Needed</strong> — Pure algorithmic color theory, no server calls</li>
+                    <li><strong>Privacy Safe</strong> — Everything runs in your browser</li>
+                    <li><strong>Multiple Exports</strong> — CSS variables, Tailwind config, SCSS, JSON</li>
+                    <li><strong>WCAG Contrast</strong> — Ensure your palette meets accessibility standards</li>
+                    <li><strong>Zero Design Skills Required</strong> — Get professional palettes instantly</li>
+                </ul>
+
+                <h3>Common Use Cases</h3>
+                <ul>
+                    <li>Generate color schemes for web design projects</li>
+                    <li>Create brand color palettes for startups and products</li>
+                    <li>Build accessible UI color systems with WCAG compliance</li>
+                    <li>Design presentation slides and infographics</li>
+                    <li>Export Tailwind config for rapid prototyping</li>
+                </ul>
+
+                <h2>Frequently Asked Questions</h2>
+                <details class="faq-item">
+                    <summary>Is this color palette generator free?</summary>
+                    <p>Yes, completely free. No signup, no usage limits, no hidden paid features. Every export format and feature is available to everyone.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How do I export a palette to Tailwind CSS?</summary>
+                    <p>Select "Tailwind Config" from the export dropdown and click Export. This generates a Tailwind CSS v3/v4 compatible configuration object with your palette colors as custom colors.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I check if my palette meets accessibility standards?</summary>
+                    <p>Yes! The WCAG Contrast Checker section shows contrast ratios and AA/AAA pass/fail status for prominent color pairs in your palette.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How is this different from Coolors or similar tools?</summary>
+                    <p>We focus on being fast, clean, and completely free — no account required, no ads, no premium tiers. Every feature including all export formats is available to all users.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What color harmony rules are available?</summary>
+                    <p>We support 7 classic color harmony rules: Complementary, Analogous, Triadic, Split Complementary, Tetradic, Square, and Monochromatic. Each produces a different visual relationship between colors.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | Free Developer Tools | <a href="/">Color Palette Generator</a> | <a href="/tools/color-picker/">Color Picker</a> | <a href="/tools/color-palette-extractor/">Color Palette Extractor</a> | <a href="/sitemap.xml">Sitemap</a></p>
+    </footer>
+
+    <!-- BUG-332: this modal and its .cp-color-edit* CSS are gone. They shipped with the tool
+         but the four functions its buttons call — editColorFromInput, editColorFromPicker,
+         applyColorEdit, closeColorEdit — were never written, and nothing in the page ever added
+         .show, so it could not be opened at all. Every button in it threw a ReferenceError.
+         Removed rather than implemented: an unreachable half-feature whose behaviour (does Apply
+         replace one swatch or re-derive the harmony? does it respect the lock?) was never
+         decided, and inventing that decision is a product change, not a bug fix. The swatch
+         lock and click-to-copy that the tool actually has are untouched. -->
+
+    <div class="toast" id="toast">Copied!</div>
+
+    <script>
+        var lockedIndices = {};
+        var currentColors = [];
+
+        function hslToRgb(h, s, l) {
+            h /= 360;
+            s /= 100;
+            l /= 100;
+            var r, g, b;
+            if (s === 0) { r = g = b = l; }
+            else {
+                var hue2rgb = function(p, q, t) {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                var p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+        }
+
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            var max = Math.max(r, g, b), min = Math.min(r, g, b);
+            var h, s, l = (max + min) / 2;
+            if (max === min) { h = s = 0; }
+            else {
+                var d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+            return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+        }
+
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(function(x) { return x.toString(16).padStart(2, '0'); }).join('');
+        }
+
+        function hexToRgb(hex) {
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+        }
+
+        function generateHarmony(baseHex, harmony, count) {
+            var base = hexToRgb(baseHex);
+            if (!base) return [];
+            var hsl = rgbToHsl(base.r, base.g, base.b);
+            var h = hsl.h;
+            var s = hsl.s;
+            var l = hsl.l;
+
+            var hues = [];
+            var saturations = [];
+            var lightnesses = [];
+
+            switch (harmony) {
+                case 'complementary':
+                    for (var i = 0; i < count; i++) {
+                        hues.push((h + (180 / (count - 1 || 1)) * i) % 360);
+                        saturations.push(s);
+                        lightnesses.push(l + (i - Math.floor((count - 1) / 2)) * 6);
+                    }
+                    break;
+                case 'analogous':
+                    for (var i = 0; i < count; i++) {
+                        var offset = (i - Math.floor((count - 1) / 2)) * 30;
+                        hues.push(((h + offset) % 360 + 360) % 360);
+                        saturations.push(Math.max(0, Math.min(100, s + (i % 2 === 0 ? 0 : -8))));
+                        lightnesses.push(Math.max(10, Math.min(90, l + (i - Math.floor((count - 1) / 2)) * 5)));
+                    }
+                    break;
+                case 'triadic':
+                    for (var i = 0; i < count; i++) {
+                        hues.push((h + 120 * i) % 360);
+                        saturations.push(s);
+                        lightnesses.push(Math.max(15, Math.min(85, l + (i === 1 ? -5 : i === 2 ? 5 : 0))));
+                    }
+                    break;
+                case 'split-complementary':
+                    var offsets = [0, 150, 210];
+                    for (var i = 0; i < count; i++) {
+                        hues.push(((h + offsets[i % 3] + (i >= 3 ? 20 : 0)) % 360 + 360) % 360);
+                        saturations.push(Math.max(30, Math.min(100, s + (i % 3 === 0 ? 10 : -5))));
+                        lightnesses.push(Math.max(15, Math.min(85, l + (i % 3 === 0 ? 0 : 8))));
+                    }
+                    break;
+                case 'tetradic':
+                    var tetradOffsets = [0, 90, 180, 270];
+                    for (var i = 0; i < count; i++) {
+                        hues.push(((h + tetradOffsets[i % 4] + (Math.floor(i / 4) * 15)) % 360 + 360) % 360);
+                        saturations.push(Math.max(35, Math.min(100, s + (i % 2 === 0 ? 5 : -5))));
+                        lightnesses.push(Math.max(15, Math.min(85, l + (i % 2 === 0 ? 0 : 8))));
+                    }
+                    break;
+                case 'square':
+                    for (var i = 0; i < count; i++) {
+                        hues.push((h + 90 * i) % 360);
+                        saturations.push(Math.max(40, Math.min(100, s + (i % 2 === 0 ? 5 : -10))));
+                        lightnesses.push(Math.max(15, Math.min(85, l + (i % 2 === 0 ? 0 : 10))));
+                    }
+                    break;
+                case 'monochromatic':
+                    for (var i = 0; i < count; i++) {
+                        hues.push(h);
+                        var step = 80 / (count + 1);
+                        var li = Math.max(8, Math.min(92, (i + 1) * step + 5));
+                        saturations.push(Math.max(20, s - (i * 8)));
+                        lightnesses.push(li);
+                    }
+                    break;
+                default:
+                    for (var i = 0; i < count; i++) hues.push((h + 30 * i) % 360);
+            }
+
+            var colors = [];
+            for (var i = 0; i < count; i++) {
+                var si = i < saturations.length ? saturations[i] : s;
+                var li = i < lightnesses.length ? lightnesses[i] : l;
+                var hi = i < hues.length ? hues[i] : h;
+                var rgb = hslToRgb(Math.round(hi), Math.round(Math.max(0, Math.min(100, si))), Math.round(Math.max(5, Math.min(95, li))));
+                colors.push(rgb);
+            }
+            return colors;
+        }
+
+        function generate() {
+            var baseHex = document.getElementById('baseColor').value;
+            var harmony = document.getElementById('harmony').value;
+            var count = parseInt(document.getElementById('colorCount').value);
+
+            var newColors = generateHarmony(baseHex, harmony, count);
+
+            for (var i = 0; i < count; i++) {
+                if (lockedIndices[i] && currentColors[i]) {
+                    newColors[i] = currentColors[i];
+                }
+            }
+
+            currentColors = newColors;
+            renderPalette();
+            updateBaseHex();
+            renderBgPreview();
+            renderContrast();
+            updateUrlHash();
+        }
+
+        function renderPalette() {
+            var container = document.getElementById('palette');
+            container.innerHTML = '';
+            for (var i = 0; i < currentColors.length; i++) {
+                var c = currentColors[i];
+                var hex = rgbToHex(c.r, c.g, c.b);
+                var isLocked = lockedIndices[i];
+                var textColor = (c.r * 0.299 + c.g * 0.587 + c.b * 0.114) > 140 ? '#000' : '#fff';
+
+                var div = document.createElement('div');
+                div.className = 'cp-color' + (isLocked ? ' locked' : '');
+                div.style.background = hex;
+                div.style.color = textColor;
+                div.setAttribute('data-index', i);
+                div.onclick = function(e) {
+                    if (e.target.tagName === 'BUTTON') return;
+                    var idx = parseInt(this.getAttribute('data-index'));
+                    copyHex(idx);
+                };
+
+                var hexLabel = document.createElement('div');
+                hexLabel.className = 'cp-color-value';
+                hexLabel.textContent = hex;
+                div.appendChild(hexLabel);
+
+                var lockBtn = document.createElement('button');
+                lockBtn.className = 'cp-lock-btn' + (isLocked ? ' locked' : '');
+                lockBtn.textContent = isLocked ? '\uD83D\uDD12' : '\uD83D\uDD13';
+                lockBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    var idx = parseInt(this.parentElement.getAttribute('data-index'));
+                    toggleLock(idx);
+                };
+                div.appendChild(lockBtn);
+
+                container.appendChild(div);
+            }
+        }
+
+        function toggleLock(index) {
+            lockedIndices[index] = !lockedIndices[index];
+            renderPalette();
+        }
+
+        function copyHex(index) {
+            var c = currentColors[index];
+            if (!c) return;
+            var hex = rgbToHex(c.r, c.g, c.b);
+            navigator.clipboard.writeText(hex).then(function() {
+                showToast('Copied ' + hex);
+            });
+        }
+
+        function copyAllAsHex() {
+            var hexes = currentColors.map(function(c) { return rgbToHex(c.r, c.g, c.b); }).join(', ');
+            navigator.clipboard.writeText(hexes).then(function() {
+                showToast('All colors copied!');
+            });
+        }
+
+        function randomBase() {
+            var letters = '0123456789ABCDEF';
+            var color = '#';
+            for (var i = 0; i < 6; i++) color += letters[Math.floor(Math.random() * 16)];
+            document.getElementById('baseColor').value = color;
+            document.getElementById('baseHex').value = color;
+            generate();
+        }
+
+        function setBaseFromHex() {
+            var val = document.getElementById('baseHex').value.trim();
+            if (/^#[0-9a-f]{6}$/i.test(val)) {
+                document.getElementById('baseColor').value = val;
+                generate();
+            } else {
+                showToast('Invalid HEX color');
+            }
+        }
+
+        function updateBaseHex() {
+            var baseHex = document.getElementById('baseColor').value;
+            document.getElementById('baseHex').value = baseHex;
+        }
+
+        function renderBgPreview() {
+            var container = document.getElementById('bgPreview');
+            if (currentColors.length < 2) { container.innerHTML = ''; return; }
+            var bg = rgbToHex(currentColors[0].r, currentColors[0].g, currentColors[0].b);
+            var fg = rgbToHex(currentColors[1].r, currentColors[1].g, currentColors[1].b);
+            container.innerHTML =
+                '<div class="cp-bg-half" style="background:' + bg + ';color:' + getContrastColor(currentColors[0]) + '"><p>Background</p><small>' + bg + '</small></div>' +
+                '<div class="cp-bg-half" style="background:' + fg + ';color:' + getContrastColor(currentColors[1]) + '"><p>Accent</p><small>' + fg + '</small></div>';
+        }
+
+        function getContrastColor(c) {
+            var lum = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+            return lum > 140 ? '#000' : '#fff';
+        }
+
+        function relativeLuminance(r, g, b) {
+            var rs = r / 255, gs = g / 255, bs = b / 255;
+            rs = rs <= 0.03928 ? rs / 12.92 : Math.pow((rs + 0.055) / 1.055, 2.4);
+            gs = gs <= 0.03928 ? gs / 12.92 : Math.pow((gs + 0.055) / 1.055, 2.4);
+            bs = bs <= 0.03928 ? bs / 12.92 : Math.pow((bs + 0.055) / 1.055, 2.4);
+            return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+        }
+
+        function contrastRatio(c1, c2) {
+            var l1 = relativeLuminance(c1.r, c1.g, c1.b);
+            var l2 = relativeLuminance(c2.r, c2.g, c2.b);
+            var lighter = Math.max(l1, l2);
+            var darker = Math.min(l1, l2);
+            return (lighter + 0.05) / (darker + 0.05);
+        }
+
+        function renderContrast() {
+            var container = document.getElementById('contrastGrid');
+            if (currentColors.length < 2) { container.innerHTML = '<p style="color:#888;font-size:0.85rem;">Add at least 2 colors to check contrast.</p>'; return; }
+            container.innerHTML = '';
+            var pairs = [];
+            for (var i = 0; i < Math.min(3, currentColors.length); i++) {
+                for (var j = i + 1; j < Math.min(i + 2, currentColors.length); j++) {
+                    if (pairs.length >= 6) break;
+                    pairs.push({ a: currentColors[i], b: currentColors[j], i: i, j: j });
+                }
+                if (pairs.length >= 6) break;
+            }
+
+            for (var k = 0; k < pairs.length; k++) {
+                var p = pairs[k];
+                var ratio = contrastRatio(p.a, p.b);
+                var aa = ratio >= 4.5;
+                var aaa = ratio >= 7;
+                var aaLarge = ratio >= 3;
+                var hexA = rgbToHex(p.a.r, p.a.g, p.a.b);
+                var hexB = rgbToHex(p.b.r, p.b.g, p.b.b);
+
+                var item = document.createElement('div');
+                item.className = 'cp-contrast-item';
+                item.innerHTML =
+                    '<div class="cp-contrast-swatch" style="background:' + hexA + '"></div>' +
+                    '<div class="cp-contrast-swatch" style="background:' + hexB + '"></div>' +
+                    '<div class="cp-contrast-info">' +
+                    '<div class="cp-contrast-ratio">' + ratio.toFixed(2) + ':1</div>' +
+                    '<div class="cp-contrast-wcag">' +
+                    (aaa ? '<span class="cp-contrast-pass">\u2713 AAA</span> ' : '<span class="cp-contrast-fail">\u2717 AAA</span> ') +
+                    (aa ? '<span class="cp-contrast-pass">\u2713 AA</span> ' : '<span class="cp-contrast-fail">\u2717 AA</span> ') +
+                    (aaLarge ? '<span class="cp-contrast-pass">\u2713 AA Large</span>' : '<span class="cp-contrast-fail">\u2717 AA Large</span>') +
+                    '</div></div>';
+                container.appendChild(item);
+            }
+        }
+
+        function exportPalette() {
+            var format = document.getElementById('exportFormat').value;
+            var colors = currentColors.map(function(c) { return rgbToHex(c.r, c.g, c.b); });
+            var content = '';
+
+            switch (format) {
+                case 'css':
+                    content = ':root {\n';
+                    for (var i = 0; i < colors.length; i++) {
+                        content += '  --color-' + (i + 1) + ': ' + colors[i] + ';\n';
+                    }
+                    content += '}';
+                    break;
+                case 'tailwind':
+                    content = 'module.exports = {\n  theme: {\n    extend: {\n      colors: {\n';
+                    for (var i = 0; i < colors.length; i++) {
+                        content += '        \'palette-' + (i + 1) + '\': \'' + colors[i] + '\',\n';
+                    }
+                    content += '      }\n    }\n  }\n}';
+                    break;
+                case 'scss':
+                    for (var i = 0; i < colors.length; i++) {
+                        content += '$color-' + (i + 1) + ': ' + colors[i] + ';\n';
+                    }
+                    break;
+                case 'json':
+                    var obj = { palette: [] };
+                    for (var i = 0; i < colors.length; i++) {
+                        obj.palette.push({ name: 'color-' + (i + 1), hex: colors[i] });
+                    }
+                    content = JSON.stringify(obj, null, 2);
+                    break;
+            }
+
+            var blob = new Blob([content], { type: 'text/plain' });
+            var a = document.createElement('a');
+            var blobUrl = URL.createObjectURL(blob);
+            a.href = blobUrl;
+            a.download = 'palette.' + (format === 'tailwind' ? 'js' : format);
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(blobUrl); }, 100);
+            showToast('Exported as ' + format.toUpperCase());
+        }
+
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._timeout);
+            t._timeout = setTimeout(function() { t.classList.remove('show'); }, 2000);
+        }
+
+        function updateUrlHash() {
+            if (currentColors.length === 0) return;
+            var hexes = currentColors.map(function(c) { return rgbToHex(c.r, c.g, c.b).slice(1); }).join('-');
+            var harmony = document.getElementById('harmony').value;
+            window.location.hash = harmony + '/' + hexes;
+        }
+
+        function loadFromHash() {
+            var hash = window.location.hash.slice(1);
+            if (!hash) return;
+            var parts = hash.split('/');
+            if (parts.length < 2) return;
+            var harmony = parts[0];
+            var hexes = parts[1].split('-');
+            if (hexes.length < 2) return;
+            var harmonies = ['complementary', 'analogous', 'triadic', 'split-complementary', 'tetradic', 'square', 'monochromatic'];
+            if (harmonies.indexOf(harmony) >= 0) {
+                document.getElementById('harmony').value = harmony;
+            }
+            document.getElementById('colorCount').value = hexes.length;
+            currentColors = [];
+            for (var i = 0; i < hexes.length; i++) {
+                var rgb = hexToRgb('#' + hexes[i]);
+                if (rgb) currentColors.push(rgb);
+            }
+            if (currentColors.length > 0) {
+                document.getElementById('baseColor').value = rgbToHex(currentColors[0].r, currentColors[0].g, currentColors[0].b);
+                renderPalette();
+                updateBaseHex();
+                renderBgPreview();
+                renderContrast();
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                randomBase();
+            }
+        });
+
+        // init
+        var colors = generateHarmony('#667eea', 'analogous', 5);
+        currentColors = colors;
+        renderPalette();
+        renderBgPreview();
+        renderContrast();
+        loadFromHash();
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

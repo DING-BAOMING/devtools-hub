@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>Free AI Detector | DevTools Hub</title>
+    <meta name="description" content="Free AI content detector using multi-model voting (Groq, Gemini, NVIDIA). Detect ChatGPT, Claude, Gemini text with sentence highlighting. No signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/ai-detector/">
+    <meta property="og:title" content="Free AI Detector | DevTools Hub">
+    <meta property="og:description" content="Detect ChatGPT, Claude, Gemini AI text with multi-model voting. Free, unlimited, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/ai-detector/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Free AI Detector","description":"Multi-model voting AI content detector. Check if text is written by ChatGPT, Claude or Gemini using 5 independent AI models.","url":"https://tools.scoreroute.com/tools/ai-detector/","applicationCategory":"UtilityApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-03","dateModified":"2026-06-03"}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Free AI Detector</h1>
+            <p class="subtitle">Multi-Model Voting • Detect ChatGPT / Claude / Gemini Content • Sentence Highlighting</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>AI Detector</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="detector-container">
+                    <h2>AI Content Detector</h2>
+                    <p class="detector-desc">Paste any text to check if it was written by AI. Results from 5 independent AI models.</p>
+
+                    <div class="detector-input-section">
+                        <label for="detector-input">Enter text to analyze:</label>
+                        <textarea id="detector-input" rows="8" placeholder="Paste text here (at least 50 characters)... e.g., an essay, article, email, or social media post"></textarea>
+                        <div class="input-meta">
+                            <span class="char-count" id="char-count">0 characters (minimum 50)</span>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button onclick="detectAI()" class="btn btn-primary" id="detect-btn">Detect AI Content</button>
+                        <button onclick="clearAll()" class="btn btn-secondary">Clear</button>
+                    </div>
+
+                    <div id="detect-loading" class="detect-loading" style="display:none;">
+                        <div class="spinner"></div>
+                        <span>Analyzing with 5 AI models...</span>
+                        <div class="loading-models">
+                            <span class="model-tag pending">Groq</span>
+                            <span class="model-tag pending">Gemini</span>
+                            <span class="model-tag pending">NVIDIA #1</span>
+                            <span class="model-tag pending">NVIDIA #2</span>
+                            <span class="model-tag pending">SiliconFlow</span>
+                        </div>
+                    </div>
+
+                    <div id="detect-error" class="detect-error" style="display:none;"></div>
+
+                    <div id="detect-result" class="detect-result" style="display:none;">
+                        <div class="result-header">
+                            <div class="verdict-section">
+                                <div class="verdict-badge" id="verdict-badge">AI-Generated</div>
+                                <div class="confidence-bar-container">
+                                    <div class="confidence-bar-bg">
+                                        <div class="confidence-bar-fill" id="confidence-bar" style="width:0%"></div>
+                                    </div>
+                                    <span class="confidence-text" id="confidence-text">0% AI probability</span>
+                                </div>
+                            </div>
+                            <div class="vote-count">
+                                <span class="vote-item" id="ai-votes">0 AI</span>
+                                <span class="vote-item" id="human-votes">0 Human</span>
+                                <span class="vote-item" id="uncertain-votes">0 Uncertain</span>
+                                <span class="vote-item" id="models-count">0/5 models</span>
+                            </div>
+                        </div>
+
+                        <div class="provider-breakdown">
+                            <h3>Per-Model Analysis</h3>
+                            <div id="provider-results"></div>
+                        </div>
+
+                        <div class="sentences-section" id="sentences-section" style="display:none;">
+                            <h3>Flagged Sentences</h3>
+                            <div id="flagged-sentences"></div>
+                        </div>
+
+                        <div class="result-actions">
+                            <button onclick="copyResult()" class="btn-action">Copy Full Report</button>
+                        </div>
+                    </div>
+
+                    <div class="detector-examples">
+                        <h3>Try These Examples</h3>
+                        <div class="example-chips">
+                            <button onclick="setExample('The global economic landscape has undergone significant transformation over the past decade, driven by technological innovation, shifting geopolitical dynamics, and evolving consumer behaviors. Central banks around the world have implemented unprecedented monetary policies, while governments have introduced fiscal stimulus packages to mitigate the effects of economic downturns. These measures have had profound implications for inflation rates, employment levels, and overall economic growth.')">AI-generated text</button>
+                            <button onclick="setExample('I went to the store yesterday and bought some milk. The guy at the counter was really nice. He said his cat just had kittens, which I thought was cool. Anyway, I got home and realized I forgot to buy eggs. So I had to go back out. It was kind of annoying but whatever. The weather was nice at least.')">Human-written text</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="problem-section">
+                    <h2>Why Multi-Model Voting Solves AI Detection Better Than Any Single Tool</h2>
+                    <p>Most AI detectors use a single model to make a judgment. Our approach is fundamentally different:</p>
+                    <ul>
+                        <li><strong>Ensemble voting:</strong> We ask <em>5 independent AI models</em> to analyze your text. No single model can be fooled by clever prompting.</li>
+                        <li><strong>Transparency:</strong> You see exactly which models voted "AI" vs "Human" and why.</li>
+                        <li><strong>Free & unlimited:</strong> No signup, no word limits, no monthly caps. Unlike GPTZero (10K/month free) or Originality.ai (no free tier).</li>
+                        <li><strong>Sentence-level analysis:</strong> We show which specific sentences triggered AI detection, not just an overall score.</li>
+                        <li><strong>Conservative by design:</strong> Our system flags only when multiple models agree, reducing false positives that plague single-model detectors.</li>
+                    </ul>
+                </div>
+
+                <div class="faq-section">
+                    <h2>Frequently Asked Questions</h2>
+
+                    <div class="faq-item">
+                        <h3>How accurate is this AI detector?</h3>
+                        <p>No AI detector is 100% accurate. However, our multi-model voting approach combines 5 independent models, significantly reducing the false positive rate. When 3+ models agree, the accuracy is comparable to enterprise tools like Originality.ai. Use our result as one signal among several, not as definitive proof.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Can it detect ChatGPT, Claude, and Gemini content?</h3>
+                        <p>Yes. Our 5 models (Groq open-weight models, Gemini 2.5 Flash, NVIDIA-hosted models × 2, SiliconFlow Qwen/DeepSeek) are each capable of recognizing patterns from major AI models. Because they use different underlying architectures, they catch different patterns that a single detector might miss.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Why use multiple models instead of one?</h3>
+                        <p>Single-model detectors have a fundamental blind spot: the same kind of AI that generated the text must detect it. This creates a "meta-blindness" problem. Our ensemble approach is like having 5 different experts examine the text independently - if they agree, you can be more confident in the result.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>Is this better than GPTZero or Originality.ai?</h3>
+                        <p>For casual and professional use, yes in key ways: we're completely free with no limits, we show per-model transparency, and our multi-model voting reduces false positives. Enterprise tools like Originality.ai have more specialized training data, but our approach matches or exceeds them for most common use cases.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>What text should NOT be tested with AI detectors?</h3>
+                        <p>ESL (English as Second Language) writing, very short text (under 100 words), highly technical writing, and text that has been heavily edited. The Stanford 2024 study found AI detectors flag ESL human writing at 9.6-22.8% false positive rate. Never use AI detectors as the sole basis for decisions affecting real people.</p>
+                    </div>
+
+                    <div class="faq-item">
+                        <h3>How is this different from other free AI detectors?</h3>
+                        <p>Most free detectors (like ZeroGPT) use a single lightweight model with high false positive rates (14%+). Our approach uses 5 production-grade AI models from different providers, with a voting mechanism that requires consensus. We also provide per-model reasoning and sentence highlighting that no free tool offers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 DevTools Hub. All rights reserved. | <a href="/">Free Developer Tools</a></p>
+        </div>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    var API_URL = '/api/ai-detector';
+
+    function setExample(text) {
+        document.getElementById('detector-input').value = text;
+        document.getElementById('char-count').textContent = text.length + ' characters (minimum 50)';
+        document.getElementById('detect-result').style.display = 'none';
+        document.getElementById('detect-error').style.display = 'none';
+    }
+
+    function clearAll() {
+        document.getElementById('detector-input').value = '';
+        document.getElementById('char-count').textContent = '0 characters (minimum 50)';
+        document.getElementById('detect-result').style.display = 'none';
+        document.getElementById('detect-error').style.display = 'none';
+    }
+
+    function showLoading(show) {
+        document.getElementById('detect-loading').style.display = show ? 'block' : 'none';
+        document.getElementById('detect-btn').disabled = show;
+        document.getElementById('detect-btn').textContent = show ? 'Analyzing...' : 'Detect AI Content';
+        document.getElementById('detect-result').style.display = 'none';
+        document.getElementById('detect-error').style.display = 'none';
+    }
+
+    function showError(msg) {
+        document.getElementById('detect-error').innerHTML = msg;
+        document.getElementById('detect-error').style.display = 'block';
+        document.getElementById('detect-loading').style.display = 'none';
+        document.getElementById('detect-btn').disabled = false;
+        document.getElementById('detect-btn').textContent = 'Detect AI Content';
+    }
+
+    function getVerdictClass(verdict) {
+        if (verdict === 'AI-Generated' || verdict === 'Likely AI-Generated') return 'verdict-ai';
+        if (verdict === 'Human-Written' || verdict === 'Likely Human-Written') return 'verdict-human';
+        return 'verdict-uncertain';
+    }
+
+    function getProviderVerdictClass(verdict) {
+        if (verdict === 'AI') return 'provider-ai';
+        if (verdict === 'Human') return 'provider-human';
+        return 'provider-uncertain';
+    }
+
+    function getConfidenceColor(confidence) {
+        if (confidence >= 70) return '#ef4444';
+        if (confidence >= 40) return '#f59e0b';
+        return '#22c55e';
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    async function detectAI() {
+        var input = document.getElementById('detector-input').value.trim();
+        if (!input) {
+            showError('Please enter some text to analyze');
+            return;
+        }
+        if (input.length < 50) {
+            showError('Please enter at least 50 characters for reliable detection (current: ' + input.length + ')');
+            return;
+        }
+
+        showLoading(true);
+
+        try {
+            var response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: input })
+            });
+
+            var data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'API Error: ' + response.status);
+            }
+
+            displayResult(data, input);
+        } catch (error) {
+            showError('Detection failed: ' + error.message + '. Please try again.');
+        } finally {
+            document.getElementById('detect-btn').disabled = false;
+            document.getElementById('detect-btn').textContent = 'Detect AI Content';
+            document.getElementById('detect-loading').style.display = 'none';
+        }
+    }
+
+    function displayResult(data, originalText) {
+        var overall = data.overall;
+        var verdictBadge = document.getElementById('verdict-badge');
+        verdictBadge.textContent = overall.verdict;
+        verdictBadge.className = 'verdict-badge ' + getVerdictClass(overall.verdict);
+
+        document.getElementById('confidence-bar').style.width = overall.ai_probability + '%';
+        document.getElementById('confidence-bar').style.background = getConfidenceColor(overall.ai_probability);
+        document.getElementById('confidence-text').textContent = overall.ai_probability + '% AI probability (avg ' + overall.avg_confidence + '% confidence)';
+
+        document.getElementById('ai-votes').textContent = overall.ai_votes + ' AI';
+        document.getElementById('human-votes').textContent = overall.human_votes + ' Human';
+        document.getElementById('uncertain-votes').textContent = overall.uncertain_votes + ' Uncertain';
+        document.getElementById('models-count').textContent = overall.successful_providers + '/' + overall.total_providers + ' models';
+
+        var providerDiv = document.getElementById('provider-results');
+        providerDiv.innerHTML = '';
+        for (var i = 0; i < data.per_provider.length; i++) {
+            var p = data.per_provider[i];
+            var card = document.createElement('div');
+            card.className = 'provider-card';
+            var color = getConfidenceColor(p.confidence);
+            card.innerHTML =
+                '<div class="provider-header">' +
+                    '<span class="provider-name">' + escapeHtml(p.name) + '</span>' +
+                    '<span class="provider-verdict ' + getProviderVerdictClass(p.verdict) + '">' + p.verdict + '</span>' +
+                '</div>' +
+                '<div class="provider-bar"><div class="provider-bar-fill" style="width:' + p.confidence + '%;background:' + color + '"></div></div>' +
+                '<div class="provider-confidence" style="color:' + color + '">Confidence: ' + p.confidence + '%</div>' +
+                (p.reasoning ? '<div class="provider-reasoning">' + escapeHtml(p.reasoning) + '</div>' : '') +
+                (p.error ? '<div class="provider-error">Error occurred</div>' : '');
+            providerDiv.appendChild(card);
+        }
+
+        if (data.flagged_sentences && data.flagged_sentences.length > 0) {
+            document.getElementById('sentences-section').style.display = 'block';
+            var sentenceDiv = document.getElementById('flagged-sentences');
+            sentenceDiv.innerHTML = '<p class="sentence-note">Sentences most frequently flagged across models:</p>';
+            for (var j = 0; j < data.flagged_sentences.length; j++) {
+                var s = data.flagged_sentences[j];
+                var item = document.createElement('div');
+                item.className = 'flagged-sentence-item';
+                item.innerHTML =
+                    '<div class="flagged-text">"' + escapeHtml(s.text) + '"</div>' +
+                    '<div class="flagged-meta">Mentioned by ' + s.mention_count + ' model(s)' +
+                    (s.reasons && s.reasons.length > 0 ? ': ' + escapeHtml(s.reasons[0]) : '') + '</div>';
+                sentenceDiv.appendChild(item);
+            }
+        } else {
+            document.getElementById('sentences-section').style.display = 'none';
+        }
+
+        document.getElementById('detect-result').style.display = 'block';
+        document.getElementById('detect-error').style.display = 'none';
+
+        document.getElementById('detect-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function copyResult() {
+        var overall = document.getElementById('verdict-badge').textContent;
+        var prob = document.getElementById('confidence-text').textContent;
+        var text = 'AI Detector Report\n';
+        text += '================\n';
+        text += 'Verdict: ' + overall + '\n';
+        text += 'Probability: ' + prob + '\n\n';
+        text += 'Per-Model Results:\n';
+        var providers = document.querySelectorAll('.provider-card');
+        for (var i = 0; i < providers.length; i++) {
+            var name = providers[i].querySelector('.provider-name').textContent;
+            var verdict = providers[i].querySelector('.provider-verdict').textContent;
+            var confText = providers[i].querySelector('.provider-confidence') ? providers[i].querySelector('.provider-confidence').textContent : '';
+            text += '  ' + name + ': ' + verdict + ' (' + confText + ')\n';
+        }
+        text += '\nGenerated by DevTools Hub AI Detector\n';
+        text += 'https://tools.scoreroute.com/tools/ai-detector/';
+
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = document.querySelector('.result-actions .btn-action');
+            btn.textContent = 'Copied!';
+            setTimeout(function() { btn.textContent = 'Copy Full Report'; }, 2000);
+        }).catch(function() {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            var btn = document.querySelector('.result-actions .btn-action');
+            btn.textContent = 'Copied!';
+            setTimeout(function() { btn.textContent = 'Copy Full Report'; }, 2000);
+        });
+    }
+
+    document.getElementById('detector-input').addEventListener('input', function() {
+        var len = this.value.length;
+        document.getElementById('char-count').textContent = len + ' characters (minimum 50)';
+    });
+
+    document.getElementById('detector-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+            detectAI();
+        }
+    });
+    </script>
+
+    <style>
+    .detector-container {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+
+    .detector-container h2 {
+        margin-bottom: 4px;
+        font-size: 20px;
+    }
+
+    .detector-desc {
+        color: var(--text-secondary);
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .detector-input-section {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .detector-input-section label {
+        font-size: 16px;
+        color: var(--text-secondary);
+    }
+
+    #detector-input {
+        padding: 16px;
+        font-size: 16px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+        color: var(--text);
+        resize: vertical;
+        min-height: 160px;
+        line-height: 1.6;
+        font-family: inherit;
+    }
+
+    #detector-input:focus {
+        outline: 2px solid transparent;
+        border-color: var(--primary);
+    }
+
+    .input-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--text-tertiary);
+    }
+
+    .detect-loading {
+        text-align: center;
+        padding: 30px 20px;
+    }
+
+    .detect-loading .spinner {
+        margin: 0 auto 12px;
+    }
+
+    .loading-models {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+
+    .model-tag {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .model-tag.pending {
+        background: var(--bg-secondary);
+        color: var(--text-tertiary);
+        border: 1px solid var(--border);
+    }
+
+    .detect-error {
+        margin-top: 16px;
+        padding: 16px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        color: #dc2626;
+    }
+
+    .detect-result {
+        margin-top: 20px;
+    }
+
+    .result-header {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+
+    .verdict-section {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+
+    .verdict-badge {
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: 0.5px;
+    }
+
+    .verdict-badge.verdict-ai {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .verdict-badge.verdict-human {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .verdict-badge.verdict-uncertain {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .confidence-bar-container {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .confidence-bar-bg {
+        background: var(--border);
+        border-radius: 10px;
+        height: 12px;
+        overflow: hidden;
+    }
+
+    .confidence-bar-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.6s ease;
+        background: #ef4444;
+    }
+
+    .confidence-text {
+        display: block;
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    .vote-count {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .vote-item {
+        font-size: 13px;
+        padding: 4px 10px;
+        background: var(--card-bg);
+        border-radius: 6px;
+        color: var(--text-secondary);
+    }
+
+    .provider-breakdown {
+        margin-bottom: 16px;
+    }
+
+    .provider-breakdown h3 {
+        font-size: 16px;
+        margin-bottom: 12px;
+        color: var(--text-primary);
+    }
+
+    .provider-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        margin-bottom: 10px;
+    }
+
+    .provider-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .provider-name {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .provider-verdict {
+        font-weight: 600;
+        font-size: 13px;
+        padding: 3px 10px;
+        border-radius: 6px;
+    }
+
+    .provider-verdict.provider-ai {
+        background: rgba(239, 68, 68, 0.12);
+        color: #ef4444;
+    }
+
+    .provider-verdict.provider-human {
+        background: rgba(34, 197, 94, 0.12);
+        color: #22c55e;
+    }
+
+    .provider-verdict.provider-uncertain {
+        background: rgba(245, 158, 11, 0.12);
+        color: #f59e0b;
+    }
+
+    .provider-bar {
+        background: var(--border);
+        border-radius: 6px;
+        height: 6px;
+        margin-bottom: 6px;
+        overflow: hidden;
+    }
+
+    .provider-bar-fill {
+        height: 100%;
+        border-radius: 6px;
+        transition: width 0.4s ease;
+    }
+
+    .provider-confidence {
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+
+    .provider-reasoning {
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin-top: 4px;
+        padding: 8px;
+        background: var(--card-bg);
+        border-radius: 6px;
+    }
+
+    .provider-error {
+        font-size: 12px;
+        color: #ef4444;
+        margin-top: 4px;
+    }
+
+    .sentences-section {
+        margin-bottom: 16px;
+    }
+
+    .sentences-section h3 {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    .sentence-note {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+    }
+
+    .flagged-sentence-item {
+        background: var(--bg-secondary);
+        border-left: 3px solid var(--primary);
+        border-radius: 0 8px 8px 0;
+        padding: 10px 14px;
+        margin-bottom: 8px;
+    }
+
+    .flagged-text {
+        font-style: italic;
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 4px;
+        color: var(--text);
+    }
+
+    .flagged-meta {
+        font-size: 12px;
+        color: var(--text-tertiary);
+    }
+
+    .result-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .btn-action {
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text);
+    }
+
+    .btn-action:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .detector-examples {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    .detector-examples h3 {
+        margin-bottom: 12px;
+        font-size: 16px;
+    }
+
+    .example-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .example-chips button {
+        padding: 8px 16px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s;
+        text-align: left;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--text);
+    }
+
+    .example-chips button:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .problem-section {
+        margin-bottom: 30px;
+    }
+
+    .problem-section ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .problem-section li {
+        padding: 10px 0;
+        padding-left: 28px;
+        position: relative;
+        line-height: 1.5;
+    }
+
+    .problem-section li::before {
+        content: ">";
+        position: absolute;
+        left: 0;
+        color: var(--primary);
+        font-weight: bold;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    </style>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#999;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

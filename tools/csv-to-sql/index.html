@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV to SQL INSERT Generator - DDL, Batches, Upserts</title>
+    <meta name="description" content="CSV, Excel or JSON to CREATE TABLE plus batched INSERT statements for PostgreSQL, MySQL, SQLite, SQL Server and Oracle, with a data quality report first.">
+    <meta name="keywords" content="csv to sql, sql insert generator, csv to sql insert, json to sql, excel to sql, create table from csv, csv to sql query generator, sql insert statement generator, postgres insert from csv, mysql insert from csv">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/csv-to-sql/">
+    <meta property="og:title" content="CSV to SQL INSERT Generator - DDL, Batches, Upserts">
+    <meta property="og:description" content="CSV, Excel or JSON to CREATE TABLE plus batched INSERT statements for PostgreSQL, MySQL, SQLite, SQL Server and Oracle, with a data quality report first.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/csv-to-sql/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CSV to SQL INSERT Generator - DDL, Batches, Upserts">
+    <meta name="twitter:description" content="CSV, Excel or JSON to CREATE TABLE plus batched INSERTs for PostgreSQL, MySQL, SQLite, SQL Server and Oracle, with a pre-flight data quality report.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"CSV to SQL INSERT Generator - DDL, Batches, Upserts","description":"Converts CSV, TSV, Excel (.xlsx) and JSON into CREATE TABLE DDL plus batched, dialect-correct INSERT statements for PostgreSQL, MySQL, SQLite, SQL Server and Oracle. Includes upsert variants, per-column type inference, a pre-flight data quality report that flags Excel-mangled numbers and duplicate primary keys, and post-load verification SQL. Runs entirely in the browser.","url":"https://tools.scoreroute.com/tools/csv-to-sql/","applicationCategory":"DeveloperApplication","operatingSystem":"Any","browserRequirements":"Modern browser with JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-10-09","dateModified":"2026-10-09"}
+    </script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I convert a CSV file into INSERT statements?","acceptedAnswer":{"@type":"Answer","text":"Paste the CSV into the input box, or drop a .csv, .tsv, .json or .xlsx file on it. Set the table name, pick your database dialect, then press Generate SQL. You get a CREATE TABLE statement, batched multi-row INSERT statements wrapped in a transaction, and verification queries. The whole file stays in your browser."}},{"@type":"Question","name":"Why did my CSV turn numbers into scientific notation like 1.23457E+11?","acceptedAnswer":{"@type":"Answer","text":"That is Excel mangling the export, not the SQL. Excel stores numbers as double precision, so a phone number or an 18-digit account id gets rounded and written in scientific notation. The original digits are gone from the file. This tool detects those cells, reports how many are affected and can rewrite them to the digits that survived, but it also tells you to store that column as TEXT so the next export keeps every digit."}},{"@type":"Question","name":"Can an AI chatbot write the INSERT statements for my CSV?","acceptedAnswer":{"@type":"Answer","text":"For three rows, sometimes. For a real export it fails quietly: it miscounts columns, drops a value after a comma, forgets that an apostrophe in O'Brien breaks the string literal, treats an empty cell as the word NULL, and never notices that two rows share the same primary key. A deterministic converter counts the columns for you, escapes the quotes, and fails loudly on the duplicate key that would abort the whole transaction."}},{"@type":"Question","name":"How large a CSV can this handle?","acceptedAnswer":{"@type":"Answer","text":"Conversion runs in your browser with no upload limit from our side. Type inference reads the first 20,000 rows, which is plenty to pick a column type, and the generated SQL holds every row. Very large files (hundreds of thousands of rows) can make the browser tab slow or run out of memory, and most databases reject single statements with more than about 1,000 bind parameters, so use the batch size control."}},{"@type":"Question","name":"What is the difference between ON CONFLICT, ON DUPLICATE KEY UPDATE and MERGE?","acceptedAnswer":{"@type":"Answer","text":"They are the same idea written three ways. PostgreSQL and SQLite use INSERT ... ON CONFLICT (key) DO UPDATE. MySQL uses ON DUPLICATE KEY UPDATE. SQL Server and Oracle use MERGE INTO ... USING. Pick the one your database understands, or leave it on plain INSERT for a first load. MERGE is the least portable and the one with the most engine-specific bugs, so on SQL Server a two-step UPDATE then INSERT is often safer for repeated runs."}},{"@type":"Question","name":"Why are my identifiers quoted in the output?","acceptedAnswer":{"@type":"Answer","text":"Because words like user, order, group, key or select are reserved keywords in at least one of the five supported dialects. Unquoted, CREATE TABLE fails or the column silently becomes a syntax error. This tool quotes only identifiers that need it, using the right character per dialect: double quotes for PostgreSQL and SQLite, backticks for MySQL, square brackets for SQL Server, and plain uppercase names for Oracle. You can force quoting on or off in the options."}},{"@type":"Question","name":"Is my CSV uploaded anywhere?","acceptedAnswer":{"@type":"Answer","text":"No. Parsing, type inference, diagnostics and SQL generation all run in the page. There is no server-side converter, no analytics call on your data and no account. The only external script is the Apache SheetJS reader, and it is downloaded only if you pick an .xlsx file, and it reads the file locally too."}},{"@type":"Question","name":"How do I verify the import actually worked?","acceptedAnswer":{"@type":"Answer","text":"The generated script ends with verification queries: a total row count, a per-column NULL count, and a distinct-value count per column. Run them after the import and compare the numbers with the report this tool produced from your file. If COUNT(*) is lower than the row count in the report, the transaction aborted part way, and on PostgreSQL the log will name the exact row that failed."}}]}
+    </script>
+    <style>
+        .cs-container { max-width:1100px; margin:0 auto; }
+        .cs-hero { background:linear-gradient(135deg,#1a1a2e 0%,#0f2a3e 55%,#1a1a2e 100%); border-radius:14px; padding:22px; margin:16px 0; text-align:center; border:1px solid #333; }
+        .cs-hero h2 { color:#fff; margin:0 0 6px; font-size:1.5rem; }
+        .cs-hero p { color:#a8a8c0; margin:0; font-size:0.95rem; }
+        .cs-hero-pills { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:12px; }
+        .cs-hero-pill { padding:4px 12px; background:#252540; border:1px solid #3a3a5c; border-radius:20px; font-size:0.78rem; color:#a8a8c0; }
+        .cs-hero-pill strong { color:#7eb3ff; }
+        .cs-card { background:#1a1a2e; border:1px solid #333; border-radius:12px; padding:16px; margin-bottom:14px; }
+        .cs-label { display:block; color:#a8a8c0; font-size:0.85rem; margin-bottom:6px; font-weight:500; }
+        .cs-textarea { width:100%; min-height:170px; padding:12px; background:#0f0f23; border:1px solid #333; color:#fff; border-radius:8px; font-size:0.9rem; font-family:'Courier New',monospace; box-sizing:border-box; resize:vertical; line-height:1.5; }
+        .cs-textarea:focus-visible { outline:2px solid #667eea; outline-offset:1px; border-color:#667eea; }
+        .cs-output { width:100%; min-height:220px; padding:12px; background:#0f0f23; border:1px solid #333; color:#d8d8f0; border-radius:8px; font-size:0.85rem; font-family:'Courier New',monospace; box-sizing:border-box; resize:vertical; line-height:1.5; }
+        .cs-output:focus-visible { outline:2px solid #667eea; outline-offset:1px; }
+        .cs-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+        .cs-field label { display:block; color:#888; font-size:0.75rem; margin-bottom:5px; }
+        .cs-field select, .cs-field input[type="text"], .cs-field input[type="number"] { width:100%; padding:9px 10px; background:#0f0f23; border:1px solid #333; color:#fff; border-radius:6px; font-size:0.88rem; box-sizing:border-box; }
+        .cs-field select:focus-visible, .cs-field input:focus-visible { outline:2px solid #667eea; outline-offset:1px; }
+        .cs-check { display:flex; align-items:center; gap:7px; color:#a8a8c0; font-size:0.85rem; margin-top:10px; }
+        .cs-check input { width:16px; height:16px; accent-color:#667eea; }
+        .cs-check input:focus-visible { outline:2px solid #667eea; outline-offset:1px; }
+        .cs-btn { padding:11px 20px; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); border:none; color:#fff; border-radius:8px; font-size:0.93rem; cursor:pointer; font-weight:600; transition:filter 0.2s; }
+        .cs-btn:hover { filter:brightness(1.1); }
+        .cs-btn:disabled { opacity:0.55; cursor:not-allowed; }
+        .cs-btn-secondary { background:#252540; border:1px solid #333; color:#a8a8c0; }
+        .cs-btn-secondary:hover { background:#2f2f55; color:#fff; }
+        .cs-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+        .cs-status { min-height:22px; margin-top:10px; padding:9px 12px; border-radius:8px; font-size:0.86rem; display:none; }
+        .cs-status.show { display:block; }
+        .cs-status.ok { background:#10251a; border:1px solid #10b981; color:#6ee7b7; }
+        .cs-status.err { background:#2d1a1a; border:1px solid #ef4444; color:#ff8888; }
+        .cs-drop { border:2px dashed #3a3a5c; border-radius:10px; padding:18px; text-align:center; color:#888; font-size:0.86rem; cursor:pointer; background:#131826; }
+        .cs-drop.over { border-color:#667eea; color:#7eb3ff; }
+        .cs-drop input[type="file"] { display:block; margin:10px auto 0; font-size:0.8rem; color:#a8a8c0; max-width:100%; }
+        .cs-drop input[type="file"]::file-selector-button { background:#252540; border:1px solid #3a3a5c; color:#fff; border-radius:6px; padding:6px 12px; margin-right:10px; cursor:pointer; font-size:0.82rem; }
+        .cs-drop input[type="file"]:focus-visible { outline:2px solid #667eea; outline-offset:2px; }
+        .cs-tablewrap { overflow-x:auto; margin-top:10px; }
+        table.cs-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+        table.cs-table th, table.cs-table td { border:1px solid #2f2f4a; padding:6px 8px; text-align:left; white-space:nowrap; }
+        table.cs-table th { background:#20203a; color:#a8a8c0; font-weight:600; }
+        table.cs-table td { color:#d8d8f0; font-family:'Courier New',monospace; }
+        .cs-warn-list { list-style:none; padding:0; margin:10px 0 0; }
+        .cs-warn-list li { padding:8px 10px; border-radius:6px; margin-bottom:6px; font-size:0.84rem; line-height:1.5; }
+        .cs-warn-list li.cs-w-err { background:#2d1a1a; border:1px solid #ef4444; color:#ffb4b4; }
+        .cs-warn-list li.cs-w-warn { background:#2d2617; border:1px solid #d97706; color:#fcd34d; }
+        .cs-warn-list li.cs-w-info { background:#152430; border:1px solid #3b82f6; color:#93c5fd; }
+        .cs-warn-list b { color:#fff; }
+        .cs-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+        .cs-tab { padding:7px 14px; background:#252540; border:1px solid #333; color:#a8a8c0; border-radius:7px; cursor:pointer; font-size:0.85rem; font-weight:600; }
+        .cs-tab.active { background:#1a1a3e; border-color:#667eea; color:#fff; }
+        .cs-tab:focus-visible { outline:2px solid #667eea; outline-offset:1px; }
+        .cs-pane { display:none; }
+        .cs-pane.active { display:block; }
+        .cs-info-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin:14px 0; }
+        .cs-info-card { background:#1a1a2e; border:1px solid #333; border-left:3px solid #667eea; border-radius:8px; padding:14px; }
+        .cs-info-card b { color:#fff; font-size:0.9rem; display:block; margin-bottom:4px; }
+        .cs-info-card p { color:#a8a8c0; font-size:0.83rem; margin:0; line-height:1.55; }
+        .cs-info-card code { color:#7eb3ff; font-size:0.82rem; }
+        .cs-related { background:#1a1a2e; border:1px solid #333; border-radius:10px; padding:14px; margin-top:16px; }
+        .cs-related h3 { color:#fff; font-size:1rem; margin:0 0 10px; }
+        .cs-related-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+        .cs-related-link { display:block; padding:10px 14px; background:#252540; border:1px solid #3a3a5c; border-radius:8px; color:#a8a8c0; text-decoration:none; font-size:0.88rem; transition:all 0.2s; }
+        .cs-related-link:hover { border-color:#667eea; color:#fff; }
+        .cs-related-link strong { color:#fff; display:block; margin-bottom:2px; font-size:0.9rem; }
+        details.faq-item { background:#1a1a2e; border:1px solid #333; border-radius:8px; padding:12px 14px; margin-bottom:10px; }
+        details.faq-item summary { color:#fff; font-size:0.95rem; font-weight:600; cursor:pointer; }
+        details.faq-item p { color:#a8a8c0; font-size:0.9rem; line-height:1.6; margin:8px 0 0; }
+        .cs-h2 { color:#fff; font-size:1.25rem; margin:22px 0 8px; }
+        .cs-prose { color:#a8a8c0; font-size:0.93rem; line-height:1.65; }
+        .cs-prose code { color:#7eb3ff; background:#0f0f23; padding:1px 5px; border-radius:4px; font-size:0.86rem; }
+        .ref-section { background:#1a1a2e; border:1px solid #333; border-radius:10px; padding:14px; margin-top:18px; }
+        .ref-section h2 { color:#fff; font-size:1rem; margin:0 0 8px; }
+        .ref-list { margin:0; padding-left:20px; }
+        .ref-list li { margin-bottom:5px; font-size:0.86rem; }
+        .ref-list a { color:#7eb3ff; }
+        .cs-meta { display:flex; gap:14px; flex-wrap:wrap; color:#888; font-size:0.8rem; margin-top:6px; }
+        @media (max-width:640px) { .cs-actions .cs-btn { flex:1 1 46%; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>CSV to SQL INSERT Generator</h1>
+            <p class="subtitle">CSV, TSV, Excel or JSON to CREATE TABLE and batched INSERT statements for PostgreSQL, MySQL, SQLite, SQL Server and Oracle, with a data quality report first.</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/converters/">Converters</a> &gt; <span>CSV to SQL INSERT Generator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main cs-container">
+
+                <div class="cs-hero">
+                    <h2>Paste a CSV, get runnable SQL</h2>
+                    <p>Type inference, quoted identifiers, escaped literals, batched values and a pre-flight report that catches the things that abort a load halfway through.</p>
+                    <div class="cs-hero-pills">
+                        <span class="cs-hero-pill"><strong>5</strong> dialects</span>
+                        <span class="cs-hero-pill"><strong>0</strong> uploads</span>
+                        <span class="cs-hero-pill"><strong>0</strong> signup</span>
+                        <span class="cs-hero-pill">RFC 4180 parser</span>
+                        <span class="cs-hero-pill">Upsert output</span>
+                        <span class="cs-hero-pill">Verification SQL</span>
+                    </div>
+                </div>
+
+                <div class="cs-card">
+                    <span class="cs-label" id="cs-input-label">1. Input data (CSV, TSV, semicolon or pipe separated, or JSON)</span>
+                    <textarea id="cs-input" class="cs-textarea" spellcheck="false" placeholder="id,name,email,created_at&#10;1,Ada Lovelace,ada@example.com,2026-01-04&#10;2,O'Brien Grace,grace@example.com,2026-02-11" aria-label="Input data"></textarea>
+                    <div class="cs-meta">
+                        <span id="cs-input-meta">0 characters</span>
+                        <span id="cs-format-hint">Delimiter will be detected from the first line</span>
+                    </div>
+                    <div class="cs-actions">
+                        <label class="cs-drop" id="cs-drop" for="cs-file" style="flex:1 1 100%;">Drop a .csv, .tsv, .json or .xlsx file here, or click to choose one<span id="cs-file-name"></span></label>
+                        <input type="file" id="cs-file" accept=".csv,.tsv,.txt,.json,.xlsx,.xls">
+                        <button type="button" class="cs-btn cs-btn-secondary" onclick="loadSample()">Load sample</button>
+                        <button type="button" class="cs-btn cs-btn-secondary" onclick="clearAll()">Clear</button>
+                    </div>
+                </div>
+
+                <div class="cs-card">
+                    <span class="cs-label">2. Parse and schema options</span>
+                    <div class="cs-grid">
+                        <div class="cs-field">
+                            <label for="cs-format">Input format</label>
+                            <select id="cs-format">
+                                <option value="auto">Detect (CSV or JSON)</option>
+                                <option value="delimited">Delimited text</option>
+                                <option value="json">JSON array or object</option>
+                            </select>
+                        </div>
+                        <div class="cs-field">
+                            <label for="cs-delim">Delimiter</label>
+                            <select id="cs-delim">
+                                <option value="auto">Auto detect</option>
+                                <option value=",">Comma ,</option>
+                                <option value=";">Semicolon ;</option>
+                                <option value="&#9;">Tab</option>
+                                <option value="|">Pipe |</option>
+                            </select>
+                        </div>
+                        <div class="cs-field">
+                            <label for="cs-header">Header row</label>
+                            <select id="cs-header">
+                                <option value="yes">First row is the header</option>
+                                <option value="no">No header, generate names</option>
+                            </select>
+                        </div>
+                        <div class="cs-field">
+                            <label for="cs-table">Table name</label>
+                            <input type="text" id="cs-table" value="my_table" spellcheck="false">
+                        </div>
+                        <div class="cs-field">
+                            <label for="cs-schema">Schema (PostgreSQL only)</label>
+                            <input type="text" id="cs-schema" value="" spellcheck="false" placeholder="public">
+                        </div>
+                        <div class="cs-field">
+                            <label for="cs-dialect">SQL dialect</label>
+                            <select id="cs-dialect">
+                                <option value="postgres">PostgreSQL</option>
+                                <option value="mysql">MySQL / MariaDB</option>
+                                <option value="sqlite">SQLite</option>
+                                <option value="mssql">SQL Server</option>
+                                <option value="oracle">Oracle</option>
+                            </select>
+                        </div>
+                        <div class="cs-field">
+                            <label for="cs-batch">Rows per INSERT</label>
+                            <input type="number" id="cs-batch" value="100" min="1" max="5000">
+                        </div>
+                        <div class="cs-field">
+                            <label for="cs-null">Treat empty cell as</label>
+                            <select id="cs-null">
+                                <option value="empty">Empty string</option>
+                                <option value="null">NULL</option>
+                            </select>
+                        </div>
+                    </div>
+                    <label class="cs-check"><input type="checkbox" id="cs-fix-sci"> Repair Excel-mangled numbers (1.23457E+11 to digits) and force those columns to TEXT</label>
+                    <label class="cs-check"><input type="checkbox" id="cs-create" checked> Include CREATE TABLE</label>
+                    <label class="cs-check"><input type="checkbox" id="cs-drop-if-exists"> Include DROP TABLE IF EXISTS</label>
+                    <label class="cs-check"><input type="checkbox" id="cs-verify" checked> Include verification queries after the load</label>
+                    <label class="cs-check"><input type="checkbox" id="cs-tx" checked> Wrap the load in BEGIN / COMMIT</label>
+                    <details style="margin-top:12px;">
+                        <summary style="cursor:pointer;color:#a8a8c0;font-size:0.85rem;">Identifier and upsert options</summary>
+                        <div class="cs-grid" style="margin-top:12px;">
+                            <div class="cs-field">
+                                <label for="cs-quote">Quote identifiers</label>
+                                <select id="cs-quote">
+                                    <option value="auto">Only when needed</option>
+                                    <option value="always">Always</option>
+                                    <option value="never">Never</option>
+                                </select>
+                            </div>
+                            <div class="cs-field">
+                                <label for="cs-upsert">Upsert style</label>
+                                <select id="cs-upsert">
+                                    <option value="none">Plain INSERT</option>
+                                    <option value="auto">Auto (best for dialect)</option>
+                                    <option value="conflict">ON CONFLICT (PostgreSQL, SQLite)</option>
+                                    <option value="duplicate">ON DUPLICATE KEY UPDATE (MySQL)</option>
+                                    <option value="merge">MERGE (SQL Server, Oracle)</option>
+                                </select>
+                            </div>
+                            <div class="cs-field">
+                                <label for="cs-pk">Primary key column</label>
+                                <select id="cs-pk">
+                                    <option value="auto">Detect (id-like, unique)</option>
+                                    <option value="none">No primary key</option>
+                                    <option value="first">First column</option>
+                                </select>
+                            </div>
+                            <div class="cs-field">
+                                <label for="cs-texttype">Long text column type</label>
+                                <select id="cs-texttype">
+                                    <option value="auto">Auto (VARCHAR / TEXT by length)</option>
+                                    <option value="text">Always full text</option>
+                                </select>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="cs-card">
+                    <div class="cs-actions" style="margin-top:0;">
+                        <button type="button" class="cs-btn" id="cs-generate">Generate SQL</button>
+                        <button type="button" class="cs-btn cs-btn-secondary" id="cs-copy" onclick="copySql()">Copy SQL</button>
+                        <button type="button" class="cs-btn cs-btn-secondary" id="cs-download" onclick="downloadSql()">Download .sql</button>
+                    </div>
+                    <div class="cs-status" id="cs-status"></div>
+                </div>
+
+                <div class="cs-card" id="cs-report-card" style="display:none;">
+                    <span class="cs-label">3. Data quality report (read this before you run the script)</span>
+                    <div class="cs-meta" id="cs-summary" style="margin-bottom:8px;"></div>
+                    <ul class="cs-warn-list" id="cs-warnings"></ul>
+                    <div class="cs-tablewrap">
+                        <table class="cs-table" id="cs-coltable">
+                            <caption style="color:#888;font-size:0.8rem;text-align:left;padding:4px 0;">Inferred column types and statistics</caption>
+                            <thead><tr><th>Column</th><th>SQL type</th><th>Nulls</th><th>Distinct</th><th>Max length</th></tr></thead>
+                            <tbody><tr><td colspan="5">No data yet.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="cs-card">
+                    <div class="cs-tabs" role="group" aria-label="Output views">
+                        <button type="button" class="cs-tab active" id="tab-sql" aria-pressed="true" onclick="showTab('sql')">SQL output</button>
+                        <button type="button" class="cs-tab" id="tab-preview" aria-pressed="false" onclick="showTab('preview')">Parsed data preview</button>
+                    </div>
+                    <div class="cs-pane active" id="pane-sql">
+                        <label class="cs-label" for="cs-output">Generated SQL</label>
+                        <textarea id="cs-output" class="cs-output" readonly spellcheck="false" placeholder="Generated SQL appears here."></textarea>
+                    </div>
+                    <div class="cs-pane" id="pane-preview">
+                        <label class="cs-label" for="cs-preview">First rows as parsed (blank cell = NULL or empty string, see options)</label>
+                        <div class="cs-tablewrap">
+                            <table class="cs-table" id="cs-preview">
+                                <caption class="sr-only">First rows as parsed (a blank cell is NULL or an empty string)</caption>
+                                <thead></thead><tbody><tr><td>Paste a CSV to see rows here.</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="cs-h2">Why not just ask an AI model for the INSERT statements</h2>
+                <p class="cs-prose">Because the failure is silent. A model writing fifty INSERT statements will count columns from memory, forget to escape the apostrophe in <code>O'Brien</code>, write the word <code>NULL</code> for a cell that was actually an empty string, and never notice that two rows share the same primary key. That last one is the expensive mistake: inside a transaction the whole load rolls back, and on PostgreSQL the log points at one row out of fifty thousand.</p>
+                <p class="cs-prose">This tool does the mechanical part exactly, and refuses to stay quiet about the rest. It counts columns, escapes every dialect correctly, wraps the load in a transaction so a failure is all-or-nothing, and reports the problems that would otherwise show up as a failed job: ragged rows, mixed types in one column, duplicate primary keys, and numbers that Excel destroyed before you ever opened the file.</p>
+
+                <h2 class="cs-h2">The Excel problem this tool is built around</h2>
+                <p class="cs-prose">Open a CSV in Excel, save it, and every identifier longer than fifteen digits is rewritten as a float. <code>0044123456789</code> becomes <code>12345</code>. <code>13800138000</code> becomes <code>1.38001E+10</code>. Nothing in the SQL is wrong; the data was already gone before the file reached you.</p>
+                <p class="cs-prose">So the tool looks for those cells. If it finds them you get the count, the column, and the honest answer: the digits Excel dropped cannot be recovered from the file, so this is a warning about your export pipeline, not something a converter can repair. The repair switch rewrites what survived (<code>1.38001E+10</code> to <code>13800100000</code>, with the last digits rounded by Excel) and switches the column to a text type so the next export is clean. For a real fix on the way out, quote the column in Excel before you export, or save as <code>.xlsx</code> instead of <code>.csv</code>.</p>
+
+                <div class="cs-info-grid">
+                    <div class="cs-info-card"><b>Type inference that reads the data</b><p>Every non-empty cell in a column decides the type: integers become <code>INTEGER</code> or <code>BIGINT</code>, decimals keep their scale as <code>NUMERIC(p,s)</code>, ISO dates and timestamps are recognised, and one word among numbers widens the column to text instead of silently truncating.</p></div>
+                    <div class="cs-info-card"><b>Escaping per dialect</b><p>Single quotes are doubled for PostgreSQL, SQLite, SQL Server and Oracle. MySQL additionally escapes backslashes. Non-ASCII strings get the <code>N'...'</code> prefix on SQL Server, where a plain literal would lose Unicode.</p></div>
+                    <div class="cs-info-card"><b>Batched, parameter-aware output</b><p>Rows per INSERT is a control, not a guess. MySQL, SQL Server and Oracle cap a statement around 1,000 bind parameters, so a wide table needs smaller batches than a narrow one. Default is 100 rows.</p></div>
+                    <div class="cs-info-card"><b>Reserved words quoted once</b><p><code>user</code>, <code>order</code>, <code>key</code> and <code>group</code> break a CREATE TABLE in some dialect. Quoting uses the character that dialect expects: double quotes, backticks or square brackets.</p></div>
+                    <div class="cs-info-card"><b>RFC 4180 parsing</b><p>Quoted fields containing commas, newlines and doubled quotes parse the way the standard says, so a description field with a line break in it does not become four broken rows.</p></div>
+                    <div class="cs-info-card"><b>Verification SQL included</b><p>The script ends with <code>COUNT(*)</code>, a per-column NULL count and a per-column distinct count, so a load can be checked instead of assumed.</p></div>
+                </div>
+
+                <h2 class="cs-h2">How to use it</h2>
+                <ol class="cs-prose">
+                    <li>Paste the CSV, drop a file on the input, or press <b>Load sample</b> to see the shape of the output.</li>
+                    <li>Set the table name and the dialect. If the first row is not a header, switch that off and the column names become <code>column1</code>, <code>column2</code>, and so on.</li>
+                    <li>Press <b>Generate SQL</b>. Read the data quality report. Anything red will abort a transaction.</li>
+                    <li>Copy or download the script and run it. If you are loading into a table that already exists, turn off <b>Include CREATE TABLE</b> and pick an upsert style.</li>
+                </ol>
+
+                <div class="cs-related">
+                    <h3>Related tools</h3>
+                    <div class="cs-related-grid">
+                        <a href="/tools/sql-formatter/" class="cs-related-link"><strong>SQL Formatter</strong> Format and beautify SQL you already have</a>
+                        <a href="/tools/json-csv-converter/" class="cs-related-link"><strong>JSON to CSV Converter</strong> Move between JSON and CSV, both directions</a>
+                        <a href="/tools/json-to-typescript/" class="cs-related-link"><strong>JSON to TypeScript</strong> Typed interfaces from a JSON payload</a>
+                        <a href="/tools/mock-data-generator/" class="cs-related-link"><strong>Mock Data Generator</strong> Invent test rows for a table you have not built yet</a>
+                    </div>
+                </div>
+
+                <div class="cs-card" style="margin-top:16px;">
+                    <span class="cs-label">Frequently asked questions</span>
+                    <details class="faq-item"><summary>How do I convert a CSV file into INSERT statements?</summary><p>Paste the CSV into the input box, or drop a .csv, .tsv, .json or .xlsx file on it. Set the table name, pick your database dialect, then press Generate SQL. You get a CREATE TABLE statement, batched multi-row INSERT statements wrapped in a transaction, and verification queries. The whole file stays in your browser.</p></details>
+                    <details class="faq-item"><summary>Why did my CSV turn numbers into scientific notation like 1.23457E+11?</summary><p>That is Excel mangling the export, not the SQL. Excel stores numbers as double precision, so a phone number or an 18-digit account id gets rounded and written in scientific notation. The original digits are gone from the file. This tool detects those cells, reports how many are affected and can rewrite them to the digits that survived, but it also tells you to store that column as TEXT so the next export keeps every digit.</p></details>
+                    <details class="faq-item"><summary>Can an AI chatbot write the INSERT statements for my CSV?</summary><p>For three rows, sometimes. For a real export it fails quietly: it miscounts columns, drops a value after a comma, forgets that an apostrophe in O'Brien breaks the string literal, treats an empty cell as the word NULL, and never notices that two rows share the same primary key. A deterministic converter counts the columns for you, escapes the quotes, and fails loudly on the duplicate key that would abort the whole transaction.</p></details>
+                    <details class="faq-item"><summary>How large a CSV can this handle?</summary><p>Conversion runs in your browser with no upload limit from our side. Type inference reads the first 20,000 rows, which is plenty to pick a column type, and the generated SQL holds every row. Very large files (hundreds of thousands of rows) can make the browser tab slow or run out of memory, and most databases reject single statements with more than about 1,000 bind parameters, so use the batch size control.</p></details>
+                    <details class="faq-item"><summary>What is the difference between ON CONFLICT, ON DUPLICATE KEY UPDATE and MERGE?</summary><p>They are the same idea written three ways. PostgreSQL and SQLite use INSERT ... ON CONFLICT (key) DO UPDATE. MySQL uses ON DUPLICATE KEY UPDATE. SQL Server and Oracle use MERGE INTO ... USING. Pick the one your database understands, or leave it on plain INSERT for a first load. MERGE is the least portable and the one with the most engine-specific bugs, so on SQL Server a two-step UPDATE then INSERT is often safer for repeated runs.</p></details>
+                    <details class="faq-item"><summary>Why are my identifiers quoted in the output?</summary><p>Because words like user, order, group, key or select are reserved keywords in at least one of the five supported dialects. Unquoted, CREATE TABLE fails or the column silently becomes a syntax error. This tool quotes only identifiers that need it, using the right character per dialect: double quotes for PostgreSQL and SQLite, backticks for MySQL, square brackets for SQL Server, and plain uppercase names for Oracle. You can force quoting on or off in the options.</p></details>
+                    <details class="faq-item"><summary>Is my CSV uploaded anywhere?</summary><p>No. Parsing, type inference, diagnostics and SQL generation all run in the page. There is no server-side converter, no analytics call on your data and no account. The only external script is the Apache SheetJS reader, and it is downloaded only if you pick an .xlsx file, and it reads the file locally too.</p></details>
+                    <details class="faq-item"><summary>How do I verify the import actually worked?</summary><p>The generated script ends with verification queries: a total row count, a per-column NULL count, and a per-column distinct count. Run them after the import and compare the numbers with the report this tool produced from your file. If COUNT(*) is lower than the row count in the report, the transaction aborted part way, and on PostgreSQL the log will name the exact row that failed.</p></details>
+                </div>
+
+                <section class="ref-section" aria-label="References">
+                    <h2>References</h2>
+                    <ul class="ref-list">
+                        <li><a href="https://www.rfc-editor.org/info/rfc4180/" target="_blank" rel="noopener noreferrer">RFC 4180: Common Format and MIME Type for CSV Files</a></li>
+                        <li><a href="https://www.postgresql.org/docs/current/sql-insert.html" target="_blank" rel="noopener noreferrer">PostgreSQL INSERT and ON CONFLICT</a></li>
+                        <li><a href="https://www.sqlite.org/lang_createtable.html" target="_blank" rel="noopener noreferrer">SQLite CREATE TABLE</a></li>
+                        <li><a href="https://dev.mysql.com/doc/refman/8.4/en/insert-on-duplicate.html" target="_blank" rel="noopener noreferrer">MySQL INSERT ... ON DUPLICATE KEY UPDATE</a></li>
+                        <li><a href="https://learn.microsoft.com/en-us/sql/t-sql/language-elements/reserved-keywords-transact-sql" target="_blank" rel="noopener noreferrer">SQL Server reserved keywords (T-SQL)</a></li>
+                        <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsText" target="_blank" rel="noopener noreferrer">MDN FileReader.readAsText</a></li>
+                    </ul>
+                </section>
+
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#999;">Parsing, type inference and SQL generation run in your browser. Your file is never uploaded.</p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer onerror="window.csSheetJsFailed=true"></script>
+    <script>
+    var RESERVED = ('select insert update delete from where group by having order table index view join inner left right full outer cross on using as and or not null is in like between union all distinct create drop alter add column primary key foreign references default unique check constraint values into set limit offset case when then else end cast int integer bigint smallint tinyint decimal numeric float real double char varchar nvarchar nchar text ntext clob blob bytea date time timestamp datetime datetime2 boolean bool json jsonb uuid serial bigserial auto_increment identity rowcount top with recursive over partition row_number rank dense_rank returns return declare begin commit rollback transaction if else print raiserror throw try catch use schema database user role name number year month day hour minute second zone level comment size mode state type status value data amount total price count sum min max now current_timestamp current_date coalesce nullif substring trim upper lower length replace concat escape sequences start connect grant revoke truncate analyze vacuum explain attach detach pragma row array key owner percent escape_2 share_2 resource_2 admin_2 each_2 only_2').split(' ');
+    var PK_HINT = /(^|[_\s-])(id|ids|uuid|guid|pid|serial|rowid)$/i;
+    var VALUE_HINT = /(^|[_\s-])(sku|isbn|ean13|ean|vin|card|phone|tel|mobile|zip|postal|postcode|account|acct|iban|ssn|barcode|zipcode)$/i;
+
+    var DIALECTS = {
+        postgres: {
+            q: '"', int: 'INTEGER', bigint: 'BIGINT', bool: 'BOOLEAN', numeric: 'NUMERIC', real: 'REAL',
+            date: 'DATE', ts: 'TIMESTAMP', text: 'TEXT', maxVarchar: 0,
+            esc: function (s) { return s.replace(/'/g, "''"); }
+        },
+        mysql: {
+            q: '`', int: 'INT', bigint: 'BIGINT', bool: 'BOOLEAN', numeric: 'DECIMAL', real: 'DOUBLE',
+            date: 'DATE', ts: 'DATETIME', text: 'VARCHAR', maxVarchar: 255,
+            esc: function (s) { return s.replace(/\\/g, '\\\\').replace(/'/g, "''"); }
+        },
+        sqlite: {
+            q: '"', int: 'INTEGER', bigint: 'INTEGER', bool: 'INTEGER', numeric: 'NUMERIC', real: 'REAL',
+            date: 'TEXT', ts: 'TEXT', text: 'TEXT', maxVarchar: 0,
+            esc: function (s) { return s.replace(/'/g, "''"); }
+        },
+        mssql: {
+            q: '[', int: 'INT', bigint: 'BIGINT', bool: 'BIT', numeric: 'DECIMAL', real: 'FLOAT',
+            date: 'DATE', ts: 'DATETIME2', text: 'NVARCHAR', maxVarchar: 4000, unicodePrefix: true,
+            esc: function (s) { return s.replace(/'/g, "''"); }
+        },
+        oracle: {
+            q: '', int: 'NUMBER(19)', bigint: 'NUMBER(19)', bool: 'NUMBER(1)', numeric: 'NUMBER', real: 'BINARY_DOUBLE',
+            date: 'DATE', ts: 'TIMESTAMP', text: 'VARCHAR2', maxVarchar: 4000,
+            esc: function (s) { return s.replace(/'/g, "''"); }
+        }
+    };
+
+    var IDENT_OK = /^[A-Za-z_][A-Za-z0-9_$]*$/;
+    var RE_INT = /^[+-]?\d+$/;
+    var RE_DEC = /^[+-]?(\d+\.\d*|\.\d+)$/;
+    var RE_SCI = /^[+-]?\d+(\.\d+)?[eE][+-]?\d+$/;
+    var RE_DATE = /^\d{4}-\d{2}-\d{2}$/;
+    var RE_TS = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/;
+    var RE_UUID = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    var TRUE_WORDS = { 'true': 1, 'false': 1, 'yes': 1, 'no': 1, 't': 1, 'f': 1 };
+    var SAMPLE_LIMIT = 20000;
+
+    var state = { table: null, sql: '', parsed: null };
+
+    function $(id) { return document.getElementById(id); }
+    function setStatus(msg, type) {
+        var el = $('cs-status');
+        el.textContent = msg;
+        el.className = 'cs-status show ' + (type || 'ok');
+        clearTimeout(el._t);
+        el._t = setTimeout(function () { el.className = 'cs-status'; }, 9000);
+    }
+    function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /* ---------- input panel ---------- */
+    $('cs-input').addEventListener('input', function () {
+        var v = $('cs-input').value;
+        $('cs-input-meta').textContent = v.length.toLocaleString() + ' characters';
+        if (v.length > 0) {
+            try { state.parsed = parseInput(v); }
+            catch (e) { state.parsed = null; }
+            $('cs-format-hint').textContent = state.parsed
+                ? 'Detected: ' + state.parsed.kind + ', delimiter "' + (state.parsed.delim || '-') + '", ' + state.parsed.rows.length.toLocaleString() + ' rows'
+                : 'Could not parse this input yet';
+            renderPreview();
+        } else {
+            state.parsed = null;
+            $('cs-format-hint').textContent = 'Delimiter will be detected from the first line';
+            renderPreview();
+        }
+    });
+
+    $('cs-drop').addEventListener('dragover', function (e) { e.preventDefault(); this.className = 'cs-drop over'; });
+    $('cs-drop').addEventListener('dragleave', function () { this.className = 'cs-drop'; });
+    $('cs-drop').addEventListener('drop', function (e) {
+        e.preventDefault();
+        this.className = 'cs-drop';
+        if (e.dataTransfer.files && e.dataTransfer.files.length) readFile(e.dataTransfer.files[0]);
+    });
+    $('cs-file').addEventListener('change', function () { if (this.files.length) readFile(this.files[0]); });
+
+    function readFile(file) {
+        $('cs-file-name').textContent = ' Selected: ' + file.name;
+        if (/\.(xlsx|xls)$/i.test(file.name)) {
+            if (typeof XLSX === 'undefined') {
+                setStatus('The Excel reader has not finished loading, or it was blocked. Try again in a moment, or paste the data as CSV.', 'err');
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var wb;
+                try { wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' }); }
+                catch (err) { setStatus('Could not read that workbook: ' + err.message, 'err'); return; }
+                var grid = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: '' });
+                $('cs-input').value = grid.map(function (r) {
+                    return r.map(function (c) { return /[",\n]/.test(c) ? '"' + String(c).replace(/"/g, '""') + '"' : c; }).join(',');
+                }).join('\n');
+                $('cs-input').dispatchEvent(new Event('input'));
+                setStatus('Read ' + grid.length.toLocaleString() + ' rows from ' + file.name + '. Cell values are read as text, so check the inferred column types.', 'ok');
+            };
+            reader.onerror = function () { setStatus('Could not read that file.', 'err'); };
+            reader.readAsArrayBuffer(file);
+            return;
+        }
+        var reader2 = new FileReader();
+        reader2.onload = function (e) {
+            $('cs-input').value = e.target.result;
+            $('cs-input').dispatchEvent(new Event('input'));
+            setStatus('Loaded ' + file.name + '.', 'ok');
+        };
+        reader2.onerror = function () { setStatus('Could not read that file.', 'err'); };
+        reader2.readAsText(file);
+    }
+
+    function loadSample() {
+        $('cs-input').value = [
+            'id,sku,full_name,email,phone,signup_date,balance,is_active,notes',
+            '1,SKU-1001,Ada Lovelace,ada@example.com,+441234567890,2026-01-04,1204.50,true,"Prefers invoice, needs PO number"',
+            '2,SKU-1002,O\'Brien Grace,grace@example.com,+15550100,2026-02-11,0.00,false,"Cancelled; refund issued"',
+            '3,SKU-1003,Kelvin Nkemi,k.nkemi@example.com,+234801234567,2026-03-02,89.99,true,',
+            '4,SKU-1004,"Zhang, Wei",wei@example.com,+8613900139000,2026-03-19,15000,false,"Enterprise, 2 seats"',
+            '5,SKU-1005,Ana Ruiz,ana@example.com,+34600123456,2026-04-01,320.75,true,"Multi-line\naddress field"'
+        ].join('\n');
+        $('cs-table').value = 'customers';
+        $('cs-input').dispatchEvent(new Event('input'));
+        setStatus('Sample loaded. Press Generate SQL.', 'ok');
+    }
+
+    function clearAll() {
+        $('cs-input').value = '';
+        $('cs-output').value = '';
+        $('cs-file-name').textContent = '';
+        $('cs-input').dispatchEvent(new Event('input'));
+        $('cs-report-card').style.display = 'none';
+        setStatus('Cleared.', 'ok');
+    }
+
+    function showTab(which) {
+        ['sql', 'preview'].forEach(function (k) {
+            $('tab-' + k).className = 'cs-tab' + (k === which ? ' active' : '');
+            $('tab-' + k).setAttribute('aria-pressed', k === which ? 'true' : 'false');
+            $('pane-' + k).className = 'cs-pane' + (k === which ? ' active' : '');
+        });
+    }
+
+    /* ---------- parsing ---------- */
+    function sniffDelimiter(text) {
+        var first = text.split(/\r?\n/, 1)[0] || '';
+        var counts = { ',': 0, ';': 0, '\t': 0, '|': 0 };
+        var inQ = false;
+        for (var i = 0; i < first.length; i++) {
+            var c = first[i];
+            if (c === '"') inQ = !inQ;
+            else if (!inQ && counts[c] !== undefined) counts[c]++;
+        }
+        var best = ',';
+        Object.keys(counts).forEach(function (k) { if (counts[k] > counts[best]) best = k; });
+        return counts[best] > 0 ? best : ',';
+    }
+
+    function parseDelimited(text, delim) {
+        var rows = [], row = [], field = '', inQ = false, started = false;
+        for (var i = 0; i < text.length; i++) {
+            var c = text[i];
+            if (inQ) {
+                if (c === '"') {
+                    if (text[i + 1] === '"') { field += '"'; i++; }
+                    else inQ = false;
+                } else field += c;
+                continue;
+            }
+            if (c === '"' && field === '') { inQ = true; started = true; continue; }
+            if (c === delim) { row.push(field); field = ''; started = true; continue; }
+            if (c === '\r') continue;
+            if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; started = false; continue; }
+            field += c;
+            started = true;
+        }
+        if (field !== '' || row.length > 0 || started) { row.push(field); rows.push(row); }
+        return rows.filter(function (r) { return !(r.length === 1 && r[0].trim() === ''); });
+    }
+
+    function flattenObject(obj, prefix, out) {
+        Object.keys(obj).forEach(function (k) {
+            var key = prefix ? prefix + '.' + k : k;
+            var v = obj[k];
+            if (v !== null && typeof v === 'object' && !Array.isArray(v)) flattenObject(v, key, out);
+            else out[key] = v;
+        });
+        return out;
+    }
+
+    function tableFromObjects(list) {
+        var cols = [], seen = {};
+        list.forEach(function (o) {
+            Object.keys(o).forEach(function (k) { if (!(k in seen)) { seen[k] = 1; cols.push(k); } });
+        });
+        return {
+            header: cols,
+            rows: list.map(function (o) {
+                return cols.map(function (c) {
+                    var v = o[c];
+                    if (v === null || v === undefined) return '';
+                    return typeof v === 'object' ? JSON.stringify(v) : String(v);
+                });
+            })
+        };
+    }
+
+    function parseInput(raw) {
+        var text = raw;
+        var bom = false;
+        if (text.charCodeAt(0) === 0xFEFF) { text = text.slice(1); bom = true; }
+        var mode = $('cs-format').value;
+        if (mode === 'json' || (mode === 'auto' && /^\s*[\[{]/.test(text))) {
+            var data = JSON.parse(text);
+            var list = Array.isArray(data) ? data
+                : (Array.isArray(data && data.data) ? data.data
+                : (Array.isArray(data && data.rows) ? data.rows
+                : (Array.isArray(data && data.items) ? data.items
+                : (data && typeof data === 'object' ? [data] : null))));
+            if (!list || !list.length) throw new Error('The JSON is empty. Give an array of objects, an array of arrays, or an object with a data/rows/items array.');
+            var first = list[0];
+            var t;
+            if (first && typeof first === 'object' && !Array.isArray(first)) {
+                t = tableFromObjects(list.map(function (o) { return flattenObject(o, '', {}); }));
+            } else if (Array.isArray(first)) {
+                t = {
+                    header: first.map(function (_, i) { return 'column' + (i + 1); }),
+                    rows: list.map(function (r) {
+                        return r.map(function (c) { return c === null || c === undefined ? '' : (typeof c === 'object' ? JSON.stringify(c) : String(c)); });
+                    })
+                };
+            } else {
+                t = { header: ['value'], rows: list.map(function (v) { return [v === null ? '' : String(v)]; }) };
+            }
+            return { kind: 'JSON array of ' + (Array.isArray(first) ? 'arrays' : 'objects'), delim: '', bom: bom, header: t.header, rows: t.rows };
+        }
+        var choice = $('cs-delim').value;
+        var delim = choice === 'auto' ? sniffDelimiter(text) : choice;
+        var grid = parseDelimited(text, delim);
+        if (!grid.length) throw new Error('No rows found.');
+        var hasHeader = $('cs-header').value === 'yes';
+        var header = hasHeader
+            ? grid[0].map(function (h, i) { return h.trim() || ('column' + (i + 1)); })
+            : grid[0].map(function (_, i) { return 'column' + (i + 1); });
+        return {
+            kind: 'Delimited text (' + (delim === '\t' ? 'tab' : delim) + ' separated)',
+            delim: delim, bom: bom, header: header, rows: hasHeader ? grid.slice(1) : grid
+        };
+    }
+
+    /* ---------- identifiers ---------- */
+    function sanitizeIdent(name, fallback) {
+        var s = String(name).trim().replace(/[^A-Za-z0-9_$]+/g, '_').replace(/^_+|_+$/g, '');
+        if (s === '') s = fallback;
+        return /^\d/.test(s) ? 'c_' + s : s;
+    }
+
+    function uniqueNames(names) {
+        var used = {};
+        return names.map(function (n) {
+            var k = n, i = 2;
+            while (used[k]) { k = n + '_' + i; i++; }
+            used[k] = 1;
+            return k;
+        });
+    }
+
+    function qid(name, dialect, mode) {
+        var want = mode === 'always' || (mode !== 'never' && needsQuote(name, dialect));
+        if (want) {
+            if (dialect === 'mysql') return '`' + name + '`';
+            if (dialect === 'mssql') return '[' + name + ']';
+            return '"' + (dialect === 'oracle' ? name.toUpperCase() : name) + '"';
+        }
+        return dialect === 'oracle' ? name.toUpperCase() : name;
+    }
+
+    function needsQuote(name, dialect) {
+        if (!IDENT_OK.test(name)) return true;
+        return RESERVED.indexOf(name.toLowerCase()) !== -1;
+    }
+
+    /* ---------- Excel repair ---------- */
+    function sciToDigits(s) {
+        var m = /^([+-]?)(\d+)(?:\.(\d+))?[eE]([+-]?\d+)$/.exec(s.trim());
+        if (!m) return null;
+        var sign = m[1] === '-' ? '-' : '';
+        var intPart = m[2];
+        var frac = m[3] || '';
+        var digits = intPart + frac;
+        var exp = parseInt(m[4], 10);
+        var out;
+        if (exp >= 0) {
+            var intLen = intPart.length + exp;
+            if (intLen >= digits.length) out = digits + repeat('0', intLen - digits.length);
+            else out = digits.slice(0, intLen) + '.' + digits.slice(intLen);
+        } else {
+            var pad = -exp;
+            out = pad >= intPart.length
+                ? '0.' + repeat('0', pad - intPart.length) + intPart + frac
+                : intPart.slice(0, intPart.length - pad) + '.' + intPart.slice(intPart.length - pad) + frac;
+        }
+        return sign + out;
+    }
+
+    function repeat(ch, n) { var s = ''; while (n > 0) { s += ch; n--; } return s; }
+
+    function scanSci(index, rows) {
+        var count = 0, examples = [], maxSig = 0;
+        var n = Math.min(rows.length, SAMPLE_LIMIT);
+        for (var r = 0; r < n; r++) {
+            var v = rows[r][index];
+            if (v === undefined || v === null) continue;
+            var s = String(v);
+            if (!RE_SCI.test(s)) continue;
+            count++;
+            if (examples.length < 3) examples.push(s);
+            var m = /^([+-]?)(\d+)(?:\.(\d+))?[eE]([+-]?\d+)$/.exec(s);
+            if (m && m[2].length + (m[3] || '').length > maxSig) maxSig = m[2].length + (m[3] || '').length;
+        }
+        return { count: count, examples: examples, maxSig: maxSig };
+    }
+
+    /* ---------- type inference ---------- */
+    function inferColumn(index, header, rows) {
+        var nulls = 0, empties = 0, maxLen = 0, distinct = 0;
+        var seen = {};
+        var t = { int: 0, dec: 0, bool: 0, date: 0, ts: 0, uuid: 0, text: 0 };
+        var minInt = Infinity, maxInt = -Infinity, scale = 0, intDigits = 1;
+        var n = Math.min(rows.length, SAMPLE_LIMIT);
+        for (var r = 0; r < n; r++) {
+            var v = rows[r][index];
+            if (v === undefined || v === null) { nulls++; continue; }
+            var s = String(v);
+            if (s === '') { empties++; continue; }
+            if (s.length > maxLen) maxLen = s.length;
+            if (!(s in seen)) { seen[s] = 1; distinct++; }
+            if (RE_INT.test(s)) {
+                t.int++;
+                var iv = parseInt(s, 10);
+                if (iv < minInt) minInt = iv;
+                if (iv > maxInt) maxInt = iv;
+                if (s.replace(/^[+-]/, '').length > intDigits) intDigits = s.replace(/^[+-]/, '').length;
+                continue;
+            }
+            if (RE_DEC.test(s)) {
+                t.dec++;
+                var dot = s.indexOf('.');
+                var sc = dot === -1 ? 0 : s.length - dot - 1;
+                var ip = dot === -1 ? s.replace(/^[+-]/, '') : s.slice(0, dot).replace(/^[+-]/, '');
+                if (sc > scale) scale = sc;
+                if (ip.length > intDigits) intDigits = ip.length;
+                continue;
+            }
+            if (!RE_INT.test(s) && TRUE_WORDS[s.toLowerCase()]) { t.bool++; continue; }
+            if (RE_TS.test(s)) { t.ts++; continue; }
+            if (RE_DATE.test(s)) { t.date++; continue; }
+            if (RE_UUID.test(s)) { t.uuid++; continue; }
+            t.text++;
+        }
+        var counted = t.int + t.dec + t.bool + t.date + t.ts + t.uuid + t.text;
+        var nonText = t.int + t.dec + t.bool + t.date + t.ts + t.uuid;
+        var kind = 'text';
+        if (counted > 0 && t.text === 0) {
+            if (t.int === counted) kind = (minInt >= -2147483648 && maxInt <= 2147483647) ? 'int' : 'bigint';
+            else if (t.int + t.dec === counted) kind = 'numeric';
+            else if (t.bool === counted) kind = 'bool';
+            else if (t.date === counted) kind = 'date';
+            else if (t.ts === counted) kind = 'ts';
+            else if (t.uuid === counted) kind = 'uuid';
+            else if (t.int + t.uuid === counted) kind = 'uuid';
+        } else if (counted === 0) kind = 'text';
+        return {
+            index: index, name: header, kind: kind, scale: scale, precision: Math.max(intDigits, 1) + scale,
+            nulls: nulls, empties: empties, distinct: distinct, maxLen: maxLen,
+            mixed: counted > 0 && t.text > 0 && nonText > 0,
+            sampled: n, minInt: minInt, maxInt: maxInt
+        };
+    }
+
+    /* ---------- SQL generation ---------- */
+    function sqlTypeOf(col, dialect, textMode) {
+        var d = DIALECTS[dialect];
+        if (col.forceText) return textLength(dialect, Math.max(1, col.maxLen), textMode);
+        switch (col.kind) {
+            case 'int': return d.int;
+            case 'bigint': return d.bigint;
+            case 'numeric': return d.numeric + (col.scale > 0 ? '(' + col.precision + ',' + col.scale + ')' : '');
+            case 'bool': return d.bool;
+            case 'date': return d.date;
+            case 'ts': return d.ts;
+            case 'uuid': return dialect === 'oracle' ? 'VARCHAR2(36)' : dialect === 'mssql' ? 'UNIQUEIDENTIFIER' : dialect === 'mysql' ? 'CHAR(36)' : 'UUID';
+            default: return textLength(dialect, Math.max(1, col.maxLen), textMode);
+        }
+    }
+
+    function textLength(dialect, maxLen, textMode) {
+        var d = DIALECTS[dialect];
+        if (textMode === 'text') {
+            return dialect === 'oracle' ? 'CLOB' : dialect === 'mssql' ? 'NVARCHAR(MAX)' : dialect === 'mysql' ? 'LONGTEXT' : 'TEXT';
+        }
+        if (dialect === 'oracle') return maxLen > 4000 ? 'CLOB' : 'VARCHAR2(' + maxLen + ')';
+        if (dialect === 'mssql') return 'NVARCHAR(' + (maxLen > d.maxVarchar ? 'MAX' : maxLen) + ')';
+        if (dialect === 'mysql') return 'VARCHAR(' + Math.min(d.maxVarchar, maxLen) + ')';
+        return 'TEXT';
+    }
+
+    function literal(value, col, dialect, emptyAsNull) {
+        if (value === undefined || value === null) return 'NULL';
+        var s = String(value);
+        if (s === '') return emptyAsNull ? 'NULL' : "''";
+        if (col.forceText) return quoteString(s, dialect);
+        switch (col.kind) {
+            case 'int': case 'bigint': case 'numeric': return s;
+            case 'bool': {
+                // T-SQL and Oracle have no TRUE/FALSE literal; both store BIT/NUMBER(1).
+                var kw = (dialect === 'mssql' || dialect === 'oracle') ? ['1', '0'] : ['TRUE', 'FALSE'];
+                var b = s.toLowerCase();
+                if (b === 'true' || b === 'yes' || b === 't' || b === '1') return kw[0];
+                if (b === 'false' || b === 'no' || b === 'f' || b === '0') return kw[1];
+                return quoteString(s, dialect);
+            }
+            case 'date': return quoteString(s, dialect);
+            case 'ts': return quoteString(s.replace('T', ' ').replace(/Z$/, '').replace(/[+-]\d{2}:?\d{2}$/, ''), dialect);
+            default: return quoteString(s, dialect);
+        }
+    }
+
+    function quoteString(s, dialect) {
+        var body = DIALECTS[dialect].esc(s);
+        if (DIALECTS[dialect].unicodePrefix && /[^\x00-\x7F]/.test(s)) return "N'" + body + "'";
+        return "'" + body + "'";
+    }
+
+    function tableRef(dialect, quoteMode, table) {
+        var ref = qid(table, dialect, quoteMode);
+        var schema = ($('cs-schema').value || '').trim();
+        return (schema && dialect === 'postgres') ? qid(sanitizeIdent(schema, 'public'), dialect, quoteMode) + '.' + ref : ref;
+    }
+
+    function pickPk(cols, rowCount) {
+        var mode = $('cs-pk').value;
+        if (mode === 'none') return -1;
+        if (mode === 'first') return 0;
+        var candidates = [];
+        cols.forEach(function (c, i) {
+            if (PK_HINT.test(c.name) && c.kind !== 'text') candidates.push(i);
+            else if (c.distinct === rowCount && c.kind !== 'text') candidates.push(i);
+        });
+        if (!candidates.length) return -1;
+        var best = candidates[0], bestScore = -1;
+        candidates.forEach(function (i) {
+            var c = cols[i];
+            var score = (PK_HINT.test(c.name) ? 10 : 0) + (c.kind === 'int' ? 4 : 0) + (c.distinct === rowCount ? 6 : 0) + (c.uuid ? 2 : 0);
+            if (score > bestScore) { bestScore = score; best = i; }
+        });
+        return best;
+    }
+
+    function generate() {
+        var raw = $('cs-input').value;
+        if (!raw.trim()) { setStatus('Paste or drop some data first.', 'err'); return; }
+        var parsed;
+        try { parsed = parseInput(raw); }
+        catch (e) { setStatus('Cannot parse the input: ' + e.message, 'err'); return; }
+        state.parsed = parsed;
+
+        var dialect = $('cs-dialect').value;
+        var quoteMode = $('cs-quote').value;
+        var batch = Math.max(1, Math.min(5000, parseInt($('cs-batch').value, 10) || 100));
+        var emptyAsNull = $('cs-null').value === 'null';
+        var fixSci = $('cs-fix-sci').checked;
+        var table = sanitizeIdent($('cs-table').value || 'my_table', 'my_table');
+        var ref = tableRef(dialect, quoteMode, table);
+
+        var width = parsed.header.length;
+        var header = uniqueNames(parsed.header.map(function (h, i) { return sanitizeIdent(h, 'column' + (i + 1)); }));
+        var rows = parsed.rows;
+        if (rows.length === 0) { setStatus('The input has a header but no data rows.', 'err'); return; }
+
+        var warnings = [];
+        var ragged = [], extra = [];
+        rows = rows.map(function (r, i) {
+            if (r.length !== width) {
+                (ragged.length < 8 ? ragged : extra).push('row ' + (i + 1) + ': expected ' + width + ' fields, found ' + r.length);
+                var out = r.slice(0, width);
+                while (out.length < width) out.push('');
+                return out;
+            }
+            return r;
+        });
+        if (parsed.bom) warnings.push(['info', 'Byte order mark', 'A UTF-8 BOM was found and removed. Left in place it becomes part of the first column name in some tools, which then produces a CREATE TABLE you cannot run.']);
+        if (ragged.length || extra.length) warnings.push(['err', 'Ragged rows: ' + (ragged.length + extra.length), ragged.join('; ') + '. Padded or truncated to the header width so the script still runs, but the real fix is in the export.']);
+
+        // Excel damage pass: count first, then optionally rewrite the surviving digits.
+        var sciStats = header.map(function (_, i) { return scanSci(i, rows); });
+        if (fixSci) {
+            rows = rows.map(function (r) {
+                return r.map(function (v, i) {
+                    if (typeof v === 'string' && RE_SCI.test(v)) {
+                        var fixed = sciToDigits(v);
+                        return fixed === null ? v : fixed;
+                    }
+                    return v;
+                });
+            });
+        }
+
+        var cols = header.map(function (h, i) {
+            var c = inferColumn(i, h, rows);
+            c.sci = sciStats[i];
+            c.forceText = c.sci.count > 0;
+            return c;
+        });
+
+        var sciTotal = 0, sciDetail = [];
+        cols.forEach(function (c) {
+            if (c.sci.count > 0) {
+                sciTotal += c.sci.count;
+                sciDetail.push(c.name + ' (' + c.sci.count + ' cells, e.g. ' + c.sci.examples.join(', ') + ')');
+            }
+        });
+        if (sciTotal > 0) {
+            var sigNote = Math.max.apply(null, cols.map(function (c) { return c.sci.maxSig; }));
+            warnings.push([fixSci ? 'warn' : 'err',
+                'Excel-mangled numbers: ' + sciTotal + ' cells in ' + sciDetail.length + ' column(s)',
+                sciDetail.join('; ') + '. Excel stored these as double precision and kept at most ' + sigNote + ' significant digits, so any digits it dropped cannot be recovered from this file. ' +
+                (fixSci ? 'The repair switch rewrote the surviving digits and these columns are emitted as text. ' : 'These columns are emitted as text so the value stays exactly as Excel stored it. ') +
+                'Quote the column in Excel before exporting, or export .xlsx, so the next file keeps every digit.']);
+        }
+        cols.forEach(function (c) {
+            if (c.mixed) warnings.push(['warn', 'Mixed types in "' + c.name + '"', 'Column inferred as text because it holds both numbers and words (sampled ' + c.sampled.toLocaleString() + ' rows). Loading it as a number column would fail, or turn words into 0.']);
+            else if (VALUE_HINT.test(c.name) && c.kind !== 'text') warnings.push(['warn', 'Identifier stored as a number: "' + c.name + '"', 'The name looks like an identifier and every value is numeric, so it was created as ' + sqlTypeOf(c, dialect, $('cs-texttype').value) + '. IDs, phone numbers, postcodes and SKUs lose leading zeros once they are numbers. Use a text column if the values were ever quoted.']);
+        });
+
+        var pkIndex = pickPk(cols, rows.length);
+        if (pkIndex >= 0) {
+            var seenPk = {}, dupes = [];
+            rows.forEach(function (r) {
+                var k = String(r[pkIndex]);
+                if (k === '') return;
+                seenPk[k] = (seenPk[k] || 0) + 1;
+            });
+            Object.keys(seenPk).forEach(function (k) { if (seenPk[k] > 1) dupes.push(k + ' (' + seenPk[k] + 'x)'); });
+            if (dupes.length) {
+                warnings.push(['err', 'Duplicate primary key values: ' + dupes.length + ' in "' + cols[pkIndex].name + '"', dupes.slice(0, 8).join(', ') + (dupes.length > 8 ? ', ...' : '') + '. With a primary key on this column the load stops at the first duplicate and the transaction rolls back.']);
+            } else {
+                warnings.push(['info', 'Primary key: ' + cols[pkIndex].name, 'Unique across all ' + rows.length.toLocaleString() + ' rows, so it is safe as a key and for the upsert clause. Change it under Primary key column if that is wrong.']);
+            }
+        }
+
+        var insertCols = cols.map(function (c) { return qid(c.name, dialect, quoteMode); });
+        var upsertMode = $('cs-upsert').value;
+        if (upsertMode === 'auto') upsertMode = (dialect === 'postgres' || dialect === 'sqlite') ? 'conflict' : dialect === 'mysql' ? 'duplicate' : 'merge';
+        if (upsertMode === 'conflict' && dialect !== 'postgres' && dialect !== 'sqlite') upsertMode = dialect === 'mysql' ? 'duplicate' : 'merge';
+        if (upsertMode === 'duplicate' && dialect !== 'mysql') upsertMode = (dialect === 'postgres' || dialect === 'sqlite') ? 'conflict' : 'merge';
+        if (upsertMode === 'merge' && dialect !== 'mssql' && dialect !== 'oracle') upsertMode = dialect === 'mysql' ? 'duplicate' : 'conflict';
+        var upsertKey = pkIndex >= 0 && (upsertMode === 'conflict' || upsertMode === 'duplicate' || upsertMode === 'merge');
+        var upserted = upsertKey ? insertCols.filter(function (_, i) { return i !== pkIndex; }) : [];
+        var upsertTail = '';
+        if (upsertMode === 'conflict' && upsertKey) {
+            var pk = insertCols[pkIndex];
+            upsertTail = ' ON CONFLICT (' + pk + ') DO ' + (upserted.length ? 'UPDATE SET ' + upserted.map(function (o) { return o + ' = EXCLUDED.' + o; }).join(', ') : 'NOTHING');
+        } else if (upsertMode === 'duplicate' && upsertKey) {
+            upsertTail = upserted.length
+                ? ' ON DUPLICATE KEY UPDATE ' + upserted.map(function (o) { return o + ' = VALUES(' + o + ')'; }).join(', ')
+                : ' ON DUPLICATE KEY UPDATE ' + insertCols[0] + ' = ' + insertCols[0];
+        }
+
+        var L = [];
+        L.push('-- Generated by DevTools Hub: ' + parsed.kind);
+        L.push('-- table: ' + ref + ' | rows: ' + rows.length.toLocaleString() + ' | columns: ' + width + ' | dialect: ' + dialect);
+        L.push('-- type inference sampled ' + cols[0].sampled.toLocaleString() + ' of ' + rows.length.toLocaleString() + ' rows');
+        L.push('');
+        if ($('cs-drop-if-exists').checked) {
+            L.push(dialect === 'oracle' ? 'DROP TABLE ' + ref + ' CASCADE;'
+                : dialect === 'mssql' ? "IF OBJECT_ID('" + table + "', 'U') IS NOT NULL DROP TABLE " + ref + ';'
+                : 'DROP TABLE IF EXISTS ' + ref + ';');
+        }
+        if ($('cs-create').checked) {
+            L.push('CREATE TABLE ' + ref + ' (');
+            var defs = cols.map(function (c, i) {
+                var def = qid(c.name, dialect, quoteMode) + ' ' + sqlTypeOf(c, dialect, $('cs-texttype').value);
+                if (i === pkIndex) def += ' NOT NULL';
+                else if (c.empties > 0 && emptyAsNull) def += ' NULL';
+                return '  ' + def;
+            });
+            if (pkIndex >= 0) defs.push('  PRIMARY KEY (' + insertCols[pkIndex] + ')');
+            L.push(defs.join(',\n'));
+            L.push(');');
+            L.push('');
+        }
+        if ($('cs-tx').checked && dialect !== 'oracle') {
+            L.push(dialect === 'mssql' ? 'BEGIN TRANSACTION;' : 'BEGIN;');
+            L.push('');
+        }
+        if (upsertMode === 'duplicate') {
+            L.push('-- MySQL: VALUES(col) in ON DUPLICATE KEY UPDATE is deprecated from 8.0.20.');
+            L.push('-- On 8.0.20 and later, rewrite as: INSERT INTO t (...) VALUES (...) AS new ON DUPLICATE KEY UPDATE col = new.col');
+            L.push('');
+        }
+        for (var b = 0; b < rows.length; b += batch) {
+            var chunk = rows.slice(b, b + batch);
+            if (upsertMode === 'merge' && upsertKey) {
+                L.push('MERGE INTO ' + ref + (dialect === 'oracle' ? ' tgt' : ' AS tgt'));
+                L.push('USING (VALUES');
+                L.push(chunk.map(function (r) {
+                    return '  (' + cols.map(function (c, i) { return literal(r[i], c, dialect, emptyAsNull); }).join(', ') + ')';
+                }).join(',\n'));
+                L.push(') AS src (' + insertCols.join(', ') + ')');
+                L.push('ON tgt.' + insertCols[pkIndex] + ' = src.' + insertCols[pkIndex]);
+                L.push('WHEN MATCHED THEN UPDATE SET ' + cols.filter(function (_, i) { return i !== pkIndex; })
+                    .map(function (c, i2, arr) { return 'tgt.' + qid(c.name, dialect, quoteMode) + ' = src.' + qid(c.name, dialect, quoteMode); }).join(', '));
+                L.push('WHEN NOT MATCHED THEN INSERT (' + insertCols.join(', ') + ') VALUES (' + insertCols.map(function (o) { return 'src.' + o; }).join(', ') + ');');
+            } else {
+                L.push('INSERT INTO ' + ref + ' (' + insertCols.join(', ') + ') VALUES');
+                L.push(chunk.map(function (r, ri) {
+                    var isLast = ri === chunk.length - 1;
+                    return '  (' + cols.map(function (c, i) { return literal(r[i], c, dialect, emptyAsNull); }).join(', ') + ')' + (isLast ? (upsertTail ? upsertTail + ';' : ';') : ',');
+                }).join('\n'));
+            }
+            L.push('');
+        }
+        if ($('cs-tx').checked && dialect !== 'oracle') L.push(dialect === 'mssql' ? 'COMMIT TRANSACTION;' : 'COMMIT;');
+        if ($('cs-verify').checked) {
+            L.push('');
+            L.push('-- Verification: run after the load and compare with the numbers above.');
+            L.push('SELECT COUNT(*) AS rows_loaded FROM ' + ref + ';');
+            cols.forEach(function (c) {
+                var col = insertCols[c.index];
+                var alias = c.name.toLowerCase();
+                L.push('SELECT COUNT(*) - COUNT(' + col + ') AS nulls_' + alias + ', COUNT(DISTINCT ' + col + ') AS distinct_' + alias + ' FROM ' + ref + ';');
+            });
+        }
+
+        state.sql = L.join('\n');
+        state.table = table;
+        $('cs-output').value = state.sql;
+
+        var errCount = warnings.filter(function (w) { return w[0] === 'err'; }).length;
+        $('cs-summary').innerHTML = '<span>' + rows.length.toLocaleString() + ' rows</span><span>' + width + ' columns</span><span>dialect: ' + dialect + '</span><span>pk: ' + (pkIndex >= 0 ? header[pkIndex] : 'none') + '</span><span>' + state.sql.length.toLocaleString() + ' bytes of SQL</span>';
+        $('cs-warnings').innerHTML = warnings.length ? warnings.map(function (w) {
+            return '<li class="cs-w-' + w[0] + '"><b>' + escHtml(w[1]) + '</b><br>' + escHtml(w[2]) + '</li>';
+        }).join('') : '<li class="cs-w-info"><b>No problems found</b><br>' + rows.length.toLocaleString() + ' rows, ' + width + ' columns, no ragged rows, no duplicate keys.</li>';
+        $('cs-report-card').style.display = 'block';
+        $('cs-coltable').querySelector('tbody').innerHTML = cols.map(function (c, i) {
+            return '<tr><td>' + escHtml(c.name) + (i === pkIndex ? ' (pk)' : '') + '</td><td>' + escHtml(sqlTypeOf(c, dialect, $('cs-texttype').value)) +
+                '</td><td>' + c.nulls.toLocaleString() + '</td><td>' + c.distinct.toLocaleString() + '</td><td>' + c.maxLen + '</td></tr>';
+        }).join('');
+        renderPreview();
+        setStatus(errCount ? 'Generated with ' + errCount + ' blocking issue(s). Read the report before running it.' : 'SQL generated. ' + warnings.length + ' note(s) in the report.', errCount ? 'err' : 'ok');
+    }
+
+    function renderPreview() {
+        var tb = $('cs-preview').querySelector('tbody');
+        var th = $('cs-preview').querySelector('thead');
+        var p = state.parsed;
+        if (!p || !p.rows.length) { th.innerHTML = ''; tb.innerHTML = '<tr><td>No data parsed yet.</td></tr>'; return; }
+        th.innerHTML = '<tr>' + p.header.map(function (h) { return '<th>' + escHtml(h) + '</th>'; }).join('') + '</tr>';
+        tb.innerHTML = p.rows.slice(0, 8).map(function (r) {
+            return '<tr>' + r.map(function (v) { return '<td>' + escHtml(v) + '</td>'; }).join('') + '</tr>';
+        }).join('');
+    }
+
+    function copySql() {
+        if (!state.sql) { setStatus('Generate the SQL first.', 'err'); return; }
+        var out = $('cs-output');
+        out.removeAttribute('readonly');
+        out.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        out.setAttribute('readonly', 'readonly');
+        if (!ok && navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(state.sql).then(
+                function () { setStatus('SQL copied.', 'ok'); },
+                function () { setStatus('Copy failed. Select the text in the output box and copy manually.', 'err'); }
+            );
+            return;
+        }
+        setStatus(ok ? 'SQL copied.' : 'Copy failed. Select the text in the output box and copy manually.', ok ? 'ok' : 'err');
+    }
+
+    function downloadSql() {
+        if (!state.sql) { setStatus('Generate the SQL first.', 'err'); return; }
+        var name = (state.table || 'data') + '.sql';
+        var blob = new Blob([state.sql], { type: 'application/sql;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+        setStatus('Downloaded ' + name + '.', 'ok');
+    }
+
+    $('cs-generate').addEventListener('click', generate);
+    $('cs-dialect').addEventListener('change', function () { if (state.sql) generate(); });
+    renderPreview();
+    </script>
+</body>
+</html>

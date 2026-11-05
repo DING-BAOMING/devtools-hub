@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subnet Calculator - IPv4 IPv6 CIDR VLSM | DevTools Hub</title>
+<meta name="description" content="Free subnet calculator for IPv4 and IPv6. Bit-exact CIDR, VLSM, supernetting, overlap detection. No signup. AI cannot reliably compute subnets - we do.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/subnet-calculator/">
+<meta property="og:title" content="Subnet Calculator - IPv4 IPv6 CIDR VLSM | DevTools Hub">
+<meta property="og:description" content="Free subnet calculator. Bit-exact IPv4/IPv6 CIDR, VLSM, supernetting, overlap detection. AI cannot reliably compute subnet boundaries - we do, bit-perfect, in your browser.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/subnet-calculator/">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="/styles.css">
+<style>
+body { background: #0f0f23; color: #e0e0e0; }
+.subnet-wrap { max-width: 1000px; margin: 0 auto; padding: 1rem 1.25rem 4rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+h1.subnet-h1 { color: #fff; margin: 0 0 0.4rem; font-size: 2rem; }
+.subnet-sub { color: #9aa3b2; margin-bottom: 1.2rem; }
+.subnet-tabs { display: flex; gap: 0.3rem; margin: 1rem 0 1.5rem; flex-wrap: wrap; border-bottom: 2px solid #1f2638; }
+.subnet-tab { background: transparent; color: #9aa3b2; border: none; padding: 0.7rem 1.1rem; cursor: pointer; font-size: 0.95rem; font-weight: 500; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; border-radius: 6px 6px 0 0; }
+.subnet-tab:hover { color: #fff; background: #1a1a2e; }
+.subnet-tab.active { color: #7eb3ff; border-bottom-color: #7eb3ff; }
+.subnet-panel { display: none; background: #131826; border: 1px solid #1f2638; border-radius: 12px; padding: 1.4rem; }
+.subnet-panel.active { display: block; }
+.input-row { display: flex; gap: 0.6rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+.input-row label { color: #9aa3b2; font-size: 0.9rem; min-width: 110px; }
+.input-row input, .input-row select, .input-row textarea { background: #0a0d14; border: 1px solid #2a3144; color: #fff; padding: 0.55rem 0.7rem; border-radius: 6px; font-size: 0.95rem; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.input-row input:focus, .input-row select:focus, .input-row textarea:focus { outline: 2px solid transparent; border-color: #7eb3ff; }
+.input-row input.invalid { border-color: #f87171; }
+.btn { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 0.95rem; transition: opacity 0.2s; }
+.btn:hover { opacity: 0.9; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary { background: #2a3144; }
+.btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.8rem 0; }
+.example-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.5rem 0 1rem; }
+.chip { background: #1a1f2e; border: 1px solid #2a3144; border-radius: 14px; padding: 0.3rem 0.8rem; color: #9aa3b2; font-size: 0.82rem; cursor: pointer; font-family: ui-monospace, "SF Mono", Menlo, monospace; transition: all 0.2s; }
+.chip:hover { border-color: #7eb3ff; color: #fff; }
+/* BUG-334, second defect on the same page: the results table is 6 columns of monospace IP
+     ranges, so its min-content width is ~610px and .results pushed the document to 682px
+     *after* Calculate — the input row was the before-Calculate half. overflow-x:auto is this
+     page's own idiom (.binary-viz below does the same) and the site's, in 60 other tools.
+     Do NOT use display:block on the table instead: it keeps the width but re-lays the columns. */
+.results { background: #0a0d14; border: 1px solid #1f2638; border-radius: 8px; padding: 1rem; margin-top: 1rem; overflow-x: auto; }
+.result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.6rem 1.2rem; }
+.result-grid .lbl { color: #9aa3b2; font-size: 0.85rem; }
+.result-grid .val { color: #fff; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.95rem; word-break: break-all; }
+.result-grid .val.copy { cursor: pointer; display:inline-block; min-height:24px; line-height:24px; }
+.result-grid .val.copy:hover { color: #7eb3ff; }
+.section-title { color: #7eb3ff; margin: 1.2rem 0 0.6rem; font-size: 1.05rem; font-weight: 600; }
+.binary-viz { background: #0a0d14; padding: 1rem; border-radius: 8px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.85rem; line-height: 1.6; overflow-x: auto; }
+.binary-viz .group-net { color: #7eb3ff; }
+.binary-viz .group-host { color: #fbbf24; }
+.binary-viz .dot { color: #4a5568; }
+.binary-viz .label { color: #9aa3b2; font-size: 0.8rem; margin-bottom: 0.3rem; }
+.vlsm-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+.vlsm-table th, .vlsm-table td { padding: 0.55rem 0.7rem; text-align: left; border-bottom: 1px solid #1f2638; font-size: 0.88rem; }
+.vlsm-table th { color: #9aa3b2; font-weight: 500; background: #0a0d14; }
+.vlsm-table td { color: #fff; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.vlsm-table tr:hover td { background: #1a1f2e; }
+.status { padding: 0.6rem 0.9rem; border-radius: 6px; margin: 0.6rem 0; font-size: 0.9rem; }
+.status-error { background: #3a1a1a; color: #f87171; border: 1px solid #5a2a2a; }
+.status-success { background: #1a3e1a; color: #4ade80; border: 1px solid #2a5a2a; }
+.status-info { background: #1a2a3e; color: #7eb3ff; border: 1px solid #2a3a5a; }
+.feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.8rem; margin: 1.2rem 0; }
+.feat-card { background: #1a1f2e; padding: 1rem; border-radius: 8px; border-left: 3px solid #7eb3ff; }
+.feat-card h4 { color: #fff; margin: 0 0 0.4rem; font-size: 0.95rem; }
+.feat-card p { color: #9aa3b2; margin: 0; font-size: 0.85rem; line-height: 1.5; }
+.faq-item { background: #131826; border: 1px solid #1f2638; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.6rem 0; }
+.faq-item summary { color: #7eb3ff; font-weight: 500; cursor: pointer; }
+.faq-item p, .faq-item li { color: #b3b8c0; margin: 0.5rem 0 0; line-height: 1.55; font-size: 0.9rem; }
+.related-list a { color: #7eb3ff; text-decoration: none; }
+.related-list a:hover { text-decoration: underline; }
+textarea { width: 100%; min-height: 80px; resize: vertical; }
+.kv-list { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem; }
+.kv-list .kv-row { display: flex; align-items: center; gap: 0.5rem; }
+.kv-list .kv-row input { flex: 1; }
+@media (max-width: 700px) {
+  .input-row { flex-direction: column; align-items: stretch; }
+  .input-row label { min-width: auto; }
+  /* BUG-334: .kv-row is a second, nested input row the rule above never reached, and an
+     <input> is a flex item with min-width:auto, so the two fields cannot shrink below their
+     size=20 intrinsic width: the VLSM editor was 546px wide inside a 375px viewport and pushed
+     the whole document to scrollWidth 602, on every tab and before any calculation. */
+  .kv-list .kv-row { flex-direction: column; align-items: stretch; }
+  .result-grid { grid-template-columns: 1fr; }
+  .feat-grid { grid-template-columns: 1fr; }
+  .subnet-tab { padding: 0.5rem 0.7rem; font-size: 0.85rem; }
+}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Subnet Calculator","url":"https://tools.scoreroute.com/tools/subnet-calculator/","description":"Free subnet calculator. Bit-exact IPv4 and IPv6 CIDR, VLSM, supernetting, overlap detection, and subnet splitting. AI cannot reliably compute subnet boundaries - we do, bit-perfect, in your browser.","applicationCategory":"NetworkingApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-11","dateModified":"2026-06-11","featureList":["IPv4 CIDR with binary breakdown","IPv6 CIDR with compressed and expanded form","VLSM (Variable Length Subnet Masking)","Supernetting / route summarization","Subnet splitter (divide into N equal subnets)","Overlap detection between two networks","Wildcard mask for Cisco ACLs","Private/Public IP classification (RFC 1918, 6598)","IP class A/B/C/D/E detection","Reverse DNS zone calculation","Bit-color visualization of network and host portions","100% client-side, no signup, no server, no tracking"]}
+</script>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>Subnet Calculator</h1>
+<p class="subtitle">Bit-Exact IPv4, IPv6, VLSM, Supernetting &amp; Overlap Detection</p>
+<nav class="breadcrumb">
+<a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Subnet Calculator</span>
+<a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+</nav>
+</div>
+</header>
+<main class="container">
+<section class="tool-page">
+<div class="tool-main">
+<div class="subnet-wrap" style="padding:0;max-width:100%">
+<p class="subnet-sub" style="color:#b3b8c0;font-size:1.05rem;line-height:1.6">Free subnet calculator for IPv4 and IPv6 with bit-exact answers. Includes VLSM, supernetting, subnet splitting, and overlap detection. Everything runs in your browser using integer arithmetic - no AI guessing, no API call, no signup. AI chatbots like ChatGPT regularly make errors on subnet boundaries, broadcast addresses, and VLSM allocations. This tool does not.</p>
+
+<div class="subnet-tabs" role="group">
+<button class="subnet-tab active" data-tab="ipv4" aria-pressed="true">IPv4 CIDR</button>
+<button class="subnet-tab" data-tab="ipv6" aria-pressed="false">IPv6 CIDR</button>
+<button class="subnet-tab" data-tab="vlsm" aria-pressed="false">VLSM Planner</button>
+<button class="subnet-tab" data-tab="super" aria-pressed="false">Supernetting</button>
+<button class="subnet-tab" data-tab="split" aria-pressed="false">Subnet Splitter</button>
+<button class="subnet-tab" data-tab="overlap" aria-pressed="false">Overlap Check</button>
+</div>
+
+<!-- IPv4 PANEL -->
+<div id="panel-ipv4" class="subnet-panel active">
+<h2 style="color:#fff;margin:0 0 0.8rem">IPv4 Subnet Calculator</h2>
+<div class="input-row">
+<label for="ipv4-input">Address / CIDR</label>
+<input type="text" id="ipv4-input" placeholder="192.168.1.0/24" value="192.168.1.0/24" style="flex:1;min-width:200px" aria-label="IPv4 address with CIDR">
+<button class="btn" id="ipv4-calc">Calculate</button>
+</div>
+<div class="example-row">
+<span class="chip" data-fill="192.168.1.0/24">192.168.1.0/24</span>
+<span class="chip" data-fill="10.0.0.0/8">10.0.0.0/8</span>
+<span class="chip" data-fill="172.16.50.0/22">172.16.50.0/22</span>
+<span class="chip" data-fill="192.168.0.0/16">192.168.0.0/16</span>
+<span class="chip" data-fill="203.0.113.0/26">203.0.113.0/26</span>
+<span class="chip" data-fill="0.0.0.0/0">0.0.0.0/0</span>
+</div>
+<div id="ipv4-status"></div>
+<div id="ipv4-results" class="results" style="display:none">
+<div class="result-grid" id="ipv4-grid"></div>
+<div class="section-title">32-Bit Binary Breakdown</div>
+<div class="binary-viz" id="ipv4-binary"></div>
+<div class="section-title">All Usable Hosts <span id="ipv4-host-count-label" style="color:#9aa3b2;font-weight:400;font-size:0.85rem"></span></div>
+<div id="ipv4-hosts-wrap" style="max-height:340px;overflow-y:auto;background:#0a0d14;padding:0.8rem;border-radius:6px;font-family:ui-monospace,monospace;font-size:0.82rem;line-height:1.5;color:#b3b8c0"></div>
+</div>
+</div>
+
+<!-- IPv6 PANEL -->
+<div id="panel-ipv6" class="subnet-panel">
+<h2 style="color:#fff;margin:0 0 0.8rem">IPv6 Subnet Calculator</h2>
+<div class="input-row">
+<label for="ipv6-input">Address / Prefix</label>
+<input type="text" id="ipv6-input" placeholder="2001:db8::/64" value="2001:db8::/64" style="flex:1;min-width:200px" aria-label="IPv6 address with prefix">
+<button class="btn" id="ipv6-calc">Calculate</button>
+</div>
+<div class="example-row">
+<span class="chip" data-fill-ipv6="2001:db8::/64">2001:db8::/64</span>
+<span class="chip" data-fill-ipv6="2001:db8:1234::/48">2001:db8:1234::/48</span>
+<span class="chip" data-fill-ipv6="fe80::1/64">fe80::1/64</span>
+<span class="chip" data-fill-ipv6="::/0">::/0</span>
+<span class="chip" data-fill-ipv6="2002::1234:abcd:ffff:c0a8:101/64">2002::/64</span>
+</div>
+<div id="ipv6-status"></div>
+<div id="ipv6-results" class="results" style="display:none">
+<div class="result-grid" id="ipv6-grid"></div>
+<div class="section-title">First 64 Bits (binary)</div>
+<div class="binary-viz" id="ipv6-binary"></div>
+</div>
+</div>
+
+<!-- VLSM PANEL -->
+<div id="panel-vlsm" class="subnet-panel">
+<h2 style="color:#fff;margin:0 0 0.8rem">VLSM Planner</h2>
+<p style="color:#9aa3b2;margin:0 0 0.8rem">Allocate variable-length subnets from a parent block. Enter the parent network, then list the host requirements.</p>
+<div class="input-row">
+<label for="vlsm-parent">Parent network</label>
+<input type="text" id="vlsm-parent" value="10.0.0.0/16" style="flex:1;min-width:200px" aria-label="Parent network CIDR">
+</div>
+<div class="input-row" style="align-items:flex-start">
+<label>Host requirements</label>
+<div style="flex:1">
+<div class="kv-list" id="vlsm-list">
+<div class="kv-row"><input type="text" class="vlsm-name" aria-label="Subnet name" placeholder="Subnet name" value="HQ"><input aria-label="Hosts needed" type="number" class="vlsm-hosts" min="1" value="500" placeholder="Hosts needed"><button class="btn btn-secondary vlsm-del">Remove</button></div>
+<div class="kv-row"><input type="text" class="vlsm-name" aria-label="Subnet name" placeholder="Subnet name" value="Branch1"><input aria-label="Hosts needed" type="number" class="vlsm-hosts" min="1" value="120" placeholder="Hosts needed"><button class="btn btn-secondary vlsm-del">Remove</button></div>
+<div class="kv-row"><input type="text" class="vlsm-name" aria-label="Subnet name" placeholder="Subnet name" value="Branch2"><input aria-label="Hosts needed" type="number" class="vlsm-hosts" min="1" value="60" placeholder="Hosts needed"><button class="btn btn-secondary vlsm-del">Remove</button></div>
+<div class="kv-row"><input type="text" class="vlsm-name" aria-label="Subnet name" placeholder="Subnet name" value="WAN"><input aria-label="Hosts needed" type="number" class="vlsm-hosts" min="1" value="2" placeholder="Hosts needed"><button class="btn btn-secondary vlsm-del">Remove</button></div>
+</div>
+<div class="btn-row">
+<button class="btn btn-secondary" id="vlsm-add">+ Add subnet</button>
+<button class="btn" id="vlsm-calc">Calculate VLSM</button>
+</div>
+</div>
+</div>
+<div id="vlsm-status"></div>
+<div id="vlsm-results" class="results" style="display:none">
+<div class="result-grid" id="vlsm-summary"></div>
+<div class="section-title">Allocated Subnets</div>
+<table class="vlsm-table"><caption class="sr-only">Subnets allocated by the VLSM planner</caption><thead><tr><th>Name</th><th>Hosts Needed</th><th>Network</th><th>Mask</th><th>Range</th><th>Usable</th></tr></thead><tbody id="vlsm-tbody"><tr><td colspan="6">No data yet.</td></tr></tbody></table>
+</div>
+</div>
+
+<!-- SUPERNETTING PANEL -->
+<div id="panel-super" class="subnet-panel">
+<h2 style="color:#fff;margin:0 0 0.8rem">Supernetting (Route Summarization)</h2>
+<p style="color:#9aa3b2;margin:0 0 0.8rem">Paste multiple networks (one per line) to find the smallest CIDR that contains them all.</p>
+<textarea aria-label="Supernets to allocate" id="super-input" placeholder="192.168.0.0/24
+192.168.1.0/24
+192.168.2.0/24
+192.168.3.0/24">192.168.0.0/24
+192.168.1.0/24
+192.168.2.0/24
+192.168.3.0/24</textarea>
+<div class="btn-row"><button class="btn" id="super-calc">Summarize</button></div>
+<div id="super-status"></div>
+<div id="super-results" class="results" style="display:none">
+<div class="result-grid" id="super-grid"></div>
+</div>
+</div>
+
+<!-- SPLITTER PANEL -->
+<div id="panel-split" class="subnet-panel">
+<h2 style="color:#fff;margin:0 0 0.8rem">Subnet Splitter</h2>
+<p style="color:#9aa3b2;margin:0 0 0.8rem">Divide a parent network into N equal subnets. Useful for planning address allocation.</p>
+<div class="input-row">
+<label for="split-input">Parent network</label>
+<input type="text" id="split-input" value="10.0.0.0/16" style="flex:1;min-width:200px" aria-label="Parent network to split">
+</div>
+<div class="input-row">
+<label for="split-count">Number of subnets</label>
+<input type="number" id="split-count" min="2" max="4096" value="4" style="width:100px" aria-label="Number of subnets">
+<button class="btn" id="split-calc">Split</button>
+</div>
+<div id="split-status"></div>
+<div id="split-results" class="results" style="display:none">
+<table class="vlsm-table"><caption class="sr-only">Equal subnets after the split</caption><thead><tr><th>#</th><th>Network</th><th>Mask</th><th>Range</th><th>Usable Hosts</th></tr></thead><tbody id="split-tbody"><tr><td colspan="5">No data yet.</td></tr></tbody></table>
+</div>
+</div>
+
+<!-- OVERLAP PANEL -->
+<div id="panel-overlap" class="subnet-panel">
+<h2 style="color:#fff;margin:0 0 0.8rem">Overlap Detection</h2>
+<p style="color:#9aa3b2;margin:0 0 0.8rem">Check if two networks overlap, contain each other, or are identical. Critical for firewall rule audits and routing table analysis.</p>
+<div class="input-row">
+<label for="overlap-a">Network A</label>
+<input type="text" id="overlap-a" value="10.0.0.0/16" style="flex:1;min-width:160px" aria-label="Network A CIDR">
+</div>
+<div class="input-row">
+<label for="overlap-b">Network B</label>
+<input type="text" id="overlap-b" value="10.0.5.0/24" style="flex:1;min-width:160px" aria-label="Network B CIDR">
+<button class="btn" id="overlap-calc">Compare</button>
+</div>
+<div id="overlap-status"></div>
+<div id="overlap-results" class="results" style="display:none">
+<div class="result-grid" id="overlap-grid"></div>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+</main>
+<footer>
+<p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function(){
+'use strict';
+
+// ------------------ IPv4 ------------------
+function ipv4ToInt(octets){
+  if(!Array.isArray(octets)||octets.length!==4) throw new Error('Need 4 octets');
+  var n=0;
+  for(var i=0;i<4;i++){
+    var o=octets[i];
+    if(o<0||o>255||(o|0)!==o) throw new Error('Octet out of range: '+o);
+    n=(n*256)+o;
+  }
+  return n>>>0;
+}
+function intToIpv4(n){
+  n=n>>>0;
+  return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join('.');
+}
+function intToBinary(n,bits){
+  var s=(n>>>0).toString(2);
+  while(s.length<bits) s='0'+s;
+  return s;
+}
+function isPrivate(n){
+  var A=(n>>>24)===10, B=(n>>>24)===172&&((n>>>16)&0xF0)===16, C=(n>>>24)===192&&((n>>>16)&0xFF)===168, D=(n>>>24)===100&&((n>>>16)&0xC0)===64;
+  var E=(n>>>24)===0||(n>>>24)===127, F=(n>>>24)===169&&((n>>>16)&0xFF)===254, G=(n>>>24)===192&&((n>>>16)&0xFF)===0&&((n>>>8)&0xFF)===0;
+  if(A||B||C||D) return 'Private (RFC 1918/6598)';
+  if(E) return 'Loopback / unspecified';
+  if(F) return 'Link-local (APIPA)';
+  if(G) return 'Reserved (IETF protocol assignment)';
+  return 'Public';
+}
+function ipClass(n){
+  var o1=(n>>>24)&255;
+  if(o1<128) return 'A';
+  if(o1<192) return 'B';
+  if(o1<224) return 'C';
+  if(o1<240) return 'D (Multicast)';
+  return 'E (Reserved)';
+}
+function reverseDns(network,prefix){
+  if(prefix<8||prefix>32) return null;
+  var octets=[];
+  for(var i=24;i>=0;i-=8) octets.push((network>>>i)&255);
+  var full=octets.join('.')+'.in-addr.arpa';
+  if(prefix===8) return full;
+  var needed=Math.ceil((32-prefix)/8);
+  return octets.slice(0,needed).reverse().join('.')+(needed<4?'.':'')+octets.slice(needed).join('.')+'.in-addr.arpa';
+}
+function parseIpv4Cidr(str){
+  if(typeof str!=='string') throw new Error('Empty input');
+  var s=str.trim();
+  var m=s.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\/(\d{1,2})$/);
+  if(!m) throw new Error('Format must be A.B.C.D/N (e.g. 192.168.1.0/24)');
+  var oct=[+m[1],+m[2],+m[3],+m[4]];
+  for(var i=0;i<4;i++) if(oct[i]<0||oct[i]>255) throw new Error('Octet out of range');
+  var p=+m[5];
+  if(p<0||p>32) throw new Error('Prefix must be 0-32');
+  var ip=ipv4ToInt(oct);
+  var mask=p===0?0:(0xFFFFFFFF<<(32-p))>>>0;
+  return {ip:ip>>>0,mask:mask>>>0,prefix:p};
+}
+function calculateIpv4(input){
+  var p=parseIpv4Cidr(input);
+  var ip=p.ip, mask=p.mask, prefix=p.prefix;
+  var network=(ip&mask)>>>0;
+  var broadcast=(network|(~mask>>>0))>>>0;
+  var total=prefix===0?4294967296:Math.pow(2,32-prefix);
+  var usable;
+  if(prefix>=31) usable=total;
+  else usable=total-2;
+  var firstHost=prefix===32?network:(prefix===31?network:(network+1)>>>0);
+  var lastHost=prefix===32?network:(prefix===31?broadcast:(broadcast-1)>>>0);
+  var maskDotted=intToIpv4(mask);
+  var wildcard=(~mask)>>>0;
+  var wildcardDotted=intToIpv4(wildcard);
+  return {
+    network:network,broadcast:broadcast,firstHost:firstHost,lastHost:lastHost,
+    total:total,usable:usable,prefix:prefix,
+    mask:maskDotted,wildcard:wildcardDotted,
+    binaryIp:intToBinary(ip,32),binaryMask:intToBinary(mask,32),
+    ipClass:ipClass(ip),private:isPrivate(ip),ip:intToIpv4(ip),
+    reverseDns:reverseDns(network,prefix)
+  };
+}
+
+// ------------------ IPv6 ------------------
+function expandIpv6(addr){
+  var s=addr.trim();
+  if(s.startsWith('::')) s='0'+s;
+  if(s.endsWith('::')) s=s+'0';
+  var dparts=s.split('::');
+  if(dparts.length>2) throw new Error('Too many :: in IPv6');
+  var left=dparts[0], right=dparts[1]||'';
+  var leftParts=left?left.split(':'):[];
+  var rightParts=right?right.split(':'):[];
+  if(dparts.length===1){
+    if(leftParts.length!==8) throw new Error('IPv6 needs 8 groups');
+  } else {
+    var missing=8-leftParts.length-rightParts.length;
+    if(missing<0) throw new Error('Too many groups in IPv6');
+    var fill=[];
+    for(var i=0;i<missing;i++) fill.push('0');
+    var full=leftParts.concat(fill,rightParts);
+    if(full.length!==8) throw new Error('IPv6 needs 8 groups');
+    return full;
+  }
+  return leftParts;
+}
+function compressIpv6(parts){
+  var zero=[];
+  var best=[-1,-1],cur=[-1,-1];
+  for(var i=0;i<8;i++){
+    if(parts[i]==='0'){ if(cur[0]<0) cur=[i,i]; else cur[1]=i; }
+    else{ if(cur[0]>=0&&cur[1]-cur[0]+1>best[1]-best[0]+1) best=cur.slice(); cur=[-1,-1]; }
+  }
+  if(cur[0]>=0&&cur[1]-cur[0]+1>best[1]-best[0]+1) best=cur.slice();
+  if(best[0]<0) return parts.join(':');
+  var pre=parts.slice(0,best[0]).join(':');
+  var post=parts.slice(best[1]+1).join(':');
+  return pre+'::'+post;
+}
+function parseIpv6Cidr(str){
+  var s=str.trim();
+  var m=s.match(/^([0-9a-fA-F:]+)\/(\d{1,3})$/);
+  if(!m) throw new Error('Format must be IPv6/prefix (e.g. 2001:db8::/64)');
+  var prefix=+m[2];
+  if(prefix<0||prefix>128) throw new Error('Prefix must be 0-128');
+  var parts=expandIpv6(m[1]);
+  for(var i=0;i<8;i++) parts[i]=('0000'+parts[i]).slice(-4);
+  return {parts:parts,prefix:prefix,full:m[1]};
+}
+function calculateIpv6(input){
+  var p=parseIpv6Cidr(input);
+  var full=p.parts.join('');
+  var bigInt=0n;
+  for(var i=0;i<8;i++){
+    var v=parseInt(p.parts[i],16);
+    bigInt=(bigInt<<16n)+BigInt(v);
+  }
+  var prefix=p.prefix;
+  var hostBits=128n-BigInt(prefix);
+  var maskBig=(hostBits===0n)?((1n<<128n)-1n):(((1n<<128n)-1n)^((1n<<hostBits)-1n));
+  var networkBig=bigInt&maskBig;
+  var broadcastBig=networkBig|((1n<<hostBits)-1n);
+  var total=hostBits===0n?1n:(1n<<hostBits);
+  var toHex=(bn)=>{
+    var hex=bn.toString(16);
+    while(hex.length<32) hex='0'+hex;
+    var parts=[];
+    for(var i=0;i<8;i++) parts.push(hex.slice(i*4,(i+1)*4));
+    return parts;
+  };
+  var netParts=toHex(networkBig);
+  var bcParts=toHex(broadcastBig);
+  return {
+    prefix:prefix,
+    input:input,
+    expanded:p.parts.join(':'),
+    compressed:compressIpv6(netParts),
+    expandedNetwork:netParts.join(':'),
+    compressedNetwork:compressIpv6(netParts),
+    expandedBroadcast:bcParts.join(':'),
+    compressedBroadcast:compressIpv6(bcParts),
+    firstHost:p.parts,
+    lastHost:bcParts,
+    total:total.toString(),
+    binaryFirst64:bigInt.toString(2).slice(0,64).padStart(64,'0')
+  };
+}
+
+// ------------------ VLSM ------------------
+function vlsm(parent,reqs){
+  var p=parseIpv4Cidr(parent);
+  var pool=p.ip&p.mask;
+  var needed=[];
+  for(var i=0;i<reqs.length;i++){
+    var r=reqs[i];
+    if(r.hosts<=0) throw new Error('Hosts must be positive');
+    var needBits=Math.ceil(Math.log2(r.hosts+2));
+    if(needBits<2) needBits=2;
+    var prefix=32-needBits;
+    if(prefix<p.prefix) throw new Error('Subnet "'+r.name+'" needs larger block than parent');
+    var size=Math.pow(2,32-prefix);
+    needed.push({name:r.name,hosts:r.hosts,prefix:prefix,size:size});
+  }
+  needed.sort(function(a,b){return b.size-a.size;});
+  var allocated=[];
+  var current=pool;
+  for(var j=0;j<needed.length;j++){
+    var n=needed[j];
+    var net=current;
+    var mask=(n.prefix===0)?0:(0xFFFFFFFF<<(32-n.prefix))>>>0;
+    var bcast=(net|(~mask>>>0))>>>0;
+    var firstHost=net;
+    var lastHost=bcast;
+    if(n.prefix<31){
+      firstHost=(net+1)>>>0;
+      lastHost=(bcast-1)>>>0;
+    }
+    allocated.push({
+      name:n.name,hosts:n.hosts,prefix:n.prefix,
+      network:net,broadcast:bcast,firstHost:firstHost,lastHost:lastHost,
+      size:n.size,usable:n.prefix>=31?n.size:Math.max(0,n.size-2),
+      mask:intToIpv4(mask)
+    });
+    current=(bcast+1)>>>0;
+  }
+  var end=pool|((~p.mask)>>>0);
+  var used=0;
+  for(var k=0;k<allocated.length;k++) used+=allocated[k].size;
+  var parentSize=p.prefix===0?4294967296:Math.pow(2,32-p.prefix);
+  return {parent:p,allocated:allocated,remaining:end+1-current,used:used,parentSize:parentSize};
+}
+
+// ------------------ Supernetting ------------------
+function supernet(nets){
+  var min=0xFFFFFFFF>>>0, max=0;
+  var list=[];
+  for(var i=0;i<nets.length;i++){
+    var p=parseIpv4Cidr(nets[i]);
+    var size=Math.pow(2,32-p.prefix);
+    var bcast=(p.ip&p.mask)|((~p.mask)>>>0);
+    list.push({ip:p.ip,prefix:p.prefix,size:size,network:p.ip&p.mask,broadcast:bcast});
+    if(p.ip<min) min=p.ip;
+    if(bcast>max) max=bcast;
+  }
+  var xorAll=0;
+  for(var k=0;k<list.length;k++) xorAll^=list[k].ip;
+  var differingBits=0;
+  var temp=xorAll;
+  while(temp!==0){ differingBits++; temp>>>=1; }
+  var newPrefix=32-differingBits;
+  if(newPrefix<0) newPrefix=0;
+  var newMask=newPrefix===0?0:(0xFFFFFFFF<<(32-newPrefix))>>>0;
+  var newNet=(min&newMask)>>>0;
+  var newBcast=(newNet|((~newMask)>>>0))>>>0;
+  return {min:min,max:max,newPrefix:newPrefix,network:newNet,broadcast:newBcast,mask:intToIpv4(newMask),size:Math.pow(2,32-newPrefix),count:list.length};
+}
+
+// ------------------ Splitter ------------------
+function splitter(parent,n){
+  var p=parseIpv4Cidr(parent);
+  if(n<2) throw new Error('Need at least 2 subnets');
+  var newPrefix=p.prefix+Math.ceil(Math.log2(n));
+  if(newPrefix>32) throw new Error('Cannot split into '+n+' subnets from /'+p.prefix);
+  var subSize=Math.pow(2,32-newPrefix);
+  var results=[];
+  var net=p.ip&p.mask;
+  for(var i=0;i<n;i++){
+    var subNet=(net+i*subSize)>>>0;
+    var subMask=(newPrefix===0)?0:(0xFFFFFFFF<<(32-newPrefix))>>>0;
+    var subBcast=(subNet|((~subMask)>>>0))>>>0;
+    var firstHost=subNet, lastHost=subBcast;
+    if(newPrefix<31){
+      firstHost=(subNet+1)>>>0;
+      lastHost=(subBcast-1)>>>0;
+    }
+    results.push({network:subNet,broadcast:subBcast,firstHost:firstHost,lastHost:lastHost,prefix:newPrefix,size:subSize,usable:newPrefix>=31?subSize:subSize-2,mask:intToIpv4(subMask)});
+  }
+  return {parent:p,subs:results,newPrefix:newPrefix};
+}
+
+// ------------------ Overlap ------------------
+function overlapCheck(a,b){
+  var A=parseIpv4Cidr(a);
+  var B=parseIpv4Cidr(b);
+  var aNet=A.ip&A.mask, aBcast=(A.ip&A.mask)|((~A.mask)>>>0);
+  var bNet=B.ip&B.mask, bBcast=(B.ip&B.mask)|((~B.mask)>>>0);
+  var contains=aNet<=bNet&&bBcast<=aBcast;
+  var bContainsA=bNet<=aNet&&aBcast<=bBcast;
+  var overlap=!(aBcast<bNet||bBcast<aNet);
+  var identical=aNet===bNet&&aBcast===bBcast;
+  var relation;
+  if(identical) relation='Identical';
+  else if(bContainsA) relation='B contains A';
+  else if(contains) relation='A contains B';
+  else if(overlap) relation='Partial overlap';
+  else relation='Disjoint';
+  var intersectionNet=Math.max(aNet,bNet)>>>0;
+  var intersectionBcast=Math.min(aBcast,bBcast)>>>0;
+  return {A:A,B:B,aNet:aNet,aBcast:aBcast,bNet:bNet,bBcast:bBcast,relation:relation,overlap:overlap,identical:identical,contains:contains,bContainsA:bContainsA,intersectionNet:intersectionNet,intersectionBcast:intersectionBcast};
+}
+
+// ------------------ UI renderers ------------------
+function setStatus(el,msg,type){
+  el.className='status status-'+(type||'info');
+  el.textContent=msg;
+  el.style.display='block';
+}
+function clearStatus(el){el.style.display='none';el.textContent='';}
+function row(label,value,copyable){
+  var v=copyable?'<span class="val copy" data-copy="'+value+'" tabindex="0" role="button" aria-label="Copy '+label+' '+value+'" title="Copy '+label+'">'+value+'</span>':'<span class="val">'+value+'</span>';
+  return '<div class="lbl">'+label+'</div><div>'+v+'</div>';
+}
+function grid(html){return '<div class="result-grid">'+html+'</div>';}
+
+// Build a result-grid for IPv4
+function buildIpv4Grid(r,input){
+  var html='';
+  html+=row('Input',input,false);
+  html+=row('Network Address',intToIpv4(r.network),true);
+  html+=row('Subnet Mask',r.mask,true);
+  html+=row('Wildcard Mask',r.wildcard,true);
+  html+=row('CIDR Notation','/'+r.prefix,false);
+  html+=row('First Usable Host',r.prefix>=31?intToIpv4(r.network):intToIpv4(r.firstHost),true);
+  html+=row('Last Usable Host',r.prefix>=31?intToIpv4(r.broadcast):intToIpv4(r.lastHost),true);
+  html+=row('Broadcast Address',r.prefix>=32?'N/A':intToIpv4(r.broadcast),true);
+  html+=row('Total Addresses',r.total.toLocaleString(),false);
+  html+=row('Usable Hosts',r.usable.toLocaleString(),false);
+  html+=row('IP Class',r.ipClass,false);
+  html+=row('Address Type',r.private,false);
+  if(r.reverseDns) html+=row('Reverse DNS Zone',r.reverseDns,true);
+  document.getElementById('ipv4-grid').innerHTML=html;
+  var prefix=r.prefix;
+  var netStr=intToBinary(r.network,32);
+  var hostLen=32-prefix;
+  var networkPart=netStr.substring(0,prefix);
+  var hostPart=netStr.substring(prefix);
+  var groupedNet=networkPart.match(/.{1,8}/g).map(function(g){return g.replace(/(.{4})/g,'$1 ').trim();}).join(' . ');
+  var groupedHost=hostPart.match(/.{1,8}/g).map(function(g){return g.replace(/(.{4})/g,'$1 ').trim();}).join(' . ');
+  var html2='<div class="label">Network bits ('+prefix+') <span class="group-net">in blue</span>  |  Host bits ('+(32-prefix)+') <span class="group-host">in yellow</span></div>';
+  html2+='<div><span class="group-net">'+groupedNet+'</span><span class="dot"> . </span><span class="group-host">'+groupedHost+'</span></div>';
+  document.getElementById('ipv4-binary').innerHTML=html2;
+  var hostWrap=document.getElementById('ipv4-hosts-wrap');
+  if(r.total>4096){
+    hostWrap.innerHTML='<div style="color:#9aa3b2">Subnet too large ('+r.total.toLocaleString()+' addresses) - showing summary only. Use a smaller prefix (e.g. /24 or smaller) to see individual hosts.</div>';
+  } else {
+    var list=[];
+    if(r.prefix===32){
+      list.push(intToIpv4(r.network));
+    } else if(r.prefix===31){
+      list.push(intToIpv4(r.network));
+      list.push(intToIpv4(r.broadcast));
+    } else {
+      var start=r.network+1;
+      for(var i=0;i<r.usable;i++) list.push(intToIpv4((start+i)>>>0));
+    }
+    hostWrap.innerHTML=list.map(function(x){return x;}).join('<br>');
+  }
+  document.getElementById('ipv4-host-count-label').textContent='('+r.usable.toLocaleString()+' hosts)';
+  document.getElementById('ipv4-results').style.display='block';
+}
+
+function buildIpv6Grid(r,input){
+  var html='';
+  html+=row('Input',input,false);
+  html+=row('Prefix Length','/'+r.prefix,false);
+  html+=row('Network (expanded)',r.expandedNetwork,true);
+  html+=row('Network (compressed)',r.compressedNetwork,true);
+  html+=row('Broadcast / Last (expanded)',r.expandedBroadcast,true);
+  html+=row('Broadcast / Last (compressed)',r.compressedBroadcast,true);
+  var total=BigInt(r.total);
+  var pretty=total.toString();
+  if(pretty.length>15) pretty=pretty.replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  html+=row('Total Addresses',pretty,false);
+  html+=row('Subnets in /64',total/(1n<<64n)+'',false);
+  document.getElementById('ipv6-grid').innerHTML=html;
+  var prefix=r.prefix;
+  var b=r.binaryFirst64;
+  var netPart=b.substring(0,Math.min(prefix,64));
+  var hostPart=b.substring(Math.min(prefix,64));
+  while(netPart.length<prefix) netPart+='0';
+  var gNet=netPart.match(/.{1,4}/g).join(' ');
+  var gHost=hostPart.length>0?hostPart.match(/.{1,4}/g).join(' '):'';
+  var html2='<div class="label">First 64 bits shown. Network bits ('+Math.min(prefix,64)+') <span class="group-net">in blue</span>  |  Host bits ('+Math.max(0,64-prefix)+') <span class="group-host">in yellow</span></div>';
+  html2+='<div><span class="group-net">'+gNet+'</span>'+(gHost?' <span class="group-host">'+gHost+'</span>':'')+'</div>';
+  document.getElementById('ipv6-binary').innerHTML=html2;
+  document.getElementById('ipv6-results').style.display='block';
+}
+
+function buildVlsmResults(result){
+  var html='';
+  html+=row('Parent Network',intToIpv4(result.parent.ip&result.parent.mask)+'/'+result.parent.prefix,true);
+  html+=row('Parent Size',result.parentSize.toLocaleString(),false);
+  html+=row('Allocated',result.used.toLocaleString(),false);
+  html+=row('Free After',result.remaining.toLocaleString()+' addresses',false);
+  document.getElementById('vlsm-summary').innerHTML=html;
+  var tbody=document.getElementById('vlsm-tbody');
+  tbody.innerHTML='';
+  for(var i=0;i<result.allocated.length;i++){
+    var a=result.allocated[i];
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+a.name+'</td><td>'+a.hosts+'</td><td>'+intToIpv4(a.network)+'/'+a.prefix+'</td><td>'+a.mask+'</td><td>'+intToIpv4(a.firstHost)+' - '+intToIpv4(a.lastHost)+'</td><td>'+a.usable.toLocaleString()+'</td>';
+    tbody.appendChild(tr);
+  }
+  document.getElementById('vlsm-results').style.display='block';
+}
+
+function buildSuperResults(r){
+  var html='';
+  html+=row('Networks Combined',r.count.toString(),false);
+  html+=row('Summary Route',intToIpv4(r.network)+'/'+r.newPrefix,true);
+  html+=row('Summary Mask',r.mask,true);
+  html+=row('Range Covered',intToIpv4(r.network)+' - '+intToIpv4(r.broadcast),true);
+  html+=row('Total Addresses',r.size.toLocaleString(),false);
+  document.getElementById('super-grid').innerHTML=html;
+  document.getElementById('super-results').style.display='block';
+}
+
+function buildSplitResults(r){
+  var tbody=document.getElementById('split-tbody');
+  tbody.innerHTML='';
+  for(var i=0;i<r.subs.length;i++){
+    var s=r.subs[i];
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+(i+1)+'</td><td>'+intToIpv4(s.network)+'/'+s.prefix+'</td><td>'+s.mask+'</td><td>'+intToIpv4(s.firstHost)+' - '+intToIpv4(s.lastHost)+'</td><td>'+s.usable.toLocaleString()+'</td>';
+    tbody.appendChild(tr);
+  }
+  document.getElementById('split-results').style.display='block';
+}
+
+function buildOverlapResults(r){
+  var html='';
+  html+=row('Network A',intToIpv4(r.aNet)+' - '+intToIpv4(r.aBcast),true);
+  html+=row('Network B',intToIpv4(r.bNet)+' - '+intToIpv4(r.bBcast),true);
+  html+=row('Relationship',r.relation,false);
+  var color=r.overlap?'status-info':'status-success';
+  if(r.overlap) html+='<div></div><div style="color:#fbbf24">The two networks have overlapping address space. This can cause routing issues.</div>';
+  else html+='<div></div><div style="color:#4ade80">The two networks are disjoint. No conflict.</div>';
+  if(r.overlap&&!r.identical){
+    html+='<div>Intersection</div><div>'+intToIpv4(r.intersectionNet)+' - '+intToIpv4(r.intersectionBcast)+'</div>';
+  }
+  document.getElementById('overlap-grid').innerHTML=html;
+  document.getElementById('overlap-results').style.display='block';
+}
+
+// ------------------ Event wiring ------------------
+function safeRun(fn,statusEl){
+  try{
+    fn();
+  } catch(e){
+    setStatus(statusEl,e.message||String(e),'error');
+  }
+}
+
+document.querySelectorAll('.subnet-tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.subnet-tab').forEach(function(x){x.classList.remove('active'); x.setAttribute('aria-pressed','false');});
+    t.classList.add('active');
+    t.setAttribute('aria-pressed','true');
+    document.querySelectorAll('.subnet-panel').forEach(function(p){p.classList.remove('active');});
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('ipv4-calc').addEventListener('click',function(){
+  var el=document.getElementById('ipv4-status');
+  var input=document.getElementById('ipv4-input').value;
+  safeRun(function(){
+    var r=calculateIpv4(input);
+    clearStatus(el);
+    buildIpv4Grid(r,input);
+  },el);
+});
+document.getElementById('ipv4-input').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('ipv4-calc').click();});
+document.querySelectorAll('[data-fill]').forEach(function(c){
+  c.addEventListener('click',function(){document.getElementById('ipv4-input').value=c.dataset.fill;document.getElementById('ipv4-calc').click();});
+});
+
+document.getElementById('ipv6-calc').addEventListener('click',function(){
+  var el=document.getElementById('ipv6-status');
+  var input=document.getElementById('ipv6-input').value;
+  safeRun(function(){
+    var r=calculateIpv6(input);
+    clearStatus(el);
+    buildIpv6Grid(r,input);
+  },el);
+});
+document.getElementById('ipv6-input').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('ipv6-calc').click();});
+document.querySelectorAll('[data-fill-ipv6]').forEach(function(c){
+  c.addEventListener('click',function(){document.getElementById('ipv6-input').value=c.dataset.fillIpv6;document.getElementById('ipv6-calc').click();});
+});
+
+function readVlsmList(){
+  var rows=document.querySelectorAll('#vlsm-list .kv-row');
+  var out=[];
+  for(var i=0;i<rows.length;i++){
+    var name=rows[i].querySelector('.vlsm-name').value.trim()||('Subnet '+(i+1));
+    var hosts=parseInt(rows[i].querySelector('.vlsm-hosts').value,10);
+    if(!isFinite(hosts)||hosts<=0) throw new Error('Row '+(i+1)+': hosts must be a positive number');
+    out.push({name:name,hosts:hosts});
+  }
+  if(out.length===0) throw new Error('Add at least one subnet requirement');
+  return out;
+}
+document.getElementById('vlsm-add').addEventListener('click',function(){
+  var list=document.getElementById('vlsm-list');
+  var row=document.createElement('div');
+  row.className='kv-row';
+  row.innerHTML='<input type="text" class="vlsm-name" aria-label="Subnet name" placeholder="Subnet name"><input type="number" class="vlsm-hosts" aria-label="Hosts needed" min="1" placeholder="Hosts needed"><button class="btn btn-secondary vlsm-del">Remove</button>';
+  list.appendChild(row);
+  row.querySelector('.vlsm-del').addEventListener('click',function(){row.remove();});
+});
+document.querySelectorAll('.vlsm-del').forEach(function(b){
+  b.addEventListener('click',function(){b.closest('.kv-row').remove();});
+});
+document.getElementById('vlsm-calc').addEventListener('click',function(){
+  var el=document.getElementById('vlsm-status');
+  safeRun(function(){
+    var reqs=readVlsmList();
+    var parent=document.getElementById('vlsm-parent').value;
+    var r=vlsm(parent,reqs);
+    clearStatus(el);
+    buildVlsmResults(r);
+  },el);
+});
+
+document.getElementById('super-calc').addEventListener('click',function(){
+  var el=document.getElementById('super-status');
+  safeRun(function(){
+    var lines=document.getElementById('super-input').value.split(/\r?\n/).map(function(s){return s.trim();}).filter(Boolean);
+    if(lines.length<2) throw new Error('Provide at least 2 networks (one per line)');
+    var r=supernet(lines);
+    clearStatus(el);
+    buildSuperResults(r);
+  },el);
+});
+
+document.getElementById('split-calc').addEventListener('click',function(){
+  var el=document.getElementById('split-status');
+  safeRun(function(){
+    var parent=document.getElementById('split-input').value;
+    var n=parseInt(document.getElementById('split-count').value,10);
+    if(!isFinite(n)||n<2) throw new Error('Number of subnets must be at least 2');
+    var r=splitter(parent,n);
+    clearStatus(el);
+    buildSplitResults(r);
+  },el);
+});
+
+document.getElementById('overlap-calc').addEventListener('click',function(){
+  var el=document.getElementById('overlap-status');
+  safeRun(function(){
+    var a=document.getElementById('overlap-a').value;
+    var b=document.getElementById('overlap-b').value;
+    var r=overlapCheck(a,b);
+    clearStatus(el);
+    buildOverlapResults(r);
+  },el);
+});
+
+document.body.addEventListener('click',function(e){
+  var t=e.target;
+  if(t.classList&&t.classList.contains('copy')&&t.dataset.copy){
+    var text=t.dataset.copy;
+    if(navigator.clipboard&&window.isSecureContext){
+      navigator.clipboard.writeText(text).then(function(){t.style.color='#4ade80';setTimeout(function(){t.style.color='';},800);}).catch(function(){});
+    }
+  }
+});
+
+// Initial run
+document.getElementById('ipv4-calc').click();
+
+})();
+</script>
+</body>
+</html>

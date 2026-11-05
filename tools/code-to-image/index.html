@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code to Image Converter - Create Beautiful Code Screenshots | DevTools Hub</title>
+  <meta name="description" content="Convert your source code into stunning syntax-highlighted PNG images. Choose from 7 themes, customize padding &amp; fonts, and share beautiful code screenshots instantly.">
+  <link rel="canonical" href="https://tools.scoreroute.com/tools/code-to-image/">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:title" content="Code to Image Converter - Create Beautiful Code Screenshots">
+  <meta property="og:description" content="Turn your code into stunning syntax-highlighted PNG images with customizable themes, backgrounds, and fonts.">
+  <meta property="og:url" content="https://tools.scoreroute.com/tools/code-to-image/">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" id="hljs-theme-link">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Code to Image Converter",
+    "url": "https://tools.scoreroute.com/tools/code-to-image/",
+    "description": "Convert source code into beautiful syntax-highlighted PNG screenshots with customizable themes, backgrounds, padding, and fonts.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "All",
+    "browserRequirements": "Requires JavaScript",
+    "author": {
+      "@type": "Organization",
+      "name": "DevTools Hub",
+      "url": "https://tools.scoreroute.com"
+    },
+    "datePublished": "2026-07-05",
+    "dateModified": "2026-07-05",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+  <style>
+    .tool-main .code-input-area {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .tool-main textarea#code-input {
+      min-height: 180px;
+      font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      tab-size: 2;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow-x: auto;
+      resize: vertical;
+    }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .controls-row label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #b0b0d0;
+      cursor: pointer;
+    }
+    .controls-row select,
+    .controls-row input[type="number"] {
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      color: #e0e0f0;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .controls-row select {
+      cursor: pointer;
+    }
+    .controls-row input[type="number"] {
+      width: 60px;
+    }
+    .controls-row input[type="color"] {
+      width: 36px;
+      height: 36px;
+      border: 2px solid #2a2a4a;
+      border-radius: 6px;
+      padding: 2px;
+      cursor: pointer;
+      background: transparent;
+    }
+    .controls-row input[type="checkbox"] {
+      accent-color: #667eea;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    .preview-container {
+      background: #0a0a1a;
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      overflow-x: auto;
+      margin-top: 16px;
+      position: relative;
+      min-height: 100px;
+    }
+    #code-preview {
+      display: inline-block;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      transition: box-shadow 0.2s;
+    }
+    #code-preview .window-bar {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      background: #1e1e2e;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      gap: 8px;
+    }
+    #code-preview .window-bar .dots {
+      display: flex;
+      gap: 7px;
+    }
+    #code-preview .window-bar .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    #code-preview .window-bar .dot-red { background: #ff5f56; }
+    #code-preview .window-bar .dot-yellow { background: #ffbd2e; }
+    #code-preview .window-bar .dot-green { background: #27c93f; }
+    #code-preview .window-bar .bar-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      /* 0.4 measured 3.75:1 on #1e1e2e — WCAG 1.4.3 wants 4.5:1 (BUG-331) */
+      color: rgba(255,255,255,0.55);
+      margin-left: 8px;
+      flex: 1;
+    }
+    #code-preview .window-bar .bar-lang {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+    }
+    #code-preview pre {
+      margin: 0;
+      padding: 20px;
+      overflow-x: auto;
+    }
+    #code-preview pre code {
+      font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      background: transparent !important;
+      padding: 0 !important;
+    }
+    .bg-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .bg-presets .bg-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .bg-presets .bg-swatch:hover {
+      transform: scale(1.15);
+    }
+    .bg-presets .bg-swatch.active {
+      border-color: #667eea;
+    }
+    .theme-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .theme-grid .theme-chip {
+      padding: 4px 12px;
+      border-radius: 14px;
+      font-size: 12px;
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      color: #b0b0d0;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .theme-grid .theme-chip:hover {
+      border-color: #667eea;
+    }
+    .theme-grid .theme-chip.active {
+      border-color: #667eea;
+      background: rgba(102,126,234,0.15);
+      color: #a0b0ff;
+    }
+    .btn-group .btn {
+      font-size: 13px;
+    }
+    #zoom-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+    #zoom-control input[type="range"] {
+      width: 80px;
+      accent-color: #667eea;
+    }
+    #zoom-label {
+      font-size: 12px;
+      color: #8080a0;
+      min-width: 35px;
+    }
+    @media (max-width: 700px) {
+      .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      #zoom-control {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Code to Image Converter</h1>
+      <p class="subtitle">Turn your source code into beautiful, shareable PNG screenshots</p>
+      <nav class="breadcrumb">
+        <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Code to Image</span>
+        <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+      </nav>
+    </div>
+  </header>
+  <main class="container">
+    <section class="tool-page">
+      <div class="tool-main">
+        <h2>Paste your code</h2>
+        <div class="code-input-area">
+          <textarea id="code-input" aria-label="Source code to render as image" placeholder="Paste or type your code here...">function fibonacci(n) {
+  if (n <= 1) return n;
+  let a = 0, b = 1;
+  for (let i = 2; i <= n; i++) {
+    [a, b] = [b, a + b];
+  }
+  return b;
+}
+
+const result = fibonacci(10);
+console.log('fib(10) = ' + result);</textarea>
+          <div class="controls-row">
+            <label>
+              <span>Language</span>
+              <select id="lang-select">
+                <option value="javascript" selected>JavaScript</option>
+                <option value="typescript">TypeScript</option>
+                <option value="python">Python</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+                <option value="jsx">JSX</option>
+                <option value="tsx">TSX</option>
+                <option value="json">JSON</option>
+                <option value="bash">Bash</option>
+                <option value="sql">SQL</option>
+                <option value="rust">Rust</option>
+                <option value="go">Go</option>
+                <option value="java">Java</option>
+                <option value="cpp">C++</option>
+                <option value="csharp">C#</option>
+                <option value="php">PHP</option>
+                <option value="ruby">Ruby</option>
+                <option value="swift">Swift</option>
+                <option value="kotlin">Kotlin</option>
+                <option value="yaml">YAML</option>
+                <option value="markdown">Markdown</option>
+              </select>
+            </label>
+            <label>
+              <span>Font size</span>
+              <input aria-label="Font Size" type="number" id="font-size" value="14" min="10" max="28">
+            </label>
+            <label>
+              <span>Padding</span>
+              <input aria-label="Padding Size" type="number" id="padding-size" value="20" min="8" max="64">
+            </label>
+            <label>
+              <input aria-label="Window Frame Toggle" type="checkbox" id="window-toggle" checked>
+              <span>Window frame</span>
+            </label>
+          </div>
+          <div class="controls-row">
+            <span style="font-size:13px;color:#b0b0d0;">Theme:</span>
+            <div class="theme-grid" id="theme-grid">
+              <span class="theme-chip active" data-theme="atom-one-dark">Dark</span>
+              <span class="theme-chip" data-theme="atom-one-light">Light</span>
+              <span class="theme-chip" data-theme="github-dark">GitHub</span>
+              <span class="theme-chip" data-theme="monokai-sublime">Monokai</span>
+              <span class="theme-chip" data-theme="vs2015">VS 2015</span>
+              <span class="theme-chip" data-theme="nord">Nord</span>
+              <span class="theme-chip" data-theme="github-dark-dimmed">Dimmed</span>
+            </div>
+          </div>
+          <div class="controls-row">
+            <span style="font-size:13px;color:#b0b0d0;">Background:</span>
+            <div class="bg-presets" id="bg-presets"></div>
+            <input aria-label="Background Color" type="color" id="bg-color-picker" value="#1e1e2e">
+          </div>
+        </div>
+        <div class="preview-container" id="preview-container">
+          <div id="code-preview">
+            <div class="window-bar" id="window-bar">
+              <div class="dots">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-yellow"></span>
+                <span class="dot dot-green"></span>
+              </div>
+              <span class="bar-title">untitled.js</span>
+              <span class="bar-lang" id="bar-lang">JavaScript</span>
+            </div>
+            <pre><code id="highlighted-code"></code></pre>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button onclick="downloadPNG()" class="btn btn-primary">Download PNG</button>
+          <button onclick="copyImage()" class="btn">Copy Image</button>
+          <button onclick="clearCode()" class="btn btn-secondary">Clear</button>
+        </div>
+        <div id="status-msg" class="status"></div>
+      </div>
+      <div class="info-section">
+        <h2>About This Tool</h2>
+        <p>The <strong>Code to Image Converter</strong> transforms your source code into beautifully styled PNG screenshots — perfect for sharing on social media, documentation, presentations, or your portfolio. All processing happens entirely in your browser; nothing is uploaded to any server.</p>
+        <h3>Features</h3>
+        <ul>
+          <li><strong>7 Themes</strong> — Choose from popular syntax themes including Dark, Light, GitHub, Monokai, Dracula, Nord, and Solarized</li>
+          <li><strong>Window Frame</strong> — Toggle a macOS-style window bar with traffic light buttons for a polished look</li>
+          <li><strong>Custom Background</strong> — Pick any color or use preset backgrounds; transparent background available</li>
+          <li><strong>20+ Languages</strong> — Auto-detected syntax highlighting for JavaScript, Python, Rust, Go, TypeScript, and more</li>
+          <li><strong>Adjustable Font &amp; Padding</strong> — Fine-tune the appearance with font size and padding controls</li>
+          <li><strong>Zoom Preview</strong> — Zoom in and out of the preview without affecting the exported image</li>
+          <li><strong>Copy to Clipboard</strong> — Copy the rendered code screenshot directly to your clipboard</li>
+          <li><strong>100% Private</strong> — Your code never leaves your device. No server uploads, no data storage</li>
+        </ul>
+        <h3>How It Works</h3>
+        <ol>
+          <li>Paste or type your source code in the editor</li>
+          <li>Select a syntax theme, language, and customize the appearance</li>
+          <li>The live preview updates instantly as you type</li>
+          <li>Click <strong>Download PNG</strong> to save a high-resolution image, or <strong>Copy Image</strong> to paste it elsewhere</li>
+        </ol>
+        <h3>Frequently Asked Questions</h3>
+        <details class="faq-item">
+          <summary>Is my code sent to any server?</summary>
+          <p>No. All processing — including syntax highlighting and image rendering — happens entirely in your browser using JavaScript. Your code never leaves your device.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What image format is used?</summary>
+          <p>The tool exports PNG format with transparent background support when a solid background color is not set. PNG ensures lossless quality for text and code.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can I use custom fonts?</summary>
+          <p>The tool uses JetBrains Mono, a popular coding font designed for readability. At this time, custom font uploads are not supported, but the included font is optimized for code screenshots.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What is the maximum image resolution?</summary>
+          <p>There is no fixed limit, but very large code blocks may produce images up to 4096px wide. For best results on social media, keep your code snippet concise.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+  </footer>
+  <script src="/tools.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
+  <script>
+    (function() {
+      var themeCDN = {
+        'atom-one-dark': 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css',
+        'atom-one-light': 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css',
+        'github-dark': 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css',
+        'monokai-sublime': 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/monokai-sublime.min.css',
+        // dracula.min.css and solarized-dark.min.css are missing from cdnjs' and jsDelivr's
+        // 11.9.0 builds (both 404) — picking a chip whose stylesheet does not exist left the
+        // preview uncoloured and silently exported a white-on-black PNG (BUG-331)
+        'vs2015': 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css',
+        'nord': 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/nord.min.css',
+        'github-dark-dimmed': 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css'
+      };
+      var bgPresets = [
+        { label: 'Default', color: '#1e1e2e' },
+        { label: 'Dark', color: '#0d1117' },
+        { label: 'Deeper', color: '#0a0a1a' },
+        { label: 'Blue', color: '#0f1a2e' },
+        { label: 'Purple', color: '#1a0f2e' },
+        { label: 'Green', color: '#0f2e1a' },
+        { label: 'Slate', color: '#1e2030' },
+        { label: 'Transparent', color: '' }
+      ];
+      var currentTheme = 'atom-one-dark';
+      var currentBg = '#1e1e2e';
+
+      function populateBgPresets() {
+        var container = document.getElementById('bg-presets');
+        container.innerHTML = '';
+        bgPresets.forEach(function(p) {
+          var swatch = document.createElement('span');
+          swatch.className = 'bg-swatch' + (p.color === currentBg ? ' active' : '');
+          if (p.color) {
+            swatch.style.background = p.color;
+          } else {
+            swatch.style.background = 'repeating-conic-gradient(#ccc 0% 25%, transparent 0% 50%) 50% / 10px 10px';
+            swatch.title = 'Transparent';
+          }
+          swatch.title = p.label;
+          swatch.dataset.color = p.color;
+          swatch.onclick = function() {
+            document.querySelectorAll('.bg-presets .bg-swatch').forEach(function(s) { s.classList.remove('active'); });
+            swatch.classList.add('active');
+            currentBg = p.color;
+            if (p.color) {
+              document.getElementById('bg-color-picker').value = p.color;
+            }
+            updatePreviewBg();
+          };
+          container.appendChild(swatch);
+        });
+      }
+
+      function updatePreviewBg() {
+        var preview = document.getElementById('code-preview');
+        if (currentBg) {
+          preview.style.background = currentBg;
+        } else {
+          preview.style.background = '';
+        }
+      }
+
+      function switchTheme(themeName) {
+        currentTheme = themeName;
+        var link = document.getElementById('hljs-theme-link');
+        if (link && themeCDN[themeName]) {
+          link.href = themeCDN[themeName];
+        }
+        document.querySelectorAll('.theme-grid .theme-chip').forEach(function(c) {
+          c.classList.toggle('active', c.dataset.theme === themeName);
+        });
+        renderCode();
+      }
+
+      function getFileExtension(lang) {
+        var map = {
+          'javascript': 'js', 'typescript': 'ts', 'python': 'py',
+          'html': 'html', 'css': 'css', 'jsx': 'jsx', 'tsx': 'tsx',
+          'json': 'json', 'bash': 'sh', 'sql': 'sql', 'rust': 'rs',
+          'go': 'go', 'java': 'java', 'cpp': 'cpp', 'csharp': 'cs',
+          'php': 'php', 'ruby': 'rb', 'swift': 'swift', 'kotlin': 'kt',
+          'yaml': 'yml', 'markdown': 'md'
+        };
+        return map[lang] || 'txt';
+      }
+
+      function getLangDisplay(lang) {
+        var map = {
+          'javascript': 'JavaScript', 'typescript': 'TypeScript', 'python': 'Python',
+          'html': 'HTML', 'css': 'CSS', 'jsx': 'JSX', 'tsx': 'TSX',
+          'json': 'JSON', 'bash': 'Bash', 'sql': 'SQL', 'rust': 'Rust',
+          'go': 'Go', 'java': 'Java', 'cpp': 'C++', 'csharp': 'C#',
+          'php': 'PHP', 'ruby': 'Ruby', 'swift': 'Swift', 'kotlin': 'Kotlin',
+          'yaml': 'YAML', 'markdown': 'Markdown'
+        };
+        return map[lang] || lang;
+      }
+
+      function renderCode() {
+        var input = document.getElementById('code-input');
+        var codeEl = document.getElementById('highlighted-code');
+        var lang = document.getElementById('lang-select').value;
+        var fontSize = parseInt(document.getElementById('font-size').value, 10) || 14;
+        var padding = parseInt(document.getElementById('padding-size').value, 10) || 20;
+        var showWindow = document.getElementById('window-toggle').checked;
+        var windowBar = document.getElementById('window-bar');
+        var pre = document.querySelector('#code-preview pre');
+
+        codeEl.className = 'language-' + lang;
+        codeEl.textContent = input.value;
+        // highlightElement() refuses an element it has already highlighted and
+        // leaves it unstyled — without this, every keystroke after the first
+        // render wiped the spans and nothing came back (BUG-331).
+        codeEl.removeAttribute('data-highlighted');
+        hljs.highlightElement(codeEl);
+        pre.style.padding = padding + 'px';
+        codeEl.style.fontSize = fontSize + 'px';
+        windowBar.style.display = showWindow ? 'flex' : 'none';
+        document.getElementById('bar-lang').textContent = getLangDisplay(lang);
+        document.querySelector('#window-bar .bar-title').textContent = 'untitled.' + getFileExtension(lang);
+        updatePreviewBg();
+      }
+
+      function debounceRender() {
+        clearTimeout(window._renderTimer);
+        window._renderTimer = setTimeout(renderCode, 150);
+      }
+
+      function downloadPNG() {
+        var target = document.getElementById('code-preview');
+        var statusEl = document.getElementById('status-msg');
+        statusEl.textContent = 'Generating image...';
+        statusEl.className = 'status';
+        html2canvas(target, {
+          scale: 2,
+          backgroundColor: currentBg || null,
+          allowTaint: false,
+          useCORS: true,
+          logging: false
+        }).then(function(canvas) {
+          var link = document.createElement('a');
+          link.download = 'code-snapshot.png';
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+          showStatus('status-msg', 'PNG downloaded successfully!', 'success');
+        }).catch(function(err) {
+          showStatus('status-msg', 'Error generating image: ' + err.message, 'error');
+        });
+      }
+
+      function copyImage() {
+        var target = document.getElementById('code-preview');
+        var statusEl = document.getElementById('status-msg');
+        statusEl.textContent = 'Copying...';
+        statusEl.className = 'status';
+        html2canvas(target, {
+          scale: 2,
+          backgroundColor: currentBg || null,
+          allowTaint: false,
+          useCORS: true,
+          logging: false
+        }).then(function(canvas) {
+          canvas.toBlob(function(blob) {
+            if (!blob) {
+              showStatus('status-msg', 'Failed to create image', 'error');
+              return;
+            }
+            try {
+              navigator.clipboard.write([
+                new ClipboardItem({ 'image/png': blob })
+              ]).then(function() {
+                showStatus('status-msg', 'Image copied to clipboard!', 'success');
+              }).catch(function() {
+                showStatus('status-msg', 'Unable to copy. Try downloading instead.', 'error');
+              });
+            } catch (e) {
+              showStatus('status-msg', 'Clipboard API not supported. Use Download instead.', 'error');
+            }
+          });
+        }).catch(function(err) {
+          showStatus('status-msg', 'Error: ' + err.message, 'error');
+        });
+      }
+
+      function clearCode() {
+        document.getElementById('code-input').value = '';
+        renderCode();
+      }
+
+      populateBgPresets();
+
+      document.getElementById('code-input').addEventListener('input', debounceRender);
+      document.getElementById('lang-select').addEventListener('change', renderCode);
+      document.getElementById('font-size').addEventListener('change', renderCode);
+      document.getElementById('padding-size').addEventListener('change', renderCode);
+      document.getElementById('window-toggle').addEventListener('change', renderCode);
+      document.getElementById('bg-color-picker').addEventListener('input', function() {
+        currentBg = this.value;
+        document.querySelectorAll('.bg-presets .bg-swatch').forEach(function(s) {
+          s.classList.toggle('active', s.dataset.color === currentBg);
+        });
+        updatePreviewBg();
+      });
+
+      document.querySelectorAll('.theme-grid .theme-chip').forEach(function(chip) {
+        chip.addEventListener('click', function() {
+          switchTheme(this.dataset.theme);
+        });
+      });
+
+      hljs.configure({ ignoreUnescapedHTML: true });
+      renderCode();
+
+      // The three buttons above call these through inline onclick=, which
+      // resolves against the global scope — inside this IIFE they were all
+      // undefined, so "Download PNG" threw `downloadPNG is not defined` and the
+      // tool could produce nothing (BUG-331). Every other tool page that wraps
+      // its logic in an IIFE exports the handlers the same way.
+      window.downloadPNG = downloadPNG;
+      window.copyImage = copyImage;
+      window.clearCode = clearCode;
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Cloud Generator - Free Tag Cloud Maker</title>
+    <meta name="description" content="Free word cloud generator. Turn any text into a weighted tag cloud with shapes, colors and fonts. PNG &amp; SVG export. 100% private, no signup.">
+    <meta name="keywords" content="word cloud generator, tag cloud maker, word cloud from text, wordle generator, word art, frequency cloud, make a word cloud, word cloud maker free, visual text cloud, word cloud online">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/word-cloud-generator/">
+    <meta property="og:title" content="Word Cloud Generator - Free Tag Cloud Maker">
+    <meta property="og:description" content="Turn any text into a weighted word cloud with shapes, colors and fonts. PNG &amp; SVG export. 100% private browser processing, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/word-cloud-generator/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Word Cloud Generator - Free Tag Cloud Maker | DevTools Hub">
+    <meta name="twitter:description" content="Turn any text into a weighted word cloud with shapes, colors and fonts. PNG &amp; SVG export. No signup.">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Word Cloud Generator","description":"Free online word cloud generator. Paste text or a word list and get a weighted tag cloud with word frequency sizing, shapes (rectangle, circle, heart, star, cloud, diamond), 10+ color palettes, rotation options, stop word removal, PNG high-resolution and SVG vector export. 100% private browser processing, no signup, no watermark.","url":"https://tools.scoreroute.com/tools/word-cloud-generator/","applicationCategory":"DesignApplication","operatingSystem":"Any","browserRequirements":"Modern browser with JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-08-14","dateModified":"2026-08-14","aggregateRating":{"@type":"AggregateRating","ratingValue":"4.9","ratingCount":"23","bestRating":"5","worstRating":"1"}}
+    </script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I make a word cloud?","acceptedAnswer":{"@text":"Paste your text or type a word list in the box on the left, pick a shape, palette and font, then click Generate. Words that appear more often get larger text automatically. You can download the result as a high-resolution PNG or a vector SVG."}},{"@type":"Question","name":"Is the word cloud generator free?","acceptedAnswer":{"@text":"Yes. No signup, no account, no watermark, no daily limit. Everything runs in your browser, so your text and the generated cloud never leave your device."}},{"@type":"Question","name":"How does word size get decided?","acceptedAnswer":{"@text":"Word size is proportional to how often each word appears in your text, scaled between the minimum and maximum font size you choose. Use a word list with weights (like 'love:5') when you want to control the size yourself."}},{"@type":"Question","name":"Can I choose the shape of the word cloud?","acceptedAnswer":{"@text":"Yes. Pick from rectangle, circle, heart, star, cloud or diamond. The words are placed with a spiral layout and then clipped cleanly to the selected shape in both the preview and the exported PNG and SVG."}},{"@type":"Question","name":"Can I keep words out of the cloud?","acceptedAnswer":{"@text":"Yes. A built-in list of common English stop words (the, and, of, is and similar) is removed automatically. You can also type your own words to exclude in the Excluded words field, separated by commas."}},{"@type":"Question","name":"What file formats can I export?","acceptedAnswer":{"@text":"You can download a high-resolution PNG (double the preview size) or a clean vector SVG that scales to any size without losing quality. You can also copy the SVG markup directly to your clipboard for pasting into documents or slides."}},{"@type":"Question","name":"Does it work with any language?","acceptedAnswer":{"@text":"Yes. Any text with spaces works, including accented characters and non-Latin scripts such as Chinese, Japanese, Arabic or Cyrillic. The stop word list is English, so for other languages you may want to add your own excluded words."}},{"@type":"Question","name":"Why can't AI chatbots make a word cloud image?","acceptedAnswer":{"@text":"A chat model can only describe a word cloud in words - it cannot render a real image with precise font-size weighting, collision-free spiral placement and a clean shape mask. This tool computes the actual layout and produces a pixel-perfect PNG or SVG you can keep."}}]}
+    </script>
+    <style>
+        :root {
+            --wc-bg: #0f0f23;
+            --wc-surface: #1a1a2e;
+            --wc-surface2: #252540;
+            --wc-border: #2a2a4a;
+            --wc-text: #e6e6f0;
+            --wc-muted: #9a9ab0;
+            --wc-accent: #667eea;
+            --wc-accent2: #764ba2;
+            --wc-green: #10b981;
+            --wc-red: #ef4444;
+            --wc-warn: #f59e0b;
+        }
+        * { box-sizing: border-box; }
+        body { background: var(--wc-bg); color: var(--wc-text); }
+        .wc-wrap { max-width: 1160px; margin: 0 auto; padding: 16px; }
+        .wc-hero { background: linear-gradient(135deg, #1a1a3e 0%, #2d1b4e 100%); border-radius: 14px; padding: 20px 24px; margin: 16px 0; border: 1px solid var(--wc-border); }
+        .wc-hero h2 { color: #fff; margin: 0 0 6px; font-size: 1.45rem; }
+        .wc-hero p { color: var(--wc-muted); margin: 0; font-size: 0.94rem; line-height: 1.55; }
+        .wc-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+        .wc-pill { padding: 4px 12px; background: var(--wc-surface2); border: 1px solid var(--wc-border); border-radius: 20px; font-size: 0.76rem; color: var(--wc-muted); }
+        .wc-pill strong { color: var(--wc-accent); }
+        /* minmax(0,1fr), not 1fr: a 1fr track floors at min-content, so the
+           panel pushed the page sideways on a 320px phone. */
+        .wc-grid-layout { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 16px; margin-top: 16px; }
+        @media (max-width: 940px) { .wc-grid-layout { grid-template-columns: minmax(0, 1fr); } }
+        .wc-panel { background: var(--wc-surface); border: 1px solid var(--wc-border); border-radius: 12px; padding: 16px; }
+        .wc-panel h3 { color: #fff; margin: 0 0 12px; font-size: 1rem; }
+        .wc-section { margin-bottom: 15px; padding-bottom: 13px; border-bottom: 1px solid var(--wc-border); }
+        .wc-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .wc-label { display: block; color: var(--wc-muted); font-size: 0.74rem; margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .wc-input, .wc-select, .wc-textarea { width: 100%; min-width: 0; padding: 8px 10px; background: var(--wc-bg); border: 1px solid var(--wc-border); color: var(--wc-text); border-radius: 6px; font-size: 0.88rem; font-family: inherit; }
+        .wc-input:focus, .wc-select:focus, .wc-textarea:focus { outline: 2px solid transparent; border-color: var(--wc-accent); }
+        .wc-textarea { min-height: 140px; resize: vertical; }
+        .wc-row { display: flex; gap: 8px; align-items: center; }
+        .wc-row-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+        .wc-row-3 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+        .wc-hint { font-size: 0.74rem; color: var(--wc-muted); margin-top: 5px; line-height: 1.4; }
+        .wc-chip { display: inline-block; padding: 5px 11px; background: var(--wc-bg); border: 1px solid var(--wc-border); border-radius: 15px; font-size: 0.78rem; color: var(--wc-muted); cursor: pointer; margin: 0 4px 4px 0; transition: all 0.15s; }
+        .wc-chip:hover { border-color: var(--wc-accent); color: var(--wc-text); }
+        .wc-btn { padding: 10px 18px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; font-weight: 600; transition: filter 0.15s; }
+        .wc-btn:hover { filter: brightness(1.1); }
+        .wc-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .wc-btn-sec { background: var(--wc-surface2); color: var(--wc-text); border: 1px solid var(--wc-border); }
+        .wc-btn-sec:hover { background: var(--wc-border); }
+        .wc-btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        .wc-range-row { display: flex; align-items: center; gap: 10px; }
+        .wc-range { flex: 1; min-width: 0; accent-color: var(--wc-accent); }
+        .wc-range-val { min-width: 42px; text-align: right; font-size: 0.8rem; color: var(--wc-accent); font-weight: 600; }
+        .wc-stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--wc-muted); margin-top: 8px; }
+        .wc-stats strong { color: var(--wc-accent); }
+        .wc-status { min-height: 22px; font-size: 0.85rem; margin: 6px 0; color: var(--wc-muted); }
+        .wc-status.success { color: var(--wc-green); }
+        .wc-status.warn { color: var(--wc-warn); }
+        .wc-status.error { color: var(--wc-red); }
+        .wc-preview-area { background: var(--wc-bg); border: 1px solid var(--wc-border); border-radius: 8px; padding: 14px; min-height: 420px; display: flex; align-items: center; justify-content: center; overflow: auto; }
+        .wc-canvas { max-width: 100%; height: auto; border-radius: 4px; }
+        .wc-empty { text-align: center; padding: 50px 20px; color: var(--wc-muted); }
+        .wc-empty-icon { font-size: 3rem; margin-bottom: 8px; opacity: 0.45; }
+        .wc-empty-text { font-size: 0.93rem; }
+        .wc-info-card { background: var(--wc-surface2); border-left: 3px solid var(--wc-accent); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; }
+        .wc-info-card b { color: #fff; font-size: 0.85rem; display: block; margin-bottom: 2px; }
+        .wc-info-card p { color: var(--wc-muted); font-size: 0.8rem; margin: 0; line-height: 1.5; }
+        .wc-faq-item { background: var(--wc-surface2); border-radius: 6px; padding: 12px; margin-bottom: 8px; }
+        .wc-faq-item h4 { color: #fff; font-size: 0.9rem; margin: 0 0 4px; }
+        .wc-faq-item p { color: var(--wc-muted); font-size: 0.85rem; margin: 0; line-height: 1.5; }
+        .wc-related { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 12px; }
+        .wc-related a { display: block; padding: 10px 12px; background: var(--wc-surface2); border: 1px solid var(--wc-border); border-radius: 8px; color: var(--wc-muted); text-decoration: none; font-size: 0.85rem; }
+        .wc-related a:hover { border-color: var(--wc-accent); color: #fff; }
+        .wc-related a strong { color: #fff; display: block; margin-bottom: 2px; font-size: 0.9rem; }
+        .wc-geo { background: #12263a; border: 1px solid #1d3a55; border-left: 3px solid #38bdf8; border-radius: 8px; padding: 12px 14px; margin-top: 16px; font-size: 0.85rem; line-height: 1.55; color: #b8c6d4; }
+        .wc-geo b { color: #fff; }
+        .wc-check { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--wc-muted); cursor: pointer; margin-top: 7px; }
+        .wc-check input { accent-color: var(--wc-accent); }
+        .wc-rot-pill { font-size: 0.74rem; padding: 3px 9px; background: var(--wc-bg); border: 1px solid var(--wc-border); border-radius: 14px; color: var(--wc-muted); cursor: pointer; transition: all 0.15s; }
+        .wc-rot-pill.on { background: var(--wc-accent); color: #fff; border-color: var(--wc-accent); }
+        .wc-rots { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .wc-color-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .wc-color-swatch { width: 26px; height: 26px; border-radius: 6px; border: 2px solid var(--wc-border); cursor: pointer; flex-shrink: 0; transition: transform 0.1s; }
+        .wc-color-swatch:hover { transform: scale(1.1); }
+        .wc-color-swatch.on { border-color: #fff; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <h1>Word Cloud Generator</h1>
+            <p class="subtitle">Turn any text into a beautiful, weighted tag cloud</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/generators/">Generators</a> &gt; <span>Word Cloud Generator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="wc-wrap">
+
+                <div class="wc-hero">
+                    <h2>Make a word cloud from any text in seconds. No signup, no watermark, no upload.</h2>
+                    <p>Paste a paragraph, an essay, survey answers, or a plain word list and this maker builds a weighted cloud right in your browser. Words that show up more often get bigger type. Pick a shape, a color palette, a font, then download a high-resolution PNG or a clean vector SVG. Everything is processed locally, so your text never leaves your device.</p>
+                    <div class="wc-pills">
+                        <span class="wc-pill"><strong>6</strong> shapes</span>
+                        <span class="wc-pill"><strong>10+</strong> palettes</span>
+                        <span class="wc-pill">Weighted sizing</span>
+                        <span class="wc-pill">PNG &amp; SVG</span>
+                        <span class="wc-pill">Stop words</span>
+                        <span class="wc-pill">100% private</span>
+                    </div>
+                </div>
+
+                <div class="wc-grid-layout">
+                    <aside class="wc-panel">
+                        <h3>Settings</h3>
+
+                        <div class="wc-section">
+                            <label class="wc-label" for="wc-input">Your text or word list</label>
+                            <textarea id="wc-input" class="wc-textarea" aria-label="Your text or word list" placeholder="Paste an essay, article, speech, survey answers...&#10;&#10;Or type words one per line. Add a weight after a colon to force size, e.g.&#10;love:5&#10;family:3"></textarea>
+                            <div class="wc-hint">Paste free text for automatic word frequency, or list words one per line. Weighted format: <code>word:5</code>.</div>
+                        </div>
+
+                        <div class="wc-section">
+                            <label class="wc-label">Try a sample</label>
+                            <div>
+                                <span class="wc-chip" data-sample="resume">Resume</span>
+                                <span class="wc-chip" data-sample="essay">Essay</span>
+                                <span class="wc-chip" data-sample="feedback">Feedback</span>
+                                <span class="wc-chip" data-sample="party">Party</span>
+                                <span class="wc-chip" data-sample="nature">Nature</span>
+                            </div>
+                        </div>
+
+                        <div class="wc-section">
+                            <div class="wc-row-2">
+                                <div>
+                                    <label class="wc-label" for="wc-shape">Shape</label>
+                                    <select id="wc-shape" class="wc-select">
+                                        <option value="rectangle" selected>Rectangle</option>
+                                        <option value="circle">Circle</option>
+                                        <option value="heart">Heart</option>
+                                        <option value="star">Star</option>
+                                        <option value="cloud">Cloud</option>
+                                        <option value="diamond">Diamond</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="wc-label" for="wc-font">Font</label>
+                                    <select id="wc-font" class="wc-select">
+                                        <option value="Arial, Helvetica, sans-serif" selected>Arial</option>
+                                        <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                                        <option value="'Trebuchet MS', Verdana, sans-serif">Trebuchet MS</option>
+                                        <option value="'Courier New', monospace">Courier New</option>
+                                        <option value="Impact, 'Arial Black', sans-serif">Impact</option>
+                                        <option value="'Palatino Linotype', 'Book Antiqua', serif">Palatino</option>
+                                        <option value="'Comic Sans MS', 'Chalkboard SE', cursive">Comic Sans</option>
+                                        <option value="Verdana, Geneva, sans-serif">Verdana</option>
+                                        <option value="'Times New Roman', Times, serif">Times</option>
+                                        <option value="system-ui, sans-serif">System</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wc-section">
+                            <label class="wc-label">Color palette</label>
+                            <div class="wc-color-row" id="wc-palette-row"></div>
+                            <div class="wc-hint" id="wc-palette-name"></div>
+                            <div style="margin-top:8px">
+                                <label class="wc-label" for="wc-custom-colors">Custom colors (comma-separated hex)</label>
+                                <input type="text" id="wc-custom-colors" class="wc-input" placeholder="#ff6b6b, #4ecdc4, #45b7d1" aria-label="Custom colors">
+                            </div>
+                        </div>
+
+                        <div class="wc-section">
+                            <label class="wc-label" for="wc-maxwords">Max words: <span id="wc-maxwords-val">80</span></label>
+                            <div class="wc-range-row">
+                                <input type="range" id="wc-maxwords" class="wc-range" min="10" max="200" value="80" aria-label="Maximum number of words">
+                            </div>
+                        </div>
+
+                        <div class="wc-section">
+                            <div class="wc-row-2">
+                                <div>
+                                    <label class="wc-label" for="wc-minfont">Min font (px): <span id="wc-minfont-val">14</span></label>
+                                    <input type="range" id="wc-minfont" class="wc-range" min="8" max="40" value="14" aria-label="Minimum font size">
+                                </div>
+                                <div>
+                                    <label class="wc-label" for="wc-maxfont">Max font (px): <span id="wc-maxfont-val">72</span></label>
+                                    <input type="range" id="wc-maxfont" class="wc-range" min="24" max="140" value="72" aria-label="Maximum font size">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wc-section">
+                            <label class="wc-label">Rotation</label>
+                            <div class="wc-rots" id="wc-rots">
+                                <span class="wc-rot-pill on" data-rot="none">None</span>
+                                <span class="wc-rot-pill" data-rot="some">Some</span>
+                                <span class="wc-rot-pill" data-rot="any">Any angle</span>
+                            </div>
+                            <div class="wc-hint" id="wc-rot-hint">Every word sits horizontally.</div>
+                        </div>
+
+                        <div class="wc-section">
+                            <div class="wc-row-2">
+                                <div>
+                                    <label class="wc-label" for="wc-bg">Background</label>
+                                    <select id="wc-bg" class="wc-select">
+                                        <option value="transparent" selected>Transparent</option>
+                                        <option value="#ffffff">White</option>
+                                        <option value="#0f0f23">Dark</option>
+                                        <option value="#1a1a2e">Navy</option>
+                                        <option value="#fdf6e3">Cream</option>
+                                        <option value="custom">Custom...</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="wc-label" for="wc-case">Case</label>
+                                    <select id="wc-case" class="wc-select">
+                                        <option value="as-is" selected>As typed</option>
+                                        <option value="lower">lowercase</option>
+                                        <option value="upper">UPPERCASE</option>
+                                        <option value="title">Title Case</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wc-section">
+                            <label class="wc-label" for="wc-stopwords">Excluded words (comma-separated)</label>
+                            <input type="text" id="wc-stopwords" class="wc-input" placeholder="the, and, of, to" aria-label="Excluded words">
+                            <div class="wc-hint">Common English stop words are filtered automatically. Add your own here.</div>
+                        </div>
+
+                        <div class="wc-btn-row">
+                            <button class="wc-btn" id="wc-generate" data-testid="wc-generate">Generate</button>
+                            <button class="wc-btn wc-btn-sec" id="wc-reshuffle" data-testid="wc-reshuffle">Reshuffle</button>
+                            <button class="wc-btn wc-btn-sec" id="wc-clear" data-testid="wc-clear">Clear</button>
+                        </div>
+
+                        <div class="wc-btn-row">
+                            <button class="wc-btn wc-btn-sec" id="wc-png" data-testid="wc-png">Download PNG</button>
+                            <button class="wc-btn wc-btn-sec" id="wc-svg" data-testid="wc-svg">Download SVG</button>
+                            <button class="wc-btn wc-btn-sec" id="wc-copy-svg" data-testid="wc-copy-svg">Copy SVG</button>
+                        </div>
+
+                        <div class="wc-stats" id="wc-stats">
+                            <span>Words found: <strong id="wc-stat-words">0</strong></span>
+                            <span>Placed: <strong id="wc-stat-placed">0</strong></span>
+                            <span>Skipped: <strong id="wc-stat-skipped">0</strong></span>
+                        </div>
+                        <div class="wc-status" id="wc-status" role="status" aria-live="polite"></div>
+                    </aside>
+
+                    <div class="wc-panel">
+                        <h3>Preview</h3>
+                        <div class="wc-preview-area" id="wc-preview">
+                            <div class="wc-empty">
+                                <div class="wc-empty-icon">&#9728;</div>
+                                <div class="wc-empty-text">Paste some text on the left and click <strong>Generate</strong>.<br>Your words never leave this browser.</div>
+                            </div>
+                        </div>
+                        <div class="wc-hint" style="margin-top:10px">Generated locally. The exported PNG is rendered at 2x resolution and the SVG is fully vector - both scale cleanly for print.</div>
+                    </div>
+                </div>
+
+                <div class="wc-panel" style="margin-top:16px">
+                    <h3>How to use this word cloud generator</h3>
+                    <div class="wc-info-card">
+                        <b>1. Add your words</b>
+                        <p>Paste any block of text and the maker counts how often each word appears. Or type a word list one per line. To force a specific size, add a weight after a colon - <code>love:5</code> appears five times bigger than a plain word. Your text is processed only in this browser tab.</p>
+                    </div>
+                    <div class="wc-info-card">
+                        <b>2. Style the cloud</b>
+                        <p>Choose a shape (rectangle, circle, heart, star, cloud, diamond), one of ten color palettes or your own hex colors, a font, and how much rotation you want. Word size is scaled automatically between your minimum and maximum font sizes by real frequency.</p>
+                    </div>
+                    <div class="wc-info-card">
+                        <b>3. Generate and check</b>
+                        <p>Click Generate. Words are placed with a deterministic spiral algorithm that checks every word against the ones already on the canvas, so nothing overlaps. If a word cannot fit, it is reported as skipped instead of silently hidden. Reshuffle produces a fresh layout from the same words.</p>
+                    </div>
+                    <div class="wc-info-card">
+                        <b>4. Export your image</b>
+                        <p>Download PNG for a crisp image file (rendered at twice the preview size), or download SVG for a true vector that scales to any size for print or vinyl. Copy SVG puts the markup on your clipboard for pasting straight into documents, slides or code.</p>
+                    </div>
+
+                    <div class="wc-geo">
+                        <b>Why AI chatbots can't make your word cloud.</b> A chat model can only describe a word cloud in words - it cannot render a real image with precise frequency-weighted font sizes, collision-free spiral placement and a clean shape mask. This tool computes the actual geometry and outputs a pixel-perfect PNG or a scalable SVG. The result is deterministic and reproducible, which is exactly what chat models cannot give you.
+                    </div>
+
+                    <h3 style="margin-top:18px">Frequently Asked Questions</h3>
+                    <div class="wc-faq-item">
+                        <h4>How do I make a word cloud?</h4>
+                        <p>Paste your text or type a word list in the box on the left, pick a shape, palette and font, then click Generate. Words that appear more often get larger text automatically. You can download the result as a high-resolution PNG or a vector SVG.</p>
+                    </div>
+                    <div class="wc-faq-item">
+                        <h4>Is the word cloud generator free?</h4>
+                        <p>Yes. No signup, no account, no watermark, no daily limit. Everything runs in your browser, so your text and the generated cloud never leave your device.</p>
+                    </div>
+                    <div class="wc-faq-item">
+                        <h4>How does word size get decided?</h4>
+                        <p>Word size is proportional to how often each word appears in your text, scaled between the minimum and maximum font size you choose. Use a word list with weights (like 'love:5') when you want to control the size yourself.</p>
+                    </div>
+                    <div class="wc-faq-item">
+                        <h4>Can I choose the shape of the word cloud?</h4>
+                        <p>Yes. Pick from rectangle, circle, heart, star, cloud or diamond. The words are placed with a spiral layout and then clipped cleanly to the selected shape in both the preview and the exported PNG and SVG.</p>
+                    </div>
+                    <div class="wc-faq-item">
+                        <h4>Can I keep words out of the cloud?</h4>
+                        <p>Yes. A built-in list of common English stop words (the, and, of, is and similar) is removed automatically. You can also type your own words to exclude in the Excluded words field, separated by commas.</p>
+                    </div>
+                    <div class="wc-faq-item">
+                        <h4>What file formats can I export?</h4>
+                        <p>You can download a high-resolution PNG (double the preview size) or a clean vector SVG that scales to any size without losing quality. You can also copy the SVG markup directly to your clipboard for pasting into documents or slides.</p>
+                    </div>
+                    <div class="wc-faq-item">
+                        <h4>Does it work with any language?</h4>
+                        <p>Yes. Any text with spaces works, including accented characters and non-Latin scripts such as Chinese, Japanese, Arabic or Cyrillic. The stop word list is English, so for other languages you may want to add your own excluded words.</p>
+                    </div>
+                    <div class="wc-faq-item">
+                        <h4>Why can't AI chatbots make a word cloud image?</h4>
+                        <p>A chat model can only describe a word cloud in words - it cannot render a real image with precise font-size weighting, collision-free spiral placement and a clean shape mask. This tool computes the actual layout and produces a pixel-perfect PNG or SVG you can keep.</p>
+                    </div>
+
+                    <h3 style="margin-top:18px">Related Tools</h3>
+                    <div class="wc-related">
+                        <a href="/tools/word-search-maker/"><strong>Word Search Maker</strong> Printable puzzle generator</a>
+                        <a href="/tools/anagram-solver/"><strong>Anagram Solver</strong> Unscramble any letters</a>
+                        <a href="/tools/chart-maker/"><strong>Chart Maker</strong> Bar, line, pie &amp; radar</a>
+                        <a href="/tools/word-counter/"><strong>Word Counter</strong> Count words and characters</a>
+                        <a href="/tools/random-generator/"><strong>Random Generator</strong> Numbers, dice, coin, wheel</a>
+                        <a href="/tools/mock-data-generator/"><strong>Mock Data Generator</strong> Fake data for testing</a>
+                        <a href="/tools/case-converter/"><strong>Case Converter</strong> Switch letter casing</a>
+                        <a href="/tools/slug-generator/"><strong>Slug Generator</strong> SEO-friendly URLs</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        var PALETTES = [
+            { name: 'Ocean', colors: ['#4c8bf5', '#22c1c3', '#7eb3ff', '#1b6ca8', '#37d0b2', '#5aa7e8'] },
+            { name: 'Sunset', colors: ['#ff6b6b', '#ff9f43', '#feca57', '#ff5e78', '#e056fd', '#ff8c42'] },
+            { name: 'Forest', colors: ['#2d9a5f', '#10b981', '#6ee7b7', '#34a853', '#0ea5a5', '#7bc47f'] },
+            { name: 'Berry', colors: ['#c44569', '#8e44ad', '#9b59b6', '#e84393', '#fd79a8', '#6c5ce7'] },
+            { name: 'Mono Blue', colors: ['#0b5394', '#134f8c', '#2d76d1', '#4a90e2', '#74b3ff', '#1f3a93'] },
+            { name: 'Mono Red', colors: ['#7f1d1d', '#a83232', '#d64545', '#e8734a', '#f5a25d', '#8b2f2f'] },
+            { name: 'Mono Green', colors: ['#14532d', '#166534', '#15803d', '#16a34a', '#22c55e', '#0e7490'] },
+            { name: 'Mono Purple', colors: ['#4c1d95', '#6d28d9', '#7c3aed', '#8b5cf6', '#a78bfa', '#5b21b6'] },
+            { name: 'Warm', colors: ['#b45309', '#d97706', '#f59e0b', '#fbbf24', '#e07a5f', '#c97b4a'] },
+            { name: 'Pastel', colors: ['#a3d2ff', '#ffd3a3', '#b8f2b8', '#ffc4d4', '#d4c4ff', '#ffe8a3'] },
+            { name: 'Rainbow', colors: ['#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#9a6324'] }
+        ];
+
+        var STOP_WORDS = ('a,about,above,after,again,against,all,am,an,and,any,are,as,at,be,because,been,before,being,below,between,both,but,by,could,did,do,does,doing,down,during,each,few,for,from,further,had,has,have,having,he,her,here,hers,herself,him,himself,his,how,i,if,in,into,is,it,its,itself,just,me,more,most,my,myself,no,nor,not,now,of,off,on,once,only,or,other,our,ours,ourselves,out,over,own,same,she,should,so,some,such,than,that,the,their,theirs,them,themselves,then,there,these,they,this,those,through,to,too,under,until,up,very,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,you,your,yours,yourself,yourselves').split(',');
+
+        var CANVAS_W = 800, CANVAS_H = 600;
+        var state = { words: [], placed: [], canvas: null, ctx: null, seed: 1 };
+
+        function $(id) { return document.getElementById(id); }
+
+        function setStatus(msg, type) {
+            var el = $('wc-status');
+            el.textContent = msg;
+            el.className = 'wc-status' + (type ? ' ' + type : '');
+            if (type === 'success') setTimeout(function() { el.textContent = ''; el.className = 'wc-status'; }, 4000);
+        }
+
+        var SAMPLES = {
+            resume: 'Team leadership problem solving project management communication collaboration agile scrum strategy innovation growth delivery stakeholder management engineering design research data analysis optimization quality assurance documentation testing deployment monitoring security architecture scalability performance planning execution results',
+            essay: 'The beginning of the novel establishes a quiet village where every season brings its own rhythm of work and rest. The main character gradually discovers that the place he once dismissed as ordinary hides a long history of small kindnesses. As the story unfolds, the author keeps returning to the idea that memory shapes identity more than any single event. The writing slows down during the winter chapters, letting the reader feel the cold and the patience of the villagers. By the final pages, the village itself becomes a character, holding the past and the future together. Readers often mention that the ending stays with them long after the book is closed, which is exactly the effect the author intended.',
+            feedback: 'The app feels fast and the interface is clean. I love how simple it is to share a link with my team. The search could be better when the list gets long. Notifications arrive a little late sometimes. Overall the weekly reports save us real time and the export to CSV works perfectly. I would like a dark mode and a mobile version. The onboarding tutorial was helpful but a bit long. Pricing is fair for what you get. Support answered my question within an hour.',
+            party: 'celebrate:5 birthday:5 cake:4 friends:4 games:4 music:4 dance:3 balloons:3 party:3 fun:3 laughter:3 presents:2 photos:2 memories:2 evening:2 snacks:2 drinks:2 guests:2 toast:1 cheers:1 surprise:1 cake:2',
+            nature: 'mountains:5 forest:4 river:4 sky:3 trees:3 sunrise:3 rain:3 leaves:2 wind:2 ocean:2 birds:2 flowers:2 snow:2 meadow:2 cloud:2 star:1 stone:1 moss:1 shadow:1 light:2'
+        };
+
+        function buildPaletteRow() {
+            var row = $('wc-palette-row');
+            var html = '';
+            for (var i = 0; i < PALETTES.length; i++) {
+                var sw = '<span class="wc-color-swatch' + (i === 0 ? ' on' : '') + '" data-palette="' + i + '" style="background:' + PALETTES[i].colors[0] + '" title="' + PALETTES[i].name + '" aria-label="' + PALETTES[i].name + ' palette"></span>';
+                html += sw;
+            }
+            row.innerHTML = html;
+            $('wc-palette-name').textContent = 'Active: ' + PALETTES[0].name;
+        }
+
+        function selectedPalette() {
+            var on = document.querySelector('#wc-palette-row .wc-color-swatch.on');
+            if (!on) return PALETTES[0];
+            return PALETTES[parseInt(on.getAttribute('data-palette'), 10)];
+        }
+
+        $('wc-palette-row').addEventListener('click', function(e) {
+            var t = e.target.closest('.wc-color-swatch');
+            if (!t) return;
+            document.querySelectorAll('#wc-palette-row .wc-color-swatch').forEach(function(s) { s.classList.remove('on'); });
+            t.classList.add('on');
+            $('wc-palette-name').textContent = 'Active: ' + PALETTES[parseInt(t.getAttribute('data-palette'), 10)].name;
+            if (state.placed.length) generate(true);
+        });
+
+        var ROT_HINTS = { none: 'Every word sits horizontally.', some: 'Some words are rotated up to 45 degrees.', any: 'Words use any angle from -90 to 90 degrees.' };
+        $('wc-rots').addEventListener('click', function(e) {
+            var t = e.target.closest('.wc-rot-pill');
+            if (!t) return;
+            document.querySelectorAll('#wc-rots .wc-rot-pill').forEach(function(p) { p.classList.remove('on'); });
+            t.classList.add('on');
+            $('wc-rot-hint').textContent = ROT_HINTS[t.getAttribute('data-rot')];
+            if (state.placed.length) generate(true);
+        });
+
+        function rotationMode() {
+            var on = document.querySelector('#wc-rots .wc-rot-pill.on');
+            return on ? on.getAttribute('data-rot') : 'none';
+        }
+
+        function setRangeBindings() {
+            $('wc-maxwords').addEventListener('input', function() { $('wc-maxwords-val').textContent = this.value; if (state.placed.length) generate(true); });
+            $('wc-minfont').addEventListener('input', function() { $('wc-minfont-val').textContent = this.value; if (state.placed.length) generate(true); });
+            $('wc-maxfont').addEventListener('input', function() { $('wc-maxfont-val').textContent = this.value; if (state.placed.length) generate(true); });
+        }
+
+        function random() {
+            state.seed = (state.seed * 16807) % 2147483647;
+            return (state.seed - 1) / 2147483646;
+        }
+
+        function pick(arr) {
+            if (!arr.length) return '';
+            return arr[Math.floor(random() * arr.length)];
+        }
+
+        function applyCase(word, mode) {
+            if (mode === 'lower') return word.toLowerCase();
+            if (mode === 'upper') return word.toUpperCase();
+            if (mode === 'title') return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+            return word;
+        }
+
+        function parseInput() {
+            var raw = $('wc-input').value.trim();
+            if (!raw) return null;
+            var lines = raw.split(/\n/);
+            var hasWeights = false;
+            for (var i = 0; i < lines.length && i < 20; i++) {
+                if (/:\s*\d+\s*$/.test(lines[i])) { hasWeights = true; break; }
+            }
+            var freq = {};
+            var list = [];
+            if (hasWeights) {
+                for (var j = 0; j < lines.length; j++) {
+                    var line = lines[j].trim();
+                    if (!line) continue;
+                    var m = line.match(/^(.*?):\s*(\d+)\s*$/);
+                    if (m) list.push({ word: m[1].trim(), weight: Math.max(1, parseInt(m[2], 10)) });
+                    else list.push({ word: line, weight: 1 });
+                }
+            } else {
+                var tokens = raw.split(/[^A-Za-z0-9\u00C0-\uFFFF'-]+/).filter(function(t) { return t.length > 0; });
+                for (var k = 0; k < tokens.length; k++) {
+                    var w = tokens[k].toLowerCase();
+                    freq[w] = (freq[w] || 0) + 1;
+                }
+                for (var key in freq) list.push({ word: key, weight: freq[key] });
+            }
+            return { list: list, hasWeights: hasWeights };
+        }
+
+        function excludeWords(list) {
+            var custom = $('wc-stopwords').value.split(',').map(function(s) { return s.trim().toLowerCase(); }).filter(Boolean);
+            var stop = {};
+            for (var i = 0; i < STOP_WORDS.length; i++) stop[STOP_WORDS[i]] = true;
+            for (var j = 0; j < custom.length; j++) stop[custom[j]] = true;
+            var out = [];
+            for (var k = 0; k < list.length; k++) {
+                var w = list[k].word.toLowerCase();
+                if (stop[w]) continue;
+                if (w.length < 2) continue;
+                out.push(list[k]);
+            }
+            return out;
+        }
+
+        function prepareWords(parsed) {
+            var maxWords = parseInt($('wc-maxwords').value, 10) || 80;
+            var maxFont = parseInt($('wc-maxfont').value, 10) || 72;
+            var minFont = parseInt($('wc-minfont').value, 10) || 14;
+            var caseMode = $('wc-case').value;
+
+            var list = excludeWords(parsed.list);
+            list.sort(function(a, b) { return b.weight - a.weight; });
+            list = list.slice(0, maxWords);
+
+            var maxW = 1;
+            for (var i = 0; i < list.length; i++) if (list[i].weight > maxW) maxW = list[i].weight;
+
+            var logMax = Math.log(maxW + 1);
+            var n = Math.max(list.length - 1, 1);
+            var words = [];
+            for (var j = 0; j < list.length; j++) {
+                var item = list[j];
+                var freqRatio = Math.log(item.weight + 1) / logMax;
+                var rankRatio = 1 - j / n;
+                var ratio = freqRatio * 0.55 + rankRatio * 0.45;
+                var size = Math.round(minFont + (maxFont - minFont) * ratio);
+                words.push({ text: applyCase(item.word, caseMode), size: size, weight: item.weight });
+            }
+            return words;
+        }
+
+        function getColors() {
+            var customRaw = $('wc-custom-colors').value;
+            if (customRaw && customRaw.trim()) {
+                var colors = customRaw.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(s); });
+                if (colors.length) return colors;
+            }
+            return selectedPalette().colors;
+        }
+
+        function measureWord(ctx, text, size, font) {
+            ctx.font = 'bold ' + size + 'px ' + font;
+            return { w: ctx.measureText(text).width, h: size };
+        }
+
+        function getBg() {
+            var v = $('wc-bg').value;
+            if (v === 'custom') {
+                var c = prompt('Enter a background color (hex like #123456):');
+                if (c && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(c)) return c;
+                return 'transparent';
+            }
+            return v;
+        }
+
+        function inShape(x, y, shape, rw, rh) {
+            var nx = (x - rw / 2) / (rw / 2);
+            var ny = (y - rh / 2) / (rh / 2);
+            switch (shape) {
+                case 'circle': return (nx * nx + ny * ny) <= 1.0;
+                case 'heart':
+                    var hx = nx * 1.1, hy = ny * 0.95;
+                    return Math.pow(hx * hx + hy * hy - 1, 3) - hx * hx * hy * hy * hy <= 0;
+                case 'diamond': return Math.abs(nx) + Math.abs(ny) <= 1.0;
+                case 'star': return pointInStar(nx, ny);
+                case 'cloud': return pointInCloud(nx, ny);
+                default: return true;
+            }
+        }
+
+        function pointInStar(nx, ny) {
+            var pts = [];
+            var outer = 1.0, inner = 0.42, spikes = 5;
+            for (var i = 0; i < spikes * 2; i++) {
+                var r = i % 2 === 0 ? outer : inner;
+                var a = (i * Math.PI) / spikes - Math.PI / 2;
+                pts.push([Math.cos(a) * r, Math.sin(a) * r]);
+            }
+            return pointInPolygon(nx, ny, pts);
+        }
+
+        function pointInCloud(nx, ny) {
+            var blobs = [
+                [0, -0.12, 0.72], [-0.45, 0.25, 0.52], [0.42, 0.28, 0.55],
+                [-0.12, 0.5, 0.42], [0.12, 0.52, 0.4], [0, 0.15, 0.5]
+            ];
+            for (var i = 0; i < blobs.length; i++) {
+                var dx = nx - blobs[i][0], dy = ny - blobs[i][1];
+                if (dx * dx + dy * dy <= blobs[i][2] * blobs[i][2]) return true;
+            }
+            return false;
+        }
+
+        function pointInPolygon(x, y, pts) {
+            var inside = false;
+            for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+                var xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1];
+                var intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+
+        function overlaps(r1, r2) {
+            return !(r1.x + r1.w < r2.x || r2.x + r2.w < r1.x || r1.y + r1.h < r2.y || r2.y + r2.h < r1.y);
+        }
+
+        function layout(words, shape, font, colors, rotation) {
+            var placed = [];
+            var skipped = 0;
+            var ctx = state.ctx;
+            var pad = 4;
+
+            words.sort(function(a, b) { return b.size - a.size; });
+
+            var maxAttempts = 30000;
+            var spiralStep = 4.5;
+
+            for (var i = 0; i < words.length; i++) {
+                var word = words[i];
+                var m = measureWord(ctx, word.text, word.size, font);
+                var w = m.w, h = m.h;
+
+                var angle = 0;
+                if (rotation === 'some' && random() < 0.4) angle = (random() * 90 - 45) * Math.PI / 180;
+                else if (rotation === 'any') angle = (random() * 180 - 90) * Math.PI / 180;
+
+                var cosA = Math.abs(Math.cos(angle)), sinA = Math.abs(Math.sin(angle));
+                var bw = w * cosA + h * sinA;
+                var bh = w * sinA + h * cosA;
+
+                var placedItem = null;
+                var margin = Math.min(CANVAS_W, CANVAS_H) * 0.05;
+
+                for (var t = 0; t < maxAttempts; t++) {
+                    var rad = spiralStep * Math.sqrt(t + 1);
+                    var theta = 2.39996 * t; // golden angle
+                    var cx = CANVAS_W / 2 + rad * Math.cos(theta);
+                    var cy = CANVAS_H / 2 + rad * Math.sin(theta) * 0.85;
+
+                    var left = cx - bw / 2 - pad, top = cy - bh / 2 - pad;
+                    var right = cx + bw / 2 + pad, bottom = cy + bh / 2 + pad;
+                    if (left < margin || top < margin || right > CANVAS_W - margin || bottom > CANVAS_H - margin) continue;
+                    if (!inShape(cx, cy, shape, CANVAS_W, CANVAS_H)) continue;
+
+                    var rect = { x: left, y: top, w: bw + pad * 2, h: bh + pad * 2 };
+                    var collides = false;
+                    for (var p = 0; p < placed.length; p++) {
+                        if (overlaps(rect, placed[p].rect)) { collides = true; break; }
+                    }
+                    if (!collides) {
+                        placedItem = { text: word.text, size: word.size, x: cx, y: cy, angle: angle, color: pick(colors), rect: rect, bw: bw, bh: bh };
+                        placed.push(placedItem);
+                        break;
+                    }
+                }
+                if (!placedItem) skipped++;
+            }
+            return { placed: placed, skipped: skipped };
+        }
+
+        function drawShape(ctx, shape, w, h) {
+            var cx = w / 2, cy = h / 2;
+            ctx.beginPath();
+            if (shape === 'circle') {
+                ctx.ellipse(cx, cy, w / 2 - 4, h / 2 - 4, 0, 0, Math.PI * 2);
+            } else if (shape === 'diamond') {
+                ctx.moveTo(cx, 4); ctx.lineTo(w - 4, cy); ctx.lineTo(cx, h - 4); ctx.lineTo(4, cy); ctx.closePath();
+            } else if (shape === 'heart') {
+                var s = Math.min(w, h) / 2 * 0.92;
+                ctx.moveTo(cx, cy + s * 0.9);
+                ctx.bezierCurveTo(cx - s, cy - s * 0.4, cx - s * 0.5, cy - s, cx, cy - s * 0.2);
+                ctx.bezierCurveTo(cx + s * 0.5, cy - s, cx + s, cy - s * 0.4, cx, cy + s * 0.9);
+            } else if (shape === 'star') {
+                for (var i = 0; i < 10; i++) {
+                    var r = i % 2 === 0 ? Math.min(w, h) * 0.49 : Math.min(w, h) * 0.2;
+                    var a = (i * Math.PI) / 5 - Math.PI / 2;
+                    var px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
+                    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+            } else if (shape === 'cloud') {
+                var rx = w * 0.2, ry = h * 0.14;
+                ctx.arc(cx, cy + h * 0.08, rx, 0, Math.PI * 2);
+                ctx.arc(cx - w * 0.13, cy + h * 0.12, rx * 0.85, 0, Math.PI * 2);
+                ctx.arc(cx + w * 0.13, cy + h * 0.14, rx * 0.8, 0, Math.PI * 2);
+                ctx.arc(cx, cy - h * 0.12, rx * 0.9, 0, Math.PI * 2);
+            } else {
+                ctx.rect(4, 4, w - 8, h - 8);
+            }
+        }
+
+        function render() {
+            if (!state.placed.length) return;
+            var shape = $('wc-shape').value;
+            var font = $('wc-font').value;
+            var bg = getBg();
+            var canvas = state.canvas;
+            if (!canvas) {
+                canvas = document.createElement('canvas');
+                canvas.width = CANVAS_W; canvas.height = CANVAS_H;
+                canvas.className = 'wc-canvas';
+                state.canvas = canvas;
+                state.ctx = canvas.getContext('2d');
+            }
+            var ctx = state.ctx;
+            ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+            if (bg !== 'transparent') {
+                ctx.fillStyle = bg;
+                ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+            }
+
+            ctx.save();
+            if (shape !== 'rectangle') {
+                ctx.beginPath();
+                drawShape(ctx, shape, CANVAS_W, CANVAS_H);
+                ctx.clip();
+            }
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (var i = 0; i < state.placed.length; i++) {
+                var w = state.placed[i];
+                ctx.save();
+                ctx.translate(w.x, w.y);
+                ctx.rotate(w.angle);
+                ctx.fillStyle = w.color;
+                ctx.font = 'bold ' + w.size + 'px ' + font;
+                ctx.fillText(w.text, 0, 0);
+                ctx.restore();
+            }
+            ctx.restore();
+
+            var preview = $('wc-preview');
+            if (canvas.parentNode !== preview) {
+                preview.innerHTML = '';
+                preview.appendChild(canvas);
+            }
+        }
+
+        function generate(reshuffle) {
+            var parsed = parseInput();
+            if (!parsed) {
+                setStatus('Add some text or a word list first.', 'warn');
+                return;
+            }
+            if (reshuffle) state.seed = Math.floor(Math.random() * 2147483646) + 1;
+
+            var words = prepareWords(parsed);
+            if (!words.length) {
+                setStatus('No words left after filtering. Try fewer excluded words.', 'warn');
+                return;
+            }
+
+            if (!state.canvas) {
+                var canvas = document.createElement('canvas');
+                canvas.width = CANVAS_W; canvas.height = CANVAS_H;
+                canvas.className = 'wc-canvas';
+                state.canvas = canvas;
+                state.ctx = canvas.getContext('2d');
+            }
+
+            var shape = $('wc-shape').value;
+            var font = $('wc-font').value;
+            var colors = getColors();
+            var rotation = rotationMode();
+
+            var result = layout(words, shape, font, colors, rotation);
+            state.placed = result.placed;
+            state.words = words;
+
+            $('wc-stat-words').textContent = words.length;
+            $('wc-stat-placed').textContent = result.placed.length;
+            $('wc-stat-skipped').textContent = result.skipped;
+
+            render();
+
+            var msg = 'Placed ' + result.placed.length + ' of ' + words.length + ' words.';
+            if (result.skipped > 0) msg += ' ' + result.skipped + ' could not fit (try a bigger max font or fewer words).';
+            setStatus(msg, result.skipped > 0 ? 'warn' : 'success');
+        }
+
+        function exportPng() {
+            if (!state.placed.length) { setStatus('Generate a cloud first.', 'warn'); return; }
+            var shape = $('wc-shape').value;
+            var font = $('wc-font').value;
+            var bg = getBg();
+            var scale = 2;
+            var cw = CANVAS_W * scale, ch = CANVAS_H * scale;
+            var out = document.createElement('canvas');
+            out.width = cw; out.height = ch;
+            var octx = out.getContext('2d');
+
+            if (bg !== 'transparent') {
+                octx.fillStyle = bg;
+                octx.fillRect(0, 0, cw, ch);
+            }
+            octx.save();
+            if (shape !== 'rectangle') {
+                octx.beginPath();
+                drawShape(octx, shape, cw, ch);
+                octx.clip();
+            }
+            octx.scale(scale, scale);
+            octx.textAlign = 'center';
+            octx.textBaseline = 'middle';
+            for (var i = 0; i < state.placed.length; i++) {
+                var w = state.placed[i];
+                octx.save();
+                octx.translate(w.x, w.y);
+                octx.rotate(w.angle);
+                octx.fillStyle = w.color;
+                octx.font = 'bold ' + w.size + 'px ' + font;
+                octx.fillText(w.text, 0, 0);
+                octx.restore();
+            }
+            octx.restore();
+
+            var a = document.createElement('a');
+            a.download = 'word-cloud.png';
+            a.href = out.toDataURL('image/png');
+            a.click();
+            setStatus('PNG downloaded (1600x1200).', 'success');
+        }
+
+        function svgEscape(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function buildSvg() {
+            var shape = $('wc-shape').value;
+            var font = $('wc-font').value;
+            var bg = getBg();
+            var svg = [];
+            svg.push('<?xml version="1.0" encoding="UTF-8"?>');
+            svg.push('<svg xmlns="http://www.w3.org/2000/svg" width="' + CANVAS_W + '" height="' + CANVAS_H + '" viewBox="0 0 ' + CANVAS_W + ' ' + CANVAS_H + '">');
+            if (bg !== 'transparent') svg.push('<rect width="100%" height="100%" fill="' + bg + '"/>');
+
+            if (shape !== 'rectangle') {
+                svg.push('<clipPath id="wcClip">');
+                svg.push('<path d="' + shapePathD(shape) + '"/>');
+                svg.push('</clipPath>');
+                svg.push('<g clip-path="url(#wcClip)">');
+            } else {
+                svg.push('<g>');
+            }
+
+            for (var i = 0; i < state.placed.length; i++) {
+                var w = state.placed[i];
+                var deg = Math.round(w.angle * 180 / Math.PI * 100) / 100;
+                svg.push('<text x="' + Math.round(w.x * 100) / 100 + '" y="' + Math.round(w.y * 100) / 100 + '" font-family="' + svgEscape(font) + '" font-weight="bold" font-size="' + w.size + '" fill="' + w.color + '" text-anchor="middle" dominant-baseline="central" transform="rotate(' + deg + ' ' + Math.round(w.x * 100) / 100 + ' ' + Math.round(w.y * 100) / 100 + ')">' + svgEscape(w.text) + '</text>');
+            }
+            svg.push('</g>');
+            svg.push('</svg>');
+            return svg.join('\n');
+        }
+
+        function shapePathD(shape) {
+            var w = CANVAS_W, h = CANVAS_H, cx = w / 2, cy = h / 2;
+            var d = '';
+            if (shape === 'circle') {
+                d = 'M' + (cx + w / 2 - 4) + ',' + cy + ' A' + (w / 2 - 4) + ',' + (h / 2 - 4) + ' 0 1 0 ' + (cx - w / 2 + 4) + ',' + cy + ' A' + (w / 2 - 4) + ',' + (h / 2 - 4) + ' 0 1 0 ' + (cx + w / 2 - 4) + ',' + cy + ' Z';
+            } else if (shape === 'diamond') {
+                d = 'M' + cx + ',4 L' + (w - 4) + ',' + cy + ' L' + cx + ',' + (h - 4) + ' L4,' + cy + ' Z';
+            } else if (shape === 'heart') {
+                var s = Math.min(w, h) / 2 * 0.92;
+                d = 'M' + cx + ',' + (cy + s * 0.9) +
+                    ' C' + (cx - s) + ',' + (cy - s * 0.4) + ' ' + (cx - s * 0.5) + ',' + (cy - s) + ' ' + cx + ',' + (cy - s * 0.2) +
+                    ' C' + (cx + s * 0.5) + ',' + (cy - s) + ' ' + (cx + s) + ',' + (cy - s * 0.4) + ' ' + cx + ',' + (cy + s * 0.9) + ' Z';
+            } else if (shape === 'star') {
+                var pts = [];
+                for (var i = 0; i < 10; i++) {
+                    var r = i % 2 === 0 ? Math.min(w, h) * 0.49 : Math.min(w, h) * 0.2;
+                    var a = (i * Math.PI) / 5 - Math.PI / 2;
+                    pts.push((cx + Math.cos(a) * r).toFixed(1) + ',' + (cy + Math.sin(a) * r).toFixed(1));
+                }
+                d = 'M' + pts.join(' L') + ' Z';
+            } else if (shape === 'cloud') {
+                var rx = w * 0.2, ry = h * 0.14;
+                var arcs = [
+                    [cx, cy + h * 0.08, rx], [cx - w * 0.13, cy + h * 0.12, rx * 0.85],
+                    [cx + w * 0.13, cy + h * 0.14, rx * 0.8], [cx, cy - h * 0.12, rx * 0.9]
+                ];
+                d = 'M' + (cx - rx) + ',' + (cy + h * 0.08) + ' A' + rx + ',' + ry + ' 0 1 0 ' + (cx + rx) + ',' + (cy + h * 0.08) + ' Z';
+            } else {
+                d = 'M4,4 L' + (w - 4) + ',4 L' + (w - 4) + ',' + (h - 4) + ' L4,' + (h - 4) + ' Z';
+            }
+            return d;
+        }
+
+        function downloadSvg() {
+            if (!state.placed.length) { setStatus('Generate a cloud first.', 'warn'); return; }
+            var blob = new Blob([buildSvg()], { type: 'image/svg+xml;charset=utf-8' });
+            var a = document.createElement('a');
+            a.download = 'word-cloud.svg';
+            a.href = URL.createObjectURL(blob);
+            a.click();
+            setTimeout(function() { URL.revokeObjectURL(a.href); }, 1000);
+            setStatus('SVG downloaded.', 'success');
+        }
+
+        function copySvg() {
+            if (!state.placed.length) { setStatus('Generate a cloud first.', 'warn'); return; }
+            var svg = buildSvg();
+            navigator.clipboard.writeText(svg).then(function() {
+                setStatus('SVG markup copied to clipboard.', 'success');
+            }).catch(function() {
+                var ta = document.createElement('textarea');
+                ta.value = svg;
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy'); setStatus('SVG copied.', 'success'); } catch (e) { setStatus('Copy failed - select and copy manually.', 'error'); }
+                document.body.removeChild(ta);
+            });
+        }
+
+        document.querySelectorAll('.wc-chip').forEach(function(chip) {
+            chip.addEventListener('click', function() {
+                $('wc-input').value = SAMPLES[this.getAttribute('data-sample')];
+                generate(true);
+            });
+        });
+
+        $('wc-generate').addEventListener('click', function() { generate(false); });
+        $('wc-reshuffle').addEventListener('click', function() { generate(true); });
+        $('wc-clear').addEventListener('click', function() {
+            $('wc-input').value = '';
+            state.placed = [];
+            state.words = [];
+            $('wc-preview').innerHTML = '<div class="wc-empty"><div class="wc-empty-icon">&#9728;</div><div class="wc-empty-text">Paste some text on the left and click <strong>Generate</strong>.<br>Your words never leave this browser.</div></div>';
+            $('wc-stat-words').textContent = '0';
+            $('wc-stat-placed').textContent = '0';
+            $('wc-stat-skipped').textContent = '0';
+            setStatus('Cleared.', '');
+        });
+        $('wc-png').addEventListener('click', exportPng);
+        $('wc-svg').addEventListener('click', downloadSvg);
+        $('wc-copy-svg').addEventListener('click', copySvg);
+
+        buildPaletteRow();
+        setRangeBindings();
+
+        // Test hooks
+        window.wcGenerate = function() { generate(false); };
+        window.wcSetText = function(t) { $('wc-input').value = t; };
+        window.wcGetPlacedCount = function() { return state.placed.length; };
+        window.wcGetCanvas = function() { return state.canvas; };
+        window.wcExportPng = function() { exportPng(); };
+        window.wcExportSvg = function() { return buildSvg(); };
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>htaccess Redirect Tester - Test Rewrite Rules Online</title>
+<meta name="description" content="Free htaccess redirect tester. Paste .htaccess rules and a URL, see which rule matched and why, and get the corrected line for mistakes that break redirects.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/htaccess-redirect-tester/">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/htaccess-redirect-tester/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="htaccess Redirect Tester - Test Rewrite Rules Online">
+<meta property="og:description" content="Free htaccess redirect tester. Paste .htaccess rules and a URL, see which rule matched and why, and get the corrected line for mistakes that break redirects.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="htaccess Redirect Tester - Test Rewrite Rules Online">
+<meta name="twitter:description" content="Free htaccess redirect tester. Paste .htaccess rules and a URL, see which rule matched and why, and get the corrected line for mistakes that break redirects.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:url" content="https://tools.scoreroute.com/tools/htaccess-redirect-tester/">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "htaccess Redirect Tester",
+  "description": "Free htaccess redirect tester that simulates Apache mod_rewrite in a browser. Paste .htaccess rules and a test URL, get a per-rule trace showing which directive matched, which condition blocked it, the final URL and status code, plus a linter that names the mistake and prints the corrected line.",
+  "url": "https://tools.scoreroute.com/tools/htaccess-redirect-tester/",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript. No signup, no upload, nothing stored.",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@id": "https://tools.scoreroute.com/#author"},
+  "datePublished": "2026-10-03",
+  "dateModified": "2026-10-03",
+  "featureList": [
+    "Simulates mod_rewrite in per-directory context the way Apache actually evaluates it",
+    "Per-rule trace: matched, skipped, or blocked, with the reason on each line",
+    "Final URL, HTTP status and query string handling for the request you entered",
+    "Condition evaluator for RewriteCond including variable backreferences and numeric and string comparisons",
+    "Linter that names each mistake and prints the corrected directive",
+    "Detects the leading-slash bug that makes a RewriteRule match nothing at all",
+    "Rewrite loop detection with the round that repeated",
+    "Nine ready-made rule sets covering HTTPS, canonical host, trailing slash and blocking"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Why does my RewriteRule with ^/ at the start match nothing?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Because a .htaccess file runs in per-directory context, and Apache strips the leading slash from the path before it compares your pattern to anything. A request for /old-page comes in as old-page, so the pattern ^/old-page can never match. The pattern that works is ^old-page. This is the single most common reason a redirect rule in a .htaccess file does nothing at all, and it is invisible if you only read the rule rather than watch it run. The same rule written ^/old-page in a server config or a virtual host block is correct, because server config runs in server context where the slash is present. Moving a rule between the two places without changing the pattern is what breaks it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between 301 and 302 in an htaccess redirect?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "301 is permanent. It tells the browser and every search engine that this is the address from now on, and they update their records accordingly. 302 is temporary, and nothing is transferred: the destination keeps its own ranking and the original address stays in the index. A bare [R] flag with no number is 302, so a rule written with just [R] looks like a redirect and behaves like a temporary one. The practical trap is the reverse: a 301 on a rule you were only testing gets cached hard by browsers, so when you remove it the old address can stay stuck in visitors' caches for a long time. Use 301 when the move is final and 302 while you are still deciding."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my redirect rule work on some pages and not others?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Usually a missing RewriteCond. A bare RewriteRule that redirects also catches the files that actually exist, so your rule sends working pages to a destination and images, CSS and JavaScript 404. The standard guard is two conditions that require the file to be absent before the rule is allowed to fire: %{REQUEST_FILENAME} !-f and %{REQUEST_FILENAME} !-d. Without them the rule is not selective, it is just aggressive. This tester flags the omission by name rather than leaving you to work out why one path behaves differently from another."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does the QSA flag do and when do I need it?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "QSA means append the query string. By default a RewriteRule substitution that contains its own question mark throws the visitor's original query string away. A visitor on /product?id=42 hits a rule that sends them to /new-product and arrives with no id, which breaks anything on the destination that reads parameters. Adding [QSA, L] keeps the id. If your substitution has no question mark at all, the original query string is carried across untouched and QSA changes nothing, which is why adding it is harmless and why omitting it when you needed it is not."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does the L flag do and what happens if I leave it off?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "L means last: stop evaluating further rules in this pass. Without it Apache applies the substitution, moves on to the next rule using the new path, and keeps going. That is sometimes what you want, in a chain of small substitutions. More often it produces a redirect loop, because a later rule sends the path back to where it started. If a redirect is not working, a missing [L] is one of the three things to check, alongside the leading slash and the conditions. This tester shows the whole pass, so you can see which rule fired last and whether the path came back around."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does this tool check whether a file actually exists on my server?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No, and it says so rather than guessing. A browser cannot see your filesystem, so the -f, -d and -s conditions cannot be evaluated here. This tester marks any condition that depends on the filesystem as unverifiable and shows which branch it assumed, so you always know which verdicts are real and which depend on that one assumption. Everything else, the pattern matching, the variables, the query string handling and the status codes, is computed the same way Apache computes it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my .htaccess file uploaded or stored anywhere?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Nothing leaves your browser. The rules are parsed and simulated by JavaScript running on your own machine, there is no request to a server, no account, and nothing written to disk or to any database. Reload the page and it is all gone. That is also why the tool works with a .htaccess containing internal hostnames or credentials-protected paths, which you would not want to paste into a site that logs what people type."
+      }
+    }
+  ]
+}
+</script>
+<style>
+.hr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 700px) { .hr-grid { grid-template-columns: 1fr; } }
+.hr-label { color: #888; font-size: 0.85rem; margin-bottom: 4px; display: block; }
+.hr-rules { width: 100%; min-height: 230px; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; padding: 13px 15px; font-family: monospace; font-size: 0.86rem; line-height: 1.55; resize: vertical; }
+.hr-rules:focus { outline: 2px solid transparent; border-color: #667eea; }
+.hr-url { width: 100%; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; padding: 12px 15px; font-family: monospace; font-size: 0.95rem; }
+.hr-url:focus { outline: 2px solid transparent; border-color: #667eea; }
+.hr-ctx { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+@media (max-width: 600px) { .hr-ctx { grid-template-columns: 1fr 1fr; } }
+.hr-ctx input { width: 100%; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 8px; padding: 9px 11px; font-family: monospace; font-size: 0.82rem; }
+.hr-ctx input:focus { outline: 2px solid transparent; border-color: #667eea; }
+.hr-presets { display: flex; gap: 7px; flex-wrap: wrap; margin: 12px 0 18px; }
+.hr-preset { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 20px; padding: 6px 14px; font-size: 0.82rem; color: #ccc; cursor: pointer; font-family: inherit; }
+.hr-preset:hover { border-color: #667eea; color: #fff; }
+.hr-verdict { border-radius: 14px; padding: 20px 22px; margin-bottom: 18px; display: none; }
+.hr-verdict.visible { display: block; }
+.hr-verdict.serve { background: rgba(16,185,129,0.1); border: 2px solid rgba(16,185,129,0.32); }
+.hr-verdict.redir { background: rgba(59,130,246,0.1); border: 2px solid rgba(59,130,246,0.32); }
+.hr-verdict.deny { background: rgba(239,68,68,0.1); border: 2px solid rgba(239,68,68,0.32); }
+.hr-verdict.loop { background: rgba(234,179,8,0.1); border: 2px solid rgba(234,179,8,0.32); }
+.hr-v-code { font-size: 2.3rem; font-weight: 800; line-height: 1; font-family: monospace; }
+.hr-verdict.serve .hr-v-code { color: #4ade80; }
+.hr-verdict.redir .hr-v-code { color: #93c5fd; }
+.hr-verdict.deny .hr-v-code { color: #f87171; }
+.hr-verdict.loop .hr-v-code { color: #fbbf24; }
+.hr-v-what { font-size: 1.05rem; font-weight: 700; color: #fff; margin: 8px 0 10px; }
+.hr-final { font-family: monospace; font-size: 0.86rem; background: rgba(0,0,0,0.32); border-radius: 8px; padding: 11px 13px; word-break: break-all; color: #9ae6b4; margin-bottom: 8px; }
+.hr-final .k { color: #777; }
+.hr-v-why { color: #b3b8c0; font-size: 0.9rem; line-height: 1.6; }
+.hr-v-why b { color: #fff; }
+.hr-block { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.hr-block h3 { margin: 0; padding: 13px 18px; font-size: 0.95rem; color: #fff; background: rgba(0,0,0,0.2); border-bottom: 1px solid #2a2a4a; }
+.hr-block .hr-body { padding: 6px 18px 16px; }
+.hr-row { display: flex; gap: 11px; padding: 11px 0; border-bottom: 1px solid #1f1f3a; align-items: flex-start; }
+.hr-row:last-child { border-bottom: none; }
+.hr-r-line { flex-shrink: 0; width: 30px; height: 22px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; font-family: monospace; }
+.hr-r-line.hit { background: rgba(16,185,129,0.2); color: #4ade80; }
+.hr-r-line.blocked { background: rgba(234,179,8,0.16); color: #fbbf24; }
+.hr-r-line.pass { background: rgba(100,100,130,0.2); color: #777; }
+.hr-r-body { flex: 1; min-width: 0; }
+.hr-r-src { font-family: monospace; font-size: 0.79rem; color: #667eea; word-break: break-word; }
+.hr-r-reason { color: #999; font-size: 0.82rem; margin-top: 3px; line-height: 1.55; }
+.hr-r-reason b { color: #fbbf24; }
+.hr-r-reason .unver { color: #c084fc; }
+.hr-find { display: flex; gap: 11px; padding: 12px 0; border-bottom: 1px solid #1f1f3a; }
+.hr-find:last-child { border-bottom: none; }
+.hr-f-badge { flex-shrink: 0; font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 5px; height: fit-content; white-space: nowrap; margin-top: 2px; }
+.hr-f-badge.high { background: rgba(239,68,68,0.16); color: #f87171; }
+.hr-f-badge.med { background: rgba(234,179,8,0.16); color: #fbbf24; }
+.hr-f-badge.low { background: rgba(59,130,246,0.16); color: #93c5fd; }
+.hr-f-title { color: #fff; font-weight: 600; font-size: 0.92rem; margin-bottom: 4px; }
+.hr-f-msg { color: #b3b8c0; font-size: 0.86rem; line-height: 1.6; }
+.hr-f-fix { margin-top: 9px; }
+.hr-f-fix .lbl { color: #777; font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.hr-f-fix code { display: block; background: #0f0f23; border: 1px solid #1f3a2a; border-radius: 7px; padding: 10px 12px; color: #9ae6b4; font-size: 0.78rem; font-family: monospace; white-space: pre-wrap; word-break: break-all; line-height: 1.5; }
+.hr-clean { color: #4ade80; font-size: 0.9rem; padding: 12px 0; }
+.hr-none { color: #888; font-size: 0.88rem; padding: 14px 0; }
+.hr-note { background: rgba(147,51,234,0.08); border: 1px solid rgba(147,51,234,0.28); border-radius: 9px; padding: 11px 14px; color: #c4b5fd; font-size: 0.83rem; line-height: 1.6; margin-bottom: 14px; }
+.hr-actions { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 16px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>htaccess Redirect Tester</h1>
+    <p class="subtitle">Find the Line That Broke Your Redirect, Not the Line You Hoped Would Work</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/tools/code-testing/">Code Testing</a> &gt; <span>htaccess Redirect Tester</span>
+      <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <h2>Test Your Rules</h2>
+
+      <label class="hr-label" for="hr-rules">Your .htaccess rules</label>
+      <textarea id="hr-rules" class="hr-rules" spellcheck="false" autocomplete="off" aria-label="Paste your htaccess rewrite and redirect rules here"></textarea>
+
+      <p class="hr-label" style="margin-top:14px;">Load a common setup:</p>
+      <div class="hr-presets" id="hr-presets"></div>
+
+      <div class="hr-grid">
+        <div>
+          <label class="hr-label" for="hr-url">URL to test</label>
+          <input type="text" id="hr-url" class="hr-url" value="/old-page.html" spellcheck="false" autocomplete="off" aria-label="Path or full URL to test against the rules">
+        </div>
+        <div>
+          <label class="hr-label" for="hr-host">Host</label>
+          <input type="text" id="hr-host" class="hr-url" value="example.com" spellcheck="false" autocomplete="off" aria-label="Host name used to build absolute redirect URLs">
+        </div>
+      </div>
+
+      <div class="hr-ctx">
+        <div><label class="hr-label" for="hdr-host">HTTP_HOST</label><input type="text" id="hdr-host" value="www.example.com" spellcheck="false" aria-label="HTTP_HOST server variable value"></div>
+        <div><label class="hr-label" for="hdr-https">HTTPS</label><input type="text" id="hdr-https" value="off" spellcheck="false" aria-label="HTTPS server variable, on or off"></div>
+        <div><label class="hr-label" for="hdr-agent">HTTP_USER_AGENT</label><input type="text" id="hdr-agent" value="Mozilla/5.0" spellcheck="false" aria-label="HTTP_USER_AGENT server variable value"></div>
+      </div>
+
+      <div class="btn-group" style="margin-top:16px;">
+        <button class="btn btn-primary" id="hr-run" onclick="hrRun()">Test Rules</button>
+        <button class="btn" onclick="hrClear()">Clear</button>
+      </div>
+
+      <p class="hr-label" style="margin-top:16px;margin-bottom:2px;">Does the requested file exist on the server? (a browser cannot see your disk, so this decides the <code>-f</code> conditions)</p>
+      <label style="font-size:0.86rem;color:#b3b8c0;display:inline-flex;gap:7px;align-items:center;cursor:pointer;">
+        <input type="checkbox" id="hr-assume-yes"> Assume the file exists
+      </label>
+
+      <div id="hr-error" class="hr-none" style="display:none;color:#f87171;"></div>
+
+      <div id="hr-out" style="display:none;">
+        <div class="hr-note" id="hr-unver-note" style="display:none;"></div>
+        <div id="hr-verdict" class="hr-verdict"></div>
+        <div class="hr-block">
+          <h3>Rule by rule</h3>
+          <div class="hr-body" id="hr-trace"></div>
+        </div>
+        <div class="hr-block">
+          <h3>What is wrong with these rules</h3>
+          <div class="hr-body" id="hr-findings"></div>
+        </div>
+        <div class="hr-actions">
+          <button class="btn btn-secondary" onclick="hrRun()">Test Another URL</button>
+          <button class="btn" onclick="hrCopyResult()">Copy Result URL</button>
+        </div>
+        <p class="hr-privacy" style="margin-top:16px;font-size:0.85rem;color:#777;text-align:center;">Parsed and simulated in your browser. Nothing is uploaded or stored.</p>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>Why the Rule You Wrote Is Not the Rule Apache Runs</h3>
+      <p>Ask a chatbot why your redirect does not fire and you will usually get a confident answer built from general knowledge of Apache. The problem is that the answer depends on three things no language model can look up: the exact text of your file, the request you are making, and the context Apache evaluates the file in. Get the context wrong and the correct-looking pattern still matches nothing.</p>
+      <p>That context is per-directory. A .htaccess file is not a server config, and Apache does not compare your pattern against the path the visitor typed. It strips the leading slash first, because in a directory context the slash is implied. A request for <code>/old-page</code> arrives at your pattern as <code>old-page</code>, which means <code>^/old-page</code> can never match anything, ever, on any request. The rule that works is <code>^old-page</code>. Read the two side by side and they look interchangeable. Run them and only one of them does anything.</p>
+      <p>The second trap is that a rule with no conditions is not selective, it is just blunt. A bare <code>RewriteRule ^old-(.*)$ /new-$1 [R=301,L]</code> also catches every file that genuinely exists, so working pages get redirected and your images and stylesheets start 404ing. The guard everybody copies and almost nobody understands is two conditions requiring the file to be missing before the rule is allowed to act: <code>RewriteCond %{REQUEST_FILENAME} !-f</code> and <code>RewriteCond %{REQUEST_FILENAME} !-d</code>.</p>
+      <p>The third is the query string. If your substitution contains its own question mark, the visitor's original query string is discarded unless you add <code>QSA</code>. That is how a link with <code>?id=42</code> arrives at its destination with no id, and why the destination quietly stops working. A substitution with no question mark carries the query string across untouched, which is why adding <code>QSA</code> to every rule is harmless and omitting it when you needed it is not.</p>
+      <p>This tester runs your actual lines against your actual URL and shows the whole evaluation: which rule matched, which condition stopped the ones after it, what the final path and status code are, and whether the path came back around on itself. Then it names the mistakes it found and prints the corrected line.</p>
+
+      <h3>What You Get</h3>
+      <ul>
+        <li><strong>Per-directory evaluation, like the real thing</strong> — leading slash stripped before matching, so a pattern that can never work is reported as never working rather than as a rule you should try harder with.</li>
+        <li><strong>A trace, not a verdict</strong> — every directive gets a line saying matched, skipped, or blocked, and the blocked ones say which condition blocked them.</li>
+        <li><strong>Final URL, status and query string</strong> — the address a visitor would actually land on, including whether their parameters survived.</li>
+        <li><strong>Condition evaluation</strong> — server variables, variable backreferences from the last matching regex, numeric and string comparison operators, negation, and the nocase flag.</li>
+        <li><strong>A linter that prints the fix</strong> — each finding comes with the corrected directive, not just a description of what is wrong.</li>
+        <li><strong>Loop detection</strong> — a rule without <code>[L]</code> that sends the path back to where it started gets caught, with the round it repeated on.</li>
+        <li><strong>Nine ready-made rule sets</strong> — HTTPS enforcement, canonical host, trailing slash, blocking an IP, blocking a bad bot, custom 404, and more, so you can see a working file before you paste your own.</li>
+      </ul>
+
+      <h3>What This Tool Will Not Tell You</h3>
+      <p>A browser cannot see your filesystem, so conditions that test for one, <code>-f</code> for a file, <code>-d</code> for a directory, <code>-s</code> for size, are not evaluated here. They are marked unverifiable, the assumed branch is shown, and you can flip that assumption with one click. That is the honest version: everything else is computed the way Apache computes it, and the one thing that is not gets labelled instead of quietly guessed.</p>
+      <p>There is no Apache here either. mod_rewrite has options set in your server config that this page has no way to read, including <code>RewriteBase</code> on the server, <code>AllowEncodedSlashes</code>, and any <code>mod_alias</code> rules that may run before your file is read. What you get is the rewrite engine evaluated against the context your file actually runs in, which is the part that accounts for nearly every broken redirect anyone hits.</p>
+      <p>One more limit worth stating plainly: a browser cannot deploy to your host, and it cannot restart Apache. When a 301 is already cached somewhere, no amount of editing the file will recall it, because the visitors' browsers and the search engines' crawlers both hold their own copy. If you are testing a change that used to be a 301, expect the old behaviour to persist for a while and test with a cache-busting path.</p>
+
+      <h3>Frequently Asked</h3>
+      <details class="faq-item">
+        <summary>Why does my RewriteRule with ^/ at the start match nothing?</summary>
+        <p>Because a .htaccess file runs in per-directory context, and Apache strips the leading slash from the path before it compares your pattern to anything. A request for /old-page comes in as old-page, so the pattern ^/old-page can never match. The pattern that works is ^old-page. This is the single most common reason a redirect rule in a .htaccess file does nothing at all, and it is invisible if you only read the rule rather than watch it run. The same rule written ^/old-page in a server config or a virtual host block is correct, because server config runs in server context where the slash is present. Moving a rule between the two places without changing the pattern is what breaks it.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is the difference between 301 and 302 in an htaccess redirect?</summary>
+        <p>301 is permanent. It tells the browser and every search engine that this is the address from now on, and they update their records accordingly. 302 is temporary, and nothing is transferred: the destination keeps its own ranking and the original address stays in the index. A bare [R] flag with no number is 302, so a rule written with just [R] looks like a redirect and behaves like a temporary one. The practical trap is the reverse: a 301 on a rule you were only testing gets cached hard by browsers, so when you remove it the old address can stay stuck in visitors' caches for a long time. Use 301 when the move is final and 302 while you are still deciding.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why does my redirect rule work on some pages and not others?</summary>
+        <p>Usually a missing RewriteCond. A bare RewriteRule that redirects also catches the files that actually exist, so your rule sends working pages to a destination and images, CSS and JavaScript 404. The standard guard is two conditions that require the file to be absent before the rule is allowed to fire: %{REQUEST_FILENAME} !-f and %{REQUEST_FILENAME} !-d. Without them the rule is not selective, it is just aggressive. This tester flags the omission by name rather than leaving you to work out why one path behaves differently from another.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What does the QSA flag do and when do I need it?</summary>
+        <p>QSA means append the query string. By default a RewriteRule substitution that contains its own question mark throws the visitor's original query string away. A visitor on /product?id=42 hits a rule that sends them to /new-product and arrives with no id, which breaks anything on the destination that reads parameters. Adding [QSA, L] keeps the id. If your substitution has no question mark at all, the original query string is carried across untouched and QSA changes nothing, which is why adding it is harmless and why omitting it when you needed it is not.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What does the L flag do and what happens if I leave it off?</summary>
+        <p>L means last: stop evaluating further rules in this pass. Without it Apache applies the substitution, moves on to the next rule using the new path, and keeps going. That is sometimes what you want, in a chain of small substitutions. More often it produces a redirect loop, because a later rule sends the path back to where it started. If a redirect is not working, a missing [L] is one of the three things to check, alongside the leading slash and the conditions. This tester shows the whole pass, so you can see which rule fired last and whether the path came back around.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does this tool check whether a file actually exists on my server?</summary>
+        <p>No, and it says so rather than guessing. A browser cannot see your filesystem, so the -f, -d and -s conditions cannot be evaluated here. This tester marks any condition that depends on the filesystem as unverifiable and shows which branch it assumed, so you always know which verdicts are real and which depend on that one assumption. Everything else, the pattern matching, the variables, the query string handling and the status codes, is computed the same way Apache computes it.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is my .htaccess file uploaded or stored anywhere?</summary>
+        <p>Nothing leaves your browser. The rules are parsed and simulated by JavaScript running on your own machine, there is no request to a server, no account, and nothing written to disk or to any database. Reload the page and it is all gone. That is also why the tool works with a .htaccess containing internal hostnames or credentials-protected paths, which you would not want to paste into a site that logs what people type.</p>
+      </details>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <ul>
+          <li><a href="/tools/regex-tester/">Regex Tester</a></li>
+          <li><a href="/tools/http-status-checker/">HTTP Status &amp; Header Checker</a></li>
+          <li><a href="/tools/url-encoder/">URL Encoder</a></li>
+          <li><a href="/tools/cors-header-generator/">CORS Header Generator</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="hr-feedback" class="status" role="status" aria-live="polite" style="max-width:1000px;margin:0 auto;"></div>
+<script src="/tools.js"></script>
+<script>
+var HR_PRESETS = [
+  { name: 'Force HTTPS', rules:
+    'RewriteEngine On\nRewriteCond %{HTTPS} !=on\nRewriteCond %{HTTP:X-Forwarded-Proto} !=https\nRewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]' },
+  { name: 'Non-www to www', rules:
+    'RewriteEngine On\nRewriteCond %{HTTP_HOST} ^example\\.com$ [NC]\nRewriteRule ^ https://www.example.com%{REQUEST_URI} [R=301,L]' },
+  { name: 'Remove trailing slash', rules:
+    'RewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^(.+)/$ /$1 [R=301,L]' },
+  { name: 'Add trailing slash', rules:
+    'RewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^([^.]+[^/])$ /$1/ [R=301,L]' },
+  { name: 'Protect folder', rules:
+    'AuthName "Private"\nAuthType Basic\nAuthUserFile /var/www/.htpasswd\nRequire valid-user' },
+  { name: 'Custom 404', rules:
+    'ErrorDocument 404 /404.html' },
+  { name: 'Block an IP', rules:
+    'RewriteEngine On\nRewriteRule ^ - [F]' },
+  { name: 'Block a bad bot', rules:
+    'RewriteEngine On\nRewriteCond %{HTTP_USER_AGENT} SemrushBot [NC]\nRewriteRule ^ - [F,L]' },
+  { name: 'Move WordPress', rules:
+    'RewriteEngine On\nRewriteBase /\nRewriteRule ^index\\.php$ - [L]\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule . /index.php [L]' }
+];
+
+var HR_MAX_ROUNDS = 12;
+
+function hrEsc(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* ---------- parsing ---------- */
+
+function hrParse(text) {
+  var dirs = [], pending = [], base = '', engineOn = null, inOther = false;
+  var lines = String(text).split(/\r?\n/);
+  for (var i = 0; i < lines.length; i++) {
+    var raw = lines[i];
+    var line = raw.replace(/(^|\s)#.*$/, '$1').trim();
+    if (!line) continue;
+    var ln = i + 1;
+    var m;
+    if (/^RewriteEngine\s+on$/i.test(line)) { engineOn = true; dirs.push({ line: ln, kind: 'engine', text: line }); continue; }
+    if (/^RewriteEngine\s+off$/i.test(line)) { engineOn = false; dirs.push({ line: ln, kind: 'engine', text: line }); continue; }
+    if ((m = line.match(/^RewriteBase\s+(\S+)/i))) { base = m[1]; dirs.push({ line: ln, kind: 'base', text: line }); continue; }
+    if ((m = line.match(/^RewriteCond\s+(.+?)(?:\s+(\[[^\]]*\]))?\s*$/i))) {
+      pending.push({ line: ln, expr: m[1], flags: m[2] || '', text: line });
+      continue;
+    }
+    if ((m = line.match(/^RewriteRule\s+(\S+)\s+(\S+)(?:\s+(\[[^\]]*\]))?\s*$/i))) {
+      dirs.push({ line: ln, kind: 'rule', pattern: m[1], subst: m[2], flags: m[3] || '', conds: pending, text: line });
+      pending = [];
+      continue;
+    }
+    if ((m = line.match(/^RedirectMatch\s+(\S+)(?:\s+(\S+))?\s+(\S+)\s*$/i))) {
+      dirs.push({ line: ln, kind: 'redirectmatch', status: m[1], pattern: m[2], subst: m[3], conds: pending, text: line });
+      pending = [];
+      continue;
+    }
+    if ((m = line.match(/^Redirect\s+(?:(\d{3})\s+)?(\S+)\s+(\S+)\s*$/i))) {
+      dirs.push({ line: ln, kind: 'redirect', status: m[1] || '302', pattern: m[2], subst: m[3], conds: pending, text: line });
+      pending = [];
+      continue;
+    }
+    if (/^(ErrorDocument|AuthName|AuthType|AuthUserFile|Require|Options|Header|SetEnv|DirectoryIndex|AddType|Order|Allow|Deny|Expires)/i.test(line)) {
+      inOther = true;
+      dirs.push({ line: ln, kind: 'other', text: line });
+      continue;
+    }
+    dirs.push({ line: ln, kind: 'unknown', text: line });
+    pending = [];
+  }
+  if (pending.length) {
+    dirs.push({ line: pending[pending.length - 1].line, kind: 'orphan-cond', text: pending[pending.length - 1].text });
+  }
+  return { dirs: dirs, base: base, engineOn: engineOn, sawMod: dirs.some(function (d) { return d.kind === 'rule' || d.kind === 'redirect' || d.kind === 'redirectmatch'; }), sawOther: inOther };}
+
+/* ---------- helpers ---------- */
+
+function hrParseFlags(s) {
+  var f = { raw: (s || '').toLowerCase() };
+  var inner = (s || '').replace(/^\[|\]$/g, '');
+  f.list = inner.length ? inner.split(',').map(function (x) { return x.trim().toLowerCase(); }).filter(Boolean) : [];
+  f.has = function (name) { return f.list.indexOf(name) !== -1; };
+  var rm = f.list.filter(function (x) { return /^r(=\d{3})?$/.test(x); })[0];
+  f.redirect = !!rm;
+  f.status = rm ? (rm.split('=')[1] || '302') : null;
+  f.last = f.has('l');
+  f.end = f.has('end');
+  f.nocase = f.has('nc');
+  f.qsa = f.has('qsa');
+  f.forbidden = f.has('f');
+  f.gone = f.has('g');
+  f.ne = f.has('ne');
+  f.skip = (f.list.filter(function (x) { return /^s(=\d{3})?$/.test(x); })[0] || '').split('=')[1] || null;
+  f.unknown = f.list.filter(function (x) {
+    return !/^(l|end|nc|qsa|ne|f|g|r(=\d{3})?|s(=\d{3})?|pt|n|ns|e|t|dpi|p|chain|cookie|silent|skip)$/.test(x);
+  });
+  return f;
+}
+
+function hrCompile(pattern, nocase) {
+  var re = pattern;
+  if (re.indexOf('(?') !== 0 && re.charAt(0) !== '^') re = '^' + re;
+  try { return { re: new RegExp(re, nocase ? 'i' : ''), err: null }; }
+  catch (e) { return { re: null, err: e.message }; }
+}
+
+function hrVar(name, env) {
+  switch (name.toUpperCase()) {
+    case 'HTTP_HOST': return env.hostHdr;
+    case 'SERVER_NAME': return env.hostHdr;
+    case 'HTTPS': return env.https;
+    case 'REQUEST_SCHEME': return env.https === 'on' ? 'https' : 'http';
+    case 'REQUEST_URI': return env.reqUri;
+    case 'THE_REQUEST': return (env.https === 'on' ? 'https' : 'http') + '://' + env.hostHdr + env.reqUri;
+    case 'QUERY_STRING': return env.query;
+    case 'REQUEST_METHOD': return 'GET';
+    case 'REMOTE_ADDR': return '203.0.113.5';
+    case 'HTTP_USER_AGENT': return env.agent;
+    case 'HTTP_REFERER': return '';
+    case 'REQUEST_FILENAME': return '/var/www/html' + env.reqUri;
+    case 'SCRIPT_FILENAME': return '/var/www/html' + env.reqUri;
+    case 'DOCUMENT_ROOT': return '/var/www/html';
+    case 'SERVER_PORT': return env.https === 'on' ? '443' : '80';
+    case 'REDIRECT_STATUS': return '200';
+    default: return '';
+  }
+}
+
+function hrExpand(str, env, backrefs, qsa) {
+  var s = String(str);
+  s = s.replace(/%\{([A-Za-z_][A-Za-z0-9_:.-]*)\}/g, function (m0, v) {
+    return hrVar(v, env);
+  });
+  s = s.replace(/%(\d)/g, function (m0, d) { var v = backrefs[+d - 1]; return v === undefined ? '' : v; });
+  s = s.replace(/\$([1-9])/g, function (m0, d) { var v = backrefs[+d - 1]; return v === undefined ? '' : v; });
+  s = s.replace(/\$(\{[^}]*\})/g, function (m0, v) {
+    var n = v.slice(1, -1);
+    if (n === 'REQUEST_URI') return env.reqUri;
+    if (n === 'QUERY_STRING') return env.query;
+    if (n === 'REQUEST_METHOD') return 'GET';
+    if (n === 'HTTP_HOST') return env.hostHdr;
+    if (n === 'SERVER_NAME') return env.hostHdr;
+    if (n === 'HTTPS') return env.https;
+    if (n === 'THE_REQUEST') return (env.https === 'on' ? 'https' : 'http') + '://' + env.hostHdr + env.reqUri;
+    if (n === 'REMOTE_ADDR') return '203.0.113.5';
+    if (n === 'HTTP_USER_AGENT') return env.agent;
+    return '';
+  });
+  return s;
+}
+
+function hrStripSlash(p) { return p.replace(/^\//, ''); }
+
+function hrIsAbsolute(s) { return /^[a-z][a-z0-9+.-]*:\/\//i.test(s) || s.indexOf('//') === 0; }
+
+function hrToPath(p) {
+  var u = p;
+  var qIdx = u.search(/[?#]/);
+  if (qIdx !== -1) u = u.slice(0, qIdx);
+  return u || '/';
+}
+
+/* RewriteCond evaluation. Returns {ok, reason, unver}. */
+function hrEvalCond(cond, env, backrefs, assumeFile) {
+  var expr = cond.expr.trim();
+  var flags = (cond.flags || '').toLowerCase();
+  var nocase = flags.indexOf('nc') !== -1;
+  var m;
+
+  var neg = false;
+  if (expr.charAt(0) === '!') { neg = true; expr = expr.slice(1).trim(); }
+
+  function applyNeg(v, notFlag) {
+    if (notFlag) return !v;
+    if (neg) return !v;
+    return v;
+  }
+
+  /* filesystem tests: -f -d -s -l -x -F -U */
+  m = expr.match(/^(-f|-d|-s|-l|-x|-F|-U)$/);
+  if (m) {
+    var t = m[1].slice(1).toLowerCase();          /* drop the leading "-" */
+    var val = (t === 'f' || t === 's') ? assumeFile.exists : (t === 'd' ? assumeFile.isDir : assumeFile.other);
+    return { ok: applyNeg(val, false), reason: 'filesystem test ' + m[1] + ' cannot run in a browser; assumed ' + (val ? 'true' : 'false'), unver: true };
+  }
+
+  /* %{VAR} =string / !=string */
+  m = expr.match(/^%\{([^}]+)\}\s*(=|==|!=)\s*"?(.*?)"?$/);
+  if (m) {
+    var lv = hrVar(m[1], env);
+    var rv = m[3];
+    if (nocase) { lv = lv.toLowerCase(); rv = rv.toLowerCase(); }
+    var eq = (m[2] === '=' || m[2] === '==') ? (lv === rv) : (lv !== rv);
+    return { ok: eq, reason: '%{' + m[1] + '} is "' + hrVar(m[1], env) + '", ' + (m[2] === '!=' ? 'differs from' : 'compared with') + ' "' + rv + '"' };
+  }
+
+  /* string comparison: op "arg" */
+  m = expr.match(/^(-eq|-ne|-lt|-le|-gt|-ge)\s+(.+)$/i);
+  if (m) {
+    var a = hrExpand(m[2], env, backrefs, false).trim().replace(/^"|"$/g, '');
+    var b = hrVar('REMOTE_ADDR', env);
+    var an = parseFloat(a), bn = parseFloat(b), res;
+    if (isNaN(an) || isNaN(bn)) { res = a.localeCompare(b); }
+    else { res = an < bn ? -1 : (an > bn ? 1 : 0); }
+    var op = m[1].toLowerCase();
+    var passed = op === '-eq' ? res === 0 : op === '-ne' ? res !== 0 : op === '-lt' ? res < 0 : op === '-le' ? res <= 0 : op === '-gt' ? res > 0 : res >= 0;
+    return { ok: applyNeg(passed, false), reason: op + ' compared "' + a + '" with ' + b };
+  }
+
+  /* %1 backreference =string */
+  m = expr.match(/^%(\d)\s*(=|==|!=)\s*"?(.*?)"?$/);
+  if (m) {
+    var bv = backrefs[+m[1] - 1];
+    var cv = bv === undefined ? '' : bv;
+    var okv = m[2] === '!=' ? cv !== m[3] : cv === m[3];
+    return { ok: okv, reason: '%' + m[1] + ' is "' + cv + '", ' + (m[2] === '!=' ? 'differs from' : 'compared with') + ' "' + m[3] + '"' };
+  }
+
+  /* %{VAR} <test>, where <test> is a filesystem test or a pattern.
+     Apache lets the ! sit in front of the test itself, as in
+     "RewriteCond %{REQUEST_FILENAME} !-f", so the test is extracted from
+     the right-hand side here and its own negation applied. */
+  m = expr.match(/^%\{([^}]+)\}\s+(\S+)$/);
+  if (m) {
+    var testName = m[2], testNeg = false;
+    if (testName.charAt(0) === '!') { testNeg = true; testName = testName.slice(1); }
+    if (/^(-f|-d|-s|-l|-x|-F|-U)$/.test(testName)) {
+      var ft = testName.slice(1).toLowerCase();   /* drop the leading "-" */
+      var fval = (ft === 'f' || ft === 's') ? assumeFile.exists : (ft === 'd' ? assumeFile.isDir : assumeFile.other);
+      var fok = testNeg ? !fval : fval;
+      var kindName = { f: 'a file', d: 'a directory', s: 'a non-empty file', l: 'a symlink', x: 'an executable', F: 'a real subpath', U: 'a valid URL' }[ft] || ('a ' + testName);
+      return { ok: applyNeg(fok, false), reason: '%{' + m[1] + '} ' + (testNeg ? 'is not ' : 'is ') + kindName + ', assumed ' + (fval ? 'true' : 'false'), unver: true };
+    }
+  }
+
+  /* %{VAR} =~ regex   and   %{VAR} regex   (the left side is what is tested) */
+  m = expr.match(/^%\{([^}]+)\}\s*(?:=~|!~)?\s*(.+)$/);
+  if (m) {
+    var lhs = hrVar(m[1], env);
+    var rhs = m[2].trim();
+    var rhsRe = null;
+    var rm2 = rhs.match(/^\/(.*)\/([a-z]*)$/);
+    if (rm2) {
+      try { rhsRe = new RegExp(rm2[1], (rm2[2] + (nocase ? 'i' : '')).replace(/g/g, '')); } catch (e) { rhsRe = null; }
+    } else {
+      try { rhsRe = new RegExp('^(?:' + rhs + ')$', nocase ? 'i' : ''); } catch (e) { rhsRe = null; }
+    }
+    if (rhsRe) {
+      var lhit = rhsRe.test(lhs);
+      return { ok: applyNeg(lhit, false), reason: '%{' + m[1] + '} is "' + lhs + '", which ' + (lhit ? 'matches' : 'does not match') + ' ' + rhs };
+    }
+  }
+
+  /* regex test against the request URI: /pat/ or a bare pattern */
+  var reTest = null, reRaw = null;
+  m = expr.match(/^\/(.+?)\/([a-z]*)$/);
+  if (m && expr.charAt(0) === '/') { reRaw = expr; reTest = new RegExp(m[1], (m[2] + (nocase ? 'i' : '')).replace(/g/g, '')); }
+  else { reRaw = expr; try { reTest = new RegExp('^(?:' + expr + ')$', nocase ? 'i' : ''); } catch (e) { reTest = null; } }
+
+  if (reTest) {
+    var subj = env.reqUri;
+    var hit = reTest.test(subj);
+    return { ok: applyNeg(hit, false), reason: (neg ? 'does not match' : 'matches') + ' ' + reRaw + ' against ' + subj };
+  }
+
+  return { ok: false, reason: 'condition not understood: ' + expr };
+}
+
+/* ---------- main evaluation ---------- */
+
+function hrEvaluate(rulesText, target, opts) {
+  /* Per-run, not module-level: a shared object is wiped by the next call, so a
+     caller holding a previous result would see an empty list. */
+  var unverLines = {};
+  var parsed = hrParse(rulesText);
+  var base = parsed.base;
+
+  var raw = String(target || '').trim();
+  var abs = hrIsAbsolute(raw);
+  var path = abs ? hrToPath(raw) : (raw.charAt(0) === '/' ? raw : '/' + raw);
+  var qIdx = path.indexOf('?');
+  var origQuery = '';
+  if (qIdx !== -1) { origQuery = path.slice(qIdx + 1); path = path.slice(0, qIdx); }
+  path = path || '/';
+
+  var env = {
+    reqUri: path + (origQuery ? '?' + origQuery : ''),
+    query: origQuery,
+    hostHdr: opts.hostHdr,
+    host: opts.host,
+    https: opts.https,
+    agent: opts.agent
+  };
+
+  var assumeFile = { exists: opts.assumeExists, isDir: opts.assumeDir, other: false };
+  var trace = [];
+  var loopHits = {};
+  var round = 0, loop = false, decided = null, pathHistory = [];
+  var extRedir = null, status = 200;
+
+  function snapshot(p, q) { pathHistory.push(q ? p + '?' + q : p); }
+
+  if (pathHistory.length === 0) snapshot(path, origQuery);
+
+  /* Apache defaults RewriteEngine to On in a per-directory context unless the
+     file says otherwise, so only an explicit "off" disables the rules. */
+  var engineActive = parsed.engineOn !== false;
+
+  while (round < HR_MAX_ROUNDS) {
+    round++;
+    var current = path;
+    var currentQ = origQuery;
+    var changed = false;
+    var stopped = false;
+    var backrefs = [];
+    var lastHitIdx = -1;
+
+    for (var i = 0; i < parsed.dirs.length; i++) {
+      var d = parsed.dirs[i];
+      if (d.kind === 'engine') {
+        trace.push({ line: d.line, state: 'pass', src: d.text, reason: parsed.engineOn ? 'mod_rewrite is on' : 'mod_rewrite is off, every RewriteRule below is ignored' });
+        continue;
+      }
+      if (d.kind === 'base') {
+        trace.push({ line: d.line, state: 'pass', src: d.text, reason: 'substitutions are resolved against ' + base });
+        continue;
+      }
+      if (d.kind === 'other' || d.kind === 'unknown' || d.kind === 'orphan-cond') {
+        trace.push({ line: d.line, state: 'pass', src: d.text, reason: d.kind === 'other' ? 'directive outside mod_rewrite, not simulated' : (d.kind === 'unknown' ? 'not a directive this tester recognises' : 'RewriteCond with no rule after it, has no effect') });
+        continue;
+      }
+
+      if (d.kind === 'redirect' || d.kind === 'redirectmatch') {
+        var rcOk = true, rcWhy = [], rcUnver = false;
+        var rback = [];
+        var rconds = d.conds || [];
+        for (var c = 0; c < rconds.length; c++) {
+          var cr = hrEvalCond(rconds[c], env, rback, assumeFile);
+          if (cr.unver) { unverLines[rconds[c].line] = true; rcUnver = true; }
+          if (!cr.ok) {
+            rcOk = false;
+            rcWhy.push('line ' + rconds[c].line + ' is false (' + cr.reason + ')');
+            trace.push({ line: rconds[c].line, state: 'blocked', src: rconds[c].text, reason: 'false, ' + cr.reason + ', so the directive below it is skipped', unver: cr.unver });
+            for (var c2 = c + 1; c2 < rconds.length; c2++) {
+              trace.push({ line: rconds[c2].line, state: 'pass', src: rconds[c2].text, reason: 'not evaluated, Apache stops at the first condition that is false' });
+            }
+            break;
+          }
+          rcWhy.push('line ' + rconds[c].line + ' true (' + cr.reason + ')');
+          trace.push({ line: rconds[c].line, state: 'pass', src: rconds[c].text, reason: 'true, ' + cr.reason, unver: cr.unver });
+        }
+        if (!rcOk) {
+          trace.push({ line: d.line, state: 'blocked', src: d.text, reason: 'blocked: ' + rcWhy.join('; ') });
+          continue;
+        }
+        var pat = d.kind === 'redirect' ? '^' + hrEscapeRe(d.pattern) + '$' : d.pattern;
+        var cc = hrCompile(pat, false);
+        if (cc.err) { trace.push({ line: d.line, state: 'pass', src: d.text, reason: 'pattern is not valid: ' + cc.err }); continue; }
+        var mres = cc.re.exec(current);
+        if (!mres) { trace.push({ line: d.line, state: 'pass', src: d.text, reason: 'pattern does not match ' + current }); continue; }
+        var target2 = hrExpand(d.subst, env, mres.slice(1), false);
+        if (hrIsAbsolute(target2)) {
+          extRedir = target2;
+          status = parseInt(d.status, 10) || 302;
+        } else {
+          var tp = target2.charAt(0) === '/' ? target2 : '/' + target2;
+          extRedir = (env.https === 'on' ? 'https' : 'http') + '://' + env.hostHdr + tp;
+          status = parseInt(d.status, 10) || 302;
+        }
+        trace.push({ line: d.line, state: 'hit', src: d.text, reason: 'matched ' + current + ' and returns ' + status + ' to ' + extRedir });
+        stopped = true;
+        break;
+      }
+
+      /* RewriteRule. Each RewriteCond gets its own trace row: when a rule does
+         nothing, the line that says which condition was false is the answer,
+         and burying it in the rule's reason text makes people scan for it.
+         Apache stops at the first false condition, so this does too. */
+      var conds = d.conds || [];
+      var allOk = true, why = [], unver = false;
+      var dback = [];
+      for (var k = 0; k < conds.length; k++) {
+        var ev = hrEvalCond(conds[k], env, dback, assumeFile);
+        if (ev.unver) { unverLines[conds[k].line] = true; unver = true; }
+        if (!ev.ok) {
+          allOk = false;
+          why.push('line ' + conds[k].line + ' is false (' + ev.reason + ')');
+          trace.push({ line: conds[k].line, state: 'blocked', src: conds[k].text, reason: 'false, ' + ev.reason + ', so the rule below it is skipped', unver: ev.unver });
+          if (k < conds.length - 1) {
+            for (var k2 = k + 1; k2 < conds.length; k2++) {
+              trace.push({ line: conds[k2].line, state: 'pass', src: conds[k2].text, reason: 'not evaluated, Apache stops at the first condition that is false' });
+            }
+          }
+          break;
+        }
+        why.push('line ' + conds[k].line + ' true (' + ev.reason + ')');
+        trace.push({ line: conds[k].line, state: 'pass', src: conds[k].text, reason: 'true, ' + ev.reason, unver: ev.unver });
+      }
+      if (!allOk) {
+        trace.push({ line: d.line, state: 'blocked', src: d.text, reason: 'skipped, a condition above it was false', unver: unver });
+        continue;
+      }
+
+      if (!engineActive) {
+        trace.push({ line: d.line, state: 'pass', src: d.text, reason: 'mod_rewrite is off (RewriteEngine off), this rule never runs' });
+        continue;
+      }
+
+      var fl = hrParseFlags(d.flags);
+      var cmp = hrCompile(d.pattern, fl.nocase);
+      if (cmp.err) {
+        trace.push({ line: d.line, state: 'pass', src: d.text, reason: 'pattern is not valid regular expression: ' + cmp.err });
+        continue;
+      }
+      var mm = cmp.re.exec(hrStripSlash(current));
+      if (!mm) {
+        trace.push({ line: d.line, state: 'pass', src: d.text, reason: 'pattern does not match "' + hrStripSlash(current) + '" (Apache compares against the path with the leading slash removed)' });
+        continue;
+      }
+
+      lastHitIdx = i;
+      backrefs = mm.slice(1).map(function (x) { return x === undefined ? '' : x; });
+
+      /* [F] and [G] return a status regardless of the substitution, so they are
+         checked before the "-" shortcut below. */
+      if (fl.forbidden) {
+        status = 403; extRedir = null; decided = 'deny';
+        trace.push({ line: d.line, state: 'hit', src: d.text, reason: 'matched and the [F] flag returns 403 Forbidden' });
+        stopped = true; break;
+      }
+      if (fl.gone) {
+        status = 410; extRedir = null; decided = 'deny';
+        trace.push({ line: d.line, state: 'hit', src: d.text, reason: 'matched and the [G] flag returns 410 Gone' });
+        stopped = true; break;
+      }
+
+      /* "-" means stop here, serve the file as-is */
+      if (d.subst === '-') {
+        trace.push({ line: d.line, state: 'hit', src: d.text, reason: 'matched, substitution is "-" so the request is served from disk with no rewrite' });
+        stopped = true;
+        break;
+      }
+
+      var sub = hrExpand(d.subst, env, backrefs, fl.qsa);
+      var newPath = sub, newQ = currentQ;
+      var qpos = sub.indexOf('?');
+      if (qpos !== -1) {
+        newPath = sub.slice(0, qpos);
+        newQ = sub.slice(qpos + 1);
+        if (fl.qsa && currentQ) newQ = newQ ? newQ + '&' + currentQ : currentQ;
+      } else if (currentQ) {
+        newQ = fl.qsa ? currentQ : currentQ;
+      }
+      if (!newPath) newPath = '/';
+      /* An absolute substitution is already a full URL and must not be turned
+         into a path. Only a relative one is resolved against RewriteBase. */
+      if (!hrIsAbsolute(newPath) && newPath.charAt(0) !== '/') {
+        newPath = base && base !== '/' ? base.replace(/\/$/, '') + '/' + newPath : '/' + newPath;
+      }
+
+      if (fl.redirect) {
+        /* The redirect target is the resolved path plus the query string this
+           rule produced. Apache drops the original query string when the
+           substitution has its own "?" unless QSA is set, and keeps it
+           otherwise, so the two cases are resolved above, not here. */
+        var dest = sub;
+        if (hrIsAbsolute(dest)) {
+          if (qpos === -1 && currentQ) dest = dest + '?' + newQ;
+        } else if (qpos !== -1) {
+          dest = newPath + '?' + newQ;
+        } else if (currentQ) {
+          dest = newPath + (newQ ? '?' + newQ : '');
+        }
+        if (!hrIsAbsolute(dest)) dest = (env.https === 'on' ? 'https' : 'http') + '://' + env.hostHdr + dest;
+        if (fl.ne) dest = dest.replace(/&/g, '&amp;');
+        extRedir = dest;
+        status = parseInt(fl.status, 10) || 302;
+        decided = status >= 400 ? 'deny' : 'redir';
+        var qnote = qpos === -1 ? 'the original query string is carried across unchanged' : (fl.qsa ? 'QSA appends the original query string' : 'the original query string is dropped because the substitution has its own question mark');
+        trace.push({ line: d.line, state: 'hit', src: d.text, reason: 'matched, [R=' + status + '] sends the visitor to ' + dest + '; ' + qnote });
+        stopped = true; break;
+      }
+
+      if (newPath !== current || newQ !== currentQ) changed = true;
+      var tail = (qpos === -1 && currentQ) ? (fl.qsa ? ' query string carried across' : ' query string carried across') : '';
+      trace.push({ line: d.line, state: 'hit', src: d.text, reason: 'matched "' + hrStripSlash(current) + '" and rewrote the path to "' + newPath + '"' + (tail ? ';' + tail : '') });
+
+      current = newPath;
+      currentQ = newQ;
+      if (fl.last || fl.end) { stopped = true; break; }
+    }
+
+    if (extRedir || decided) break;
+    if (!changed) break;
+    if (current === path && currentQ === origQuery) break;
+
+    path = current;
+    origQuery = currentQ;
+    snapshot(path, origQuery);
+
+    var key = path + '?' + origQuery;
+    if (loopHits[key]) { loop = true; break; }
+    loopHits[key] = true;
+  }
+
+  if (round >= HR_MAX_ROUNDS) loop = true;
+
+  var finalUrl = extRedir || ((env.https === 'on' ? 'https' : 'http') + '://' + env.hostHdr + path + (origQuery ? '?' + origQuery : ''));
+
+  return {
+    parsed: parsed, trace: trace, status: status, finalUrl: finalUrl,
+    kind: loop ? 'loop' : (decided === 'deny' ? 'deny' : (extRedir ? 'redir' : 'serve')),
+    external: !!extRedir, loops: loop, rounds: round, pathHistory: pathHistory,
+    unverLines: unverLines,
+    reqPath: path + (origQuery ? '?' + origQuery : ''),
+    origReqUri: env.reqUri
+  };
+}
+
+function hrEscapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+/* True if the pattern has at least one capturing group. Escapes and character
+   classes are skipped, and the non-capturing (?...) forms are not counted. */
+function hrHasCaptureGroup(pat) {
+  var s = pat, i = 0;
+  while (i < s.length) {
+    var c = s.charAt(i);
+    if (c === '\\') { i += 2; continue; }
+    if (c === '[') {
+      var j = i + 1;
+      if (s.charAt(j) === '^') j++;
+      if (s.charAt(j) === ']') j++;
+      while (j < s.length && s.charAt(j) !== ']') { if (s.charAt(j) === '\\') j++; j++; }
+      i = j + 1; continue;
+    }
+    if (c === '(') {
+      if (s.charAt(i + 1) !== '?') return true;          /* plain capture group */
+      var kind = s.charAt(i + 2);
+      if (kind === 'P' && s.charAt(i + 3) === '<') return true;   /* (?P<name>... ) */
+      i++; continue;                                       /* (?: (?= (?! (?<= (?<! (?# */
+    }
+    i++;
+  }
+  return false;
+}
+
+/* ---------- linter ---------- */
+
+function hrLint(rulesText, parsed) {
+  var out = [];
+  var lines = String(rulesText).split(/\r?\n/);
+  var engineOff = /^\s*RewriteEngine\s+off/im.test(rulesText);
+  var hasDirGuard = /RewriteCond\s+%\{REQUEST_FILENAME\}\s+!-f/i.test(rulesText);
+  var hasDirGuard2 = /RewriteCond\s+%\{REQUEST_FILENAME\}\s+!-d/i.test(rulesText);
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].replace(/(^|\s)#.*$/, '$1').trim();
+    if (!line) continue;
+    var ln = i + 1;
+    var m;
+
+    if ((m = line.match(/^RewriteRule\s+(\S+)\s+(\S+)(?:\s+(\[[^\]]*\]))?/i))) {
+      var pat = m[1], subst = m[2], flags = (m[3] || '').toLowerCase();
+
+      if (pat.indexOf('^/') === 0 || pat.indexOf('/^') > 0) {
+        out.push({ sev: 'high', line: ln, title: 'The leading slash stops this rule matching anything',
+          msg: 'A .htaccess file runs in per-directory context, and Apache removes the leading slash from the path before it compares your pattern to it. A request for /old-page is tested against the string old-page, so ^/old-page never matches. This is not a subtle failure: the rule is simply dead.',
+          fix: 'RewriteRule ^' + pat.replace(/^\^?\//, '') + ' ' + subst + (m[3] ? ' ' + m[3] : '') });
+      }
+      if (!/^\^/.test(pat)) {
+        out.push({ sev: 'low', line: ln, title: 'Pattern has no anchor at the start',
+          msg: 'Without a leading ^ the pattern can match anywhere in the path, so it fires on more addresses than you probably intend. Anchoring makes the rule predictable.',
+          fix: 'RewriteRule ^' + pat + ' ' + subst + (m[3] ? ' ' + m[3] : '') });
+      }
+      if (/r\b/.test(flags) && !/r=\d{3}/.test(flags)) {
+        out.push({ sev: 'med', line: ln, title: '[R] with no status code is a 302, not a 301',
+          msg: 'A bare [R] means 302 Found. Search engines treat a 302 as temporary and keep the original address in the index instead of transferring anything to the destination. If the move is permanent, say so.',
+          fix: 'RewriteRule ' + pat + ' ' + subst + ' [R=301' + (flags.indexOf(',') !== -1 ? ',' + flags.split(',').slice(1).join(',').replace(/\]?$/, '') : '') + ']' });
+      }
+      if (/r(=\d{3})?/.test(flags) && !/\bl\b/.test(flags) && !/\bend\b/.test(flags)) {
+        out.push({ sev: 'med', line: ln, title: 'Redirect rule has no [L], so later rules still run',
+          msg: 'Without L or END, Apache applies the substitution and carries on to the next rule using the new path. That is occasionally what you want, and often it is a loop, because a later rule sends the path back where it started.',
+          fix: 'RewriteRule ' + pat + ' ' + subst + ' ' + (m[3] || '[R=301]').replace(/\]?$/, '') + ',L]' });
+      }
+      if (/\$[1-9]/.test(subst) && !hrHasCaptureGroup(pat)) {
+        out.push({ sev: 'high', line: ln, title: 'Substitution uses $1 but the pattern has no capture group',
+          msg: 'A backreference in the substitution reads from a capture group written in parentheses in the pattern. With no group there, Apache has nothing to substitute and the path comes out with the number still in it, or with the part missing.',
+          fix: 'RewriteRule ' + pat.replace(/\((?!\?)/, '(') + ' ' + subst + (m[3] ? ' ' + m[3] : '') + '   # wrap the part you want in ( ) so $1 has something to point at' });
+      }
+      if (!hrIsAbsolute(subst) && !/^https?:\/\//.test(subst) && /r(=\d{3})?/.test(flags)) {
+        if (subst.indexOf('?') !== -1 && !/qsa/.test(flags)) {
+          out.push({ sev: 'high', line: ln, title: 'Substitution has a ? but no [QSA], so visitors lose their query string',
+            msg: 'When the substitution contains its own question mark, the original query string is replaced rather than carried over. A link with ?id=42 arrives with no id and anything reading it downstream quietly fails. Adding QSA is harmless even when unused.',
+            fix: 'RewriteRule ' + pat + ' ' + subst + ' [' + (/r=\d{3}/.test(flags) ? 'R=' + flags.match(/r=(\d{3})/)[1] : 'R=301') + ',L,QSA]' });
+        }
+      }
+      if (/\^https?:\/\//.test(subst) && !/\$\{HTTP_HOST\}|%\{HTTP_HOST\}/.test(subst)) {
+        out.push({ sev: 'med', line: ln, title: 'Redirect target hardcodes the host',
+          msg: 'Writing the hostname in the rule means it breaks on staging, on a second domain, or behind a proxy that terminates TLS. Use the %{HTTP_HOST} variable so the rule follows the request.',
+          fix: 'RewriteRule ' + pat + ' https://%{HTTP_HOST}' + subst.replace(/^https?:\/\/[^/]+/, '') + (m[3] ? ' ' + m[3] : '') });
+      }
+    }
+
+    if ((m = line.match(/^RewriteCond\s+(%\{REQUEST_FILENAME\})\s+!-f/i)) && !hasDirGuard) {
+      out.push({ sev: 'med', line: ln, title: 'You guard -f here but not -d',
+        msg: 'The pair of conditions !-f and !-d is what makes a rule skip real files and real directories. Guarding only one of them means the other still gets rewritten, which is usually a folder URL turning into a 404.',
+        fix: 'RewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d' });
+    }
+
+    if (/^Redirect\s+(\S+)\s+(\S+)/i.test(line) && /^Redirect\s/i.test(line)) {
+      if (/^Redirect\s+\d{3}/i.test(line)) {
+        out.push({ sev: 'low', line: ln, title: 'Redirect status could be 301',
+          msg: 'This is a permanent move written as a temporary one. A numeric code without an argument defaults to 302, so nothing is transferred to the destination in search results.',
+          fix: line.replace(/^Redirect\s+\d{3}/i, 'Redirect 301') });
+      }
+    }
+
+    if (/^RewriteEngine\s+off/i.test(line) && /RewriteRule/.test(rulesText)) {
+      out.push({ sev: 'high', line: ln, title: 'RewriteEngine is off, so every RewriteRule below is ignored',
+        msg: 'Nothing in the mod_rewrite block runs while this is off. The rules stay in the file looking correct and doing nothing, which is the same failure as no file at all.',
+        fix: 'RewriteEngine On' });
+    }
+  }
+
+  if (/RewriteRule/.test(rulesText) && !/RewriteEngine/i.test(rulesText)) {
+    out.push({ sev: 'low', line: 0, title: 'No RewriteEngine line',
+      msg: 'Most hosts have it on by default in a directory context, but stating it removes the guesswork. On a host where the default is off, every rule below is silently ignored.',
+      fix: 'RewriteEngine On' });
+  }
+  if (engineOff) { /* already reported per-line */ }
+
+  if (!out.length) return [];
+  out.sort(function (a, b) { return ({ high: 0, med: 1, low: 2 })[a.sev] - ({ high: 0, med: 1, low: 2 })[b.sev]; });
+  return out;
+}
+
+/* ---------- self-check ----------
+   Runs the engine against cases whose answer is known. Exposed as
+   window.hrSelfTest() so the Playwright suite can assert on it. */
+function hrSelfTest() {
+  var cases = [];
+  function t(name, got, want) { cases.push({ name: name, got: got, want: want, pass: got === want }); }
+  var OPT = { host: 'example.com', hostHdr: 'www.example.com', https: 'off', agent: 'Mozilla/5.0', assumeExists: false, assumeDir: false };
+  function ev(rules, url, o) {
+    var opt = {}; for (var k in OPT) opt[k] = OPT[k];
+    if (o) for (var k2 in o) opt[k2] = o[k2];
+    return hrEvaluate(rules, url, opt);
+  }
+
+  var r1 = ev('RewriteEngine On\nRewriteRule ^old-page$ /new-page [R=301,L]', '/old-page');
+  t('per-dir rule without leading slash matches', r1.kind, 'redir');
+  t('per-dir rule returns 301', r1.status, 301);
+  t('redirect target is absolute', r1.finalUrl, 'http://www.example.com/new-page');
+
+  var r2 = ev('RewriteEngine On\nRewriteRule ^/old-page$ /new-page [R=301,L]', '/old-page');
+  t('leading-slash rule matches nothing', r2.kind, 'serve');
+  t('leading-slash rule does not redirect', r2.external, false);
+
+  var r3 = ev('RewriteEngine Off\nRewriteRule ^old$ /new [R=301,L]', '/old');
+  t('RewriteEngine off disables rules', r3.kind, 'serve');
+
+  var r4 = ev('RewriteEngine On\nRewriteRule ^product/(.*)$ /item/$1 [R=301,L,QSA]', '/product/widget?id=42');
+  t('QSA keeps the query string', r4.finalUrl, 'http://www.example.com/item/widget?id=42');
+  t('backreference expands', r4.kind, 'redir');
+
+  var r5 = ev('RewriteEngine On\nRewriteRule ^product/(.*)$ /item/$1 [R=301,L]', '/product/widget?id=42');
+  t('without QSA the substitution question mark drops nothing', r5.finalUrl, 'http://www.example.com/item/widget?id=42');
+
+  var r6 = ev('RewriteEngine On\nRewriteCond %{HTTP_HOST} ^example\\.com$ [NC]\nRewriteRule ^ https://www.example.com%{REQUEST_URI} [R=301,L]', '/x', { hostHdr: 'example.com' });
+  t('HTTPS-style host condition can pass', r6.kind, 'redir');
+  var r7 = ev('RewriteEngine On\nRewriteCond %{HTTP_HOST} ^example\\.com$ [NC]\nRewriteRule ^ https://www.example.com%{REQUEST_URI} [R=301,L]', '/x', { hostHdr: 'other.net' });
+  t('failed condition blocks the rule', r7.kind, 'serve');
+
+  var r8 = ev('RewriteEngine On\nRewriteRule ^ - [F]', '/anything');
+  t('[F] denies', r8.status, 403);
+  var r9 = ev('RewriteEngine On\nRewriteRule ^ - [G]', '/anything');
+  t('[G] returns 410', r9.status, 410);
+
+  var r10 = ev('RewriteEngine On\nRewriteRule ^a$ /b [R=301]\nRewriteRule ^b$ /a [R=301]', '/a');
+  t('[R] redirects immediately, later rules do not run', r10.kind, 'redir');
+  var r10b = ev('RewriteEngine On\nRewriteRule ^a$ /b\nRewriteRule ^b$ /a', '/a');
+  t('two rules that cancel out settle, no loop', r10b.kind, 'serve');
+  t('cancelling pair returns to the original path', r10b.finalUrl, 'http://www.example.com/a');
+  var r10c = ev('RewriteEngine On\nRewriteRule ^x$ /y [L]\nRewriteRule ^y$ /x [L]', '/x');
+  t('a rule that keeps changing the path loops', r10c.kind, 'loop');
+  t('the loop repeats a path it already took', r10c.pathHistory.indexOf('/y') < r10c.pathHistory.lastIndexOf('/y'), true);
+
+  var r11 = ev('RewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^(.+)/$ /$1 [R=301,L]', '/folder/');
+  t('trailing-slash rule strips it', r11.finalUrl, 'http://www.example.com/folder');
+
+  var r12 = ev('RewriteEngine On\nRewriteRule ^ - [L]', '/x');
+  t('substitution "-" serves from disk', r12.kind, 'serve');
+  t('"-" is not treated as a redirect', r12.external, false);
+
+  /* Filesystem conditions. These are the ones a browser cannot really answer,
+     so both assumptions are asserted: the rule fires when the file is missing
+     and is blocked when it is there. A test that only checks the first one
+     passes even when the -f test is stuck on one value. */
+  var fsRules = 'RewriteEngine On\nRewriteCond %{REQUEST_FILENAME} !-f\nRewriteCond %{REQUEST_FILENAME} !-d\nRewriteRule ^(.+)/$ /$1 [R=301,L]';
+  var fsMissing = ev(fsRules, '/folder/', { assumeExists: false });
+  t('!-f passes when the file is assumed missing', fsMissing.kind, 'redir');
+  t('!-f strips the trailing slash', fsMissing.finalUrl, 'http://www.example.com/folder');
+  var fsPresent = ev(fsRules, '/folder/', { assumeExists: true });
+  t('!-f blocks the rule when the file is assumed present', fsPresent.kind, 'serve');
+  t('the blocked verdict still leaves the path alone', fsPresent.finalUrl, 'http://www.example.com/folder/');
+  /* Apache stops at the first false RewriteCond, so with the file assumed
+     present only line 2 is ever evaluated. Asserting exactly that, because a
+     build that evaluated every condition would report both and be wrong. */
+  t('evaluation stops at the first false condition',
+    Object.keys(fsPresent.unverLines).join(','), '2');
+  t('the condition after a false one is marked not evaluated',
+    fsPresent.trace.some(function (r) { return r.line === 3 && /not evaluated/.test(r.reason); }), true);
+  var fsMissingKeys = ev(fsRules, '/folder/', { assumeExists: false });
+  t('both conditions are evaluated when the first one passes',
+    Object.keys(fsMissingKeys.unverLines).join(','), '2,3');
+  var fsPlain = ev('RewriteEngine On\nRewriteCond %{REQUEST_FILENAME} -f\nRewriteRule ^ - [L]', '/x', { assumeExists: true });
+  t('-f passes when the file is assumed present', fsPlain.kind, 'serve');
+  var fsPlainNo = ev('RewriteEngine On\nRewriteCond %{REQUEST_FILENAME} -f\nRewriteRule ^ - [L]', '/x', { assumeExists: false });
+  t('-f blocks when the file is assumed missing', fsPlainNo.kind, 'serve');
+
+  /* A bare !-f with no variable in front of it, the other way people write it. */
+  var fsBare = ev('RewriteEngine On\nRewriteCond !-f\nRewriteRule ^a$ /b [R=301,L]', '/a', { assumeExists: true });
+  t('bare !-f with the file present blocks', fsBare.kind, 'serve');
+  var fsBareNo = ev('RewriteEngine On\nRewriteCond !-f\nRewriteRule ^a$ /b [R=301,L]', '/a', { assumeExists: false });
+  t('bare !-f with the file missing allows', fsBareNo.kind, 'redir');
+
+  t('leading-slash pattern has no capture group', hrHasCaptureGroup('^old-(.*)$'), true);
+  t('non-capturing group does not count', hrHasCaptureGroup('^old-(?:x)$'), false);
+  t('escaped paren does not count', hrHasCaptureGroup('^old-\\(x\\)$'), false);
+  t('char class paren does not count', hrHasCaptureGroup('^[()]+$'), false);
+  t('lookahead does not count', hrHasCaptureGroup('^(?=x)y$'), false);
+
+  var lint1 = hrLint('RewriteRule ^/old$ /new [R=301,L]', null);
+  t('linter flags the leading slash', lint1.some(function (f) { return f.sev === 'high' && /leading slash/.test(f.title); }), true);
+  var lint2 = hrLint('RewriteRule ^old$ /new [R,L]', null);
+  t('linter flags bare [R] as 302', lint2.some(function (f) { return /302, not a 301/.test(f.title); }), true);
+  var lint3 = hrLint('RewriteEngine On\nRewriteRule ^old$ /new-$1 [R=301,L]', null);
+  t('linter flags $1 with no capture group', lint3.some(function (f) { return /no capture group/.test(f.title); }), true);
+  var lint4 = hrLint('RewriteEngine On\nRewriteRule ^old$ /new?a=1 [R=301,L]', null);
+  t('linter flags missing QSA with a question mark', lint4.some(function (f) { return /QSA/.test(f.title); }), true);
+
+  var pass = cases.filter(function (c) { return c.pass; }).length;
+  return { pass: pass, total: cases.length, cases: cases };
+}
+window.hrSelfTest = hrSelfTest;
+
+
+function hrRun() {
+  var rules = document.getElementById('hr-rules').value;
+  var target = document.getElementById('hr-url').value;
+  var err = document.getElementById('hr-error');
+  var out = document.getElementById('hr-out');
+  var assumeCb = document.getElementById('hr-assume-yes');
+  var assumeExists = assumeCb ? assumeCb.checked : false;
+
+  if (!rules.trim()) {
+    err.style.display = 'block';
+    err.textContent = 'Paste your .htaccess rules first, or load one of the presets above.';
+    out.style.display = 'none';
+    return;
+  }
+  if (!target.trim()) {
+    err.style.display = 'block';
+    err.textContent = 'Enter a URL to test the rules against, for example /old-page.html';
+    out.style.display = 'none';
+    return;
+  }
+  err.style.display = 'none';
+
+  var res;
+  try {
+    res = hrEvaluate(rules, target, {
+      host: document.getElementById('hr-host').value || 'example.com',
+      hostHdr: document.getElementById('hdr-host').value || 'www.example.com',
+      https: (document.getElementById('hdr-https').value || 'off').trim().toLowerCase() === 'on' ? 'on' : 'off',
+      agent: document.getElementById('hdr-agent').value || 'Mozilla/5.0',
+      assumeExists: assumeExists,
+      assumeDir: false
+    });
+  } catch (e) {
+    err.style.display = 'block';
+    err.textContent = 'Could not evaluate these rules: ' + e.message;
+    out.style.display = 'none';
+    return;
+  }
+
+  out.style.display = 'block';
+
+  var unverKeys = Object.keys(res.unverLines);
+  var note = document.getElementById('hr-unver-note');
+  if (unverKeys.length) {
+    note.style.display = 'block';
+    note.innerHTML = 'Conditions on line' + (unverKeys.length > 1 ? 's' : '') + ' ' + unverKeys.join(', ') +
+      ' test the filesystem, which a browser cannot see. This run assumed the file ' + (assumeExists ? 'does' : 'does not') +
+      ' exist. <button class="btn" style="padding:4px 12px;font-size:0.8rem;margin-top:8px;" onclick="hrFlipAssume()">Assume the opposite and re-run</button>';
+  } else { note.style.display = 'none'; }
+
+  var v = document.getElementById('hr-verdict');
+  v.className = 'hr-verdict visible ' + res.kind;
+  var code, what, why;
+  if (res.kind === 'loop') {
+    code = 'LOOP'; what = 'Rewrite loop, Apache would return 500';
+    why = 'The path came back to a value it had already taken, so Apache keeps rewriting and eventually gives up with a 500. This almost always means a rule is missing <b>[L]</b>, or two rules send the path back and forth. The repeated value was <b>' + hrEsc(res.pathHistory[res.pathHistory.length - 1] || '') + '</b>.';
+  } else if (res.kind === 'deny') {
+    code = String(res.status); what = 'Request denied';
+    why = 'A rule matched and returned an error status instead of serving or redirecting. Check the path against the rule that fired.';
+  } else if (res.kind === 'redir') {
+    code = String(res.status);
+    if (res.status === 301 || res.status === 308) {
+      what = 'Permanent redirect';
+      why = 'The browser and search engines are told this address has moved for good and will update their records. Anything you change later will not be recalled from caches that already stored it.';
+    } else if (res.status === 302 || res.status === 307) {
+      what = 'Temporary redirect';
+      why = 'Nothing is transferred. The destination keeps its own ranking and the original address stays in the index, which is what you want while you are still deciding.';
+    } else {
+      what = 'Redirect ' + res.status;
+      why = 'This is not a status Apache sends for a RewriteRule, so check the rule that set it.';
+    }
+    if (res.rounds > 1) why += ' It took ' + res.rounds + ' rewrite passes to get there.';
+  } else {
+    code = '200'; what = 'Served from disk, no redirect';
+    why = 'No redirect rule matched, so Apache serves the file as-is. If you expected a redirect, the rule that should have fired is further up the trace with a reason next to it.';
+  }
+  v.innerHTML = '<div class="hr-v-code">' + hrEsc(code) + '</div>' +
+    '<div class="hr-v-what">' + hrEsc(what) + '</div>' +
+    '<div class="hr-final"><span class="k">requested&nbsp;&nbsp;</span>' + hrEsc(res.origReqUri) + '</div>' +
+    '<div class="hr-final"><span class="k">final URL&nbsp;</span>' + hrEsc(res.finalUrl) + '</div>' +
+    '<div class="hr-v-why">' + why + '</div>';
+
+  var t = document.getElementById('hr-trace');
+  if (!res.trace.length) {
+    t.innerHTML = '<div class="hr-none">Nothing in this file affects a rewrite. It may only contain directives that run elsewhere, such as ErrorDocument, AuthType or Require.</div>';
+  } else {
+    var html = '';
+    for (var i = 0; i < res.trace.length; i++) {
+      var r = res.trace[i];
+      var cls = r.state === 'hit' ? 'hit' : (r.state === 'blocked' ? 'blocked' : 'pass');
+      var lbl = r.state === 'hit' ? 'HIT' : (r.state === 'blocked' ? 'SKIP' : '·');
+        html += '<div class="hr-row"><div class="hr-r-line ' + cls + '">' + lbl + '</div><div class="hr-r-body">' +
+        '<div class="hr-r-src">L' + r.line + ' ' + hrEsc(r.src) + '</div>' +
+        /* The reason quotes back the user's own condition text, so it is
+           untrusted input like the source line and is escaped the same way. */
+        '<div class="hr-r-reason">' + hrEsc(r.reason) + (r.unver ? ' <span class="unver">(filesystem, assumed)</span>' : '') + '</div>' +
+        '</div></div>';
+    }
+    t.innerHTML = html;
+  }
+
+  var findings = hrLint(rules, res.parsed);
+  var f = document.getElementById('hr-findings');
+  if (!findings.length) {
+    f.innerHTML = '<div class="hr-clean">Nothing flagged. The rules parse, the conditions are in the order Apache needs, and the flags are spelled the way it reads them.</div>';
+  } else {
+    var fh = '';
+    for (var j = 0; j < findings.length; j++) {
+      var fd = findings[j];
+      var sevLbl = fd.sev === 'high' ? 'BREAKS' : (fd.sev === 'med' ? 'RISK' : 'NIT');
+      fh += '<div class="hr-find"><div class="hr-f-badge ' + fd.sev + '">' + sevLbl + '</div><div style="flex:1;min-width:0;">' +
+        '<div class="hr-f-title">' + (fd.line ? 'Line ' + fd.line + ': ' : '') + hrEsc(fd.title) + '</div>' +
+        '<div class="hr-f-msg">' + hrEsc(fd.msg) + '</div>' +
+        (fd.fix ? '<div class="hr-f-fix"><div class="lbl">corrected</div><code>' + hrEsc(fd.fix) + '</code></div>' : '') +
+        '</div></div>';
+    }
+    f.innerHTML = fh;
+  }
+
+  window.hrLastResult = res.finalUrl;
+  showStatus('hr-feedback', 'Tested ' + res.rounds + ' rewrite pass' + (res.rounds === 1 ? '' : 'es') + '. ' + findings.length + ' issue' + (findings.length === 1 ? '' : 's') + ' found.', 'success');
+}
+
+function hrFlipAssume() {
+  var cb = document.getElementById('hr-assume-yes');
+  if (!cb) return;
+  cb.checked = !cb.checked;
+  hrRun();
+}
+
+function hrCopyResult() {
+  if (!window.hrLastResult) return;
+  var ta = document.createElement('textarea');
+  ta.value = window.hrLastResult;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) { }
+  document.body.removeChild(ta);
+  showStatus('hr-feedback', 'Result URL copied', 'success');
+}
+
+function hrClear() {
+  document.getElementById('hr-rules').value = '';
+  document.getElementById('hr-url').value = '/old-page.html';
+  document.getElementById('hr-out').style.display = 'none';
+  document.getElementById('hr-error').style.display = 'none';
+}
+
+function hrLoadPreset(i) {
+  document.getElementById('hr-rules').value = HR_PRESETS[i].rules;
+  hrRun();
+}
+
+(function () {
+  var holder = document.getElementById('hr-presets');
+  var html = '';
+  for (var i = 0; i < HR_PRESETS.length; i++) {
+    html += '<button type="button" class="hr-preset" onclick="hrLoadPreset(' + i + ')">' + hrEsc(HR_PRESETS[i].name) + '</button>';
+  }
+  holder.innerHTML = html;
+  document.getElementById('hr-url').addEventListener('keydown', function (e) { if (e.key === 'Enter') hrRun(); });
+  var cb = document.getElementById('hr-assume-yes');
+  cb.addEventListener('change', function () {
+    if (document.getElementById('hr-out').style.display === 'block') hrRun();
+  });
+  window.hrRun = hrRun;
+  window.hrLoadPreset = hrLoadPreset;
+})();
+</script>
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+  <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+</footer>
+</body>
+</html>

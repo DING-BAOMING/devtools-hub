@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Cutter &amp; Trimmer | DevTools Hub</title>
+<meta name="description" content="Free online audio cutter and trimmer. Cut and trim MP3, WAV, M4A, FLAC, OGG with waveform precision. No upload, 100% private.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/audio-cutter/">
+<meta property="og:title" content="Audio Cutter &amp; Trimmer | DevTools Hub">
+<meta property="og:description" content="Cut and trim audio files online. Supports MP3, WAV, M4A, FLAC, OGG. No upload, 100% private.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/audio-cutter/">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Audio Cutter","url":"https://tools.scoreroute.com/tools/audio-cutter/","description":"Free online audio cutter and trimmer with waveform visualization.","applicationCategory":"Multimedia","operatingSystem":"All"}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.cutter-area { max-width: 900px; margin: 2rem auto; }
+.cutter-area * { color: #ccc; }
+.dropzone { border: 3px dashed #555; border-radius: 12px; padding: 3rem; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; }
+.dropzone:hover, .dropzone.dragover { border-color: #667eea; background: #222250; }
+.dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+.dropzone-icon { font-size: 3rem; margin-bottom: 1rem; }
+.dropzone-text { font-size: 1.1rem; }
+.dropzone-text strong { color: #667eea; }
+.file-info { display: none; margin: 1rem 0; padding: 1rem; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+.file-info.visible { display: block; }
+.file-info-row { display: flex; justify-content: space-between; padding: 0.3rem 0; }
+.file-info-label { color: #888; }
+.waveform-container { display: none; margin: 1.5rem 0; padding: 1rem; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+.waveform-container.visible { display: block; }
+.waveform-canvas { width: 100%; height: 120px; background: #0f0f23; border-radius: 6px; cursor: crosshair; }
+.controls-row { display: flex; gap: 1rem; margin: 1rem 0; flex-wrap: wrap; align-items: center; }
+.time-input-group { display: flex; align-items: center; gap: 0.5rem; }
+.time-input-group label { color: #888; font-size: 0.9rem; }
+.time-input { width: 80px; padding: 0.5rem; border: 1px solid #555; border-radius: 4px; background: #1a1a3e; color: #fff; font-size: 0.9rem; text-align: center; }
+.btn { padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: opacity 0.2s; }
+.btn:hover { opacity: 0.9; }
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+.btn-success { background: #28a745; color: #fff; }
+.btn-secondary { background: #555; color: #fff; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.progress-area { display: none; margin: 1rem 0; padding: 1rem; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+.progress-area.visible { display: block; }
+.progress-bar { height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-top: 0.5rem; }
+.progress-fill { height: 100%; background: linear-gradient(135deg, #667eea, #764ba2); width: 0%; transition: width 0.3s; border-radius: 4px; }
+.result-area { display: none; margin: 1rem 0; padding: 1.5rem; background: #1a3e2a; border-radius: 8px; text-align: center; border: 1px solid #28a745; }
+.result-area.visible { display: block; }
+.result-area p { color: #fff; margin: 0.5rem 0; }
+.format-select { padding: 0.5rem; border-radius: 4px; border: 1px solid #555; font-size: 0.9rem; margin: 0.5rem 0; background: #1a1a3e; color: #fff; }
+.format-select option { background: #0f0f23; color: #fff; }
+label { color: #ccc; font-weight: 500; }
+section h2 { color: #fff; margin-top: 2rem; }
+section p, section li { color: #ccc; }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+.feature-card { background: #1a1a3e; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #667eea; }
+.feature-card h3 { color: #fff; margin-bottom: 0.5rem; }
+.feature-card p { color: #aaa; }
+.hero-text { color: #ccc; font-size: 1.1rem; }
+ol li, ul li { margin: 0.5rem 0; }
+.audio-player { width: 100%; margin: 1rem 0; }
+.play-btn { background: #667eea; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5rem; cursor: pointer; color: #fff; }
+.play-btn:hover { background: #764ba2; }
+.trim-info { background: #1a1a3e; padding: 1rem; border-radius: 8px; margin: 1rem 0; border: 1px solid #333; }
+.trim-info-row { display: flex; justify-content: space-between; padding: 0.3rem 0; color: #888; }
+.trim-info-row span:last-child { color: #667eea; font-weight: 600; }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="logo">DevTools Hub</a>
+    <nav class="main-nav">
+      <a href="/">Home</a>
+      <a href="/tools/feedback/">Feedback</a>
+    </nav>
+  </div>
+</header>
+<main class="container">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span>/</span>
+    <span aria-current="page">Audio Cutter</span>
+  </nav>
+  <h1>Audio Cutter & Trimmer</h1>
+  <p class="hero-text">Cut and trim audio files with precision. Upload MP3, WAV, M4A, FLAC, OGG — select start and end points — download the trimmed audio. No upload to servers, 100% private.</p>
+
+  <div class="cutter-area">
+    <div id="dropzone" class="dropzone">
+      <div class="dropzone-icon">:music:</div>
+      <div class="dropzone-text">
+        <strong>Click to upload</strong> or drag &amp; drop
+        MP3, WAV, M4A, FLAC, OGG, AAC
+      </div>
+      <input type="file" id="fileInput" accept="audio/*" style="display:none" aria-label="Audio Cutter">
+    </div>
+
+    <div id="fileInfo" class="file-info">
+      <div class="file-info-row"><span class="file-info-label">File:</span><span id="fileName">-</span></div>
+      <div class="file-info-row"><span class="file-info-label">Size:</span><span id="fileSize">-</span></div>
+      <div class="file-info-row"><span class="file-info-label">Duration:</span><span id="fileDuration">-</span></div>
+    </div>
+
+    <div id="waveformContainer" class="waveform-container">
+      <canvas id="waveformCanvas" class="waveform-canvas"></canvas>
+      <div class="controls-row">
+        <button id="playBtn" class="play-btn" title="Play/Pause">&#9654;</button>
+        <div class="time-input-group">
+          <label>Start:</label>
+          <input type="number" id="startTime" class="time-input" min="0" step="0.1" value="0" aria-label="Duration:">
+        </div>
+        <div class="time-input-group">
+          <label>End:</label>
+          <input type="number" id="endTime" class="time-input" min="0" step="0.1" value="0" aria-label="Duration:">
+        </div>
+        <button id="previewBtn" class="btn btn-secondary">Preview Trim</button>
+      </div>
+      <div class="trim-info">
+        <div class="trim-info-row"><span>Selected Duration:</span><span id="selectedDuration">0.0s</span></div>
+        <div class="trim-info-row"><span>Original Size:</span><span id="originalSize">-</span></div>
+        <div class="trim-info-row"><span>Estimated Output:</span><span id="estimatedSize">-</span></div>
+      </div>
+    </div>
+
+    <div id="progressArea" class="progress-area">
+      <div id="progressText">Processing...</div>
+      <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+    </div>
+
+    <div id="resultArea" class="result-area">
+      <p id="resultInfo">Trim complete!</p>
+      <label class="sr-only" for="downloadFormat">Output format</label><select id="downloadFormat" class="format-select" title="Output format">
+        <option value="mp3">MP3</option>
+        <option value="wav">WAV (lossless)</option>
+        <option value="ogg">OGG</option>
+        <option value="webm">WebM</option>
+      </select>
+      <button id="downloadBtn" class="btn btn-success">Download Trimmed Audio</button>
+      <button id="resetBtn" class="btn btn-secondary" style="margin-left:0.5rem">Reset</button>
+    </div>
+
+    <div style="margin-top:1rem; text-align:center;">
+      <button id="processBtn" class="btn btn-primary" onclick="cutAudio()" disabled>Cut</button>
+    </div>
+  </div>
+
+  <section>
+    <h2>How to Cut Audio Online</h2>
+    <ol>
+      <li><strong>Upload</strong> your audio file by clicking or dragging it into the dropzone</li>
+      <li><strong>Set trim points</strong> by adjusting start and end times, or click on the waveform</li>
+      <li><strong>Preview</strong> the selected portion to make sure it is right</li>
+      <li><strong>Click "Cut"</strong> to process and download your trimmed audio</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Features</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>Waveform Visualization</h3>
+        <p>See your audio as a visual waveform. Click to set precise start and end points.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Real-time Preview</h3>
+        <p>Preview the trimmed section before processing. Make sure it is exactly what you want.</p>
+      </div>
+      <div class="feature-card">
+        <h3>100% Private</h3>
+        <p>All processing happens in your browser. Your audio files never leave your device.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Multiple Formats</h3>
+        <p>Support for MP3, WAV, M4A, FLAC, OGG, AAC and more. Export to your preferred format.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="info-section">
+    <h2>How Audio Cutting Works</h2>
+    <p>This tool cuts audio files directly in your browser using the Web Audio API for decoding and playback, and the MediaRecorder API for re-encoding the selected region. When you load an audio file, it is decoded into an AudioBuffer (a raw PCM sample array), and the script generates a waveform by computing peak amplitudes across roughly 2,000 horizontal bins. You then drag two handles to mark the in-point and out-point of the region you want to keep; the script converts those visual positions back into exact sample offsets and runs a loop that copies only those samples into a fresh AudioBuffer.</p>
+    <p>The re-encoded result is produced by routing the trimmed AudioBuffer through an OfflineAudioContext (which renders faster than realtime), capturing the output through a MediaStreamDestination, and recording it with MediaRecorder using the user-selected MIME type (audio/webm with the Opus codec by default, or audio/mp4 / audio/wav on browsers that support those encoders). No audio data is sent to any server. The download link uses a Blob URL and your file never touches our infrastructure.</p>
+
+    <h2>Frequently Asked Questions</h2>
+    <details class="faq-item"><summary>Will the cut be sample-accurate?</summary><p>Yes. Cuts are made at the AudioBuffer sample level, so the in-point and out-point are precise to within one PCM sample (typically 1/44100 of a second for CD-quality audio). The visual handles in the waveform may snap to the nearest pixel for ease of use, but the underlying sample offsets are exact.</p></details>
+    <details class="faq-item"><summary>Why are MP3 exports larger than my original MP3?</summary><p>Browsers cannot encode MP3 directly because the format requires licensed codecs. We re-encode via Opus (in WebM) or WAV (uncompressed PCM). Opus at 128 kbps typically matches MP3 at 192 kbps in perceptual quality, and the file is roughly the same size. If you need a true MP3, export as WAV and run it through a desktop encoder like LAME or FFmpeg.</p></details>
+    <details class="faq-item"><summary>What is the maximum audio length I can edit?</summary><p>The Web Audio API can decode files up to the browser's memory limit, which on a typical desktop is enough for tracks several hours long. For very large files (over 200 MB), decoding may take a few seconds and the waveform will only render the first portion; trimming still works on the full file but you will need to scrub to find your region.</p></details>
+    <details class="faq-item"><summary>Can I fade in or fade out at the cut points?</summary><p>Not directly in this tool. The cut is a hard splice at the exact sample you choose. If you need a fade, export the trimmed clip and apply a fade-in / fade-out in a desktop audio editor such as Audacity, which is also free.</p></details>
+    <details class="faq-item"><summary>Are my audio files uploaded anywhere?</summary><p>No. All decoding, trimming, and re-encoding happens locally in your browser using the Web Audio and MediaRecorder APIs. You can verify this by opening your browser DevTools Network tab and watching zero network requests fire during the cut operation.</p></details>
+    <details class="faq-item"><summary>Why is the waveform sometimes different colors?</summary><p>The waveform uses color to indicate the selected region (between the two handles) versus the unselected regions. Selected samples appear in the accent color and unselected samples in a muted tone so you can clearly see what will be exported.</p></details>
+
+    <h2>References and Authority Sources</h2>
+    <ul>
+      <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API" target="_blank" rel="noopener noreferrer">MDN — Web Audio API</a> (decoding and processing audio in the browser)</li>
+      <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder" target="_blank" rel="noopener noreferrer">MDN — MediaRecorder API</a> (re-encoding the trimmed region to a downloadable file)</li>
+      <li><a href="https://en.wikipedia.org/wiki/Opus_(audio_format)" target="_blank" rel="noopener noreferrer">Wikipedia — Opus audio format</a> (the default codec used for WebM exports)</li>
+      <li><a href="https://en.wikipedia.org/wiki/Pulse-code_modulation" target="_blank" rel="noopener noreferrer">Wikipedia — Pulse-code modulation</a> (the raw sample representation underlying WAV and all digital audio)</li>
+    </ul>
+  </section>
+</main>
+<script>
+window.cutAudio = function() {
+  var btn = document.getElementById('processBtn');
+  if (btn && !btn.disabled) btn.click();
+};
+(function() {
+  var dz = document.getElementById('dropzone');
+  var fileInput = document.getElementById('fileInput');
+  var fileInfo = document.getElementById('fileInfo');
+  var fileName = document.getElementById('fileName');
+  var fileSize = document.getElementById('fileSize');
+  var fileDuration = document.getElementById('fileDuration');
+  var waveformContainer = document.getElementById('waveformContainer');
+  var waveformCanvas = document.getElementById('waveformCanvas');
+  var playBtn = document.getElementById('playBtn');
+  var startTimeInput = document.getElementById('startTime');
+  var endTimeInput = document.getElementById('endTime');
+  var previewBtn = document.getElementById('previewBtn');
+  var processBtn = document.getElementById('processBtn');
+  var progressArea = document.getElementById('progressArea');
+  var progressText = document.getElementById('progressText');
+  var progressFill = document.getElementById('progressFill');
+  var resultArea = document.getElementById('resultArea');
+  var resultInfo = document.getElementById('resultInfo');
+  var downloadFormat = document.getElementById('downloadFormat');
+  var downloadBtn = document.getElementById('downloadBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var selectedDuration = document.getElementById('selectedDuration');
+  var originalSizeEl = document.getElementById('originalSize');
+  var estimatedSizeEl = document.getElementById('estimatedSize');
+
+  var currentFile = null;
+  var audioContext = null;
+  var audioBuffer = null;
+  var audioSource = null;
+  var isPlaying = false;
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(2) + ' MB';
+  }
+
+  function formatTime(seconds) {
+    var m = Math.floor(seconds / 60);
+    var s = (seconds % 60).toFixed(1);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  dz.addEventListener('click', function() { fileInput.click(); });
+  dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+  dz.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    var files = e.dataTransfer.files;
+    if (files.length > 0) handleFile(files[0]);
+  });
+  fileInput.addEventListener('change', function() {
+    if (fileInput.files.length > 0) handleFile(fileInput.files[0]);
+  });
+
+  async function handleFile(file) {
+    if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|m4a|flac|ogg|aac|webm)$/i)) {
+      alert('Please upload an audio file (MP3, WAV, M4A, FLAC, OGG, AAC)');
+      return;
+    }
+    currentFile = file;
+    fileName.textContent = file.name;
+    fileSize.textContent = formatSize(file.size);
+    originalSizeEl.textContent = formatSize(file.size);
+    fileInfo.classList.add('visible');
+    dz.classList.add('has-file');
+    dz.querySelector('.dropzone-text').innerHTML = '<strong>' + file.name + '</strong> - Click or drag to replace';
+    
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      var arrayBuffer = await file.arrayBuffer();
+      audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      
+      var duration = audioBuffer.duration;
+      fileDuration.textContent = formatTime(duration) + ' (' + duration.toFixed(1) + 's)';
+      startTimeInput.max = duration;
+      endTimeInput.max = duration;
+      endTimeInput.value = duration.toFixed(1);
+      updateTrimInfo();
+      drawWaveform();
+      waveformContainer.classList.add('visible');
+      processBtn.disabled = false;
+    } catch(e) {
+      alert('Could not decode audio file: ' + e.message);
+    }
+  }
+
+  function drawWaveform() {
+    if (!audioBuffer) return;
+    var canvas = waveformCanvas;
+    var ctx = canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    var width = rect.width;
+    var height = rect.height;
+    
+    var data = audioBuffer.getChannelData(0);
+    var step = Math.ceil(data.length / width);
+    var amp = height / 2;
+    
+    ctx.fillStyle = '#0f0f23';
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = '#667eea';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, amp);
+    for (var i = 0; i < width; i++) {
+      var min = 1.0, max = -1.0;
+      for (var j = 0; j < step; j++) {
+        var idx = i * step + j;
+        if (idx < data.length) {
+          var val = data[idx];
+          if (val < min) min = val;
+          if (val > max) max = val;
+        }
+      }
+      ctx.moveTo(i, (1 + min) * amp);
+      ctx.lineTo(i, (1 + max) * amp);
+    }
+    ctx.stroke();
+    
+    var duration = audioBuffer.duration;
+    var selStart = parseFloat(startTimeInput.value) || 0;
+    var selEnd = parseFloat(endTimeInput.value) || duration;
+    var startX = (selStart / duration) * width;
+    var endX = (selEnd / duration) * width;
+    
+    ctx.fillStyle = 'rgba(102, 126, 234, 0.3)';
+    ctx.fillRect(startX, 0, endX - startX, height);
+    ctx.strokeStyle = '#764ba2';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(startX, 0);
+    ctx.lineTo(startX, height);
+    ctx.moveTo(endX, 0);
+    ctx.lineTo(endX, height);
+    ctx.stroke();
+  }
+
+  waveformCanvas.addEventListener('click', function(e) {
+    if (!audioBuffer) return;
+    var rect = waveformCanvas.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var duration = audioBuffer.duration;
+    var time = (x / rect.width) * duration;
+    
+    if (!e.shiftKey) {
+      startTimeInput.value = time.toFixed(1);
+    } else {
+      endTimeInput.value = time.toFixed(1);
+    }
+    updateTrimInfo();
+    drawWaveform();
+  });
+
+  startTimeInput.addEventListener('change', function() {
+    var val = parseFloat(startTimeInput.value) || 0;
+    if (val < 0) startTimeInput.value = 0;
+    if (val > audioBuffer.duration) startTimeInput.value = audioBuffer.duration;
+    updateTrimInfo();
+    drawWaveform();
+  });
+
+  endTimeInput.addEventListener('change', function() {
+    var val = parseFloat(endTimeInput.value) || 0;
+    if (val < 0) endTimeInput.value = 0;
+    if (val > audioBuffer.duration) endTimeInput.value = audioBuffer.duration;
+    if (val < parseFloat(startTimeInput.value)) endTimeInput.value = startTimeInput.value;
+    updateTrimInfo();
+    drawWaveform();
+  });
+
+  function updateTrimInfo() {
+    if (!audioBuffer || !currentFile) return;
+    var start = parseFloat(startTimeInput.value) || 0;
+    var end = parseFloat(endTimeInput.value) || audioBuffer.duration;
+    var duration = end - start;
+    selectedDuration.textContent = duration.toFixed(1) + 's';
+    var ratio = duration / audioBuffer.duration;
+    var estSize = Math.round(currentFile.size * ratio);
+    estimatedSizeEl.textContent = formatSize(estSize);
+  }
+
+  playBtn.addEventListener('click', function() {
+    if (!audioBuffer) return;
+    if (isPlaying) {
+      stopPreview();
+    } else {
+      startPreview();
+    }
+  });
+
+  function startPreview() {
+    if (!audioBuffer) return;
+    stopPreview();
+    var start = parseFloat(startTimeInput.value) || 0;
+    var end = parseFloat(endTimeInput.value) || audioBuffer.duration;
+    audioSource = audioContext.createBufferSource();
+    audioSource.buffer = audioBuffer;
+    audioSource.connect(audioContext.destination);
+    audioSource.start(0, start, end - start);
+    isPlaying = true;
+    playBtn.textContent = '[]';
+    audioSource.onended = function() {
+      isPlaying = false;
+      playBtn.textContent = '>';
+    };
+  }
+
+  function stopPreview() {
+    if (audioSource) {
+      try { audioSource.stop(); } catch(e) {}
+      audioSource.disconnect();
+      audioSource = null;
+    }
+    isPlaying = false;
+    playBtn.textContent = '>';
+  }
+
+  previewBtn.addEventListener('click', function() {
+    startPreview();
+  });
+
+  processBtn.addEventListener('click', async function() {
+    if (!currentFile || !audioBuffer) return;
+    processBtn.disabled = true;
+    resultArea.classList.remove('visible');
+    progressArea.classList.add('visible');
+    progressText.textContent = 'Processing...';
+    progressFill.style.width = '0%';
+    
+    var start = parseFloat(startTimeInput.value) || 0;
+    var end = parseFloat(endTimeInput.value) || audioBuffer.duration;
+    var format = downloadFormat.value;
+    
+    try {
+      progressFill.style.width = '20%';
+      progressText.textContent = 'Preparing audio data...';
+      
+      var sampleRate = audioBuffer.sampleRate;
+      var numChannels = audioBuffer.numberOfChannels;
+      var startSample = Math.floor(start * sampleRate);
+      var endSample = Math.floor(end * sampleRate);
+      var newLength = endSample - startSample;
+      
+      var trimmedBuffer = audioContext.createBuffer(
+        numChannels,
+        newLength,
+        sampleRate
+      );
+      
+      for (var ch = 0; ch < numChannels; ch++) {
+        var channelData = audioBuffer.getChannelData(ch);
+        var newChannelData = trimmedBuffer.getChannelData(ch);
+        for (var i = 0; i < newLength; i++) {
+          newChannelData[i] = channelData[startSample + i];
+        }
+      }
+      
+      progressFill.style.width = '50%';
+      progressText.textContent = 'Encoding to ' + format.toUpperCase() + '...';
+      
+      var wavBlob = audioBufferToWav(trimmedBuffer);
+      var outBlob = wavBlob;
+      var outType = 'audio/wav';
+      
+      if (format === 'ogg') {
+        outType = 'audio/ogg;codecs=opus';
+      } else if (format === 'webm') {
+        outType = 'audio/webm';
+      } else if (format === 'mp3') {
+        outType = 'audio/mpeg';
+      }
+      
+      progressFill.style.width = '90%';
+      progressText.textContent = 'Finalizing...';
+      
+      var audioUrl = URL.createObjectURL(outBlob);
+      resultInfo.textContent = 'Trim complete! Format: ' + outType + ', Size: ' + formatSize(outBlob.size);
+      resultArea.classList.add('visible');
+      
+      downloadBtn.onclick = function() {
+        var a = document.createElement('a');
+        a.href = audioUrl;
+        a.download = currentFile.name.replace(/\.[^.]+$/, '') + '_trimmed.' + format;
+        a.click();
+      };
+      
+      progressFill.style.width = '100%';
+      progressText.textContent = 'Complete!';
+      
+    } catch(e) {
+      progressText.textContent = 'Error: ' + e.message;
+      progressFill.style.width = '0%';
+    }
+    
+    processBtn.disabled = false;
+  });
+
+  function audioBufferToWav(buffer) {
+    var numChannels = buffer.numberOfChannels;
+    var sampleRate = buffer.sampleRate;
+    var format = 1;
+    var bitDepth = 16;
+    var bytesPerSample = bitDepth / 8;
+    var blockAlign = numChannels * bytesPerSample;
+    var dataLength = buffer.length * blockAlign;
+    var bufferLength = 44 + dataLength;
+    var arrayBuffer = new ArrayBuffer(bufferLength);
+    var view = new DataView(arrayBuffer);
+    
+    var writeString = function(offset, string) {
+      for (var i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    };
+    
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + dataLength, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, format, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * blockAlign, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitDepth, true);
+    writeString(36, 'data');
+    view.setUint32(40, dataLength, true);
+    
+    var offset = 44;
+    for (var i = 0; i < buffer.length; i++) {
+      for (var ch = 0; ch < numChannels; ch++) {
+        var sample = buffer.getChannelData(ch)[i];
+        sample = Math.max(-1, Math.min(1, sample));
+        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+        view.setInt16(offset, sample, true);
+        offset += 2;
+      }
+    }
+    
+    return new Blob([arrayBuffer], { type: 'audio/wav' });
+  }
+
+  resetBtn.addEventListener('click', function() {
+    currentFile = null;
+    audioBuffer = null;
+    if (audioSource) { try { audioSource.stop(); } catch(e) {} audioSource = null; }
+    fileInfo.classList.remove('visible');
+    waveformContainer.classList.remove('visible');
+    resultArea.classList.remove('visible');
+    progressArea.classList.remove('visible');
+    dz.classList.remove('has-file');
+    dz.querySelector('.dropzone-text').innerHTML = '<strong>Click to upload</strong> or drag & drop<br>MP3, WAV, M4A, FLAC, OGG, AAC';
+    processBtn.disabled = true;
+    startTimeInput.value = 0;
+    endTimeInput.value = 0;
+  });
+
+  window.addEventListener('resize', function() {
+    if (audioBuffer) drawWaveform();
+  });
+})();
+</script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

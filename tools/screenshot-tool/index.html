@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Screenshot Annotation Tool | DevTools Hub</title>
+    <meta name="description" content="Free online screenshot annotation tool. Upload images to annotate with arrows, text, rectangles, circles and blur. Download or copy with no watermarks.">
+    <meta name="keywords" content="screenshot annotation, annotate screenshot, image annotation, annotate tool, screenshot editor, arrow tool, blur tool">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/screenshot-tool/">
+    <meta property="og:title" content="Free Screenshot Annotation Tool | DevTools Hub">
+    <meta property="og:description" content="Upload any image and annotate instantly with arrows, text, shapes and blur. Free, no watermarks.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/screenshot-tool/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            margin-bottom: 24px;
+        }
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .logo span { color: var(--primary); }
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+        nav a:hover { color: var(--text); }
+        .hero {
+            text-align: center;
+            padding: 32px 0;
+            margin-bottom: 32px;
+        }
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .tool-container {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .tool-container { grid-template-columns: 1fr; }
+        }
+        .canvas-wrapper {
+            background: var(--surface);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: auto;
+        }
+        .canvas-wrapper.has-image { border-style: solid; }
+        #mainCanvas { max-width: 100%; display: block; cursor: crosshair; }
+        .placeholder {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px;
+        }
+        .placeholder svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .placeholder p { font-size: 1rem; margin-bottom: 8px; }
+        .placeholder small { font-size: 0.875rem; opacity: 0.7; }
+        .toolbar {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .tool-group { display: flex; flex-direction: column; gap: 8px; }
+        .tool-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 80px;
+        }
+        .btn svg { width: 18px; height: 18px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-secondary { background: var(--surface-hover); color: var(--text); }
+        .btn-secondary:hover { background: var(--border); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .tool-btn {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border-radius: 8px;
+            background: var(--surface-hover);
+            color: var(--text);
+            border: 2px solid transparent;
+        }
+        .tool-btn:hover { border-color: var(--primary); }
+        .tool-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .color-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .color-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .color-btn:hover { transform: scale(1.1); }
+        .color-btn.active { border-color: white; }
+        .size-row { display: flex; gap: 8px; align-items: center; }
+        .size-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            background: var(--surface-hover);
+            color: var(--text);
+            border: 2px solid transparent;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .size-btn.active { border-color: var(--primary); background: var(--primary); }
+        .input-row { display: flex; flex-direction: column; gap: 6px; }
+        .input-row input, .input-row textarea {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.875rem;
+        }
+        .input-row textarea { min-height: 80px; resize: vertical; font-family: monospace; }
+        .input-row input:focus, .input-row textarea:focus {
+            outline: 2px solid transparent;
+        /* BUG-308 (WCAG 2.4.7): this page does not link /styles.css, so the sitewide
+           *:focus-visible rule there cannot reach it. Same 3px/#7eb3ff token. */
+        *:focus-visible { outline: 3px solid #7eb3ff !important; outline-offset: 2px !important; }
+            border-color: var(--primary);
+        }
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            background: var(--bg);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .status.success { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+        .status.error { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .status.info { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+        .help-text { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+        .hidden { display: none !important; }
+        .loading {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 10;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+        .tab {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            background: var(--surface-hover);
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab.active { background: var(--primary); color: white; }
+        .tab:hover:not(.active) { background: var(--border); }
+    </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Screenshot Annotation Tool","url":"https://tools.scoreroute.com/tools/screenshot-tool/","description":"Free screenshot annotation tool. Edit and annotate screenshots online.","applicationCategory":"Multimedia","operatingSystem":"All"}
+</script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">Dev<span>Tools</span> Hub</a>
+            <nav><a href="/">Back to Tools</a></nav>
+        </div>
+    </header>
+    <main class="container">
+        <div class="hero">
+            <h1>Screenshot Annotation Tool</h1>
+            <p>Upload an image or paste HTML code to annotate. Add arrows, text, rectangles, circles and blur. Download or copy with no watermarks.</p>
+        </div>
+        <div class="tool-container">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <div class="placeholder" id="placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <path d="M21 15l-5-5L5 21"/>
+                    </svg>
+                    <p>Upload an image or paste HTML to get started</p>
+                    <small>Supports JPG, PNG, WebP, GIF, BMP, SVG</small>
+                </div>
+                <canvas id="mainCanvas" class="hidden"></canvas>
+                <div class="loading hidden" id="loading">
+                    <div class="spinner"></div>
+                    <span id="loadingText">Processing...</span>
+                </div>
+            </div>
+            <div class="toolbar">
+                <div class="tool-group">
+                    <label>Input Method</label>
+                    <div class="tabs">
+                        <button class="tab active" id="tabUpload">Upload</button>
+                        <button class="tab" id="tabHtml">HTML</button>
+                    </div>
+                </div>
+                
+                <div class="tool-group" id="uploadSection">
+                    <label>Upload Image</label>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;" aria-label="Processing...">
+                    <button class="btn btn-secondary" id="uploadBtn" style="flex:none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        Choose File
+                    </button>
+                    <p class="help-text">or drag and drop an image onto the canvas</p>
+                </div>
+
+                <div class="tool-group hidden" id="htmlSection">
+                    <label>Paste HTML Code</label>
+                    <div class="input-row">
+                        <textarea id="htmlInput" placeholder="<html>..." aria-label="Html Input"></textarea>
+                    </div>
+                    <button class="btn btn-primary" id="renderHtmlBtn">Render HTML</button>
+                </div>
+
+                <div class="tool-group">
+                    <label>Annotation Tools</label>
+                    <div class="btn-row">
+                        <button class="btn tool-btn active" id="selectTool" title="Select/Move" aria-label="Select/Move" data-tool="select">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+                        </button>
+                        <button class="btn tool-btn" id="arrowTool" title="Arrow" aria-label="Arrow" data-tool="arrow">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </button>
+                        <button class="btn tool-btn" id="rectTool" title="Rectangle" aria-label="Rectangle" data-tool="rect">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                        </button>
+                        <button class="btn tool-btn" id="circleTool" title="Circle" aria-label="Circle" data-tool="circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+                        </button>
+                        <button class="btn tool-btn" id="textTool" title="Text" aria-label="Text" data-tool="text">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+                        </button>
+                        <button class="btn tool-btn" id="blurTool" title="Blur" aria-label="Blur" data-tool="blur">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="tool-group">
+                    <label>Color</label>
+                    <div class="color-row">
+                        <button class="color-btn active" data-color="#ef4444" style="background:#ef4444" aria-label="Color #ef4444"></button>
+                        <button class="color-btn" data-color="#f97316" style="background:#f97316" aria-label="Color #f97316"></button>
+                        <button class="color-btn" data-color="#eab308" style="background:#eab308" aria-label="Color #eab308"></button>
+                        <button class="color-btn" data-color="#22c55e" style="background:#22c55e" aria-label="Color #22c55e"></button>
+                        <button class="color-btn" data-color="#06b6d4" style="background:#06b6d4" aria-label="Color #06b6d4"></button>
+                        <button class="color-btn" data-color="#3b82f6" style="background:#3b82f6" aria-label="Color #3b82f6"></button>
+                        <button class="color-btn" data-color="#8b5cf6" style="background:#8b5cf6" aria-label="Color #8b5cf6"></button>
+                        <button class="color-btn" data-color="#ec4899" style="background:#ec4899" aria-label="Color #ec4899"></button>
+                        <button class="color-btn" data-color="#ffffff" style="background:#ffffff" aria-label="Color #ffffff"></button>
+                        <button class="color-btn" data-color="#000000" style="background:#000000" aria-label="Color #000000"></button>
+                    </div>
+                </div>
+                <div class="tool-group">
+                    <label>Stroke Width</label>
+                    <div class="size-row">
+                        <button class="size-btn" data-size="2">S</button>
+                        <button class="size-btn active" data-size="4">M</button>
+                        <button class="size-btn" data-size="6">L</button>
+                        <button class="size-btn" data-size="8">XL</button>
+                    </div>
+                </div>
+                <div class="tool-group">
+                    <label>Text for Text Tool</label>
+                    <div class="input-row">
+                        <input type="text" id="textInput" placeholder="Enter text..." aria-label="Enter text">
+                    </div>
+                </div>
+                <div class="tool-group">
+                    <label>Actions</label>
+                    <div class="btn-row">
+                        <button class="btn btn-success" id="undoBtn" disabled>Undo</button>
+                        <button class="btn btn-danger" id="clearBtn" disabled>Clear</button>
+                    </div>
+                    <div class="btn-row" style="margin-top: 8px;">
+                        <button class="btn btn-secondary" id="copyBtn" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                            Copy
+                        </button>
+                        <button class="btn btn-primary" id="downloadBtn" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                            Download
+                        </button>
+                    </div>
+                </div>
+                <div class="status" id="status">Ready - upload an image or paste HTML</div>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script>
+    (function() {
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('canvasWrapper');
+        const placeholder = document.getElementById('placeholder');
+        const loading = document.getElementById('loading');
+        const loadingText = document.getElementById('loadingText');
+        const status = document.getElementById('status');
+        const fileInput = document.getElementById('fileInput');
+        const textInput = document.getElementById('textInput');
+
+        let currentTool = 'select';
+        let currentColor = '#ef4444';
+        let currentSize = 4;
+        let isDrawing = false;
+        let startX, startY;
+        let history = [];
+        let screenshotImage = null;
+
+        function setStatus(msg, type) {
+            status.textContent = msg;
+            status.className = 'status ' + (type || '');
+        }
+
+        function showLoading(show, text) {
+            loading.classList.toggle('hidden', !show);
+            if (text) loadingText.textContent = text;
+        }
+
+        function updateButtons() {
+            const hasImage = screenshotImage !== null;
+            document.getElementById('copyBtn').disabled = !hasImage;
+            document.getElementById('downloadBtn').disabled = !hasImage;
+            document.getElementById('undoBtn').disabled = history.length === 0;
+            document.getElementById('clearBtn').disabled = !hasImage;
+        }
+
+        function setupCanvas(img) {
+            screenshotImage = img;
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            placeholder.classList.add('hidden');
+            canvas.classList.remove('hidden');
+            wrapper.classList.add('has-image');
+            history = [];
+            updateButtons();
+            setStatus('Image loaded - add annotations', 'success');
+        }
+
+        document.getElementById('tabUpload').addEventListener('click', () => {
+            document.getElementById('tabUpload').classList.add('active');
+            document.getElementById('tabHtml').classList.remove('active');
+            document.getElementById('uploadSection').classList.remove('hidden');
+            document.getElementById('htmlSection').classList.add('hidden');
+        });
+
+        document.getElementById('tabHtml').addEventListener('click', () => {
+            document.getElementById('tabHtml').classList.add('active');
+            document.getElementById('tabUpload').classList.remove('active');
+            document.getElementById('htmlSection').classList.remove('hidden');
+            document.getElementById('uploadSection').classList.add('hidden');
+        });
+
+        document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const img = new Image();
+                img.onload = () => setupCanvas(img);
+                img.onerror = () => setStatus('Failed to load image', 'error');
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        wrapper.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            wrapper.style.borderColor = '#3b82f6';
+        });
+        wrapper.addEventListener('dragleave', () => {
+            wrapper.style.borderColor = '';
+        });
+        wrapper.addEventListener('drop', (e) => {
+            e.preventDefault();
+            wrapper.style.borderColor = '';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const img = new Image();
+                    img.onload = () => setupCanvas(img);
+                    img.src = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('renderHtmlBtn').addEventListener('click', () => {
+            const html = document.getElementById('htmlInput').value.trim();
+            if (!html) {
+                setStatus('Please paste HTML code', 'error');
+                return;
+            }
+            
+            showLoading(true, 'Rendering HTML...');
+            try {
+                const iframe = document.createElement('iframe');
+                iframe.style.cssText = 'position:absolute;top:-9999px;left:-9999px;width:1200px;height:800px;border:none;';
+                document.body.appendChild(iframe);
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write(html);
+                iframeDoc.close();
+                
+                setTimeout(async () => {
+                    try {
+                        const options = {
+                            type: 'dataURL',
+                            useCORS: true,
+                            allowTaint: true,
+                            backgroundColor: '#ffffff',
+                            scale: 1,
+                            logging: false
+                        };
+                        
+                        const tempCanvas = await html2canvas(iframeDoc.body, options);
+                        document.body.removeChild(iframe);
+                        
+                        const img = new Image();
+                        img.onload = () => setupCanvas(img);
+                        img.onerror = () => {
+                            showLoading(false);
+                            setStatus('Failed to render HTML', 'error');
+                        };
+                        img.src = tempCanvas.toDataURL('image/png');
+                        showLoading(false);
+                    } catch (err) {
+                        document.body.removeChild(iframe);
+                        showLoading(false);
+                        setStatus('Render failed: ' + err.message, 'error');
+                    }
+                }, 1000);
+            } catch (error) {
+                showLoading(false);
+                setStatus('HTML error: ' + error.message, 'error');
+            }
+        });
+
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTool = btn.dataset.tool;
+                canvas.style.cursor = currentTool === 'select' ? 'default' : 'crosshair';
+            });
+        });
+
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentColor = btn.dataset.color;
+            });
+        });
+
+        document.querySelectorAll('.size-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSize = parseInt(btn.dataset.size);
+            });
+        });
+
+        document.getElementById('undoBtn').addEventListener('click', () => {
+            if (history.length > 0) {
+                ctx.putImageData(history.pop(), 0, 0);
+                updateButtons();
+                setStatus('Undone', '');
+            }
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            if (!screenshotImage) return;
+            saveHistory();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(screenshotImage, 0, 0);
+            setStatus('Annotations cleared', '');
+        });
+
+        function saveHistory() {
+            if (!screenshotImage) return;
+            history.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+            if (history.length > 20) history.shift();
+            updateButtons();
+        }
+
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (!screenshotImage || currentTool === 'select') return;
+            const coords = getCanvasCoords(e);
+            startX = coords.x;
+            startY = coords.y;
+            isDrawing = true;
+
+            if (currentTool === 'text') {
+                saveHistory();
+                const text = textInput.value.trim() || 'Text';
+                ctx.font = 'bold ' + (currentSize * 6) + 'px sans-serif';
+                ctx.fillStyle = currentColor;
+                ctx.fillText(text, startX, startY);
+                isDrawing = false;
+                return;
+            }
+
+            if (currentTool === 'blur') {
+                saveHistory();
+                const bx = Math.max(0, startX - 30);
+                const by = Math.max(0, startY - 30);
+                const bw = Math.min(60, canvas.width - bx);
+                const bh = Math.min(60, canvas.height - by);
+                if (bw > 0 && bh > 0) {
+                    ctx.filter = 'blur(8px)';
+                    ctx.fillStyle = '#888';
+                    ctx.fillRect(bx, by, bw, bh);
+                    ctx.filter = 'none';
+                }
+                isDrawing = false;
+                return;
+            }
+
+            saveHistory();
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing || currentTool === 'select' || !screenshotImage) return;
+            const coords = getCanvasCoords(e);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(screenshotImage, 0, 0);
+
+            ctx.strokeStyle = currentColor;
+            ctx.fillStyle = currentColor;
+            ctx.lineWidth = currentSize;
+
+            if (currentTool === 'arrow') {
+                drawArrow(ctx, startX, startY, coords.x, coords.y);
+            } else if (currentTool === 'rect') {
+                ctx.strokeRect(startX, startY, coords.x - startX, coords.y - startY);
+            } else if (currentTool === 'circle') {
+                const rx = Math.abs(coords.x - startX) / 2;
+                const ry = Math.abs(coords.y - startY) / 2;
+                const cx = startX + (coords.x - startX) / 2;
+                const cy = startY + (coords.y - startY) / 2;
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (!isDrawing || currentTool === 'select' || !screenshotImage) return;
+            isDrawing = false;
+            const coords = getCanvasCoords(e);
+
+            ctx.strokeStyle = currentColor;
+            ctx.fillStyle = currentColor;
+            ctx.lineWidth = currentSize;
+
+            if (currentTool === 'arrow') {
+                drawArrow(ctx, startX, startY, coords.x, coords.y);
+            } else if (currentTool === 'rect') {
+                ctx.strokeRect(startX, startY, coords.x - startX, coords.y - startY);
+            } else if (currentTool === 'circle') {
+                const rx = Math.abs(coords.x - startX) / 2;
+                const ry = Math.abs(coords.y - startY) / 2;
+                const cx = startX + (coords.x - startX) / 2;
+                const cy = startY + (coords.y - startY) / 2;
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            setStatus('Annotation added', 'success');
+        });
+
+        function drawArrow(ctx, fromX, fromY, toX, toY) {
+            const headLen = Math.min(30, Math.hypot(toX - fromX, toY - fromY) * 0.3);
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        document.getElementById('copyBtn').addEventListener('click', async () => {
+            if (!screenshotImage) return;
+            try {
+                canvas.toBlob(async (blob) => {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    setStatus('Copied to clipboard!', 'success');
+                }, 'image/png');
+            } catch (error) {
+                setStatus('Copy failed: ' + error.message, 'error');
+            }
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            if (!screenshotImage) return;
+            const link = document.createElement('a');
+            link.download = 'screenshot-' + Date.now() + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            setStatus('Download started!', 'success');
+        });
+    })();
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

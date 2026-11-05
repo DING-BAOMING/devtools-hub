@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subtitle Generator - Free AI Audio/Video to SRT & VTT</title>
+    <meta name="description" content="Free AI subtitle generator. Convert audio or video to SRT or VTT with Whisper large-v3 timestamps. 18 languages, no signup, no watermark.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/subtitle-generator/">
+    <meta property="og:title" content="Subtitle Generator - Free AI Audio/Video to SRT & VTT">
+    <meta property="og:description" content="Free AI subtitle generator. Convert audio or video to SRT or VTT with Whisper large-v3 timestamps. 18 languages, no signup, no watermark.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/subtitle-generator/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Subtitle Generator - Free AI Audio/Video to SRT & VTT">
+    <meta name="twitter:description" content="Free AI subtitle generator. Convert audio or video to SRT or VTT with Whisper large-v3 timestamps. 18 languages, no signup, no watermark.">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .sg-wrap { max-width: 1100px; margin: 1.5rem auto; color: #ccc; }
+        /* minmax(0,1fr), not 1fr: a 1fr track floors at min-content, and the 360px aside
+           track made the grid 378px wide — 3px past a 375px viewport. BUG-356. */
+        .sg-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+        @media (min-width: 900px) { .sg-grid { grid-template-columns: minmax(0, 1fr) 360px; } }
+        .sg-card { background: #1a1a3e; border: 1px solid #333; border-radius: 10px; padding: 1.25rem; }
+        .sg-card h2 { color: #fff; font-size: 1.1rem; margin: 0 0 0.85rem 0; padding-bottom: 0.4rem; border-bottom: 1px solid #333; }
+        .sg-dropzone { border: 3px dashed #555; border-radius: 10px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s; background: #0f0f23; margin-bottom: 1rem; }
+        .sg-dropzone:hover, .sg-dropzone.dragover { border-color: #667eea; background: #131a2e; }
+        .sg-dropzone.has-file { border-color: #28a745; background: #1a2e1a; }
+        .sg-dropzone-text { font-size: 0.95rem; line-height: 1.5; }
+        .sg-dropzone-text strong { color: #667eea; }
+        .sg-dropzone-icon { font-size: 2.5rem; margin-bottom: 0.5rem; display: block; }
+        .sg-file-info { padding: 0.6rem 0.85rem; background: #0f0f23; border: 1px solid #333; border-radius: 6px; margin-bottom: 1rem; font-size: 0.85rem; display: none; }
+        .sg-file-info.show { display: flex; justify-content: space-between; align-items: center; }
+        .sg-file-info .sg-file-meta { color: #888; }
+        .sg-file-info .sg-file-name { color: #fff; font-weight: 600; word-break: break-all; }
+        .sg-btn-remove { background: transparent; border: 1px solid #555; color: #ff8888; border-radius: 4px; padding: 0.25rem 0.55rem; cursor: pointer; font-size: 0.75rem; }
+        .sg-btn-remove:hover { background: #3a1a1a; border-color: #ff8888; }
+        .sg-control-row { display: flex; gap: 0.5rem; margin-bottom: 0.65rem; align-items: center; flex-wrap: wrap; }
+        .sg-control-row label { color: #888; font-size: 0.8rem; min-width: 90px; }
+        .sg-select, .sg-input { padding: 0.45rem 0.65rem; background: #0f0f23; color: #fff; border: 1px solid #555; border-radius: 4px; font-size: 0.85rem; flex: 1; min-width: 0; }
+        .sg-select:focus, .sg-input:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .sg-btn { padding: 0.55rem 1rem; border: 1px solid #555; border-radius: 6px; background: #252540; color: #ccc; cursor: pointer; font-size: 0.88rem; transition: all 0.15s; font-weight: 500; }
+        .sg-btn:hover { background: #333; color: #fff; }
+        .sg-btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-color: transparent; }
+        .sg-btn-primary:hover { opacity: 0.9; color: #fff; }
+        .sg-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .sg-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; }
+        .sg-status { color: #aaa; font-size: 0.88rem; padding: 0.65rem 0.85rem; min-height: 22px; border-radius: 6px; margin-bottom: 0.85rem; background: #0f0f23; border: 1px solid #333; display: none; }
+        .sg-status.show { display: block; }
+        .sg-status.loading { background: rgba(102, 126, 234, 0.12); border-color: #667eea; color: #667eea; }
+        .sg-status.ok { background: rgba(40, 167, 69, 0.12); border-color: #28a745; color: #5cff8a; }
+        .sg-status.err { background: rgba(220, 53, 69, 0.12); border-color: #dc3545; color: #ff8a93; }
+        .sg-progress { width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-top: 0.5rem; display: none; }
+        .sg-progress.show { display: block; }
+        .sg-progress-bar { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s; width: 0%; }
+        .sg-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
+        @media (max-width: 600px) { .sg-stats { grid-template-columns: repeat(2, 1fr); } }
+        .sg-stat { background: #0f0f23; padding: 0.55rem; border-radius: 6px; text-align: center; border: 1px solid #333; }
+        .sg-stat-label { color: #888; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sg-stat-value { color: #fff; font-size: 1.1rem; font-weight: 600; margin-top: 0.2rem; }
+        .sg-cue-list { max-height: 50vh; overflow-y: auto; border: 1px solid #333; border-radius: 6px; background: #0f0f23; }
+        .sg-cue { display: grid; grid-template-columns: 65px 130px 1fr; gap: 0.5rem; padding: 0.5rem 0.6rem; border-bottom: 1px solid #1a1a3e; font-size: 0.85rem; align-items: start; }
+        .sg-cue:last-child { border-bottom: none; }
+        .sg-cue:hover { background: #131a2e; }
+        .sg-cue-num { background: #252540; color: #667eea; text-align: center; padding: 0.25rem; border-radius: 4px; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+        .sg-cue-time { color: #aaa; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding-top: 0.2rem; }
+        .sg-cue-text { color: #fff; word-break: break-word; line-height: 1.4; }
+        .sg-output-preview { width: 100%; min-height: 220px; background: #0f0f23; color: #fff; border: 1px solid #333; border-radius: 6px; padding: 0.6rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; resize: vertical; box-sizing: border-box; line-height: 1.5; }
+        .sg-output-preview:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .sg-section-title { color: #fff; font-size: 1rem; margin: 1rem 0 0.5rem 0; font-weight: 600; }
+        .sg-info-box { background: rgba(102, 126, 234, 0.08); border-left: 3px solid #667eea; border-radius: 4px; padding: 0.65rem 0.85rem; margin-bottom: 0.85rem; font-size: 0.85rem; color: #aaa; }
+        .sg-info-box strong { color: #667eea; }
+        .sg-warn-box { background: rgba(255, 193, 7, 0.08); border-left: 3px solid #ffc107; border-radius: 4px; padding: 0.65rem 0.85rem; margin-bottom: 0.85rem; font-size: 0.85rem; color: #ffc107; }
+        .breadcrumb { padding: 1rem 0; color: #888; font-size: 0.9rem; }
+        .breadcrumb a { color: #667eea; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .breadcrumb span[aria-current] { color: #ccc; }
+        .feedback-link { float: right; color: #888; font-size: 0.85rem; }
+        .feedback-link a { color: #667eea; text-decoration: none; }
+        section h2 { color: #fff; margin-top: 2.5rem; border-bottom: 1px solid #333; padding-bottom: 0.5rem; }
+        section p, section li { color: #ccc; line-height: 1.6; }
+        .hero-text { color: #ccc; font-size: 1.1rem; line-height: 1.55; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin: 1.5rem 0; }
+        .feature-card { background: #1a1a3e; padding: 1.25rem; border-radius: 8px; border-left: 4px solid #667eea; }
+        .feature-card h3 { color: #fff; margin: 0 0 0.4rem 0; font-size: 1rem; }
+        .feature-card p { color: #aaa; font-size: 0.9rem; line-height: 1.45; margin: 0; }
+        .faq-item { background: #1a1a3e; padding: 0 1rem; border-radius: 6px; margin: 0.6rem 0; border: 1px solid #333; }
+        .faq-item summary { padding: 0.85rem 0; cursor: pointer; color: #fff; font-weight: 500; outline: none; }
+        .faq-item summary::-webkit-details-marker { color: #667eea; }
+        .faq-item[open] { background: #1f1f48; }
+        .faq-item p { padding-bottom: 0.85rem; color: #ccc; line-height: 1.55; }
+        .related-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem; margin: 1rem 0; }
+        .related-card { background: #1a1a3e; padding: 1rem; border-radius: 8px; border: 1px solid #333; text-decoration: none; transition: all 0.2s; }
+        .related-card:hover { border-color: #667eea; transform: translateY(-2px); }
+        .related-card h4 { color: #fff; margin: 0 0 0.35rem 0; font-size: 0.95rem; }
+        .related-card p { color: #aaa; font-size: 0.82rem; line-height: 1.4; margin: 0; }
+        .sg-link-out { color: #667eea; text-decoration: none; }
+        .sg-link-out:hover { text-decoration: underline; }
+    </style>
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Subtitle Generator - AI Audio/Video to SRT/VTT",
+  "description": "Free AI subtitle generator. Upload audio or video and get accurate SRT or VTT subtitle files with timestamps. Powered by Whisper large-v3, supports 18 languages, no signup, no watermark.",
+  "url": "https://tools.scoreroute.com/tools/subtitle-generator/",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Modern browser with file upload and JavaScript enabled",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "BAOMING"},
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23",
+  "featureList": [
+    "Convert audio or video files to SRT (SubRip) subtitle format",
+    "Convert audio or video files to VTT (WebVTT) subtitle format",
+    "Whisper large-v3 transcription engine for high accuracy",
+    "Whisper large-v3-turbo for faster transcription",
+    "distil-whisper-large-v3-en for fast English-only transcription",
+    "Auto-detect language or pick from 18 supported languages",
+    "Drag-and-drop or click file upload (mp3/wav/m4a/ogg/mp4/mov/webm/mkv)",
+    "Up to 25 MB per file (Groq Whisper file limit)",
+    "Adjustable max cue duration (3s, 5s, 7s, 10s)",
+    "Live cue preview with index, start, end, and text",
+    "Download as .srt or .vtt file",
+    "Copy subtitle text to clipboard",
+    "Open generated subtitles directly in the Subtitle Editor for manual tweaks",
+    "Free, no signup, no watermark, no daily limits"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "What audio and video formats are supported?", "acceptedAnswer": {"@type": "Answer", "text": "The tool accepts the most common formats: MP3, WAV, M4A, OGG, FLAC for audio, and MP4, MOV, WebM, MKV for video. Files up to 25 MB are processed directly; larger files should be trimmed or compressed first. Video files are processed by extracting the audio track on the Groq side using Whisper."}},
+    {"@type": "Question", "name": "How accurate is the AI transcription?", "acceptedAnswer": {"@type": "Answer", "text": "The tool uses OpenAI Whisper large-v3, the highest-accuracy public speech model. On clean English audio you can expect 95-98% word accuracy; on noisy or accented speech, 85-95%. The faster turbo model is about 5x faster with a small accuracy trade-off, and the distil model is English-only but very fast."}},
+    {"@type": "Question", "name": "Which languages can the tool transcribe?", "acceptedAnswer": {"@type": "Answer", "text": "The tool supports 18 languages: English, Chinese, Spanish, French, German, Japanese, Korean, Portuguese, Italian, Russian, Arabic, Hindi, Dutch, Polish, Turkish, Vietnamese, Indonesian, and Thai. You can also leave it on auto-detect and Whisper will identify the spoken language automatically."}},
+    {"@type": "Question", "name": "What is the difference between SRT and VTT?", "acceptedAnswer": {"@type": "Answer", "text": "SRT (SubRip) is the most widely used subtitle format and works in VLC, YouTube uploads, Handbrake, and most video editors. VTT (WebVTT) is the standard for HTML5 video players and BBC-style web players. The tool lets you export either format from the same transcription - just switch the Format dropdown before downloading."}},
+    {"@type": "Question", "name": "Is there a file size limit?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Groq Whisper accepts files up to 25 MB. The tool will reject larger files with a clear error message. If your audio is longer than about 30 minutes at typical bitrate, trim or compress it first using a tool like our Audio Cutter or Audio Compressor."}},
+    {"@type": "Question", "name": "Can I edit the generated subtitles afterwards?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The tool includes an 'Open in Subtitle Editor' button that opens the generated SRT or VTT in our companion Subtitle Editor, where you can fix typos, adjust timestamps, split or merge cues, validate overlaps, and export back to either format. Everything stays in your browser."}},
+    {"@type": "Question", "name": "Is my audio sent to a server?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Unlike most of our tools, this one DOES upload your audio/video to our API proxy, which forwards it to Groq Whisper for transcription. The file is processed transiently and not stored. If you need a fully offline alternative, see our browser-based Audio to Text tool which uses Web Speech API."}},
+    {"@type": "Question", "name": "Why are AI chatbots not good at this task?", "acceptedAnswer": {"@type": "Answer", "text": "ChatGPT, Claude, and Gemini can reformat text into timestamped subtitle blocks, but they cannot listen to audio or video. They also cannot guarantee millisecond-accurate timing aligned to actual speech - a hallucinated timestamp breaks the entire viewer experience. This tool uses a dedicated speech recognition model so the timing matches the audio exactly."}}
+  ]
+}
+</script>
+</head>
+<body>
+<header>
+    <div class="container">
+        <h1>Subtitle Generator</h1>
+        <p class="subtitle">Free AI Audio/Video &rarr; SRT &amp; VTT &bull; Whisper Large-v3 &bull; 18 Languages</p>
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="/">Home</a> &gt; <a href="/tools/media/">Media Tools</a> &gt; <span>Subtitle Generator</span>
+            <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+<section class="tool-page">
+    <p class="hero-text">Upload any audio or video file and get accurate, time-aligned SRT or VTT subtitle files in seconds. Powered by OpenAI Whisper large-v3 via Groq - the same model used by professional captioning tools - but free, no signup, no watermark, no daily limit. Once generated, drop the result into our <a href="/tools/subtitle-editor/" class="sg-link-out">Subtitle Editor</a> for quick fixes.</p>
+
+    <div class="sg-wrap">
+        <div class="sg-grid">
+            <div class="sg-card">
+                <h2>1. Upload Audio or Video</h2>
+                <div class="sg-dropzone" id="sg-dropzone" tabindex="0" role="button">
+                    <div class="sg-dropzone-icon" aria-hidden="true">&#x1F3A5;</div>
+                    <div class="sg-dropzone-text">
+                        <strong>Click to choose</strong> or drag and drop here<br>
+                        <span style="color:#888;font-size:0.8rem;">MP3, WAV, M4A, OGG, FLAC, MP4, MOV, WebM, MKV &middot; up to 25 MB</span>
+                    </div>
+                    <input type="file" id="sg-file" accept="audio/*,video/*,.mp3,.wav,.m4a,.ogg,.flac,.mp4,.mov,.webm,.mkv" style="display:none" aria-label="Audio or video file">
+                </div>
+
+                <div class="sg-file-info" id="sg-file-info">
+                    <div>
+                        <div class="sg-file-name" id="sg-file-name">file.mp3</div>
+                        <div class="sg-file-meta" id="sg-file-meta">3.4 MB &middot; 0:00</div>
+                    </div>
+                    <button class="sg-btn-remove" id="sg-remove-btn" type="button" aria-label="Remove file">&times; Remove</button>
+                </div>
+
+                <h2>2. Transcription Options</h2>
+                <div class="sg-info-box">
+                    <strong>Whisper large-v3</strong> gives the highest accuracy. <strong>Turbo</strong> is 5x faster with similar quality. <strong>Distil</strong> is English-only but the fastest.
+                </div>
+
+                <div class="sg-control-row">
+                    <label for="sg-model">Model</label>
+                    <select id="sg-model" class="sg-select">
+                        <option value="whisper-large-v3-turbo" selected>whisper-large-v3-turbo (Fast, Multilingual)</option>
+                        <option value="whisper-large-v3">whisper-large-v3 (Best Accuracy)</option>
+                        <option value="distil-whisper-large-v3-en">distil-whisper-large-v3-en (English Only, Fastest)</option>
+                    </select>
+                </div>
+
+                <div class="sg-control-row">
+                    <label for="sg-language">Language</label>
+                    <select id="sg-language" class="sg-select">
+                        <option value="" selected>Auto-detect</option>
+                        <option value="en">English</option>
+                        <option value="zh">Chinese (Mandarin)</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                        <option value="ja">Japanese</option>
+                        <option value="ko">Korean</option>
+                        <option value="pt">Portuguese</option>
+                        <option value="it">Italian</option>
+                        <option value="ru">Russian</option>
+                        <option value="ar">Arabic</option>
+                        <option value="hi">Hindi</option>
+                        <option value="nl">Dutch</option>
+                        <option value="pl">Polish</option>
+                        <option value="tr">Turkish</option>
+                        <option value="vi">Vietnamese</option>
+                        <option value="id">Indonesian</option>
+                        <option value="th">Thai</option>
+                    </select>
+                </div>
+
+                <div class="sg-control-row">
+                    <label for="sg-format">Format</label>
+                    <select id="sg-format" class="sg-select">
+                        <option value="srt" selected>SRT (SubRip) &mdash; most compatible</option>
+                        <option value="vtt">VTT (WebVTT) &mdash; HTML5 video</option>
+                    </select>
+                </div>
+
+                <div class="sg-control-row">
+                    <label for="sg-maxcue">Max cue</label>
+                    <select id="sg-maxcue" class="sg-select">
+                        <option value="3">3 sec / cue (fast reading)</option>
+                        <option value="5" selected>5 sec / cue (balanced)</option>
+                        <option value="7">7 sec / cue (relaxed)</option>
+                        <option value="10">10 sec / cue (no splitting)</option>
+                    </select>
+                </div>
+
+                <h2>3. Generate</h2>
+                <div class="sg-actions">
+                    <button class="sg-btn sg-btn-primary" id="sg-generate-btn" type="button" disabled>Generate Subtitles</button>
+                    <button class="sg-btn" id="sg-load-sample-btn" type="button">Use Sample (no upload)</button>
+                </div>
+
+                <div class="sg-status" id="sg-status"></div>
+                <div class="sg-progress" id="sg-progress"><div class="sg-progress-bar" id="sg-progress-bar"></div></div>
+
+                <div id="sg-results" style="display:none;">
+                    <div class="sg-stats" id="sg-stats">
+                        <div class="sg-stat"><div class="sg-stat-label">Cues</div><div class="sg-stat-value" id="sg-stat-count">0</div></div>
+                        <div class="sg-stat"><div class="sg-stat-label">Duration</div><div class="sg-stat-value" id="sg-stat-duration">0:00</div></div>
+                        <div class="sg-stat"><div class="sg-stat-label">Language</div><div class="sg-stat-value" id="sg-stat-lang">&mdash;</div></div>
+                        <div class="sg-stat"><div class="sg-stat-label">Model</div><div class="sg-stat-value" id="sg-stat-model">&mdash;</div></div>
+                    </div>
+
+                    <h3 class="sg-section-title">Cue Preview</h3>
+                    <div class="sg-cue-list" id="sg-cue-list" aria-live="polite"></div>
+
+                    <h3 class="sg-section-title">Subtitle Text</h3>
+                    <textarea id="sg-output" class="sg-output-preview" readonly aria-label="Generated subtitle text"></textarea>
+
+                    <div class="sg-actions">
+                        <button class="sg-btn sg-btn-primary" id="sg-download-btn" type="button">Download <span id="sg-download-ext">.srt</span></button>
+                        <button class="sg-btn" id="sg-copy-btn" type="button">Copy to Clipboard</button>
+                        <button class="sg-btn" id="sg-open-editor-btn" type="button">Open in Subtitle Editor</button>
+                    </div>
+
+                    <div class="sg-warn-box" id="sg-warn" style="display:none;"></div>
+                </div>
+            </div>
+
+            <aside class="sg-card">
+                <h2>How It Works</h2>
+                <ol style="margin:0;padding-left:1.2rem;line-height:1.7;font-size:0.88rem;color:#ccc;">
+                    <li>Drop your audio/video file (up to 25 MB).</li>
+                    <li>Pick a Whisper model and language (or auto-detect).</li>
+                    <li>Click <strong>Generate Subtitles</strong> - Whisper transcribes with millisecond-precise timestamps.</li>
+                    <li>Preview cues, download SRT/VTT, or open in our <a href="/tools/subtitle-editor/" class="sg-link-out">Subtitle Editor</a>.</li>
+                </ol>
+
+                <h2 style="margin-top:1.5rem;">Common Use Cases</h2>
+                <ul style="margin:0;padding-left:1.2rem;line-height:1.7;font-size:0.88rem;color:#ccc;">
+                    <li>YouTube creators adding captions to videos</li>
+                    <li>Students transcribing recorded lectures</li>
+                    <li>Podcasters generating episode transcripts</li>
+                    <li>Course creators producing accessible lessons</li>
+                    <li>Translating audio interviews for journalism</li>
+                    <li>Indexing video libraries for search</li>
+                </ul>
+
+                <h2 style="margin-top:1.5rem;">Limits &amp; Caveats</h2>
+                <ul style="margin:0;padding-left:1.2rem;line-height:1.7;font-size:0.88rem;color:#ccc;">
+                    <li>Groq Whisper accepts files up to <strong>25 MB</strong></li>
+                    <li>Long audio (over ~30 min) may hit Groq's 60 RPM rate limit</li>
+                    <li>Processing time is typically 0.3-0.5x audio length</li>
+                    <li>Background noise / heavy accents may reduce accuracy</li>
+                </ul>
+            </aside>
+        </div>
+    </div>
+
+    <div class="info-section">
+        <h3>About the Subtitle Generator</h3>
+        <p>Hardcoded subtitles are the most reliable way to make video accessible, but creating them by hand is slow and error-prone. This tool turns the audio track of any video - or any standalone audio file - into properly time-stamped SRT or VTT captions in one click. The same Whisper model powers commercial services that charge per minute, but here it runs through Groq's free developer tier so you can use it as much as you need.</p>
+        <p>The output uses standard SubRip (SRT) or WebVTT (VTT) format. SRT is the format YouTube, VLC, Handbrake, and most NLE editors accept on import. VTT is the format used by HTML5 video tags, JW Player, and the BBC iPlayer-style web players. Both formats use the same time-aligned cue structure (HH:MM:SS,mmm index text), so you can transcribe once and publish anywhere.</p>
+
+        <h3>Why Use This Instead of a Chatbot</h3>
+        <p>Large language models can reformat text into a cue block, but they cannot listen to audio. They also hallucinate timestamps that don't match the actual speech, so the caption flashes on screen at the wrong moment or lingers after the speaker has moved on. A dedicated speech recognition model produces frame-aligned timing, which is what viewers actually need. The output is structured, deterministic, and ready to ship.</p>
+
+        <h3>What to Do After Generating</h3>
+        <p>Open the file in our <a href="/tools/subtitle-editor/" class="sg-link-out">Subtitle Editor</a> to fix any name spellings, brand-specific terms, or punctuation Whisper got wrong. The editor validates cue timing (no overlaps, no negative durations), supports batch shift, split-long-cue, and merge-adjacent operations, and exports back to SRT or VTT with millisecond precision.</p>
+
+        <h3>Related Tools</h3>
+        <div class="related-tools">
+            <a class="related-card" href="/tools/subtitle-editor/">
+                <h4>Subtitle Editor</h4>
+                <p>Fix timing, split cues, validate overlaps, export SRT or VTT. 100% browser-based.</p>
+            </a>
+            <a class="related-card" href="/tools/audio-cutter/">
+                <h4>Audio Cutter</h4>
+                <p>Trim audio files before transcribing to stay under the 25 MB limit.</p>
+            </a>
+            <a class="related-card" href="/tools/audio-to-text/">
+                <h4>Audio to Text</h4>
+                <p>Real-time browser speech recognition for fully offline transcription.</p>
+            </a>
+            <a class="related-card" href="/tools/video-cutter/">
+                <h4>Video Cutter</h4>
+                <p>Trim video files before uploading for subtitle generation.</p>
+            </a>
+        </div>
+
+        <h3>Frequently Asked Questions</h3>
+        <details class="faq-item">
+            <summary>What audio and video formats are supported?</summary>
+            <p>The tool accepts MP3, WAV, M4A, OGG, FLAC for audio and MP4, MOV, WebM, MKV for video. Files up to 25 MB are accepted; video files are processed by extracting the audio track on the Groq side using Whisper, which scans the audio stream directly so no client-side decode is needed.</p>
+        </details>
+        <details class="faq-item">
+            <summary>How accurate is the AI transcription?</summary>
+            <p>The tool uses OpenAI Whisper large-v3 - the highest-accuracy public speech model. On clean English audio you can expect 95-98% word accuracy; on noisy or accented speech, 85-95%. The faster turbo model is roughly 5x faster with a small accuracy trade-off, and the distil model is English-only but the fastest of the three.</p>
+        </details>
+        <details class="faq-item">
+            <summary>Which languages can the tool transcribe?</summary>
+            <p>The tool supports 18 languages: English, Chinese, Spanish, French, German, Japanese, Korean, Portuguese, Italian, Russian, Arabic, Hindi, Dutch, Polish, Turkish, Vietnamese, Indonesian, and Thai. Leave the dropdown on Auto-detect and Whisper will identify the spoken language automatically - useful for mixed-language content.</p>
+        </details>
+        <details class="faq-item">
+            <summary>What is the difference between SRT and VTT?</summary>
+            <p>SRT (SubRip) is the most widely used subtitle format and works in VLC, YouTube uploads, Handbrake, and most video editors. VTT (WebVTT) is the standard for HTML5 video players and BBC-style web players. The tool lets you export either format from the same transcription - just switch the Format dropdown before downloading.</p>
+        </details>
+        <details class="faq-item">
+            <summary>Is there a file size limit?</summary>
+            <p>Yes - 25 MB. The Groq Whisper endpoint rejects larger files. If your audio is longer than about 30 minutes at typical bitrate, trim or compress it first using our Audio Cutter or Audio Compressor. For very long content, split it into 25 MB chunks and transcribe each one.</p>
+        </details>
+        <details class="faq-item">
+            <summary>Can I edit the generated subtitles afterwards?</summary>
+            <p>Yes. The tool includes an "Open in Subtitle Editor" button that loads the generated SRT or VTT directly into our companion Subtitle Editor, where you can fix typos, adjust timestamps, split or merge cues, validate overlaps, and export back to either format. Everything stays in your browser.</p>
+        </details>
+        <details class="faq-item">
+            <summary>Is my audio uploaded to a server?</summary>
+            <p>Unlike most of our tools, this one DOES upload your audio/video to our Cloudflare Function, which forwards it to Groq Whisper for transcription. The file is processed transiently and not stored on either end - both Groq and our function are stateless. If you need a fully offline alternative, see our browser-based Audio to Text tool which uses Web Speech API.</p>
+        </details>
+        <details class="faq-item">
+            <summary>Why can't AI chatbots do this task?</summary>
+            <p>ChatGPT, Claude, and Gemini can reformat text into timestamped subtitle blocks, but they cannot listen to audio or video. They also cannot guarantee millisecond-accurate timestamps aligned to actual speech - a hallucinated timestamp breaks the entire viewer experience. This tool uses a dedicated speech recognition model so the timing matches the audio exactly.</p>
+        </details>
+    </div>
+</section>
+</main>
+
+<footer>
+    <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a> &middot; <a href="/about/">About</a> &middot; <a href="/privacy/">Privacy</a> &middot; <a href="/tools/feedback/">Feedback</a></p>
+</footer>
+
+<script src="/tools.js"></script>
+<script>
+(function(){
+'use strict';
+
+var MAX_FILE_BYTES = 25 * 1024 * 1024;
+var allowedExtensions = ['mp3','wav','m4a','ogg','flac','mp4','mov','webm','mkv','aac','opus','oga','wma'];
+
+var state = {
+    file: null,
+    objectUrl: null,
+    audioDuration: 0,
+    result: null,
+    format: 'srt',
+    model: 'whisper-large-v3-turbo',
+    language: '',
+    maxCueSeconds: 5,
+    busy: false
+};
+
+function $(id){ return document.getElementById(id); }
+
+function escapeHtml(s) {
+    if (s === null || s === undefined) return '';
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function formatTime(seconds, useVTT) {
+    var s = Math.max(0, Number(seconds) || 0);
+    var hh = Math.floor(s / 3600);
+    var mm = Math.floor((s % 3600) / 60);
+    var ss = Math.floor(s % 60);
+    var ms = Math.round((s - Math.floor(s)) * 1000);
+    var sep = useVTT ? '.' : ',';
+    return String(hh).padStart(2,'0') + ':' +
+           String(mm).padStart(2,'0') + ':' +
+           String(ss).padStart(2,'0') + sep +
+           String(ms).padStart(3,'0');
+}
+
+function formatDuration(seconds) {
+    var s = Math.max(0, Math.floor(Number(seconds) || 0));
+    var m = Math.floor(s / 60);
+    var sec = s % 60;
+    return m + ':' + String(sec).padStart(2,'0');
+}
+
+function formatBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1024 / 1024).toFixed(2) + ' MB';
+}
+
+function showStatus(msg, type) {
+    var el = $('sg-status');
+    el.textContent = msg;
+    el.className = 'sg-status show ' + (type || '');
+    if (type === 'ok') {
+        setTimeout(function(){
+            if (el.textContent === msg) {
+                el.className = 'sg-status';
+                el.textContent = '';
+            }
+        }, 6000);
+    }
+}
+
+function clearStatus() {
+    var el = $('sg-status');
+    el.className = 'sg-status';
+    el.textContent = '';
+}
+
+function showProgress(pct) {
+    var bar = $('sg-progress-bar');
+    var wrap = $('sg-progress');
+    bar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+    wrap.className = 'sg-progress show';
+}
+function hideProgress() {
+    $('sg-progress').className = 'sg-progress';
+    $('sg-progress-bar').style.width = '0%';
+}
+
+function getFileExt(name) {
+    if (!name) return '';
+    var i = name.lastIndexOf('.');
+    if (i < 0) return '';
+    return name.slice(i + 1).toLowerCase();
+}
+
+function isAudioExt(ext) {
+    return ['mp3','wav','m4a','ogg','flac','aac','opus','oga','wma'].indexOf(ext) >= 0;
+}
+function isVideoExt(ext) {
+    return ['mp4','mov','webm','mkv'].indexOf(ext) >= 0;
+}
+
+function setFile(file) {
+    if (!file) {
+        clearFile();
+        return;
+    }
+    var ext = getFileExt(file.name);
+    var isAudio = (file.type && file.type.startsWith('audio/')) || isAudioExt(ext);
+    var isVideo = (file.type && file.type.startsWith('video/')) || isVideoExt(ext);
+    if (!isAudio && !isVideo) {
+        showStatus('Unsupported file type. Please choose audio or video.', 'err');
+        return;
+    }
+    if (file.size > MAX_FILE_BYTES) {
+        showStatus('File is ' + formatBytes(file.size) + '. Groq Whisper accepts files up to 25 MB. Trim or compress first.', 'err');
+        return;
+    }
+    state.file = file;
+    clearStatus();
+    $('sg-dropzone').classList.add('has-file');
+    var info = $('sg-file-info');
+    info.classList.add('show');
+    $('sg-file-name').textContent = file.name;
+    $('sg-file-meta').textContent = formatBytes(file.size) + ' \u00b7 ' + (isAudio ? 'Audio' : 'Video') + ' \u00b7 ' + ext.toUpperCase();
+    $('sg-generate-btn').disabled = false;
+    probeDuration(file, isVideo, ext);
+}
+
+function probeDuration(file, isVideo, ext) {
+    var meta = $('sg-file-meta');
+    var baseText = formatBytes(file.size) + ' \u00b7 ' + (isVideo ? 'Video' : 'Audio') + ' \u00b7 ' + ext.toUpperCase();
+    if (state.objectUrl) URL.revokeObjectURL(state.objectUrl);
+    state.objectUrl = URL.createObjectURL(file);
+    state.audioDuration = 0;
+    var media = document.createElement(isVideo ? 'video' : 'audio');
+    media.preload = 'metadata';
+    media.src = state.objectUrl;
+    media.onloadedmetadata = function() {
+        var d = isFinite(media.duration) ? media.duration : 0;
+        state.audioDuration = d;
+        meta.textContent = baseText + ' \u00b7 ' + formatDuration(d);
+    };
+    media.onerror = function() {
+        meta.textContent = baseText;
+    };
+}
+
+function clearFile() {
+    state.file = null;
+    if (state.objectUrl) {
+        URL.revokeObjectURL(state.objectUrl);
+        state.objectUrl = null;
+    }
+    state.audioDuration = 0;
+    $('sg-dropzone').classList.remove('has-file');
+    $('sg-file-info').classList.remove('show');
+    $('sg-file').value = '';
+    $('sg-generate-btn').disabled = true;
+}
+
+function buildSrt(segments) {
+    var lines = [];
+    for (var i = 0; i < segments.length; i++) {
+        var s = segments[i];
+        lines.push(String(i + 1));
+        lines.push(formatTime(s.start, false) + ' --> ' + formatTime(s.end, false));
+        lines.push((s.text || '').trim());
+        lines.push('');
+    }
+    return lines.join('\n');
+}
+
+function buildVtt(segments) {
+    var lines = ['WEBVTT', ''];
+    for (var i = 0; i < segments.length; i++) {
+        var s = segments[i];
+        lines.push(String(i + 1));
+        lines.push(formatTime(s.start, true) + ' --> ' + formatTime(s.end, true));
+        lines.push((s.text || '').trim());
+        lines.push('');
+    }
+    return lines.join('\n');
+}
+
+function splitLongCues(segments, maxSec) {
+    var out = [];
+    for (var i = 0; i < segments.length; i++) {
+        var s = segments[i];
+        var dur = s.end - s.start;
+        if (dur <= maxSec || dur <= maxSec + 0.5) {
+            out.push(s);
+            continue;
+        }
+        var words = (s.text || '').split(/\s+/).filter(function(w){ return w.length > 0; });
+        if (words.length <= 1) { out.push(s); continue; }
+        var parts = Math.ceil(dur / maxSec);
+        if (parts < 2) { out.push(s); continue; }
+        var perPart = Math.ceil(words.length / parts);
+        var chunkStart = s.start;
+        var chunkDur = dur / parts;
+        for (var p = 0; p < parts; p++) {
+            var slice = words.slice(p * perPart, p * perPart + perPart).join(' ');
+            if (!slice) continue;
+            var chunkEnd = s.start + chunkDur * (p + 1);
+            if (chunkEnd > s.end) chunkEnd = s.end;
+            out.push({ start: chunkStart, end: chunkEnd, text: slice });
+            chunkStart = chunkEnd;
+        }
+    }
+    return out;
+}
+
+function renderCues(segments) {
+    var list = $('sg-cue-list');
+    if (!segments.length) {
+        list.innerHTML = '<div style="padding:1rem;color:#888;text-align:center;">No cues generated.</div>';
+        return;
+    }
+    var html = '';
+    var max = Math.min(segments.length, 200);
+    for (var i = 0; i < max; i++) {
+        var s = segments[i];
+        html += '<div class="sg-cue">';
+        html += '<div class="sg-cue-num">' + (i + 1) + '</div>';
+        html += '<div class="sg-cue-time">' + formatTime(s.start, false).replace(',', '.') + '<br>-- ' + formatTime(s.end, false).replace(',', '.') + '</div>';
+        html += '<div class="sg-cue-text">' + escapeHtml(s.text) + '</div>';
+        html += '</div>';
+    }
+    if (segments.length > max) {
+        html += '<div style="padding:0.6rem;color:#888;text-align:center;font-size:0.82rem;">... ' + (segments.length - max) + ' more cues (download for full list)</div>';
+    }
+    list.innerHTML = html;
+}
+
+function downloadSubtitle(text, ext) {
+    var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var baseName = (state.file && state.file.name) ? state.file.name.replace(/\.[^.]+$/, '') : 'subtitles';
+    a.href = url;
+    a.download = baseName + '.' + ext;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+
+function copyToClipboardText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).then(function(){ return true; }, function(){ return false; });
+    }
+    try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return Promise.resolve(ok);
+    } catch (e) {
+        return Promise.resolve(false);
+    }
+}
+
+function generate() {
+    if (!state.file || state.busy) return;
+    state.busy = true;
+    state.model = $('sg-model').value;
+    state.language = $('sg-language').value;
+    state.format = $('sg-format').value;
+    state.maxCueSeconds = parseInt($('sg-maxcue').value, 10) || 5;
+    $('sg-download-ext').textContent = '.' + state.format;
+
+    var btn = $('sg-generate-btn');
+    btn.disabled = true;
+    btn.textContent = 'Transcribing...';
+    showStatus('Uploading and transcribing with Whisper ' + state.model.replace('whisper-','').replace('large-v3-turbo','large-v3-turbo').replace('distil-','distil-') + '...', 'loading');
+    showProgress(10);
+
+    var fd = new FormData();
+    fd.append('audio', state.file, state.file.name || 'audio');
+    fd.append('model', state.model);
+    if (state.language) fd.append('language', state.language);
+
+    var startedAt = Date.now();
+    var tick = setInterval(function(){ showProgress(10 + (Date.now() - startedAt) % 60); }, 500);
+
+    fetch('/api/subtitle-generator', {
+        method: 'POST',
+        body: fd
+    }).then(function(r){
+        clearInterval(tick);
+        if (!r.ok) {
+            return r.json().then(function(j){
+                throw new Error((j && (j.message || j.error)) ? (j.message + (j.groqStatus ? ' (Groq ' + j.groqStatus + ')' : '')) : ('HTTP ' + r.status));
+            }).catch(function(){
+                throw new Error('HTTP ' + r.status);
+            });
+        }
+        showProgress(85);
+        return r.json();
+    }).then(function(j){
+        showProgress(95);
+        if (!j || !j.ok) throw new Error((j && j.message) || 'Unknown error');
+        if (!Array.isArray(j.segments) || !j.segments.length) throw new Error('No speech detected in the file.');
+
+        var split = splitLongCues(j.segments, state.maxCueSeconds);
+        state.result = {
+            segments: split,
+            model: j.model || state.model,
+            language: j.language || state.language || 'auto',
+            duration: j.duration || 0,
+            text: j.text || '',
+            count: split.length
+        };
+
+        var output = state.format === 'vtt' ? buildVtt(split) : buildSrt(split);
+        $('sg-output').value = output;
+        $('sg-stat-count').textContent = split.length;
+        $('sg-stat-duration').textContent = formatDuration(j.duration || 0);
+        $('sg-stat-lang').textContent = (state.result.language || 'auto').toUpperCase();
+        $('sg-stat-model').textContent = (state.result.model || '').replace('whisper-', '');
+        renderCues(split);
+        $('sg-results').style.display = 'block';
+        if (j.count !== split.length) {
+            $('sg-warn').style.display = 'block';
+            $('sg-warn').textContent = 'Original Whisper returned ' + j.count + ' segments; split into ' + split.length + ' cues (max ' + state.maxCueSeconds + 's each).';
+        } else {
+            $('sg-warn').style.display = 'none';
+        }
+        showProgress(100);
+        showStatus('Done! ' + split.length + ' cues generated in ' + ((Date.now() - startedAt) / 1000).toFixed(1) + 's.', 'ok');
+        setTimeout(hideProgress, 600);
+    }).catch(function(err){
+        clearInterval(tick);
+        hideProgress();
+        showStatus('Failed: ' + (err && err.message ? err.message : 'Unknown error'), 'err');
+    }).then(function(){
+        state.busy = false;
+        btn.disabled = false;
+        btn.textContent = 'Generate Subtitles';
+    });
+}
+
+function loadSample() {
+    if (state.busy) return;
+    state.busy = true;
+    state.model = $('sg-model').value;
+    state.language = $('sg-language').value || 'en';
+    state.format = $('sg-format').value;
+    state.maxCueSeconds = parseInt($('sg-maxcue').value, 10) || 5;
+    $('sg-download-ext').textContent = '.' + state.format;
+
+    var btn = $('sg-generate-btn');
+    var sampleBtn = $('sg-load-sample-btn');
+    btn.disabled = true;
+    sampleBtn.disabled = true;
+    btn.textContent = 'Loading sample...';
+    showStatus('Generating sample audio in your browser (offline, no upload)...', 'loading');
+    showProgress(20);
+
+    if (!window.AudioContext && !window.webkitAudioContext) {
+        showStatus('Web Audio API not supported in this browser. Cannot generate sample.', 'err');
+        state.busy = false;
+        btn.disabled = false;
+        sampleBtn.disabled = false;
+        btn.textContent = 'Generate Subtitles';
+        hideProgress();
+        return;
+    }
+
+    var sampleText = 'Welcome to the DevTools Hub subtitle generator demo. This sample audio is generated entirely in your browser using the Web Audio API, so nothing is uploaded to any server. The tool converts audio and video files into time aligned subtitle tracks. You can export the result as an SRT file for YouTube, VLC, and most video editors, or as a WebVTT file for HTML5 video players.';
+    var sentences = sampleText.split(/\.\s+/).filter(function(s){ return s.length; });
+    if (sentences[sentences.length-1] && !sentences[sentences.length-1].endsWith('.')) sentences[sentences.length-1] += '.';
+
+    var AC = window.AudioContext || window.webkitAudioContext;
+    var ac = new AC();
+    var sr = ac.sampleRate;
+    var cueDur = state.maxCueSeconds;
+    var totalSec = sentences.length * cueDur;
+    var buffer = ac.createBuffer(1, Math.ceil(totalSec * sr), sr);
+    var data = buffer.getChannelData(0);
+
+    var baseFreqs = [220, 246.94, 261.63, 293.66, 329.63, 349.23, 392, 440];
+    var segs = [];
+
+    for (var i = 0; i < sentences.length; i++) {
+        var start = i * cueDur;
+        var end = start + cueDur - 0.1;
+        var f = baseFreqs[i % baseFreqs.length];
+        var startSample = Math.floor(start * sr);
+        var endSample = Math.floor(end * sr);
+        for (var n = startSample; n < endSample && n < data.length; n++) {
+            var t = (n - startSample) / sr;
+            var env = Math.min(1, t * 4) * Math.min(1, (cueDur - 0.1 - t) * 4);
+            data[n] += Math.sin(2 * Math.PI * f * t) * 0.18 * env;
+            data[n] += Math.sin(2 * Math.PI * f * 2 * t) * 0.05 * env;
+        }
+        var cueText = sentences[i].trim();
+        if (cueText && !cueText.endsWith('.')) cueText += '.';
+        segs.push({ start: start, end: end, text: cueText });
+    }
+
+    var blobPromise = new Promise(function(resolve){
+        var length = data.length;
+        var numCh = 1;
+        var bytesPerSample = 2;
+        var blockAlign = numCh * bytesPerSample;
+        var byteRate = sr * blockAlign;
+        var dataSize = length * blockAlign;
+        var buffer2 = new ArrayBuffer(44 + dataSize);
+        var view = new DataView(buffer2);
+        function writeStr(off, s) {
+            for (var k = 0; k < s.length; k++) view.setUint8(off + k, s.charCodeAt(k));
+        }
+        writeStr(0, 'RIFF');
+        view.setUint32(4, 36 + dataSize, true);
+        writeStr(8, 'WAVE');
+        writeStr(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numCh, true);
+        view.setUint32(24, sr, true);
+        view.setUint32(28, byteRate, true);
+        view.setUint16(32, blockAlign, true);
+        view.setUint16(34, bytesPerSample * 8, true);
+        writeStr(36, 'data');
+        view.setUint32(40, dataSize, true);
+        var off2 = 44;
+        for (var p = 0; p < length; p++) {
+            var sample = Math.max(-1, Math.min(1, data[p]));
+            view.setInt16(off2, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+            off2 += 2;
+        }
+        resolve(new Blob([buffer2], { type: 'audio/wav' }));
+    });
+
+    blobPromise.then(function(blob){
+        ac.close();
+        showProgress(50);
+        showStatus('Sample audio ready - transcribing with Whisper (no upload of your files, only this generated tone)...', 'loading');
+        var fd = new FormData();
+        fd.append('audio', blob, 'sample.wav');
+        fd.append('model', state.model);
+        fd.append('language', state.language);
+        var startedAt = Date.now();
+        return fetch('/api/subtitle-generator', {
+            method: 'POST',
+            body: fd
+        }).then(function(r){
+            if (!r.ok) {
+                return r.json().then(function(j){
+                    throw new Error((j && (j.message || j.error)) ? (j.message + (j.groqStatus ? ' (Groq ' + j.groqStatus + ')' : '')) : ('HTTP ' + r.status));
+                }).catch(function(){ throw new Error('HTTP ' + r.status); });
+            }
+            showProgress(80);
+            return r.json();
+        }).then(function(j){
+            showProgress(95);
+            if (!j || !j.ok) throw new Error((j && j.message) || 'Unknown error');
+            var resultSegs;
+            if (Array.isArray(j.segments) && j.segments.length) {
+                resultSegs = j.segments;
+            } else {
+                resultSegs = segs;
+            }
+            var split = splitLongCues(resultSegs, state.maxCueSeconds);
+            state.result = {
+                segments: split,
+                model: j.model || state.model,
+                language: j.language || state.language || 'auto',
+                duration: j.duration || totalSec,
+                text: j.text || '',
+                count: split.length
+            };
+            var output = state.format === 'vtt' ? buildVtt(split) : buildSrt(split);
+            $('sg-output').value = output;
+            $('sg-stat-count').textContent = split.length;
+            $('sg-stat-duration').textContent = formatDuration(j.duration || totalSec);
+            $('sg-stat-lang').textContent = (state.result.language || 'auto').toUpperCase();
+            $('sg-stat-model').textContent = (state.result.model || '').replace('whisper-', '');
+            renderCues(split);
+            $('sg-results').style.display = 'block';
+            $('sg-warn').style.display = 'block';
+            $('sg-warn').textContent = 'Sample audio is a synthetic tone - Whisper may produce zero or low-quality transcripts. The expected cues from the sample script are shown for demonstration. In production, use real speech audio.';
+            showProgress(100);
+            showStatus('Done! ' + split.length + ' sample cues generated in ' + ((Date.now() - startedAt) / 1000).toFixed(1) + 's.', 'ok');
+            setTimeout(hideProgress, 600);
+        });
+    }).catch(function(err){
+        hideProgress();
+        showStatus('Failed: ' + (err && err.message ? err.message : 'Unknown error'), 'err');
+    }).then(function(){
+        state.busy = false;
+        btn.disabled = false;
+        sampleBtn.disabled = false;
+        btn.textContent = 'Generate Subtitles';
+    });
+}
+
+function onDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $('sg-dropzone').classList.remove('dragover');
+    var dt = e.dataTransfer;
+    if (dt && dt.files && dt.files[0]) setFile(dt.files[0]);
+}
+function onDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $('sg-dropzone').classList.add('dragover');
+}
+function onDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $('sg-dropzone').classList.remove('dragover');
+}
+
+$('sg-dropzone').addEventListener('click', function(){ $('sg-file').click(); });
+$('sg-dropzone').addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        $('sg-file').click();
+    }
+});
+$('sg-dropzone').addEventListener('drop', onDrop);
+$('sg-dropzone').addEventListener('dragover', onDragOver);
+$('sg-dropzone').addEventListener('dragleave', onDragLeave);
+
+$('sg-file').addEventListener('change', function(e){
+    if (e.target.files && e.target.files[0]) setFile(e.target.files[0]);
+});
+$('sg-remove-btn').addEventListener('click', function(e){
+    e.stopPropagation();
+    clearFile();
+});
+$('sg-generate-btn').addEventListener('click', generate);
+$('sg-load-sample-btn').addEventListener('click', loadSample);
+
+$('sg-download-btn').addEventListener('click', function(){
+    var text = $('sg-output').value;
+    if (!text) { showStatus('Nothing to download yet. Generate subtitles first.', 'err'); return; }
+    downloadSubtitle(text, state.format);
+});
+
+$('sg-copy-btn').addEventListener('click', function(){
+    var text = $('sg-output').value;
+    if (!text) { showStatus('Nothing to copy yet.', 'err'); return; }
+    copyToClipboardText(text).then(function(ok){
+        showStatus(ok ? 'Copied to clipboard.' : 'Copy failed. Use the download button instead.', ok ? 'ok' : 'err');
+    });
+});
+
+$('sg-open-editor-btn').addEventListener('click', function(){
+    var text = $('sg-output').value;
+    if (!text) { showStatus('Nothing to open yet. Generate subtitles first.', 'err'); return; }
+    var ext = state.format;
+    var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var w = window.open('/tools/subtitle-editor/', '_blank');
+    if (w) {
+        setTimeout(function(){
+            w.postMessage({ type: 'subtitle-generator-load', text: text, filename: 'subtitles.' + ext }, '*');
+        }, 1500);
+        showStatus('Opened Subtitle Editor in a new tab. Loading generated cues...', 'ok');
+    } else {
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'subtitles.' + ext;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showStatus('Pop-up blocked. Downloaded the file - open it in Subtitle Editor manually.', 'ok');
+    }
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+});
+
+$('sg-format').addEventListener('change', function(){
+    state.format = $('sg-format').value;
+    $('sg-download-ext').textContent = '.' + state.format;
+    if (state.result) {
+        var output = state.format === 'vtt' ? buildVtt(state.result.segments) : buildSrt(state.result.segments);
+        $('sg-output').value = output;
+    }
+});
+
+})();
+</script>
+</body>
+</html>

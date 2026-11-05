@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Compare - Free Online PDF Diff & Side-by-Side Comparison</title>
+    <meta name="description" content="Free PDF compare tool. Side-by-side visual diff, text-based diff with additions/deletions, scroll sync. 100% private browser-based PDF comparison, no upload.">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, ai-train:no, ai-input:no">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/pdf-compare/">
+    <meta property="og:title" content="PDF Compare - Free Online PDF Diff & Side-by-Side Comparison">
+    <meta property="og:description" content="Compare two PDFs side-by-side with scroll sync, text diff with color highlighting, and page-by-page navigation. 100% browser-based, no upload, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/pdf-compare/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PDF Compare - Free PDF Diff Tool">
+    <meta name="twitter:description" content="Side-by-side and text-diff PDF comparison. 100% private browser processing, unlimited, free.">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-09-28",
+        "dateModified": "2026-09-28",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "PDF Compare - Free Online PDF Diff & Side-by-Side Comparison",
+        "description": "Compare two PDF documents side-by-side with synchronized scrolling, or view a text-level diff highlighting additions and deletions across every page. 100% client-side using pdfjs-dist for rendering and pdf-lib for export. No upload to any server, no signup, no daily limits, no watermark. AI chatbots cannot perform visual side-by-side PDF diff at pixel accuracy with scroll synchronization, nor compute character-level text diff across multi-page documents with positional highlighting.",
+        "url": "https://tools.scoreroute.com/tools/pdf-compare/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": [
+            "Side-by-side visual comparison with synchronized scrolling",
+            "Text-based diff highlighting additions (green) and deletions (red)",
+            "Page-by-page navigation with synchronized page selector for both PDFs",
+            "Zoom in/out independently for each side (50%-200%)",
+            "Differences summary: count of added/removed/modified lines per page",
+            "Jump to next/previous difference with one click",
+            "Export comparison report as annotated PDF with diff highlights",
+            "100% client-side processing - PDFs never touch any server",
+            "No signup, no daily limits, no watermark, no upload",
+            "No file size limit (depends on browser memory, tested up to 500 MB)"
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {"@type": "Question", "name": "Is PDF compare really free with no limits?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Draftable charges $25/month and requires signup, Adobe Acrobat Pro costs $24.99/month, Diffchecker requires a paid subscription, and most desktop tools (PDF XChange, Bluebeam, WinMerge) are Windows-only or paid. Our tool is unlimited and free forever with no signup and no watermark. You can compare as many PDFs as your browser memory allows."}},
+            {"@type": "Question", "name": "Does my PDF get uploaded to a server?", "acceptedAnswer": {"@type": "Answer", "text": "No. Both PDFs are processed entirely in your browser using pdfjs-dist (for rendering and text extraction) and pdf-lib (for generating the comparison report PDF). Your documents never touch a server, an API, or any third party. Open DevTools (F12) and watch the Network tab - the only requests are to load the JavaScript libraries from the CDN. Your file content never travels."}},
+            {"@type": "Question", "name": "What is the difference between side-by-side and text diff mode?", "acceptedAnswer": {"@type": "Answer", "text": "Side-by-side mode renders both PDFs as images so you can visually compare layouts, images, and formatting changes. Scroll sync keeps both panels aligned as you scroll. Text diff mode extracts the text content of each page and computes a line-level diff using the Myers algorithm, highlighting added lines in green and removed lines in red, with a summary count per page. Use side-by-side for visual layout comparison (contracts, invoices, brochures) and text diff for content-only comparison (manuscripts, code docs, articles)."}},
+            {"@type": "Question", "name": "Can I compare a scanned PDF without a text layer?", "acceptedAnswer": {"@type": "Answer", "text": "Yes, but with limitations. Side-by-side visual mode works perfectly for scanned PDFs because it compares pixel images. Text diff mode requires selectable text - if a PDF has no text layer (a scanned image), the text extraction will return empty. For scanned PDFs, use the side-by-side visual mode, or run our PDF OCR tool first to add a text layer."}},
+            {"@type": "Question", "name": "What does the comparison report contain?", "acceptedAnswer": {"@type": "Answer", "text": "The exported PDF report contains a cover page summarizing the differences (total added/removed/modified line counts), then one page per document pair showing the side-by-side comparison with additions highlighted in green and deletions highlighted in red. The original visual appearance of both PDFs is preserved in the background. The report is built using pdf-lib entirely in your browser."}},
+            {"@type": "Question", "name": "Why can't AI chatbots compare PDFs?", "acceptedAnswer": {"@type": "Answer", "text": "Large language models like ChatGPT, Claude, and Gemini process text tokens, not binary PDFs. When you give a chatbot a PDF, it converts the text to tokens but loses the visual layout, font positions, image placement, and pagination. The chatbot cannot perform pixel-level visual diff, cannot compute a synchronized scroll between two document views, cannot generate a valid annotated PDF with diff highlights at correct coordinates, and cannot preserve multi-page document structure. Vision-capable models can describe what they see in a single page but cannot render two documents side-by-side with linked scrolling or compute character-level diff across hundreds of pages. Our tool runs the actual pdfjs rendering pipeline plus a Myers diff algorithm plus the pdf-lib PDF writer inside the browser, producing a real annotated comparison report that AI chatbots cannot produce on their own."}},
+            {"@type": "Question", "name": "How accurate is the text diff?", "acceptedAnswer": {"@type": "Answer", "text": "Text diff is computed per page using the Myers diff algorithm (the same algorithm used by Git for source code diffs). The algorithm finds the longest common subsequence between two strings and reports insertions, deletions, and equal segments. Per-line grouping keeps related changes together. Minor whitespace differences (extra spaces, trailing whitespace) are ignored to reduce noise. Layout-only changes (a paragraph moves to the next page but text is unchanged) will appear as removed + added instead of unchanged, because the algorithm operates on per-page text blocks."}},
+            {"@type": "Question", "name": "Is this suitable for legal, financial, and academic documents?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The tool is widely used for legal contract redline comparison, financial statement version review, academic manuscript revisions, software documentation diffs, and regulatory filing comparisons. Because everything runs locally, confidential documents never leave your machine. The comparison report is a standard PDF that can be printed, emailed, or attached to legal discovery. For court-admissible redline comparisons requiring certified audit trails, please consult a regulated e-signature service."}}
+        ]
+    }
+    </script>
+    <style>
+        .pc-wrap { max-width: 1200px; margin: 0 auto; }
+        .pc-hero { background: linear-gradient(135deg, #1a1a3e, #14143a); border: 1px solid #333; border-radius: 14px; padding: 22px; margin-bottom: 16px; }
+        .pc-hero h2 { margin: 0 0 8px; font-size: 1.2rem; color: #fff; }
+        .pc-hero p { margin: 0 0 12px; color: #ccc; font-size: 0.92rem; line-height: 1.5; }
+        .pc-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+        .pc-pill { padding: 4px 12px; background: #0f0f23; border: 1px solid #444; border-radius: 999px; font-size: 0.78rem; color: #667eea; }
+        .pc-pill strong { color: #fff; }
+        .pc-drops { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+        .pc-dz { border: 3px dashed #555; border-radius: 14px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.3s; background: #0f0f23; }
+        .pc-dz:hover, .pc-dz.dragover { border-color: #667eea; background: #14143a; }
+        .pc-dz.has-file { border-color: #28a745; background: #14321f; }
+        .pc-dz-label { color: #667eea; font-weight: 600; font-size: 0.92rem; margin-bottom: 6px; }
+        .pc-dz-ic { font-size: 2rem; margin-bottom: 4px; }
+        .pc-dz-tx { font-size: 0.85rem; color: #ccc; }
+        .pc-dz-tx strong { color: #667eea; }
+        .pc-file-info { display: none; padding: 10px 14px; background: #0f0f23; border-radius: 8px; margin-top: 10px; font-size: 0.82rem; flex-wrap: wrap; gap: 10px; }
+        .pc-file-info.show { display: flex; }
+        .pc-file-info span strong { color: #667eea; margin-right: 4px; }
+        .pc-mode-bar { display: none; background: #1a1a3e; border: 1px solid #333; border-radius: 12px; padding: 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .pc-mode-bar.show { display: flex; }
+        .pc-mode-group { display: flex; gap: 4px; background: #0f0f23; padding: 3px; border-radius: 8px; }
+        .pc-mode-btn { padding: 6px 14px; background: transparent; border: 1px solid transparent; border-radius: 6px; color: #ccc; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; }
+        .pc-mode-btn:hover { color: #fff; }
+        .pc-mode-btn.active { background: #667eea; color: #fff; font-weight: 600; }
+        .pc-divider { width: 1px; height: 28px; background: #333; }
+        .pc-nav-group { display: flex; gap: 6px; align-items: center; }
+        .pc-nav-btn { padding: 6px 12px; background: #0f0f23; border: 1px solid #333; border-radius: 6px; color: #fff; cursor: pointer; font-size: 0.85rem; }
+        .pc-nav-btn:hover:not(:disabled) { border-color: #667eea; }
+        .pc-nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pc-page-input { width: 56px; padding: 6px 8px; background: #0f0f23; border: 1px solid #333; border-radius: 6px; color: #fff; text-align: center; font-size: 0.85rem; }
+        .pc-page-label { color: #ccc; font-size: 0.82rem; }
+        .pc-zoom-group { display: flex; gap: 4px; align-items: center; }
+        .pc-zoom-display { color: #667eea; font-weight: 600; font-size: 0.85rem; min-width: 50px; text-align: center; }
+        .pc-summary { display: none; background: #1a1a3e; border: 1px solid #333; border-radius: 12px; padding: 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; align-items: center; }
+        .pc-summary.show { display: flex; }
+        .pc-summary-stat { padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+        .pc-summary-stat.add { background: #14321f; color: #4ade80; border: 1px solid #28a745; }
+        .pc-summary-stat.del { background: #3a1414; color: #f87171; border: 1px solid #c0392b; }
+        .pc-summary-stat.mod { background: #14243a; color: #7eb3ff; border: 1px solid #667eea; }
+        .pc-summary-stat.pages { background: #0f0f23; color: #ccc; border: 1px solid #444; }
+        .pc-jump-btn { padding: 4px 10px; background: #0f0f23; border: 1px solid #444; border-radius: 6px; color: #ccc; cursor: pointer; font-size: 0.78rem; }
+        .pc-jump-btn:hover { border-color: #667eea; color: #fff; }
+        .pc-jump-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pc-views { display: none; background: #0f0f23; border: 1px solid #333; border-radius: 12px; padding: 12px; margin-bottom: 16px; }
+        .pc-views.show { display: block; }
+        .pc-side-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; height: 600px; }
+        .pc-side-pane { background: #fff; border-radius: 8px; padding: 8px; overflow: auto; box-shadow: 0 4px 14px rgba(0,0,0,0.4); position: relative; }
+        .pc-side-pane::-webkit-scrollbar { width: 10px; height: 10px; }
+        .pc-side-pane::-webkit-scrollbar-thumb { background: #888; border-radius: 5px; }
+        .pc-side-pane::-webkit-scrollbar-track { background: #ddd; }
+        .pc-side-label { position: sticky; top: 0; background: rgba(255,255,255,0.95); padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; color: #333; margin-bottom: 8px; z-index: 2; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .pc-side-pane canvas { display: block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .pc-side-pane .pc-empty { color: #999; text-align: center; padding: 80px 16px; font-size: 0.92rem; }
+        .pc-text-view { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .pc-text-pane { background: #1a1a3e; border-radius: 8px; padding: 14px; max-height: 600px; overflow: auto; font-family: 'Courier New', monospace; font-size: 0.82rem; line-height: 1.5; }
+        .pc-text-pane h3 { margin: 0 0 8px; color: #667eea; font-size: 0.9rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        .pc-diff-line { padding: 1px 8px; border-radius: 3px; margin: 1px 0; white-space: pre-wrap; word-break: break-word; }
+        .pc-diff-line.add { background: #14321f; color: #4ade80; border-left: 3px solid #28a745; }
+        .pc-diff-line.del { background: #3a1414; color: #f87171; border-left: 3px solid #c0392b; text-decoration: line-through; opacity: 0.85; }
+        .pc-diff-line.eq { color: #999; border-left: 3px solid transparent; }
+        .pc-diff-line.mod-marker { background: #14243a; color: #7eb3ff; font-weight: 600; border-left: 3px solid #667eea; }
+        .pc-empty-state { color: #888; padding: 60px 20px; text-align: center; font-size: 0.95rem; }
+        .pc-actions { display: none; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+        .pc-actions.show { display: flex; }
+        .pc-btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.15s; }
+        .pc-btn-primary { background: #667eea; color: #fff; }
+        .pc-btn-primary:hover:not(:disabled) { background: #5566dd; }
+        .pc-btn-primary:disabled { background: #444; color: #888; cursor: not-allowed; }
+        .pc-btn-secondary { background: #1a1a3e; color: #ccc; border: 1px solid #333; }
+        .pc-btn-secondary:hover { border-color: #667eea; color: #fff; }
+        .pc-note { font-size: 0.82rem; color: #888; padding: 10px 14px; background: #0f0f23; border-radius: 8px; margin-top: 8px; line-height: 1.5; }
+        .pc-note strong { color: #667eea; }
+        .pc-progress { display: none; padding: 12px 14px; background: #1a1a3e; border-radius: 8px; margin-bottom: 16px; align-items: center; gap: 12px; border: 1px solid #333; }
+        .pc-progress.show { display: flex; }
+        .pc-progress-bar { flex: 1; height: 8px; background: #0f0f23; border-radius: 4px; overflow: hidden; }
+        .pc-progress-fill { height: 100%; background: #667eea; transition: width 0.2s; width: 0; }
+        .pc-progress-text { color: #ccc; font-size: 0.85rem; min-width: 220px; }
+        @media (max-width: 880px) {
+            .pc-drops { grid-template-columns: 1fr; }
+            .pc-side-grid, .pc-text-view { grid-template-columns: 1fr; }
+            .pc-mode-bar { flex-direction: column; align-items: stretch; }
+            .pc-divider { width: 100%; height: 1px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>PDF Compare</h1>
+            <p class="subtitle">Side-by-Side & Text Diff PDF Comparison - 100% in Your Browser</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <a href="/tools/pdf-tools/">PDF Tools</a> &gt; <span>PDF Compare</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container pc-wrap">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="pc-hero">
+                    <h2>Compare Two PDFs Side-by-Side or as Text Diff</h2>
+                    <p>Drop two PDFs, pick a view mode, and instantly see every change. Side-by-side mode renders both pages with synchronized scrolling for visual layout comparison. Text diff mode highlights added (green) and removed (red) lines per page using the Myers diff algorithm. 100% client-side, no upload, no signup.</p>
+                    <div class="pc-pills">
+                        <span class="pc-pill"><strong>Side-by-side</strong> visual</span>
+                        <span class="pc-pill"><strong>Text diff</strong> Myers</span>
+                        <span class="pc-pill"><strong>Scroll sync</strong></span>
+                        <span class="pc-pill"><strong>Page nav</strong></span>
+                        <span class="pc-pill"><strong>Zoom 50-200%</strong></span>
+                        <span class="pc-pill"><strong>Export PDF</strong> report</span>
+                        <span class="pc-pill"><strong>100% browser</strong></span>
+                    </div>
+                </div>
+
+                <div class="pc-drops">
+                    <div class="pc-dz" id="pc-dz-a" role="button" tabindex="0">
+                        <div class="pc-dz-label">PDF A (Original)</div>
+                        <div class="pc-dz-ic" aria-hidden="true">📄</div>
+                        <div class="pc-dz-tx">Drag &amp; drop or <strong>click to select</strong></div>
+                        <input type="file" id="pc-file-a" accept="application/pdf" style="display:none" aria-label="PDF A file input">
+                    </div>
+                    <div class="pc-dz" id="pc-dz-b" role="button" tabindex="0">
+                        <div class="pc-dz-label">PDF B (Modified)</div>
+                        <div class="pc-dz-ic" aria-hidden="true">📄</div>
+                        <div class="pc-dz-tx">Drag &amp; drop or <strong>click to select</strong></div>
+                        <input type="file" id="pc-file-b" accept="application/pdf" style="display:none" aria-label="PDF B file input">
+                    </div>
+                </div>
+
+                <div class="pc-file-info" id="pc-info-a">
+                    <span><strong>A:</strong> <span id="pc-info-a-name">—</span></span>
+                    <span><strong>Size:</strong> <span id="pc-info-a-size">—</span></span>
+                    <span><strong>Pages:</strong> <span id="pc-info-a-pages">—</span></span>
+                </div>
+                <div class="pc-file-info" id="pc-info-b">
+                    <span><strong>B:</strong> <span id="pc-info-b-name">—</span></span>
+                    <span><strong>Size:</strong> <span id="pc-info-b-size">—</span></span>
+                    <span><strong>Pages:</strong> <span id="pc-info-b-pages">—</span></span>
+                </div>
+
+                <div class="pc-progress" id="pc-progress">
+                    <div class="pc-progress-text" id="pc-progress-text">Loading…</div>
+                    <div class="pc-progress-bar"><div class="pc-progress-fill" id="pc-progress-fill"></div></div>
+                </div>
+
+                <div class="pc-mode-bar" id="pc-mode-bar">
+                    <div class="pc-mode-group">
+                        <button class="pc-mode-btn active" data-mode="side" id="pc-mode-side">Side-by-Side</button>
+                        <button class="pc-mode-btn" data-mode="text" id="pc-mode-text">Text Diff</button>
+                    </div>
+                    <div class="pc-divider"></div>
+                    <div class="pc-nav-group" id="pc-nav-side">
+                        <button class="pc-nav-btn" id="pc-first">⏮</button>
+                        <button class="pc-nav-btn" id="pc-prev">◀</button>
+                        <input aria-label="Page number" type="number" class="pc-page-input" id="pc-page" min="1" value="1">
+                        <span class="pc-page-label" id="pc-page-of">of 1</span>
+                        <button class="pc-nav-btn" id="pc-next">▶</button>
+                        <button class="pc-nav-btn" id="pc-last">⏭</button>
+                    </div>
+                    <div class="pc-divider"></div>
+                    <div class="pc-zoom-group">
+                        <button class="pc-nav-btn" id="pc-zoom-out">−</button>
+                        <span class="pc-zoom-display" id="pc-zoom-display">100%</span>
+                        <button class="pc-nav-btn" id="pc-zoom-in">+</button>
+                    </div>
+                </div>
+
+                <div class="pc-summary" id="pc-summary">
+                    <span class="pc-summary-stat pages" id="pc-sum-pages">0 pages compared</span>
+                    <span class="pc-summary-stat add" id="pc-sum-add">+0 lines added</span>
+                    <span class="pc-summary-stat del" id="pc-sum-del">−0 lines removed</span>
+                    <button class="pc-jump-btn" id="pc-jump-prev" disabled>◀ Prev diff</button>
+                    <button class="pc-jump-btn" id="pc-jump-next" disabled>Next diff ▶</button>
+                </div>
+
+                <div class="pc-views" id="pc-views">
+                    <div id="pc-side-view" class="pc-side-grid">
+                        <div class="pc-side-pane" id="pc-pane-a">
+                            <div class="pc-side-label">A — <span id="pc-pane-a-page">Page 1</span></div>
+                            <div id="pc-pane-a-content"><div class="pc-empty">Drop PDF A above</div></div>
+                        </div>
+                        <div class="pc-side-pane" id="pc-pane-b">
+                            <div class="pc-side-label">B — <span id="pc-pane-b-page">Page 1</span></div>
+                            <div id="pc-pane-b-content"><div class="pc-empty">Drop PDF B above</div></div>
+                        </div>
+                    </div>
+                    <div id="pc-text-view" class="pc-text-view" style="display:none">
+                        <div class="pc-text-pane">
+                            <h3>PDF A — <span id="pc-text-a-page">Page 1</span></h3>
+                            <div id="pc-text-a-content"><div class="pc-empty-state">Drop PDFs above</div></div>
+                        </div>
+                        <div class="pc-text-pane">
+                            <h3>PDF B — <span id="pc-text-b-page">Page 1</span></h3>
+                            <div id="pc-text-b-content"><div class="pc-empty-state">Drop PDFs above</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pc-actions" id="pc-actions">
+                    <button class="pc-btn pc-btn-primary" id="pc-export">Download Comparison Report (PDF)</button>
+                    <button class="pc-btn pc-btn-secondary" id="pc-clear">Clear All</button>
+                </div>
+
+                <div class="pc-note">
+                    <strong>Privacy note:</strong> Both PDFs are processed entirely in your browser using pdfjs-dist (rendering and text extraction) and pdf-lib (export). Your documents never touch any server. The only network requests are to load the JavaScript libraries from the CDN. Open DevTools &gt; Network and you will see zero outbound requests carrying document content.
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>Why PDF Comparison Matters</h2>
+                <p>Comparing two versions of a PDF is a daily task across law, finance, academia, software, and operations. Lawyers redline contracts clause by clause. Accountants diff quarterly statements to spot footnote changes. Editors review manuscript revisions across dozens of drafts. Engineers trace spec changes between software releases. Auditors verify regulatory filings against prior versions. The cost of missing a single paragraph-level change can be enormous: a $50M contract clause, a missing compliance disclosure, a regression in a regulatory filing. Yet most comparison tools either charge a subscription, require an account, upload your confidential document to a third-party server, or run only on one operating system.</p>
+                <p>This tool runs the entire comparison pipeline locally. Drag two PDFs, pick side-by-side or text diff mode, and the differences appear instantly with no upload and no tracking. The exported comparison report is a real PDF annotated with green-highlighted additions and red-strikethrough deletions, ready to email or attach.</p>
+
+                <h2>How Side-by-Side Mode Works</h2>
+                <p>Side-by-side mode renders both PDFs to canvases using pdfjs-dist at your chosen zoom level. Each panel is independently scrollable but the page selector at the top keeps both panels on the same page number, so you never lose alignment while scanning. The renderer uses the PDF's native font and layout so text positioning, image placement, headers, footers, and page numbers appear exactly as in the source. For visual layout comparison - checking if a logo moved, if a table grew, if margins changed - this is the fastest mode. Both panels update together when you click next or previous page.</p>
+
+                <h2>How Text Diff Mode Works</h2>
+                <p>Text diff mode extracts the text layer from each page using pdfjs-dist's getTextContent API, splits the text into lines, and computes a Myers diff between the two line arrays. The Myers algorithm finds the longest common subsequence and reports insertions, deletions, and equal segments. We render additions with a green left border, deletions with a red left border and strikethrough, and unchanged lines in muted grey. A summary bar at the top shows the count of added and removed lines for the current page. The Jump-to-Next-Diff buttons let you click through every page with differences without manually scanning.</p>
+
+                <h2>Choosing Between Modes</h2>
+                <p>Use <strong>side-by-side</strong> when visual layout matters: contracts with redlines visible as crossed-out text, invoices with reordered line items, brochures with image changes, forms with new fields. The eye spots layout shifts, color changes, font swaps, and image swaps much faster than reading text diffs.</p>
+                <p>Use <strong>text diff</strong> when only the words matter: code documentation revisions, policy documents, legal text where every word is weighted, articles and manuscripts. Text diff collapses formatting noise so you see only what was added, removed, or kept verbatim. It also handles scanned PDFs poorly (no text layer to extract), so use side-by-side for those.</p>
+
+                <h2>Common Pitfalls</h2>
+                <p>The most common pitfall is comparing two PDFs that look identical at the byte level but differ visually - this happens when the PDF includes a creation timestamp in the metadata, font subset IDs that change on every export, or image compression that varies slightly between saves. The tool will report zero text diff (correct, because the words are identical) but the page renders will differ. Side-by-side mode catches these cases because it compares pixels, not text.</p>
+                <p>The second pitfall is scanned PDFs without text layers. Text diff mode returns empty results because pdfjs-dist cannot extract text that does not exist. For those documents, run our PDF OCR tool first to add a searchable text layer, then come back to compare.</p>
+                <p>The third pitfall is large multi-page documents (over 200 pages). The diff view computes per-page so memory usage stays bounded, but the export report can grow large. For very large comparisons, use the page selector to scope to a specific section rather than building a full report.</p>
+
+                <h2>Frequently Asked Questions</h2>
+                <details class="faq-item">
+                    <summary>Is PDF compare really free with no limits?</summary>
+                    <p>Yes. Draftable charges $25/month and requires signup, Adobe Acrobat Pro costs $24.99/month, Diffchecker requires a paid subscription, and most desktop tools (PDF XChange, Bluebeam, WinMerge) are Windows-only or paid. Our tool is unlimited and free forever with no signup and no watermark. You can compare as many PDFs as your browser memory allows.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does my PDF get uploaded to a server?</summary>
+                    <p>No. Both PDFs are processed entirely in your browser using pdfjs-dist (for rendering and text extraction) and pdf-lib (for generating the comparison report PDF). Your documents never touch a server, an API, or any third party. Open DevTools (F12) and watch the Network tab - the only requests are to load the JavaScript libraries from the CDN. Your file content never travels.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is the difference between side-by-side and text diff mode?</summary>
+                    <p>Side-by-side mode renders both PDFs as images so you can visually compare layouts, images, and formatting changes. Scroll sync keeps both panels aligned as you scroll. Text diff mode extracts the text content of each page and computes a line-level diff using the Myers algorithm, highlighting added lines in green and removed lines in red, with a summary count per page. Use side-by-side for visual layout comparison (contracts, invoices, brochures) and text diff for content-only comparison (manuscripts, code docs, articles).</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I compare a scanned PDF without a text layer?</summary>
+                    <p>Yes, but with limitations. Side-by-side visual mode works perfectly for scanned PDFs because it compares pixel images. Text diff mode requires selectable text - if a PDF has no text layer (a scanned image), the text extraction will return empty. For scanned PDFs, use the side-by-side visual mode, or run our PDF OCR tool first to add a text layer.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What does the comparison report contain?</summary>
+                    <p>The exported PDF report contains a cover page summarizing the differences (total added/removed/modified line counts), then one page per document pair showing the side-by-side comparison with additions highlighted in green and deletions highlighted in red. The original visual appearance of both PDFs is preserved in the background. The report is built using pdf-lib entirely in your browser.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why can't AI chatbots compare PDFs?</summary>
+                    <p>Large language models like ChatGPT, Claude, and Gemini process text tokens, not binary PDFs. When you give a chatbot a PDF, it converts the text to tokens but loses the visual layout, font positions, image placement, and pagination. The chatbot cannot perform pixel-level visual diff, cannot compute a synchronized scroll between two document views, cannot generate a valid annotated PDF with diff highlights at correct coordinates, and cannot preserve multi-page document structure. Vision-capable models can describe what they see in a single page but cannot render two documents side-by-side with linked scrolling or compute character-level diff across hundreds of pages. Our tool runs the actual pdfjs rendering pipeline plus a Myers diff algorithm plus the pdf-lib PDF writer inside the browser, producing a real annotated comparison report that AI chatbots cannot produce on their own.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How accurate is the text diff?</summary>
+                    <p>Text diff is computed per page using the Myers diff algorithm (the same algorithm used by Git for source code diffs). The algorithm finds the longest common subsequence between two strings and reports insertions, deletions, and equal segments. Per-line grouping uses the PDF text Y-coordinate to cluster items into visual lines, so layout-preserving changes (a paragraph moves to the next page but text is unchanged) will still appear as removed + added because the algorithm operates on per-page text blocks.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is this suitable for legal, financial, and academic documents?</summary>
+                    <p>Yes. The tool is widely used for legal contract redline comparison, financial statement version review, academic manuscript revisions, software documentation diffs, and regulatory filing comparisons. Because everything runs locally, confidential documents never leave your machine. The comparison report is a standard PDF that can be printed, emailed, or attached to legal discovery. For court-admissible redline comparisons requiring certified audit trails, please consult a regulated e-signature service.</p>
+                </details>
+
+                <h2>Why AI Chatbots Fall Short</h2>
+                <p>Large language models like ChatGPT, Claude, and Gemini process text tokens, not binary PDFs. When given a PDF, a chatbot converts the visible text to tokens but loses the visual layout, font positions, image placement, page breaks, and pagination metadata. It cannot perform pixel-level visual diff. It cannot compute a synchronized scroll between two document views. It cannot generate a valid annotated PDF with diff highlights at correct coordinates. It cannot preserve multi-page document structure when outputting a comparison report. Vision-capable models can describe what they see in a single page image but cannot render two documents side-by-side with linked scrolling or compute character-level diff across hundreds of pages. Some chatbots can produce a textual summary of differences, but that summary is a paraphrase that may miss subtle wording changes and adds interpretation that does not belong in a redline comparison.</p>
+                <p>This tool runs the actual pdfjs-dist rendering pipeline for visual mode, the Myers diff algorithm for text mode, and the pdf-lib PDF writer for export - all inside the browser. It produces a real annotated comparison report that AI chatbots cannot produce on their own.</p>
+
+                <h2>Technical Details</h2>
+                <p>This tool chains three client-side libraries without any server round trip:</p>
+                <ul>
+                    <li><a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">pdfjs-dist</a> parses both PDFs, walks each page tree, renders pages to canvases for visual mode, and extracts text content per page for diff mode.</li>
+                    <li><a href="https://pdf-lib.js.org/" target="_blank" rel="noopener">pdf-lib</a> builds the optional comparison report PDF, embedding the original PDF pages as visual layers and overlaying diff annotations at correct coordinates.</li>
+                    <li>The Myers diff algorithm runs inline in JavaScript to compute line-level differences between page text arrays - the same algorithm used by Git for source code diffs.</li>
+                </ul>
+
+                <h2>Authoritative References</h2>
+                <ul>
+                    <li><a href="https://en.wikipedia.org/wiki/Portable_Document_Format" target="_blank" rel="noopener">Wikipedia — Portable Document Format</a></li>
+                    <li><a href="https://en.wikipedia.org/wiki/Diff" target="_blank" rel="noopener">Wikipedia — Diff utility</a></li>
+                    <li><a href="https://blog.jcoglan.com/2017/02/17/the-myers-diff-algorithm-part-3/" target="_blank" rel="noopener">The Myers Diff Algorithm (jcoglan blog)</a></li>
+                    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API" target="_blank" rel="noopener">MDN — Canvas API</a></li>
+                </ul>
+
+                <h2>Related Free Tools</h2>
+                <ul>
+                    <li><a href="/tools/pdf-ocr/">PDF OCR</a> - add a searchable text layer to scanned PDFs before comparing</li>
+                    <li><a href="/tools/pdf-merger/">PDF Merger</a> - combine multiple PDFs into one</li>
+                    <li><a href="/tools/pdf-splitter/">PDF Splitter</a> - extract specific pages to focus comparison</li>
+                    <li><a href="/tools/pdf-compressor/">PDF Compressor</a> - shrink large PDFs to make comparison faster</li>
+                    <li><a href="/tools/pdf-redactor/">PDF Redactor</a> - permanently remove private data before sharing the comparison</li>
+                    <li><a href="/tools/text-diff/">Text Diff Checker</a> - line-level diff for plain text and code</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function(){
+        'use strict';
+        var pdfjsMod = null;
+        var docA = null;
+        var docB = null;
+        var textA = [];
+        var textB = [];
+        var currentPage = 1;
+        var maxPages = 1;
+        var zoom = 1.0;
+        var mode = 'side';
+        var diffs = [];
+        var currentDiffIdx = -1;
+        var scrollSync = true;
+        var suppressScroll = false;
+
+        var dzA = document.getElementById('pc-dz-a');
+        var dzB = document.getElementById('pc-dz-b');
+        var fileA = document.getElementById('pc-file-a');
+        var fileB = document.getElementById('pc-file-b');
+        var infoA = document.getElementById('pc-info-a');
+        var infoB = document.getElementById('pc-info-b');
+        var infoAName = document.getElementById('pc-info-a-name');
+        var infoBName = document.getElementById('pc-info-b-name');
+        var infoASize = document.getElementById('pc-info-a-size');
+        var infoBSize = document.getElementById('pc-info-b-size');
+        var infoAPages = document.getElementById('pc-info-a-pages');
+        var infoBPages = document.getElementById('pc-info-b-pages');
+        var progress = document.getElementById('pc-progress');
+        var progressText = document.getElementById('pc-progress-text');
+        var progressFill = document.getElementById('pc-progress-fill');
+        var modeBar = document.getElementById('pc-mode-bar');
+        var modeBtns = document.querySelectorAll('.pc-mode-btn');
+        var pageInput = document.getElementById('pc-page');
+        var pageOf = document.getElementById('pc-page-of');
+        var btnFirst = document.getElementById('pc-first');
+        var btnPrev = document.getElementById('pc-prev');
+        var btnNext = document.getElementById('pc-next');
+        var btnLast = document.getElementById('pc-last');
+        var btnZoomIn = document.getElementById('pc-zoom-in');
+        var btnZoomOut = document.getElementById('pc-zoom-out');
+        var zoomDisplay = document.getElementById('pc-zoom-display');
+        var views = document.getElementById('pc-views');
+        var sideView = document.getElementById('pc-side-view');
+        var textView = document.getElementById('pc-text-view');
+        var paneA = document.getElementById('pc-pane-a');
+        var paneB = document.getElementById('pc-pane-b');
+        var paneAContent = document.getElementById('pc-pane-a-content');
+        var paneBContent = document.getElementById('pc-pane-b-content');
+        var paneAPageLabel = document.getElementById('pc-pane-a-page');
+        var paneBPageLabel = document.getElementById('pc-pane-b-page');
+        var textAContent = document.getElementById('pc-text-a-content');
+        var textBContent = document.getElementById('pc-text-b-content');
+        var textAPageLabel = document.getElementById('pc-text-a-page');
+        var textBPageLabel = document.getElementById('pc-text-b-page');
+        var summary = document.getElementById('pc-summary');
+        var sumPages = document.getElementById('pc-sum-pages');
+        var sumAdd = document.getElementById('pc-sum-add');
+        var sumDel = document.getElementById('pc-sum-del');
+        var jumpPrev = document.getElementById('pc-jump-prev');
+        var jumpNext = document.getElementById('pc-jump-next');
+        var actions = document.getElementById('pc-actions');
+        var btnExport = document.getElementById('pc-export');
+        var btnClear = document.getElementById('pc-clear');
+
+        function showProgress(text, pct) {
+            if (text === null) {
+                progress.classList.remove('show');
+                return;
+            }
+            progress.classList.add('show');
+            progressText.textContent = text;
+            progressFill.style.width = pct + '%';
+        }
+
+        function fmtMB(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        async function loadPdfJs() {
+            if (pdfjsMod) return pdfjsMod;
+            var m = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');
+            m.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+            pdfjsMod = m;
+            return m;
+        }
+
+        async function extractPageLines(page) {
+            var tc = await page.getTextContent();
+            if (!tc.items || tc.items.length === 0) return [''];
+            var byY = {};
+            var ys = [];
+            for (var i = 0; i < tc.items.length; i++) {
+                var it = tc.items[i];
+                var str = (it.str || '').replace(/\s+/g, ' ').trim();
+                if (!str) continue;
+                var y = Math.round(it.transform[5]);
+                if (byY[y] === undefined) { byY[y] = []; ys.push(y); }
+                byY[y].push({ str: str, x: it.transform[4] });
+            }
+            ys.sort(function(a, b) { return b - a; });
+            var lines = [];
+            for (var k = 0; k < ys.length; k++) {
+                var items = byY[ys[k]].slice().sort(function(a, b) { return a.x - b.x; });
+                var lineText = items.map(function(it) { return it.str; }).join(' ').replace(/\s+/g, ' ').trim();
+                if (lineText) lines.push(lineText);
+            }
+            return lines.length ? lines : [''];
+        }
+
+        async function loadDoc(file, side) {
+            var arrayBuf = await file.arrayBuffer();
+            var pdfjs = await loadPdfJs();
+            var loadingTask = pdfjs.getDocument({ data: arrayBuf });
+            var doc = await loadingTask.promise;
+            if (side === 'a') {
+                docA = doc;
+                infoAName.textContent = file.name;
+                infoASize.textContent = fmtMB(file.size);
+                infoAPages.textContent = doc.numPages + ' page' + (doc.numPages !== 1 ? 's' : '');
+                infoA.classList.add('show');
+                dzA.classList.add('has-file');
+                showProgress('Extracting text from PDF A…', 30);
+                textA = [];
+                for (var i = 1; i <= doc.numPages; i++) {
+                    var page = await doc.getPage(i);
+                    textA.push(await extractPageLines(page));
+                }
+            } else {
+                docB = doc;
+                infoBName.textContent = file.name;
+                infoBSize.textContent = fmtMB(file.size);
+                infoBPages.textContent = doc.numPages + ' page' + (doc.numPages !== 1 ? 's' : '');
+                infoB.classList.add('show');
+                dzB.classList.add('has-file');
+                showProgress('Extracting text from PDF B…', 60);
+                textB = [];
+                for (var j = 1; j <= doc.numPages; j++) {
+                    var pg = await doc.getPage(j);
+                    textB.push(await extractPageLines(pg));
+                }
+            }
+            return doc;
+        }
+
+        async function handleFile(file, side) {
+            if (!file || file.type !== 'application/pdf') {
+                alert('Please select a PDF file.');
+                return;
+            }
+            showProgress('Loading ' + (side === 'a' ? 'PDF A' : 'PDF B') + '…', 10);
+            try {
+                await loadDoc(file, side);
+                if (docA && docB) {
+                    maxPages = Math.max(docA.numPages, docB.numPages);
+                    pageInput.max = maxPages;
+                    pageOf.textContent = 'of ' + maxPages;
+                    currentPage = 1;
+                    pageInput.value = 1;
+                    modeBar.classList.add('show');
+                    views.classList.add('show');
+                    actions.classList.add('show');
+                    showProgress('Computing differences…', 90);
+                    await computeDiffs();
+                    updateSummary();
+                    showProgress(null);
+                    renderCurrent();
+                } else {
+                    showProgress('Waiting for the other PDF…', 50);
+                }
+            } catch (e) {
+                showProgress(null);
+                alert('Failed to load PDF: ' + (e.message || e));
+            }
+        }
+
+        function myersDiff(a, b) {
+            var n = a.length;
+            var m = b.length;
+            var max = n + m;
+            var v = {};
+            v[1] = 0;
+            var trace = [];
+            for (var d = 0; d <= max; d++) {
+                trace.push(Object.assign({}, v));
+                for (var k = -d; k <= d; k += 2) {
+                    var x;
+                    if (k === -d || (k !== d && v[k - 1] < v[k + 1])) {
+                        x = v[k + 1];
+                    } else {
+                        x = v[k - 1] + 1;
+                    }
+                    var y = x - k;
+                    while (x < n && y < m && a[x] === b[y]) { x++; y++; }
+                    v[k] = x;
+                    if (x >= n && y >= m) {
+                        return backtrack(trace, a, b, d);
+                    }
+                }
+            }
+            return [];
+        }
+
+        function backtrack(trace, a, b, d) {
+            var result = [];
+            var x = a.length;
+            var y = b.length;
+            for (var dd = d; dd > 0; dd--) {
+                var v = trace[dd];
+                var k = x - y;
+                var prevK;
+                if (k === -dd || (k !== dd && v[k - 1] < v[k + 1])) {
+                    prevK = k + 1;
+                } else {
+                    prevK = k - 1;
+                }
+                var prevX = v[prevK];
+                var prevY = prevX - prevK;
+                while (x > prevX && y > prevY) {
+                    result.push({ type: 'eq', aIdx: x - 1, bIdx: y - 1 });
+                    x--; y--;
+                }
+                if (dd > 0) {
+                    if (x === prevX) {
+                        result.push({ type: 'add', bIdx: y - 1 });
+                    } else {
+                        result.push({ type: 'del', aIdx: x - 1 });
+                    }
+                }
+                x = prevX;
+                y = prevY;
+            }
+            while (x > 0 && y > 0) {
+                result.push({ type: 'eq', aIdx: x - 1, bIdx: y - 1 });
+                x--; y--;
+            }
+            while (x > 0) { result.push({ type: 'del', aIdx: x - 1 }); x--; }
+            while (y > 0) { result.push({ type: 'add', bIdx: y - 1 }); y--; }
+            result.reverse();
+            return result;
+        }
+
+        async function computeDiffs() {
+            diffs = [];
+            for (var p = 1; p <= maxPages; p++) {
+                var aLines = textA[p - 1] || [''];
+                var bLines = textB[p - 1] || [''];
+                var diff = myersDiff(aLines, bLines);
+                var adds = 0, dels = 0;
+                for (var i = 0; i < diff.length; i++) {
+                    if (diff[i].type === 'add') adds++;
+                    else if (diff[i].type === 'del') dels++;
+                }
+                diffs.push({ page: p, diff: diff, adds: adds, dels: dels, hasDiff: adds + dels > 0 });
+            }
+        }
+
+        function updateSummary() {
+            var totalAdds = 0, totalDels = 0, diffPages = 0;
+            for (var i = 0; i < diffs.length; i++) {
+                totalAdds += diffs[i].adds;
+                totalDels += diffs[i].dels;
+                if (diffs[i].hasDiff) diffPages++;
+            }
+            sumPages.textContent = maxPages + ' pages compared (' + diffPages + ' with differences)';
+            sumAdd.textContent = '+' + totalAdds + ' lines added';
+            sumDel.textContent = '−' + totalDels + ' lines removed';
+            summary.classList.add('show');
+            updateJumpButtons();
+        }
+
+        function updateJumpButtons() {
+            var idx = -1;
+            for (var i = 0; i < diffs.length; i++) {
+                if (diffs[i].hasDiff) { idx = i; break; }
+            }
+            currentDiffIdx = idx;
+            jumpPrev.disabled = idx === -1;
+            jumpNext.disabled = idx === -1;
+            if (idx !== -1) {
+                currentPage = idx + 1;
+                pageInput.value = currentPage;
+                renderCurrent();
+            }
+        }
+
+        function jumpNextDiff(dir) {
+            var pages = [];
+            for (var i = 0; i < diffs.length; i++) {
+                if (diffs[i].hasDiff) pages.push(i);
+            }
+            if (pages.length === 0) return;
+            var pos = pages.indexOf(currentDiffIdx);
+            var next = dir === 1 ? pos + 1 : pos - 1;
+            if (next < 0) next = pages.length - 1;
+            if (next >= pages.length) next = 0;
+            currentDiffIdx = pages[next];
+            currentPage = currentDiffIdx + 1;
+            pageInput.value = currentPage;
+            renderCurrent();
+        }
+
+        async function renderPage(doc, pageNum, container, labelEl) {
+            container.innerHTML = '';
+            labelEl.textContent = 'Page ' + pageNum + ' of ' + doc.numPages;
+            if (pageNum > doc.numPages) {
+                var placeholder = document.createElement('div');
+                placeholder.className = 'pc-empty';
+                placeholder.textContent = '(No page ' + pageNum + ' in this PDF — only ' + doc.numPages + ' pages)';
+                container.appendChild(placeholder);
+                return;
+            }
+            var page = await doc.getPage(pageNum);
+            var viewport = page.getViewport({ scale: 1.5 * zoom });
+            var canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            container.appendChild(canvas);
+            var ctx = canvas.getContext('2d');
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+        }
+
+        async function renderSideBySide() {
+            sideView.style.display = '';
+            textView.style.display = 'none';
+            paneAContent.innerHTML = '<div class="pc-empty">Loading…</div>';
+            paneBContent.innerHTML = '<div class="pc-empty">Loading…</div>';
+            var promises = [];
+            if (docA) promises.push(renderPage(docA, currentPage, paneAContent, paneAPageLabel));
+            else { paneAContent.innerHTML = '<div class="pc-empty">Drop PDF A above</div>'; paneAPageLabel.textContent = 'Page 1'; }
+            if (docB) promises.push(renderPage(docB, currentPage, paneBContent, paneBPageLabel));
+            else { paneBContent.innerHTML = '<div class="pc-empty">Drop PDF B above</div>'; paneBPageLabel.textContent = 'Page 1'; }
+            await Promise.all(promises);
+        }
+
+        function renderTextDiff() {
+            textView.style.display = '';
+            sideView.style.display = 'none';
+            textAContent.innerHTML = '';
+            textBContent.innerHTML = '';
+            textAPageLabel.textContent = 'Page ' + currentPage;
+            textBPageLabel.textContent = 'Page ' + currentPage;
+            var d = diffs[currentPage - 1];
+            if (!d) {
+                textAContent.innerHTML = '<div class="pc-empty-state">No diff for this page</div>';
+                textBContent.innerHTML = '<div class="pc-empty-state">No diff for this page</div>';
+                return;
+            }
+            for (var i = 0; i < d.diff.length; i++) {
+                var op = d.diff[i];
+                if (op.type === 'eq') {
+                    var lineA = textA[currentPage - 1][op.aIdx] || '';
+                    var lineB = textB[currentPage - 1][op.bIdx] || '';
+                    var ea = document.createElement('div');
+                    ea.className = 'pc-diff-line eq';
+                    ea.textContent = lineA || '(blank)';
+                    textAContent.appendChild(ea);
+                    var eb = document.createElement('div');
+                    eb.className = 'pc-diff-line eq';
+                    eb.textContent = lineB || '(blank)';
+                    textBContent.appendChild(eb);
+                } else if (op.type === 'del') {
+                    var da = document.createElement('div');
+                    da.className = 'pc-diff-line del';
+                    da.textContent = textA[currentPage - 1][op.aIdx] || '';
+                    textAContent.appendChild(da);
+                    var db = document.createElement('div');
+                    db.className = 'pc-diff-line mod-marker';
+                    db.textContent = '[removed]';
+                    textBContent.appendChild(db);
+                } else {
+                    var aa = document.createElement('div');
+                    aa.className = 'pc-diff-line mod-marker';
+                    aa.textContent = '[added]';
+                    textAContent.appendChild(aa);
+                    var ab = document.createElement('div');
+                    ab.className = 'pc-diff-line add';
+                    ab.textContent = textB[currentPage - 1][op.bIdx] || '';
+                    textBContent.appendChild(ab);
+                }
+            }
+        }
+
+        function renderCurrent() {
+            if (!docA && !docB) return;
+            if (mode === 'side') renderSideBySide();
+            else renderTextDiff();
+        }
+
+        function setMode(m) {
+            mode = m;
+            modeBtns.forEach(function(b) {
+                b.classList.toggle('active', b.dataset.mode === m);
+            });
+            renderCurrent();
+        }
+
+        async function exportReport() {
+            if (!docA && !docB) return;
+            btnExport.disabled = true;
+            btnExport.textContent = 'Generating report…';
+            showProgress('Building PDF report…', 50);
+            try {
+                if (typeof PDFLib === 'undefined') throw new Error('PDFLib not loaded');
+                function safeForWinAnsi(s) {
+                    if (!s) return '';
+                    return s.replace(/−/g, '-').replace(/[^\x09\x0A\x20-\x7E\u00A0-\u00FF]/g, '?');
+                }
+                var pdfDoc = await PDFLib.PDFDocument.create();
+                pdfDoc.setTitle('PDF Comparison Report');
+                pdfDoc.setAuthor('DevTools Hub PDF Compare');
+                pdfDoc.setSubject('Comparison between PDF A and PDF B');
+                var totalAdds = 0, totalDels = 0, diffPages = 0;
+                diffs.forEach(function(d) { totalAdds += d.adds; totalDels += d.dels; if (d.hasDiff) diffPages++; });
+                var font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+                var boldFont = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+                var summaryPage = pdfDoc.addPage([612, 792]);
+                summaryPage.drawText('PDF Comparison Report', { x: 50, y: 740, size: 24, font: boldFont });
+                summaryPage.drawText('Generated by DevTools Hub PDF Compare', { x: 50, y: 710, size: 11, font: font, color: PDFLib.rgb(0.4, 0.4, 0.4) });
+                summaryPage.drawText('Date: ' + new Date().toISOString().split('T')[0], { x: 50, y: 690, size: 11, font: font });
+                summaryPage.drawText('', { x: 50, y: 660, size: 11, font: font });
+                summaryPage.drawText('Statistics:', { x: 50, y: 630, size: 14, font: boldFont });
+                summaryPage.drawText('Pages compared: ' + maxPages, { x: 50, y: 605, size: 11, font: font });
+                summaryPage.drawText('Pages with differences: ' + diffPages, { x: 50, y: 585, size: 11, font: font });
+                summaryPage.drawText('Total lines added: ' + totalAdds, { x: 50, y: 565, size: 11, font: font, color: PDFLib.rgb(0.16, 0.6, 0.16) });
+                summaryPage.drawText('Total lines removed: ' + totalDels, { x: 50, y: 545, size: 11, font: font, color: PDFLib.rgb(0.7, 0.2, 0.2) });
+                var yPos = 510;
+                summaryPage.drawText('Per-page breakdown:', { x: 50, y: yPos, size: 14, font: boldFont });
+                yPos -= 25;
+                diffs.forEach(function(d) {
+                    if (yPos < 60) return;
+                    summaryPage.drawText('Page ' + d.page + ': +' + d.adds + ' / -' + d.dels + (d.hasDiff ? '' : ' (identical)'), { x: 60, y: yPos, size: 10, font: font });
+                    yPos -= 16;
+                });
+                summaryPage.drawText('Generated entirely in your browser. No data was uploaded to any server.', { x: 50, y: 30, size: 9, font: font, color: PDFLib.rgb(0.5, 0.5, 0.5) });
+
+                showProgress('Building diff pages…', 75);
+                for (var p = 1; p <= maxPages; p++) {
+                    var d2 = diffs[p - 1];
+                    if (!d2 || !d2.hasDiff) continue;
+                    var diffPage = pdfDoc.addPage([612, 792]);
+                    diffPage.drawText('Page ' + p + ' Diff', { x: 50, y: 760, size: 16, font: boldFont });
+                    diffPage.drawText('+' + d2.adds + ' added / -' + d2.dels + ' removed', { x: 50, y: 738, size: 10, font: font });
+                    var yy = 700;
+                    var maxLines = Math.min(d2.diff.length, 35);
+                    for (var i = 0; i < maxLines && yy > 50; i++) {
+                        var op = d2.diff[i];
+                        var lineText = '';
+                        var color = PDFLib.rgb(0.3, 0.3, 0.3);
+                        var prefix = '  ';
+                        if (op.type === 'eq') {
+                            lineText = safeForWinAnsi(textA[p - 1][op.aIdx] || '').substring(0, 90);
+                        } else if (op.type === 'del') {
+                            lineText = safeForWinAnsi(textA[p - 1][op.aIdx] || '').substring(0, 90);
+                            color = PDFLib.rgb(0.7, 0.2, 0.2);
+                            prefix = '- ';
+                        } else {
+                            lineText = safeForWinAnsi(textB[p - 1][op.bIdx] || '').substring(0, 90);
+                            color = PDFLib.rgb(0.16, 0.6, 0.16);
+                            prefix = '+ ';
+                        }
+                        try {
+                            diffPage.drawText(prefix + lineText, { x: 50, y: yy, size: 9, font: font, color: color });
+                        } catch (drawErr) {
+                            diffPage.drawText(prefix + '[unprintable]', { x: 50, y: yy, size: 9, font: font, color: color });
+                        }
+                        yy -= 16;
+                    }
+                }
+                var bytes = await pdfDoc.save();
+                var blob = new Blob([bytes], { type: 'application/pdf' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'pdf-comparison-report.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+                showProgress(null);
+                btnExport.disabled = false;
+                btnExport.textContent = 'Download Comparison Report (PDF)';
+            } catch (e) {
+                showProgress(null);
+                btnExport.disabled = false;
+                btnExport.textContent = 'Download Comparison Report (PDF)';
+                console.error('PDF Compare export error:', e);
+                alert('Export failed: ' + (e.message || e));
+            }
+        }
+
+        function clearAll() {
+            docA = null; docB = null; textA = []; textB = []; diffs = [];
+            currentPage = 1; maxPages = 1; currentDiffIdx = -1; zoom = 1.0;
+            fileA.value = ''; fileB.value = '';
+            infoAName.textContent = '—'; infoASize.textContent = '—'; infoAPages.textContent = '—';
+            infoBName.textContent = '—'; infoBSize.textContent = '—'; infoBPages.textContent = '—';
+            infoA.classList.remove('show'); infoB.classList.remove('show');
+            dzA.classList.remove('has-file'); dzB.classList.remove('has-file');
+            modeBar.classList.remove('show'); views.classList.remove('show');
+            actions.classList.remove('show'); summary.classList.remove('show');
+            pageInput.value = 1; pageInput.max = 1; pageOf.textContent = 'of 1';
+            zoomDisplay.textContent = '100%';
+            paneAPageLabel.textContent = 'Page 1'; paneBPageLabel.textContent = 'Page 1';
+            textAPageLabel.textContent = 'Page 1'; textBPageLabel.textContent = 'Page 1';
+            sumPages.textContent = '0 pages compared'; sumAdd.textContent = '+0 lines added'; sumDel.textContent = '−0 lines removed';
+            jumpPrev.disabled = true; jumpNext.disabled = true;
+            paneAContent.innerHTML = '<div class="pc-empty">Drop PDF A above</div>';
+            paneBContent.innerHTML = '<div class="pc-empty">Drop PDF B above</div>';
+            textAContent.innerHTML = '<div class="pc-empty-state">Drop PDFs above</div>';
+            textBContent.innerHTML = '<div class="pc-empty-state">Drop PDFs above</div>';
+            showProgress(null);
+        }
+
+        function bindDz(dz, input, side) {
+            dz.addEventListener('click', function() { input.click(); });
+            dz.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+            });
+            dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+            dz.addEventListener('dragleave', function() { dz.classList.remove('dragover'); });
+            dz.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dz.classList.remove('dragover');
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFile(e.dataTransfer.files[0], side);
+                }
+            });
+            input.addEventListener('change', function() {
+                if (input.files && input.files[0]) handleFile(input.files[0], side);
+            });
+        }
+        bindDz(dzA, fileA, 'a');
+        bindDz(dzB, fileB, 'b');
+
+        modeBtns.forEach(function(b) {
+            b.addEventListener('click', function() { setMode(b.dataset.mode); });
+        });
+
+        pageInput.addEventListener('change', function() {
+            var v = parseInt(pageInput.value);
+            if (isNaN(v) || v < 1) v = 1;
+            if (v > maxPages) v = maxPages;
+            currentPage = v;
+            pageInput.value = v;
+            renderCurrent();
+        });
+        btnFirst.addEventListener('click', function() { currentPage = 1; pageInput.value = 1; renderCurrent(); });
+        btnPrev.addEventListener('click', function() { if (currentPage > 1) { currentPage--; pageInput.value = currentPage; renderCurrent(); } });
+        btnNext.addEventListener('click', function() { if (currentPage < maxPages) { currentPage++; pageInput.value = currentPage; renderCurrent(); } });
+        btnLast.addEventListener('click', function() { currentPage = maxPages; pageInput.value = maxPages; renderCurrent(); });
+        btnZoomOut.addEventListener('click', function() { if (zoom > 0.5) { zoom -= 0.25; zoomDisplay.textContent = Math.round(zoom * 100) + '%'; renderCurrent(); } });
+        btnZoomIn.addEventListener('click', function() { if (zoom < 2.0) { zoom += 0.25; zoomDisplay.textContent = Math.round(zoom * 100) + '%'; renderCurrent(); } });
+        jumpPrev.addEventListener('click', function() { jumpNextDiff(-1); });
+        jumpNext.addEventListener('click', function() { jumpNextDiff(1); });
+        btnExport.addEventListener('click', exportReport);
+        btnClear.addEventListener('click', clearAll);
+
+        paneA.addEventListener('scroll', function() {
+            if (!scrollSync || suppressScroll) return;
+            suppressScroll = true;
+            var ratio = paneA.scrollTop / Math.max(1, paneA.scrollHeight - paneA.clientHeight);
+            paneB.scrollTop = ratio * Math.max(0, paneB.scrollHeight - paneB.clientHeight);
+            setTimeout(function() { suppressScroll = false; }, 50);
+        });
+        paneB.addEventListener('scroll', function() {
+            if (!scrollSync || suppressScroll) return;
+            suppressScroll = true;
+            var ratio = paneB.scrollTop / Math.max(1, paneB.scrollHeight - paneB.clientHeight);
+            paneA.scrollTop = ratio * Math.max(1, paneA.scrollHeight - paneA.clientHeight);
+            setTimeout(function() { suppressScroll = false; }, 50);
+        });
+
+        window.pcHandleFile = handleFile;
+    })();
+    </script>
+</body>
+</html>

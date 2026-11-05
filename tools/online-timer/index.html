@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Online Timer &amp; Stopwatch &amp; Interval Trainer</title>
+    <meta name="description" content="Free online timer, stopwatch, and interval trainer. Pomodoro for work, Tabata/HIIT for fitness. No signup required. Privacy-first browser-based timing.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/online-timer/">
+    <meta property="og:title" content="Free Online Timer &amp; Stopwatch &amp; Interval Trainer">
+    <meta property="og:description" content="Free online timer, stopwatch, and interval trainer. Pomodoro for work, Tabata/HIIT for fitness. No signup required. Privacy-first browser-based timing.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/online-timer/">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Free Online Timer & Stopwatch & Interval Trainer",
+      "description": "Browser-based timer, stopwatch, and interval trainer. Pomodoro for work, Tabata/HIIT for fitness. No signup required.",
+      "url": "https://tools.scoreroute.com/tools/online-timer/",
+      "applicationCategory": "UtilityApplication",
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Online Timer & Stopwatch</h1>
+            <p class="subtitle">Pomodoro for Work • Tabata/HIIT for Fitness • Countdown for Anything</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Online Timer</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="timer-mode-selector">
+                    <button class="mode-btn active" data-mode="pomodoro" onclick="setMode('pomodoro')">
+                        <span class="mode-icon">🍅</span>
+                        <span class="mode-name">Pomodoro</span>
+                        <span class="mode-desc">Work 25min, rest 5min</span>
+                    </button>
+                    <button class="mode-btn" data-mode="interval" onclick="setMode('interval')">
+                        <span class="mode-icon">⏱️</span>
+                        <span class="mode-name">Interval</span>
+                        <span class="mode-desc">HIIT / Tabata / Circuit</span>
+                    </button>
+                    <button class="mode-btn" data-mode="countdown" onclick="setMode('countdown')">
+                        <span class="mode-icon">⏰</span>
+                        <span class="mode-name">Countdown</span>
+                        <span class="mode-desc">Set your own time</span>
+                    </button>
+                    <button class="mode-btn" data-mode="stopwatch" onclick="setMode('stopwatch')">
+                        <span class="mode-icon">🏃</span>
+                        <span class="mode-name">Stopwatch</span>
+                        <span class="mode-desc">Measure elapsed time</span>
+                    </button>
+                </div>
+
+                <div class="timer-display" id="timer-display">
+                    <div class="time-value" id="time-value">25:00</div>
+                    <div class="time-label" id="time-label">Focus Time</div>
+                    <div class="progress-ring" id="progress-ring">
+                        <svg viewBox="0 0 200 200">
+                            <circle class="progress-bg" cx="100" cy="100" r="90"/>
+                            <circle class="progress-bar" id="progress-bar" cx="100" cy="100" r="90"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="timer-controls">
+                    <button class="btn btn-primary btn-large" id="start-btn" onclick="toggleTimer()">Start</button>
+                    <button class="btn btn-secondary" id="pause-btn" onclick="pauseTimer()" style="display:none;">Pause</button>
+                    <button class="btn btn-secondary" id="reset-btn" onclick="resetTimer()">Reset</button>
+                </div>
+
+                <div class="pomodoro-settings" id="pomodoro-settings">
+                    <div class="setting-group">
+                        <label>Work Duration (minutes)</label>
+                        <input type="number" id="work-duration" value="25" min="1" max="120" onchange="updatePomodoroSettings()" aria-label="Work Duration">
+                    </div>
+                    <div class="setting-group">
+                        <label>Break Duration (minutes)</label>
+                        <input type="number" id="break-duration" value="5" min="1" max="30" onchange="updatePomodoroSettings()" aria-label="Break Duration">
+                    </div>
+                    <div class="setting-group">
+                        <label>Long Break (minutes)</label>
+                        <input type="number" id="long-break-duration" value="15" min="1" max="60" onchange="updatePomodoroSettings()" aria-label="Long Break Duration">
+                    </div>
+                    <div class="setting-group">
+                        <label>Long Break After</label>
+                        <input type="number" id="sessions-before-long" value="4" min="1" max="10" onchange="updatePomodoroSettings()" aria-label="Sessions Before Long">
+                    </div>
+                </div>
+
+                <div class="interval-settings" id="interval-settings" style="display:none;">
+                    <div class="interval-presets">
+                        <button class="preset-btn active" onclick="loadPreset('tabata')">Tabata (20s/10s x8)</button>
+                        <button class="preset-btn" onclick="loadPreset('hiit')">HIIT (30s/30s x10)</button>
+                        <button class="preset-btn" onclick="loadPreset('emom')">EMOM (60s x10)</button>
+                        <button class="preset-btn" onclick="loadPreset('amrap')">AMRAP (custom)</button>
+                    </div>
+                    <div class="interval-config">
+                        <div class="config-row">
+                            <label>Active (seconds)</label>
+                            <input type="number" id="active-time" value="20" min="5" max="300" aria-label="Active Time">
+                        </div>
+                        <div class="config-row">
+                            <label>Rest (seconds)</label>
+                            <input type="number" id="rest-time" value="10" min="5" max="300" aria-label="Rest Time">
+                        </div>
+                        <div class="config-row">
+                            <label>Rounds</label>
+                            <input type="number" id="total-rounds" value="8" min="1" max="50" aria-label="Total Rounds">
+                        </div>
+                        <button class="btn btn-primary" onclick="applyIntervalSettings()">Apply</button>
+                    </div>
+                </div>
+
+                <div class="countdown-settings" id="countdown-settings" style="display:none;">
+                    <div class="countdown-input">
+                        <div class="countdown-field">
+                            <label>Hours</label>
+                            <input type="number" id="countdown-hours" value="0" min="0" max="23" aria-label="Countdown Hours">
+                        </div>
+                        <div class="countdown-field">
+                            <label>Minutes</label>
+                            <input type="number" id="countdown-minutes" value="5" min="0" max="59" aria-label="Countdown Minutes">
+                        </div>
+                        <div class="countdown-field">
+                            <label>Seconds</label>
+                            <input type="number" id="countdown-seconds" value="0" min="0" max="59" aria-label="Countdown Seconds">
+                        </div>
+                        <button class="btn btn-primary" onclick="applyCountdown()">Set Time</button>
+                    </div>
+                </div>
+
+                <div class="lap-times" id="lap-times" style="display:none;">
+                    <h2>Lap Times</h2>
+                    <div id="lap-list"></div>
+                </div>
+
+                <div class="session-info" id="session-info" style="display:none;">
+                    <span id="current-session">Session 1 of 4</span>
+                    <span id="current-round">Round 1 of 8</span>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>Problem: Most Online Timers Are Just... Timers</h2>
+                <p>You search for "online timer" and get a basic countdown. But what do you actually need it for? Work? Exercise? Cooking? Generic timers don't understand your context.</p>
+
+                <h3>Our Solution: Purpose-Built Timers</h3>
+                <ul>
+                    <li><strong>Pomodoro Timer</strong> — Built for the Pomodoro Technique. Work 25 minutes, break 5. Track sessions. Long break every 4 sessions. Designed for knowledge workers who need focus.</li>
+                    <li><strong>Interval Timer</strong> — Built for HIIT, Tabata, and circuit training. Configure active time, rest time, and rounds. Visual + audio cues for each interval transition.</li>
+                    <li><strong>Countdown Timer</strong> — Set any duration. Perfect for cooking, presentations, meetings, or any task where you need to know when time is up.</li>
+                    <li><strong>Stopwatch</strong> — Measure elapsed time with lap support. Great for athletics, cooking times, or any situation where you need to track ongoing duration.</li>
+                </ul>
+
+                <h3>Why AI Cannot Replace This Tool</h3>
+                <p>AI chatbots can tell you how long to exercise or suggest a Pomodoro schedule, but they <strong>cannot actually time you</strong>. Real-time countdown with audio alerts requires actual time tracking in the browser. This tool runs precise timers independent of AI - your countdown continues even if you're chatting with an AI.</p>
+
+                <h3>How We Solve Your Timing Problem</h3>
+                <ul>
+                    <li><strong>Context-Aware</strong> — Choose your mode (Pomodoro/Interval/Countdown/Stopwatch) and get features designed for that purpose, not a generic timer</li>
+                    <li><strong>Audio Alerts</strong> — Sound notifications when intervals change or time is up. You'll hear the alert even if you're not looking at the screen</li>
+                    <li><strong>Visual Progress</strong> — Progress ring shows remaining time at a glance. No need to read numbers - just see how much time is left</li>
+                    <li><strong>Privacy-First</strong> — No account, no login, no data sent anywhere. All timing happens in your browser</li>
+                    <li><strong>Works Offline</strong> — Once loaded, the timer works even without internet connection</li>
+                </ul>
+
+                <h3>Use Cases</h3>
+                <div class="table-scroll">
+                <table class="info-table">
+<caption class="sr-only">Which timer mode to use for which kind of work</caption>
+                    <tr><th>Mode</th><th>Best For</th><th>Key Features</th></tr>
+                    <tr><td>Pomodoro</td><td>Work focus, studying</td><td>25/5 work/break, session tracking, long break reminders</td></tr>
+                    <tr><td>Interval</td><td>HIIT, Tabata, circuit training</td><td>Custom active/rest, round counter, audio cues</td></tr>
+                    <tr><td>Countdown</td><td>Cooking, presentations, meetings</td><td>Any duration, audio alert, visual countdown</td></tr>
+                    <tr><td>Stopwatch</td><td>Measuring duration, athletics</td><td>Lap times, elapsed time, split/continue</td></tr>
+                </table>
+                </div>
+
+                <h3>Frequently Asked Questions</h3>
+                <div class="faq-section">
+                    <div class="faq-item">
+                        <h3>Is my timing data stored anywhere?</h3>
+                        <p>No. All timing happens in your browser. When you close the page, all data is deleted. We don't use cookies or tracking.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Will the timer work if I switch tabs?</h3>
+                        <p>Yes. The timer continues running in the background. However, for best results keep the tab open. Audio alerts will still sound even if you're on another tab.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>What's the Pomodoro Technique?</h3>
+                        <p>It's a time management method: work for 25 minutes, take a 5-minute break, repeat. After 4 sessions, take a longer 15-minute break. This structured approach helps maintain focus and prevents burnout.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>What's Tabata/HIIT?</h3>
+                        <p>Tabata is a type of High-Intensity Interval Training (HIIT): 20 seconds of all-out exercise, 10 seconds rest, repeated 8 times (4 minutes total). Our interval timer is fully customizable for any HIIT workout.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 DevTools Hub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+    var currentMode = 'pomodoro';
+    var timerInterval = null;
+    var remainingTime = 25 * 60;
+    var isRunning = false;
+    var isPaused = false;
+    var totalTime = 25 * 60;
+    var currentSession = 1;
+    var totalSessions = 4;
+    var workDuration = 25 * 60;
+    var breakDuration = 5 * 60;
+    var longBreakDuration = 15 * 60;
+    var isWorkPhase = true;
+    var lapTimes = [];
+    
+    // Interval mode settings
+    var intervalActive = 20;
+    var intervalRest = 10;
+    var intervalRounds = 8;
+    var currentRound = 1;
+    var isIntervalActive = true;
+
+    var audioContext = null;
+    var oscillator = null;
+
+    function initAudio() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    function playBeep(duration = 200, frequency = 880) {
+        try {
+            initAudio();
+            var osc = audioContext.createOscillator();
+            var gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.frequency.value = frequency;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+            osc.start(audioContext.currentTime);
+            osc.stop(audioContext.currentTime + duration / 1000);
+        } catch (e) {
+            console.log('Audio not supported');
+        }
+    }
+
+    function setMode(mode) {
+        clearInterval(timerInterval);
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+        
+        document.getElementById('pomodoro-settings').style.display = 'none';
+        document.getElementById('interval-settings').style.display = 'none';
+        document.getElementById('countdown-settings').style.display = 'none';
+        document.getElementById('lap-times').style.display = 'none';
+        document.getElementById('session-info').style.display = 'none';
+        
+        currentMode = mode;
+        isRunning = false;
+        isPaused = false;
+        lapTimes = [];
+        document.getElementById('lap-list').innerHTML = '';
+        
+        if (mode === 'pomodoro') {
+            remainingTime = workDuration;
+            totalTime = workDuration;
+            document.getElementById('pomodoro-settings').style.display = 'grid';
+            document.getElementById('session-info').style.display = 'flex';
+            updateSessionInfo();
+            updateProgress();
+        } else if (mode === 'interval') {
+            remainingTime = intervalActive;
+            totalTime = intervalActive;
+            document.getElementById('interval-settings').style.display = 'block';
+            document.getElementById('session-info').style.display = 'flex';
+            currentRound = 1;
+            isIntervalActive = true;
+            updateSessionInfo();
+            updateProgress();
+        } else if (mode === 'countdown') {
+            remainingTime = 5 * 60;
+            totalTime = 5 * 60;
+            document.getElementById('countdown-settings').style.display = 'block';
+            updateDisplay();
+            updateProgress();
+        } else if (mode === 'stopwatch') {
+            remainingTime = 0;
+            totalTime = 0;
+            document.getElementById('lap-times').style.display = 'block';
+            updateDisplay();
+            updateProgress();
+        }
+        
+        updateButtons();
+    }
+
+    function toggleTimer() {
+        if (isRunning) {
+            pauseTimer();
+        } else {
+            startTimer();
+        }
+    }
+
+    function startTimer() {
+        isRunning = true;
+        isPaused = false;
+        updateButtons();
+        
+        if (currentMode === 'stopwatch') {
+            timerInterval = setInterval(() => {
+                remainingTime += 10;
+                updateDisplay();
+                updateProgress();
+            }, 10);
+        } else if (currentMode === 'interval') {
+            timerInterval = setInterval(() => {
+                remainingTime -= 1;
+                if (remainingTime <= 0) {
+                    if (isIntervalActive) {
+                        // Switch to rest
+                        playBeep(500, 440);
+                        isIntervalActive = false;
+                        remainingTime = intervalRest;
+                    } else {
+                        // Switch to next round or finish
+                        if (currentRound >= intervalRounds) {
+                            // Workout complete
+                            playBeep(1000, 880);
+                            playBeep(500, 1100);
+                            pauseTimer();
+                            remainingTime = 0;
+                        } else {
+                            currentRound++;
+                            playBeep(300, 660);
+                            isIntervalActive = true;
+                            remainingTime = intervalActive;
+                        }
+                    }
+                    updateSessionInfo();
+                }
+                updateDisplay();
+                updateProgress();
+            }, 1000);
+        } else {
+            timerInterval = setInterval(() => {
+                remainingTime -= 1;
+                if (remainingTime <= 0) {
+                    if (currentMode === 'pomodoro') {
+                        playBeep(500, isWorkPhase ? 880 : 440);
+                        if (isWorkPhase) {
+                            isWorkPhase = false;
+                            remainingTime = breakDuration;
+                        } else {
+                            currentSession++;
+                            if (currentSession > totalSessions) {
+                                currentSession = 1;
+                                remainingTime = longBreakDuration;
+                                playBeep(1000, 1100);
+                                pauseTimer();
+                            } else {
+                                remainingTime = workDuration;
+                            }
+                        }
+                        updateSessionInfo();
+                    } else {
+                        playBeep(1000, 880);
+                        pauseTimer();
+                        remainingTime = 0;
+                    }
+                }
+                updateDisplay();
+                updateProgress();
+            }, 1000);
+        }
+    }
+
+    function pauseTimer() {
+        isRunning = false;
+        isPaused = true;
+        clearInterval(timerInterval);
+        updateButtons();
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        isPaused = false;
+        lapTimes = [];
+        document.getElementById('lap-list').innerHTML = '';
+        
+        if (currentMode === 'pomodoro') {
+            remainingTime = workDuration;
+            totalTime = workDuration;
+            isWorkPhase = true;
+            currentSession = 1;
+            updateSessionInfo();
+        } else if (currentMode === 'interval') {
+            remainingTime = intervalActive;
+            totalTime = intervalActive;
+            currentRound = 1;
+            isIntervalActive = true;
+            updateSessionInfo();
+        } else if (currentMode === 'countdown') {
+            remainingTime = totalTime;
+        } else {
+            remainingTime = 0;
+        }
+        
+        updateDisplay();
+        updateProgress();
+        updateButtons();
+    }
+
+    function updateButtons() {
+        var startBtn = document.getElementById('start-btn');
+        var pauseBtn = document.getElementById('pause-btn');
+        
+        if (isRunning) {
+            startBtn.style.display = 'none';
+            pauseBtn.style.display = 'inline-block';
+        } else {
+            startBtn.style.display = 'inline-block';
+            pauseBtn.style.display = 'none';
+            startBtn.textContent = isPaused ? 'Resume' : 'Start';
+        }
+    }
+
+    function updateDisplay() {
+        var minutes, seconds, display;
+        
+        if (currentMode === 'stopwatch') {
+            var ms = remainingTime % 1000;
+            var s = Math.floor(remainingTime / 1000) % 60;
+            var m = Math.floor(remainingTime / 60000);
+            display = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + String(Math.floor(ms / 100)).padStart(1, '0');
+            document.getElementById('time-label').textContent = 'Elapsed';
+        } else {
+            var m = Math.floor(remainingTime / 60);
+            var s = remainingTime % 60;
+            display = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            
+            if (currentMode === 'pomodoro') {
+                document.getElementById('time-label').textContent = isWorkPhase ? 'Focus Time' : 'Break Time';
+            } else if (currentMode === 'interval') {
+                document.getElementById('time-label').textContent = isIntervalActive ? 'Active' : 'Rest';
+            } else {
+                document.getElementById('time-label').textContent = 'Countdown';
+            }
+        }
+        
+        document.getElementById('time-value').textContent = display;
+    }
+
+    function updateProgress() {
+        var progressBar = document.getElementById('progress-bar');
+        var circumference = 2 * Math.PI * 90;
+        
+        var progress = 0;
+        if (currentMode === 'stopwatch') {
+            // No progress for stopwatch
+            progressBar.style.strokeDasharray = circumference;
+            progressBar.style.strokeDashoffset = circumference;
+        } else {
+            progress = totalTime > 0 ? (totalTime - remainingTime) / totalTime : 0;
+            progressBar.style.strokeDasharray = circumference;
+            progressBar.style.strokeDashoffset = circumference * (1 - progress);
+        }
+        
+        // Update color based on mode and state
+        if (currentMode === 'pomodoro') {
+            progressBar.style.stroke = isWorkPhase ? '#667eea' : '#10b981';
+        } else if (currentMode === 'interval') {
+            progressBar.style.stroke = isIntervalActive ? '#ef4444' : '#10b981';
+        } else {
+            progressBar.style.stroke = '#667eea';
+        }
+    }
+
+    function updateSessionInfo() {
+        if (currentMode === 'pomodoro') {
+            document.getElementById('current-session').textContent = 'Session ' + currentSession + ' of ' + totalSessions;
+            document.getElementById('current-round').textContent = isWorkPhase ? 'Working' : 'Break';
+        } else if (currentMode === 'interval') {
+            document.getElementById('current-session').textContent = 'Round ' + currentRound + ' of ' + intervalRounds;
+            document.getElementById('current-round').textContent = isIntervalActive ? 'Active' : 'Rest';
+        }
+    }
+
+    function updatePomodoroSettings() {
+        workDuration = parseInt(document.getElementById('work-duration').value) * 60 || 25 * 60;
+        breakDuration = parseInt(document.getElementById('break-duration').value) * 60 || 5 * 60;
+        longBreakDuration = parseInt(document.getElementById('long-break-duration').value) * 60 || 15 * 60;
+        totalSessions = parseInt(document.getElementById('sessions-before-long').value) || 4;
+        
+        if (!isRunning) {
+            remainingTime = workDuration;
+            totalTime = workDuration;
+            isWorkPhase = true;
+            updateDisplay();
+            updateProgress();
+        }
+    }
+
+    function loadPreset(preset) {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        if (preset === 'tabata') {
+            document.getElementById('active-time').value = 20;
+            document.getElementById('rest-time').value = 10;
+            document.getElementById('total-rounds').value = 8;
+        } else if (preset === 'hiit') {
+            document.getElementById('active-time').value = 30;
+            document.getElementById('rest-time').value = 30;
+            document.getElementById('total-rounds').value = 10;
+        } else if (preset === 'emom') {
+            document.getElementById('active-time').value = 60;
+            document.getElementById('rest-time').value = 0;
+            document.getElementById('total-rounds').value = 10;
+        } else if (preset === 'amrap') {
+            document.getElementById('active-time').value = 60;
+            document.getElementById('rest-time').value = 15;
+            document.getElementById('total-rounds').value = 5;
+        }
+        
+        applyIntervalSettings();
+    }
+
+    function applyIntervalSettings() {
+        intervalActive = parseInt(document.getElementById('active-time').value) || 20;
+        intervalRest = parseInt(document.getElementById('rest-time').value) || 10;
+        intervalRounds = parseInt(document.getElementById('total-rounds').value) || 8;
+        
+        if (!isRunning) {
+            remainingTime = intervalActive;
+            totalTime = intervalActive;
+            currentRound = 1;
+            isIntervalActive = true;
+            updateDisplay();
+            updateProgress();
+            updateSessionInfo();
+        }
+    }
+
+    function applyCountdown() {
+        var h = parseInt(document.getElementById('countdown-hours').value) || 0;
+        var m = parseInt(document.getElementById('countdown-minutes').value) || 0;
+        var s = parseInt(document.getElementById('countdown-seconds').value) || 0;
+        
+        remainingTime = h * 3600 + m * 60 + s;
+        totalTime = remainingTime;
+        
+        if (remainingTime <= 0) {
+            remainingTime = 1;
+            totalTime = 1;
+        }
+        
+        updateDisplay();
+        updateProgress();
+    }
+
+    function recordLap() {
+        if (currentMode === 'stopwatch' && remainingTime > 0) {
+            lapTimes.push(remainingTime);
+            var lapList = document.getElementById('lap-list');
+            var lapNum = lapTimes.length;
+            var lastLap = lapTimes.length > 1 ? lapTimes[lapTimes.length - 2] : 0;
+            var lapDiff = remainingTime - lastLap;
+            
+            var ms = lapDiff % 1000;
+            var s = Math.floor(lapDiff / 1000) % 60;
+            var m = Math.floor(lapDiff / 60000);
+            var diffStr = (m > 0 ? String(m) + ':' : '') + String(s).padStart(2, '0') + '.' + String(Math.floor(ms / 100)).padStart(1, '0');
+            
+            var lapEl = document.createElement('div');
+            lapEl.className = 'lap-item';
+            lapEl.innerHTML = '<span class="lap-num">Lap ' + lapNum + '</span><span class="lap-time">' + formatTime(remainingTime) + '</span><span class="lap-diff">+' + diffStr + '</span>';
+            lapList.insertBefore(lapEl, lapList.firstChild);
+            
+            playBeep(100, 660);
+        }
+    }
+
+    function formatTime(ms) {
+        var s = Math.floor(ms / 1000) % 60;
+        var m = Math.floor(ms / 60000);
+        var ms = ms % 1000;
+        return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + String(Math.floor(ms / 100)).padStart(1, '0');
+    }
+
+    // Add lap button to stopwatch
+    var originalStartBtn = document.getElementById('start-btn').outerHTML;
+    document.getElementById('start-btn').outerHTML = originalStartBtn + '<button class="btn btn-secondary" id="lap-btn" onclick="recordLap()" style="display:none;">Lap</button>';
+
+    // Update lap button visibility based on mode
+    var originalSetMode = setMode;
+    setMode = function(mode) {
+        originalSetMode(mode);
+        document.getElementById('lap-btn').style.display = mode === 'stopwatch' && isRunning ? 'inline-block' : 'none';
+    };
+
+    // Update lap button during stopwatch running
+    setInterval(() => {
+        document.getElementById('lap-btn').style.display = currentMode === 'stopwatch' && isRunning ? 'inline-block' : 'none';
+    }, 100);
+
+    // Initialize
+    setMode('pomodoro');
+    </script>
+
+    <style>
+    .timer-mode-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .mode-btn {
+        background: var(--bg-secondary, #1a1a2e);
+        border: 2px solid var(--border, #2a2a4a);
+        border-radius: 12px;
+        padding: 16px 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    .mode-btn:hover {
+        border-color: var(--primary, #667eea);
+        transform: translateY(-2px);
+    }
+    .mode-btn.active {
+        background: linear-gradient(135deg, #667eea22, #764ba222);
+        border-color: var(--primary, #667eea);
+    }
+    .mode-icon {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 8px;
+    }
+    .mode-name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text, #fff);
+        display: block;
+    }
+    .mode-desc {
+        font-size: 0.75rem;
+        color: var(--text-secondary, #888);
+        display: block;
+        margin-top: 4px;
+    }
+    .timer-display {
+        text-align: center;
+        position: relative;
+        padding: 40px 0;
+    }
+    .time-value {
+        font-size: 5rem;
+        font-weight: 700;
+        font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+        color: var(--text, #fff);
+        letter-spacing: 4px;
+        line-height: 1;
+    }
+    .time-label {
+        font-size: 1.2rem;
+        color: var(--primary, #667eea);
+        margin-top: 12px;
+        font-weight: 500;
+    }
+    .progress-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 280px;
+        height: 280px;
+        pointer-events: none;
+    }
+    .progress-ring svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+    .progress-bg {
+        fill: none;
+        stroke: var(--border, #2a2a4a);
+        stroke-width: 8;
+    }
+    .progress-bar {
+        fill: none;
+        stroke: var(--primary, #667eea);
+        stroke-width: 8;
+        stroke-linecap: round;
+        stroke-dasharray: 565.48;
+        stroke-dashoffset: 565.48;
+        transition: stroke-dashoffset 0.5s ease;
+    }
+    .timer-controls {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .btn-large {
+        padding: 16px 48px;
+        font-size: 1.2rem;
+    }
+    .pomodoro-settings, .interval-settings, .countdown-settings {
+        background: var(--bg-secondary, #1a1a2e);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .pomodoro-settings {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 16px;
+    }
+    .setting-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .setting-group label {
+        font-size: 0.85rem;
+        color: var(--text-secondary, #888);
+    }
+    .setting-group input {
+        padding: 8px 12px;
+        background: var(--bg, #0f0f23);
+        border: 1px solid var(--border, #2a2a4a);
+        border-radius: 6px;
+        color: var(--text, #fff);
+        font-size: 1rem;
+        text-align: center;
+    }
+    .interval-presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    .preset-btn {
+        padding: 8px 16px;
+        background: var(--bg, #0f0f23);
+        border: 1px solid var(--border, #2a2a4a);
+        border-radius: 20px;
+        color: var(--text, #fff);
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    .preset-btn:hover, .preset-btn.active {
+        background: var(--primary, #667eea);
+        border-color: var(--primary, #667eea);
+    }
+    .interval-config {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+    }
+    .config-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .config-row label {
+        font-size: 0.8rem;
+        color: var(--text-secondary, #888);
+    }
+    .config-row input {
+        width: 80px;
+        padding: 8px;
+        background: var(--bg, #0f0f23);
+        border: 1px solid var(--border, #2a2a4a);
+        border-radius: 6px;
+        color: var(--text, #fff);
+        text-align: center;
+    }
+    .countdown-input {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: flex-end;
+    }
+    .countdown-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .countdown-field label {
+        font-size: 0.8rem;
+        color: var(--text-secondary, #888);
+        text-align: center;
+    }
+    .countdown-field input {
+        width: 80px;
+        padding: 12px;
+        background: var(--bg, #0f0f23);
+        border: 1px solid var(--border, #2a2a4a);
+        border-radius: 8px;
+        color: var(--text, #fff);
+        font-size: 1.5rem;
+        text-align: center;
+    }
+    .session-info {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        font-size: 0.9rem;
+        color: var(--text-secondary, #888);
+        margin-bottom: 16px;
+    }
+    .session-info span {
+        padding: 6px 12px;
+        background: var(--bg-secondary, #1a1a2e);
+        border-radius: 20px;
+    }
+    .lap-times {
+        background: var(--bg-secondary, #1a1a2e);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+    .lap-times h3 {
+        color: var(--primary, #667eea);
+        margin-bottom: 12px;
+    }
+    .lap-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: var(--bg, #0f0f23);
+        border-radius: 6px;
+        margin-bottom: 6px;
+    }
+    .lap-num {
+        color: var(--text-secondary, #888);
+    }
+    .lap-time {
+        color: var(--text, #fff);
+        font-family: monospace;
+    }
+    .lap-diff {
+        color: var(--primary, #667eea);
+    }
+    @media (max-width: 768px) {
+        .time-value { font-size: 3.5rem; }
+        .progress-ring { width: 220px; height: 220px; }
+        .timer-mode-selector { grid-template-columns: repeat(2, 1fr); }
+        .pomodoro-settings { grid-template-columns: repeat(2, 1fr); }
+    }
+    </style>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

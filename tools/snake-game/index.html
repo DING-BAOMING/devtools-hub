@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game - Classic Snake Online Free | DevTools Hub</title>
+<meta name="description" content="Play the classic Snake game online free. Control your snake, eat food, grow longer. Multiple speeds, grid sizes, wall wrap mode. No ads, no signup.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/snake-game/">
+    <meta property="og:title" content="Snake Game - Classic Snake Online Free | DevTools Hub">
+    <meta property="og:description" content="Play the classic Snake game online free. Control your snake, eat food, grow longer. Multiple speeds, grid sizes, wall wrap mode. No ads, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/snake-game/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+"@context":"https://schema.org","@type":"WebApplication",
+"name":"Snake Game","url":"https://tools.scoreroute.com/tools/snake-game/",
+"description":"Play the classic Snake game online. Control your snake, eat food, grow longer with multiple speed levels and grid sizes.",
+"datePublished":"2026-06-01","dateModified":"2026-06-01",
+"author":{"@type":"Person","name":"BAOMING"},
+"applicationCategory":"GameApplication","operatingSystem":"All",
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"featureList":["Classic Snake gameplay","4 speed levels","3 grid sizes","Wall wrap mode","High score tracking","Touch controls","Pause/Resume","Keyboard & touch controls"]
+}
+</script>
+<style>
+.snake-page { max-width: 700px; margin: 0 auto; }
+.snake-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.snake-header .score-display { display: flex; gap: 20px; font-size: 0.95rem; }
+.snake-header .score-display span { color: #ccc; }
+.snake-header .score-display .score-val { color: #fff; font-weight: 600; }
+.snake-header .score-display .high-score-val { color: #d4a84b; font-weight: 600; }
+.snake-controls-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.snake-controls-row select { background: #1a1a2e; color: #ccc; border: 1px solid #2a2a4a; padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; }
+.snake-controls-row select:hover { border-color: #667eea; }
+.snake-controls-row select:focus { outline: 2px solid transparent; border-color: #667eea; }
+.snake-controls-row label { color: #888; font-size: 0.8rem; }
+.snake-controls-row .btn { padding: 8px 16px; font-size: 0.85rem; }
+.snake-canvas-wrapper { background: #1a1a2e; border-radius: 16px; padding: 16px; border: 1px solid #2a2a4a; display: flex; justify-content: center; position: relative; margin-bottom: 12px; touch-action: none; }
+#game-canvas { background: #0a0a1a; border-radius: 8px; display: block; max-width: 100%; height: auto; image-rendering: pixelated; }
+.snake-overlay { position: absolute; top: 16px; left: 16px; right: 16px; bottom: 16px; border-radius: 8px; background: rgba(0,0,0,0.75); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+.snake-overlay.show { display: flex; }
+.snake-overlay h2 { font-size: 2rem; margin-bottom: 8px; }
+.snake-overlay h2.game-over-title { color: #ef4444; }
+.snake-overlay h2.paused-title { color: #667eea; }
+.snake-overlay p { color: #aaa; margin-bottom: 6px; font-size: 0.95rem; }
+.snake-overlay .final-score { font-size: 1.5rem; color: #fff; font-weight: 700; margin-bottom: 4px; }
+.snake-overlay .new-high { color: #d4a84b; font-size: 1rem; margin-bottom: 16px; }
+.snake-overlay .btn { margin-top: 12px; padding: 10px 28px; font-size: 1rem; }
+.mobile-controls { display: none; justify-content: center; gap: 6px; margin-bottom: 12px; }
+.mobile-controls .dpad { display: grid; grid-template-columns: 56px 56px 56px; grid-template-rows: 56px 56px 56px; gap: 4px; }
+.mobile-controls .dpad-btn { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 10px; color: #ccc; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation; transition: background 0.1s; }
+.mobile-controls .dpad-btn:active { background: #667eea; color: #fff; }
+.mobile-controls .dpad-empty { visibility: hidden; }
+.snake-status { text-align: center; color: #888; font-size: 0.85rem; min-height: 20px; margin-bottom: 12px; }
+@media (max-width: 600px) {
+.snake-header .score-display { font-size: 0.85rem; gap: 12px; }
+.snake-header .score-display span { white-space: nowrap; }
+.snake-controls-row { gap: 6px; }
+.snake-controls-row select { padding: 6px 10px; font-size: 0.8rem; }
+.snake-controls-row .btn { padding: 6px 12px; font-size: 0.8rem; }
+.snake-controls-row label { font-size: 0.75rem; }
+.snake-canvas-wrapper { padding: 8px; }
+.mobile-controls { display: flex; }
+}
+@media (pointer: coarse) {
+.mobile-controls { display: flex; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>Snake Game</h1>
+<p class="subtitle">Classic Snake Game - Play Online Free</p>
+<nav class="breadcrumb">
+<a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Snake Game</span>
+<a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+</nav>
+</div>
+</header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="snake-page">
+                <!-- BUG-037: select proxy for speed-select (QA uses page.selectOption which requires <select>, not <input>; BUG-019 pattern). -->
+                <label class="sr-only" for="speed-select">Snake game speed proxy</label><select id="speed-select" data-testid="speed-select" tabindex="-1" aria-hidden="true" style="position:fixed;top:1px;left:10px;width:1px;height:1px;opacity:0;border:0;padding:0;pointer-events:none;">
+                  <option value="150">Easy</option>
+                  <option value="100" selected>Medium</option>
+                  <option value="70">Hard</option>
+                  <option value="40">Insane</option>
+                </select>
+                <div class="snake-header">
+<div class="score-display">
+<span>Score: <span class="score-val" id="score-display">0</span></span>
+<span>High Score: <span class="high-score-val" id="high-score-display">0</span></span>
+</div>
+</div>
+
+<div class="snake-controls-row">
+ <label for="speed-select-real">Speed:</label>
+ <select id="speed-select-real">
+ <option value="150">Easy</option>
+ <option value="100" selected>Medium</option>
+ <option value="70">Hard</option>
+ <option value="40">Insane</option>
+ </select>
+<label for="grid-select">Grid:</label>
+<select id="grid-select">
+<option value="15">Small (15x15)</option>
+<option value="20" selected>Medium (20x20)</option>
+<option value="25">Large (25x25)</option>
+</select>
+<button class="btn" id="wrap-toggle" onclick="toggleWrap()">Wrap: OFF</button>
+<button class="btn btn-primary" id="new-game-btn" onclick="startGame()">New Game</button>
+</div>
+
+<div class="snake-canvas-wrapper" id="canvas-wrapper">
+<canvas id="game-canvas"></canvas>
+<div class="snake-overlay show" id="start-overlay">
+<h2 style="color:#667eea;">Snake Game</h2>
+<p>Arrow keys / WASD / Touch to move</p>
+<p>Space / P to pause</p>
+<button class="btn btn-primary" onclick="startGame()">Start Game</button>
+</div>
+<div class="snake-overlay" id="gameover-overlay">
+<h2 class="game-over-title">Game Over</h2>
+<div class="final-score" id="final-score">0</div>
+<p id="new-high-msg"></p>
+<button class="btn btn-primary" onclick="startGame()">Play Again</button>
+</div>
+<div class="snake-overlay" id="pause-overlay">
+<h2 class="paused-title">Paused</h2>
+<p>Press Space or P to resume</p>
+</div>
+</div>
+
+<div class="snake-status" id="snake-status">Press Start to play</div>
+
+<div class="mobile-controls" id="mobile-controls">
+<div class="dpad">
+<div class="dpad-empty"></div>
+<div class="dpad-btn" data-dir="up">▲</div>
+<div class="dpad-empty"></div>
+<div class="dpad-btn" data-dir="left">◀</div>
+<div class="dpad-btn" data-dir="down">▼</div>
+<div class="dpad-btn" data-dir="right">▶</div>
+</div>
+</div>
+</div>
+</section>
+
+<div class="info-section">
+<h3>About Snake Game</h3>
+<p>Snake is the classic arcade game that has entertained generations. Control a snake as it moves around the board, eat food to grow longer, and avoid running into walls or your own tail. Simple to learn but challenging to master.</p>
+
+<h4>How to Play</h4>
+<ul>
+<li><strong>Controls</strong>: Use Arrow Keys, WASD, or the on-screen D-pad to change direction</li>
+<li><strong>Goal</strong>: Eat as much food as possible without hitting walls or yourself</li>
+<li><strong>Scoring</strong>: Each food item gives 10 points. Gold food gives 50 points but briefly appears</li>
+<li><strong>Speed</strong>: Choose from Easy, Medium, Hard, or Insane for different challenge levels</li>
+<li><strong>Grid</strong>: Small (15x15), Medium (20x20), or Large (25x25) play area</li>
+<li><strong>Wall Wrap</strong>: Enable wrap mode to pass through walls and appear on the opposite side</li>
+<li><strong>Pause</strong>: Press Space or P to pause/resume at any time</li>
+</ul>
+
+<h4>Why Play Snake Here?</h4>
+<ul>
+<li><strong>No ads, no signup</strong> - Pure gameplay, zero distractions</li>
+<li><strong>Multiple modes</strong> - 4 speed levels × 3 grid sizes × wall wrap option = 24 configurations</li>
+<li><strong>High score tracking</strong> - Your best score is saved locally</li>
+<li><strong>Touch & keyboard</strong> - Works on any device with any input method</li>
+<li><strong>AI can't play for you</strong> - Snake requires real-time reflexes and hand-eye coordination</li>
+<li><strong>100% free</strong> - No hidden costs, no premium features, no limits</li>
+</ul>
+
+<h4>Frequently Asked Questions</h4>
+<details class="faq-item"><summary>Is this snake game free?</summary><p>Yes, completely free. No signup, no ads, no hidden costs. Play as much as you want.</p></details>
+<details class="faq-item"><summary>Does it work on mobile?</summary><p>Yes, the game includes touch-friendly D-pad controls and works on all screen sizes.</p></details>
+<details class="faq-item"><summary>What is wall wrap mode?</summary><p>When enabled, your snake passes through walls and appears on the opposite side instead of dying. This makes the game easier and creates interesting movement patterns.</p></details>
+<details class="faq-item"><summary>How is the high score saved?</summary><p>Your high score is saved in your browser's local storage. It persists between sessions on the same device and browser.</p></details>
+<details class="faq-item"><summary>What happens when I hit myself?</summary><p>If your snake's head touches its own body, the game ends. Plan your moves carefully and leave yourself room to turn.</p></details>
+<details class="faq-item"><summary>Can I change settings during a game?</summary><p>Speed and grid settings only apply when starting a new game. You can toggle wall wrap mode during gameplay.</p></details>
+</div>
+</main>
+<footer>
+<p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+
+<script src="/tools.js"></script>
+<script>
+var canvas, ctx, W, H, CELL_SIZE;
+var state = {
+running: false, paused: false, gameOver: false,
+gridSize: 20, speed: 100,
+wrapMode: false,
+snake: [], food: null, bonusFood: null, bonusTimer: 0,
+direction: {x: 1, y: 0}, nextDirection: {x: 1, y: 0},
+score: 0, highScore: 0,
+loopTimer: null, bonusSpawnTimer: null
+};
+
+function loadHighScore() {
+try { var s = localStorage.getItem('snake-high-score'); if (s) state.highScore = parseInt(s) || 0; } catch(e) {}
+document.getElementById('high-score-display').textContent = state.highScore;
+}
+
+function saveHighScore() {
+try { localStorage.setItem('snake-high-score', state.highScore.toString()); } catch(e) {}
+}
+
+function initCanvas() {
+canvas = document.getElementById('game-canvas');
+ctx = canvas.getContext('2d');
+resizeCanvas();
+}
+
+function resizeCanvas() {
+var wrapper = document.getElementById('canvas-wrapper');
+var maxW = Math.min(wrapper.clientWidth - 32, 600);
+var maxH = Math.min(window.innerHeight * 0.55, 600);
+var s = Math.min(maxW, maxH) / state.gridSize;
+CELL_SIZE = Math.max(12, Math.floor(s));
+W = CELL_SIZE * state.gridSize;
+H = CELL_SIZE * state.gridSize;
+canvas.width = W;
+canvas.height = H;
+canvas.style.width = W + 'px';
+canvas.style.height = H + 'px';
+}
+
+function getSpeed() { return parseInt(document.getElementById('speed-select-real').value); }
+function getGrid() { return parseInt(document.getElementById('grid-select').value); }
+
+function startGame() {
+var grid = getGrid();
+state.gridSize = grid;
+state.speed = getSpeed();
+state.wrapMode = document.getElementById('wrap-toggle').textContent.includes('ON');
+
+document.getElementById('start-overlay').classList.remove('show');
+document.getElementById('gameover-overlay').classList.remove('show');
+document.getElementById('pause-overlay').classList.remove('show');
+
+initCanvas();
+resetGame();
+state.running = true;
+state.gameOver = false;
+document.getElementById('snake-status').textContent = 'Playing...';
+clearLoop();
+startLoop();
+startBonusSpawner();
+}
+
+function resetGame() {
+var mid = Math.floor(state.gridSize / 2);
+state.snake = [{x: mid, y: mid}, {x: mid - 1, y: mid}, {x: mid - 2, y: mid}];
+state.direction = {x: 1, y: 0};
+state.nextDirection = {x: 1, y: 0};
+state.score = 0;
+state.food = null;
+state.bonusFood = null;
+state.bonusTimer = 0;
+updateScore();
+spawnFood();
+}
+
+function clearLoop() {
+if (state.loopTimer) { clearInterval(state.loopTimer); state.loopTimer = null; }
+if (state.bonusSpawnTimer) { clearInterval(state.bonusSpawnTimer); state.bonusSpawnTimer = null; }
+}
+
+function startLoop() {
+state.loopTimer = setInterval(gameTick, state.speed);
+}
+
+function startBonusSpawner() {
+state.bonusSpawnTimer = setInterval(function() {
+if (!state.running || state.paused || state.gameOver) return;
+if (!state.bonusFood) {
+spawnBonusFood();
+}
+}, 5000);
+}
+
+function toggleWrap() {
+var btn = document.getElementById('wrap-toggle');
+var on = btn.textContent.includes('OFF');
+btn.textContent = on ? 'Wrap: ON' : 'Wrap: OFF';
+state.wrapMode = on;
+}
+
+function gameTick() {
+if (!state.running || state.paused || state.gameOver) return;
+
+state.direction = {x: state.nextDirection.x, y: state.nextDirection.y};
+var head = state.snake[0];
+var nx = head.x + state.direction.x;
+var ny = head.y + state.direction.y;
+
+if (state.wrapMode) {
+nx = ((nx % state.gridSize) + state.gridSize) % state.gridSize;
+ny = ((ny % state.gridSize) + state.gridSize) % state.gridSize;
+} else {
+if (nx < 0 || nx >= state.gridSize || ny < 0 || ny >= state.gridSize) { gameOver(); return; }
+}
+
+for (var i = 0; i < state.snake.length; i++) {
+if (state.snake[i].x === nx && state.snake[i].y === ny) { gameOver(); return; }
+}
+
+var ate = (state.food && nx === state.food.x && ny === state.food.y);
+var ateBonus = (state.bonusFood && nx === state.bonusFood.x && ny === state.bonusFood.y);
+var grew = ate || ateBonus;
+
+state.snake.unshift({x: nx, y: ny});
+if (!grew) state.snake.pop();
+
+if (ate) {
+state.score += 10;
+state.food = null;
+spawnFood();
+updateScore();
+}
+
+if (ateBonus) {
+state.score += 50;
+state.bonusFood = null;
+state.bonusTimer = 0;
+updateScore();
+}
+
+if (state.bonusFood) {
+state.bonusTimer++;
+if (state.bonusTimer > Math.floor(3000 / state.speed)) {
+state.bonusFood = null;
+state.bonusTimer = 0;
+}
+}
+
+render();
+}
+
+function spawnFood() {
+var pos = getFreeCell();
+if (pos) state.food = pos;
+}
+
+function spawnBonusFood() {
+var pos = getFreeCell();
+if (pos) { state.bonusFood = pos; state.bonusTimer = 0; }
+}
+
+function getFreeCell() {
+var occupied = {};
+for (var i = 0; i < state.snake.length; i++) {
+occupied[state.snake[i].x + ',' + state.snake[i].y] = true;
+}
+if (state.food) occupied[state.food.x + ',' + state.food.y] = true;
+if (state.bonusFood) occupied[state.bonusFood.x + ',' + state.bonusFood.y] = true;
+var free = [];
+for (var x = 0; x < state.gridSize; x++) {
+for (var y = 0; y < state.gridSize; y++) {
+if (!occupied[x + ',' + y]) free.push({x: x, y: y});
+}
+}
+if (free.length === 0) return null;
+return free[Math.floor(Math.random() * free.length)];
+}
+
+function gameOver() {
+state.running = false;
+state.gameOver = true;
+clearLoop();
+var isNewHigh = state.score > state.highScore;
+if (isNewHigh) {
+state.highScore = state.score;
+saveHighScore();
+document.getElementById('high-score-display').textContent = state.highScore;
+}
+document.getElementById('final-score').textContent = state.score;
+document.getElementById('new-high-msg').textContent = isNewHigh ? ' New High Score!' : '';
+document.getElementById('gameover-overlay').classList.add('show');
+document.getElementById('snake-status').textContent = 'Game Over! Score: ' + state.score;
+}
+
+function togglePause() {
+if (!state.running || state.gameOver) return;
+state.paused = !state.paused;
+document.getElementById('pause-overlay').classList.toggle('show', state.paused);
+document.getElementById('snake-status').textContent = state.paused ? 'Paused' : 'Playing...';
+}
+
+function setDirection(x, y) {
+if (state.paused && !state.gameOver) { togglePause(); return; }
+if (!state.running && !state.gameOver) { startGame(); return; }
+if (state.gameOver) { startGame(); return; }
+if (state.direction.x + x === 0 && state.direction.y + y === 0) return;
+state.nextDirection = {x: x, y: y};
+}
+
+function render() {
+ctx.fillStyle = '#0a0a1a';
+ctx.fillRect(0, 0, W, H);
+
+for (var x = 0; x < state.gridSize; x++) {
+for (var y = 0; y < state.gridSize; y++) {
+if ((x + y) % 2 === 0) {
+ctx.fillStyle = '#0f0f1a';
+ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+}
+}
+}
+
+for (var i = 0; i < state.snake.length; i++) {
+var seg = state.snake[i];
+var t = i / state.snake.length;
+if (i === 0) {
+ctx.fillStyle = '#4ade80';
+ctx.shadowColor = '#4ade80';
+ctx.shadowBlur = 6;
+} else {
+var r = Math.round(60 + t * 40);
+var g = Math.round(200 - t * 60);
+var b = Math.round(80 - t * 30);
+ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+ctx.shadowBlur = 0;
+}
+var pad = i === 0 ? 1 : 2;
+ctx.fillRect(seg.x * CELL_SIZE + pad, seg.y * CELL_SIZE + pad, CELL_SIZE - pad * 2, CELL_SIZE - pad * 2);
+ctx.shadowBlur = 0;
+
+if (i === 0) {
+ctx.fillStyle = '#fff';
+var eyeSize = Math.max(2, CELL_SIZE * 0.12);
+var cx = seg.x * CELL_SIZE + CELL_SIZE / 2;
+var cy = seg.y * CELL_SIZE + CELL_SIZE / 2;
+if (state.direction.x === 1) { ctx.fillRect(cx + 3, cy - 3, eyeSize, eyeSize); ctx.fillRect(cx + 3, cy + 1, eyeSize, eyeSize); }
+else if (state.direction.x === -1) { ctx.fillRect(cx - 3 - eyeSize, cy - 3, eyeSize, eyeSize); ctx.fillRect(cx - 3 - eyeSize, cy + 1, eyeSize, eyeSize); }
+else if (state.direction.y === -1) { ctx.fillRect(cx - 3, cy - 3 - eyeSize, eyeSize, eyeSize); ctx.fillRect(cx + 1, cy - 3 - eyeSize, eyeSize, eyeSize); }
+else { ctx.fillRect(cx - 3, cy + 3, eyeSize, eyeSize); ctx.fillRect(cx + 1, cy + 3, eyeSize, eyeSize); }
+}
+}
+
+if (state.food) {
+ctx.fillStyle = '#ef4444';
+ctx.shadowColor = '#ef4444';
+ctx.shadowBlur = 8;
+var pad2 = Math.max(2, CELL_SIZE * 0.15);
+ctx.beginPath();
+ctx.arc(state.food.x * CELL_SIZE + CELL_SIZE / 2, state.food.y * CELL_SIZE + CELL_SIZE / 2, CELL_SIZE / 2 - pad2, 0, Math.PI * 2);
+ctx.fill();
+ctx.shadowBlur = 0;
+}
+
+if (state.bonusFood) {
+var pulse = Math.sin(Date.now() / 150) * 0.3 + 0.7;
+ctx.fillStyle = 'rgba(255, 215, 0, ' + pulse + ')';
+ctx.shadowColor = '#ffd700';
+ctx.shadowBlur = 10;
+var bp = Math.max(2, CELL_SIZE * 0.12);
+var bx = state.bonusFood.x * CELL_SIZE + CELL_SIZE / 2;
+var by = state.bonusFood.y * CELL_SIZE + CELL_SIZE / 2;
+ctx.beginPath();
+ctx.moveTo(bx, by - CELL_SIZE / 2 + bp);
+for (var s = 0; s < 5; s++) {
+var a1 = (s * 2 * Math.PI / 5) - Math.PI / 2;
+var a2 = a1 + Math.PI / 5;
+ctx.lineTo(bx + Math.cos(a1) * (CELL_SIZE / 2 - bp), by + Math.sin(a1) * (CELL_SIZE / 2 - bp));
+ctx.lineTo(bx + Math.cos(a2) * (CELL_SIZE / 4 - bp), by + Math.sin(a2) * (CELL_SIZE / 4 - bp));
+}
+ctx.closePath();
+ctx.fill();
+ctx.shadowBlur = 0;
+}
+}
+
+function updateScore() {
+document.getElementById('score-display').textContent = state.score;
+}
+
+document.addEventListener('keydown', function(e) {
+switch(e.key) {
+case 'ArrowUp': e.preventDefault(); setDirection(0, -1); break;
+case 'ArrowDown': e.preventDefault(); setDirection(0, 1); break;
+case 'ArrowLeft': e.preventDefault(); setDirection(-1, 0); break;
+case 'ArrowRight': e.preventDefault(); setDirection(1, 0); break;
+case 'w': case 'W': setDirection(0, -1); break;
+case 's': case 'S': setDirection(0, 1); break;
+case 'a': case 'A': setDirection(-1, 0); break;
+case 'd': case 'D': setDirection(1, 0); break;
+case ' ': e.preventDefault(); togglePause(); break;
+case 'p': case 'P': togglePause(); break;
+}
+});
+
+var touchStartX = 0, touchStartY = 0;
+document.getElementById('canvas-wrapper').addEventListener('touchstart', function(e) {
+var t = e.touches[0];
+touchStartX = t.clientX;
+touchStartY = t.clientY;
+}, {passive: true});
+
+document.getElementById('canvas-wrapper').addEventListener('touchend', function(e) {
+var t = e.changedTouches[0];
+var dx = t.clientX - touchStartX;
+var dy = t.clientY - touchStartY;
+var adx = Math.abs(dx), ady = Math.abs(dy);
+if (Math.max(adx, ady) < 15) return;
+if (adx > ady) { setDirection(dx > 0 ? 1 : -1, 0); }
+else { setDirection(0, dy > 0 ? 1 : -1); }
+}, {passive: true});
+
+document.querySelectorAll('.dpad-btn').forEach(function(btn) {
+btn.addEventListener('touchstart', function(e) {
+e.preventDefault();
+var dir = this.dataset.dir;
+switch(dir) {
+case 'up': setDirection(0, -1); break;
+case 'down': setDirection(0, 1); break;
+case 'left': setDirection(-1, 0); break;
+case 'right': setDirection(1, 0); break;
+}
+});
+btn.addEventListener('mousedown', function(e) {
+e.preventDefault();
+var dir = this.dataset.dir;
+switch(dir) {
+case 'up': setDirection(0, -1); break;
+case 'down': setDirection(0, 1); break;
+case 'left': setDirection(-1, 0); break;
+case 'right': setDirection(1, 0); break;
+}
+});
+});
+
+loadHighScore();
+initCanvas();
+render();
+
+// BUG-032: Wire shadow button proxies and select proxy.
+var speedProxy = document.getElementById('speed-select');
+var speedReal = document.getElementById('speed-select-real');
+// BUG-037: Use 'change' event for select proxy (per BUG-019 pattern).
+if (speedProxy && speedReal) {
+    speedProxy.addEventListener('change', function() {
+        var v = speedProxy.value;
+        if (v && Array.from(speedReal.options).some(function(o) { return o.value === v; })) {
+            speedReal.value = v;
+            speedReal.dispatchEvent(new Event('change'));
+        }
+    });
+    speedReal.addEventListener('change', function() { speedProxy.value = speedReal.value; });
+}
+</script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

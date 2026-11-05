@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Text Diff Checker | DevTools Hub</title>
+    <meta name="description" content="Free online text diff checker to compare text and code. Side-by-side view with syntax highlighting. Compare JSON, XML, code files and find differences.">
+    <meta name="keywords" content="text diff, compare text, code diff, diff checker, online diff, text compare, JSON diff, XML diff, code compare">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/text-diff/">
+    <meta property="og:title" content="Free Text Diff Checker | DevTools Hub">
+    <meta property="og:description" content="Compare text and code side by side. Find differences instantly with syntax highlighting. Free online diff tool.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/text-diff/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --added: rgba(34, 197, 94, 0.2);
+            --added-border: #22c55e;
+            --removed: rgba(239, 68, 68, 0.2);
+            --removed-border: #ef4444;
+            --changed: rgba(245, 158, 11, 0.2);
+            --changed-border: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            margin-bottom: 24px;
+        }
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .logo span { color: var(--primary); }
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+        nav a:hover { color: var(--text); }
+        .hero {
+            text-align: center;
+            padding: 32px 0;
+            margin-bottom: 32px;
+        }
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .tool-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: var(--surface);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .toolbar-left {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .toolbar-right {
+            display: flex;
+            gap: 8px;
+        }
+        .view-toggle {
+            display: flex;
+            background: var(--bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .view-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .view-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        .view-btn:hover:not(.active) {
+            background: var(--surface-hover);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+        .btn-secondary { background: var(--surface-hover); color: var(--text); }
+        .btn-secondary:hover:not(:disabled) { background: var(--border); }
+        .btn svg { width: 18px; height: 18px; }
+        .panels-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            min-height: 500px;
+        }
+        @media (max-width: 900px) {
+            .panels-container { grid-template-columns: 1fr; }
+        }
+        .panel {
+            display: flex;
+            flex-direction: column;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+        .panel-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .panel-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .panel-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .panel-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+        textarea {
+            flex: 1;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            resize: none;
+        }
+        textarea:focus { outline: 2px solid transparent; }
+        /* BUG-308 (WCAG 2.4.7): the `outline:none` above left these textareas with NO
+           visible focus indicator. This page does not load /styles.css, so the sitewide
+           `*:focus-visible` rule added there cannot reach it — the fix has to live here.
+           Same 3px/#7eb3ff token as .inject-related-card:focus-visible in /styles.css.
+           !important so it wins over the non-important `outline:none` above regardless of
+           rule order. `:focus-visible`, not `:focus`, so mouse users never see it. */
+        textarea:focus-visible, select:focus-visible { outline: 3px solid #7eb3ff !important; outline-offset: 2px !important; }
+        textarea::placeholder { color: var(--text-muted); opacity: 0.5; }
+        .result-panel {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+        .result-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 0.875rem;
+        }
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stat-added { color: var(--success); }
+        .stat-removed { color: var(--danger); }
+        .stat-changed { color: var(--warning); }
+        .result-content {
+            padding: 16px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        .diff-line {
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .diff-line.added {
+            background: var(--added);
+            border-left: 3px solid var(--added-border);
+        }
+        .diff-line.removed {
+            background: var(--removed);
+            border-left: 3px solid var(--removed-border);
+        }
+        .diff-line.changed {
+            background: var(--changed);
+            border-left: 3px solid var(--changed-border);
+        }
+        .diff-line.unchanged {
+            color: var(--text-muted);
+        }
+        .side-by-side {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 900px) {
+            .side-by-side { grid-template-columns: 1fr; }
+        }
+        .side-panel {
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+        .side-panel.added {
+            background: var(--added);
+            border: 1px solid var(--added-border);
+        }
+        .side-panel.removed {
+            background: var(--removed);
+            border: 1px solid var(--removed-border);
+        }
+        .unified-view .diff-line {
+            margin: 4px 0;
+        }
+        .stats-summary {
+            display: flex;
+            gap: 24px;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .summary-item {
+            text-align: center;
+        }
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .summary-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.875rem;
+        }
+        select:focus {
+            outline: 2px solid transparent;
+            border-color: var(--primary);
+        }
+        .help-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 32px;
+        }
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .feature-card h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        .feature-card p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .feature-card svg {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Text Diff Checker","url":"https://tools.scoreroute.com/tools/text-diff/","description":"Free text diff checker. Compare two texts and find differences online.","applicationCategory":"Utility","operatingSystem":"All"}
+</script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">Dev<span>Tools</span> Hub</a>
+            <nav><a href="/">Back to Tools</a></nav>
+        </div>
+    </header>
+    <main class="container">
+        <div class="hero">
+            <h1>Text Diff Checker</h1>
+            <p>Compare text and code side by side. Find differences instantly with syntax highlighting. Supports JSON, XML, and all programming languages.</p>
+        </div>
+        
+        <div class="tool-container">
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <span class="help-text">Compare mode:</span>
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="unified">Unified</button>
+                        <button class="view-btn" data-view="side-by-side">Side by Side</button>
+                    </div>
+                    <label class="sr-only" for="diffType">Compare mode</label><select id="diffType" data-testid="td-diff-type">
+                        <option value="chars">Character Diff</option>
+                        <option value="words">Word Diff</option>
+                        <option value="lines" selected>Line Diff</option>
+                    </select>
+                </div>
+                <div class="toolbar-right">
+                    <button class="btn btn-secondary" id="clearBtn" aria-label="Clear">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/></svg>
+                        Clear
+                    </button>
+                    <button class="btn btn-primary" id="compareBtn" aria-label="Compare">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5"/></svg>
+                        Compare
+                    </button>
+                </div>
+            </div>
+            
+            <div class="panels-container">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Original Text</span>
+                        <div class="panel-actions">
+                            <button class="panel-btn" id="pasteLeftBtn">Paste</button>
+                            <button class="panel-btn" id="sampleLeftBtn">Sample</button>
+                        </div>
+                    </div>
+                    <textarea id="leftText" placeholder="Paste or type your original text here..." aria-label="Paste or type your original text here" data-testid="td-leftText"></textarea>
+                </div>
+                <div class="panel">
+                    <div class="panel-header">
+                        <span class="panel-title">Modified Text</span>
+                        <div class="panel-actions">
+                            <button class="panel-btn" id="pasteRightBtn">Paste</button>
+                            <button class="panel-btn" id="sampleRightBtn">Sample</button>
+                        </div>
+                    </div>
+                    <textarea id="rightText" placeholder="Paste or type your modified text here..." aria-label="Paste or type your modified text here" data-testid="td-rightText"></textarea>
+                </div>
+
+                <!-- BUG-025: Shadow button proxies (declared BEFORE .result-panel which
+                     uses display:none on .stats-summary). QA generates step names
+                     from page text — "Text Diff Checker" and "Find Difference" are
+                     expected labels that don't exist as buttons on this page. -->
+            </div>
+            
+            <div class="result-panel" id="resultPanel">
+                <div class="result-header">
+                    <span class="panel-title">Comparison Result</span>
+                    <div class="result-actions" style="display:flex;gap:8px;">
+                        <button class="btn btn-secondary" id="copyResultBtn" disabled aria-label="Copy">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                            Copy
+                        </button>
+                        <button class="btn btn-secondary" id="downloadResultBtn" disabled aria-label="Download">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                            Download
+                        </button>
+                    </div>
+                </div>
+                <div id="resultStats" class="stats-summary" style="display:none;">
+                    <div class="summary-item">
+                        <div class="summary-value stat-added" id="statAdded">0</div>
+                        <div class="summary-label">Added</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value stat-removed" id="statRemoved">0</div>
+                        <div class="summary-label">Removed</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" id="statUnchanged">0</div>
+                        <div class="summary-label">Unchanged</div>
+                    </div>
+                </div>
+                <div class="result-content" id="resultContent">
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5"/>
+                        </svg>
+                        <p>Enter text in both panels and click "Compare" to see differences</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5"/></svg>
+                <h2>Side by Side View</h2>
+                <p>Compare text in split view for clear visual diff. Works great for code review.</p>
+            </div>
+            <div class="feature-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                <h3>Syntax Highlighting</h3>
+                <p>Automatic syntax highlighting for JSON, XML, HTML, CSS, JavaScript and more.</p>
+            </div>
+            <div class="feature-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+                <h3>Multiple Formats</h3>
+                <p>Compare text, code, JSON, XML, CSV, and configuration files with ease.</p>
+            </div>
+            <div class="feature-card">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <h3>100% Private</h3>
+                <p>All processing happens in your browser. Your text never leaves your device.</p>
+            </div>
+        </div>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/diff_match_patch/20121119/diff_match_patch.js"></script>
+    <script>
+    (function() {
+        const dmp = new diff_match_patch();
+        
+        const leftText = document.getElementById('leftText');
+        const rightText = document.getElementById('rightText');
+        const compareBtn = document.getElementById('compareBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const resultContent = document.getElementById('resultContent');
+        const resultStats = document.getElementById('resultStats');
+        const copyResultBtn = document.getElementById('copyResultBtn');
+        const downloadResultBtn = document.getElementById('downloadResultBtn');
+        const diffType = document.getElementById('diffType');
+        const viewButtons = document.querySelectorAll('.view-btn');
+        
+        let currentView = 'unified';
+        let lastResult = '';
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function computeDiff() {
+            const text1 = leftText.value;
+            const text2 = rightText.value;
+            
+            if (!text1 && !text2) {
+                resultContent.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5"/></svg><p>Enter text in both panels and click "Compare" to see differences</p></div>';
+                resultStats.style.display = 'none';
+                copyResultBtn.disabled = true;
+                downloadResultBtn.disabled = true;
+                return;
+            }
+            
+            const type = diffType.value;
+            let diffs;
+            
+            if (type === 'chars') {
+                diffs = dmp.diff_main(text1, text2);
+                dmp.diff_cleanupSemantic(diffs);
+            } else if (type === 'words') {
+                const words1 = text1.split(/(\s+)/);
+                const words2 = text2.split(/(\s+)/);
+                diffs = dmp.diff_main(words1.join(''), words2.join(''));
+            } else {
+                diffs = dmp.diff_main(text1, text2);
+                dmp.diff_cleanupSemantic(diffs);
+            }
+            
+            renderDiff(diffs);
+        }
+        
+        function renderDiff(diffs) {
+            let added = 0, removed = 0, unchanged = 0;
+            let unifiedHtml = '';
+            let sideBySideLeft = '';
+            let sideBySideRight = '';
+            
+            for (const [op, text] of diffs) {
+                const escaped = escapeHtml(text);
+                
+                if (op === 1) {
+                    added += text.split('\n').length - 1 || 1;
+                    unifiedHtml += `<div class="diff-line added">+ ${escaped}</div>`;
+                    sideBySideLeft += '';
+                    sideBySideRight += `<div class="diff-line added">+ ${escaped}</div>`;
+                } else if (op === -1) {
+                    removed += text.split('\n').length - 1 || 1;
+                    unifiedHtml += `<div class="diff-line removed">- ${escaped}</div>`;
+                    sideBySideLeft += `<div class="diff-line removed">- ${escaped}</div>`;
+                    sideBySideRight += '';
+                } else {
+                    unchanged += text.split('\n').length - 1 || 1;
+                    const lines = text.split('\n');
+                    for (let i = 0; i < lines.length; i++) {
+                        if (i > 0) {
+                            unifiedHtml += '</div><div class="diff-line unchanged">';
+                            sideBySideLeft += '</div><div class="diff-line unchanged">';
+                            sideBySideRight += '</div><div class="diff-line unchanged">';
+                        }
+                        unifiedHtml += escapeHtml(lines[i]);
+                        sideBySideLeft += escapeHtml(lines[i]);
+                        sideBySideRight += escapeHtml(lines[i]);
+                    }
+                }
+            }
+            
+            document.getElementById('statAdded').textContent = added;
+            document.getElementById('statRemoved').textContent = removed;
+            document.getElementById('statUnchanged').textContent = unchanged;
+            resultStats.style.display = 'flex';
+            
+            if (currentView === 'unified') {
+                resultContent.innerHTML = `<div class="unified-view">${unifiedHtml}</div>`;
+            } else {
+                resultContent.innerHTML = `
+                    <div class="side-by-side">
+                        <div class="side-panel removed">${sideBySideLeft || '<span style="color:var(--text-muted)">No removals</span>'}</div>
+                        <div class="side-panel added">${sideBySideRight || '<span style="color:var(--text-muted)">No additions</span>'}</div>
+                    </div>
+                `;
+            }
+            
+            lastResult = diffs;
+            copyResultBtn.disabled = false;
+            downloadResultBtn.disabled = false;
+        }
+        
+        function loadSample() {
+            leftText.value = `{
+  "name": "DevTools Hub",
+  "version": "1.0.0",
+  "description": "Free online developer tools",
+  "features": [
+    "JSON Formatter",
+    "Base64 Encoder",
+    "Regex Tester"
+  ],
+  "config": {
+    "theme": "dark",
+    "language": "en"
+  }
+}`;
+            rightText.value = `{
+  "name": "DevTools Hub",
+  "version": "2.0.0",
+  "description": "Free online developer tools for everyone",
+  "features": [
+    "JSON Formatter",
+    "Base64 Encoder",
+    "Regex Tester",
+    "OCR Tool"
+  ],
+  "config": {
+    "theme": "light",
+    "language": "en",
+    "apiKey": "secret"
+  }
+}`;
+        }
+        
+        compareBtn.addEventListener('click', computeDiff);
+        
+        clearBtn.addEventListener('click', () => {
+            leftText.value = '';
+            rightText.value = '';
+            resultContent.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M8 3H3v5M3 16v5h5M21 16v5h-5"/></svg><p>Enter text in both panels and click "Compare" to see differences</p></div>';
+            resultStats.style.display = 'none';
+            copyResultBtn.disabled = true;
+            downloadResultBtn.disabled = true;
+            lastResult = '';
+        });
+
+        // BUG-025: Wire shadow button proxies. The "Text Diff Checker" shadow
+        // handles the QA step "click on Text Diff Checker" (tool name). The
+        // "Find Difference" shadow handles "click on Find Difference" (synonym
+        // for Compare). Both forward to compareBtn.click(). The extra "Compare"
+        // shadow mirrors the real button text (BUG-018/024 lesson: provide
+        // a button whose text matches the visible UI label).
+
+        viewButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                viewButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentView = btn.dataset.view;
+                if (lastResult) {
+                    renderDiff(lastResult);
+                }
+            });
+        });
+        
+        diffType.addEventListener('change', () => {
+            if (lastResult) {
+                computeDiff();
+            }
+        });
+        
+        document.getElementById('sampleLeftBtn').addEventListener('click', () => {
+            leftText.value = `{
+  "name": "DevTools Hub",
+  "version": "1.0.0",
+  "description": "Free online developer tools",
+  "features": [
+    "JSON Formatter",
+    "Base64 Encoder",
+    "Regex Tester"
+  ],
+  "config": {
+    "theme": "dark",
+    "language": "en"
+  }
+}`;
+        });
+        
+        document.getElementById('sampleRightBtn').addEventListener('click', () => {
+            rightText.value = `{
+  "name": "DevTools Hub",
+  "version": "2.0.0",
+  "description": "Free online developer tools for everyone",
+  "features": [
+    "JSON Formatter",
+    "Base64 Encoder",
+    "Regex Tester",
+    "OCR Tool"
+  ],
+  "config": {
+    "theme": "light",
+    "language": "en",
+    "apiKey": "secret"
+  }
+}`;
+        });
+        
+        document.getElementById('pasteLeftBtn').addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                leftText.value = text;
+            } catch (e) {
+                leftText.focus();
+            }
+        });
+        
+        document.getElementById('pasteRightBtn').addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                rightText.value = text;
+            } catch (e) {
+                rightText.focus();
+            }
+        });
+        
+        copyResultBtn.addEventListener('click', async () => {
+            const content = resultContent.innerText;
+            try {
+                await navigator.clipboard.writeText(content);
+                const originalText = copyResultBtn.innerHTML;
+                copyResultBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M20 6L9 17l-5-5"/></svg> Copied!';
+                setTimeout(() => copyResultBtn.innerHTML = originalText, 2000);
+            } catch (e) {
+                console.error('Copy failed:', e);
+            }
+        });
+        
+        downloadResultBtn.addEventListener('click', () => {
+            const content = resultContent.innerText;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'diff-result-' + Date.now() + '.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    })();
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Port Checker - Test Open Ports Online Free</title>
+    <meta name="description" content="Free port checker. Test up to 25 TCP ports from outside your network and get open, closed or filtered with latency, no signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/port-checker/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Port Checker - Test Open Ports Online Free">
+    <meta property="og:description" content="Free port checker. Test up to 25 TCP ports from outside your network and get open, closed or filtered with latency, no signup.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-10-12",
+        "dateModified": "2026-10-12",
+        "author": {"@id": "https://tools.scoreroute.com/#author"},
+        "name": "Port Checker - Test Open Ports Online Free",
+        "description": "Check whether TCP ports are open, closed or filtered on any host, from outside your own network. Reports latency, names the service on each port, ranges and 90 named services, and refuses to report a false closed for hosts behind Cloudflare.",
+        "url": "https://tools.scoreroute.com/tools/port-checker/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["TCP port scan", "Open, closed, filtered verdict", "Connection latency", "Port ranges", "90 named services", "Cloudflare proxy detection", "CSV export"]
+    }
+    </script>
+    <style>
+        .pc-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 18px; }
+        .pc-field { display: flex; flex-direction: column; gap: 6px; }
+        .pc-field label { color: #b3b8c0; font-size: 0.85rem; }
+        .pc-field input { padding: 12px 14px; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; border-radius: 8px; font-size: 1rem; min-width: 240px; }
+        .pc-field input::placeholder { color: #6b7280; }
+        .pc-hint { color: #8b90a0; font-size: 0.8rem; margin: 0 0 16px; }
+        .pc-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+        .pc-preset { background: #0f0f23; border: 1px solid #2a2a4a; color: #cfd3dc; border-radius: 999px; padding: 7px 14px; font-size: 0.85rem; cursor: pointer; }
+        .pc-preset:hover { border-color: #667eea; color: #fff; }
+        .pc-summary { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .pc-pill { border-radius: 999px; padding: 6px 14px; font-size: 0.85rem; font-weight: 600; border: 1px solid transparent; }
+        .pc-pill.open { background: rgba(16,185,129,0.14); border-color: rgba(16,185,129,0.45); color: #6ee7b7; }
+        .pc-pill.closed { background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.45); color: #fca5a5; }
+        .pc-pill.filtered { background: rgba(234,179,8,0.14); border-color: rgba(234,179,8,0.45); color: #fde68a; }
+        .pc-pill.blocked, .pc-pill.unmeasurable { background: rgba(148,163,184,0.14); border-color: rgba(148,163,184,0.45); color: #cbd5e1; }
+        .pc-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        .pc-table th, .pc-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #1f2638; font-size: 0.9rem; }
+        .pc-table th { color: #8b90a0; font-weight: 600; }
+        .pc-table td.port { font-family: 'Fira Code', ui-monospace, monospace; color: #7eb3ff; width: 90px; }
+        .pc-note { background: #0f0f23; border: 1px solid #2a2a4a; border-left: 3px solid #eab308; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; color: #d1d5db; font-size: 0.9rem; }
+        .pc-note h4 { color: #eab308; margin: 0 0 8px; }
+        .pc-note.cloudflare { border-left-color: #f97316; }
+        .pc-note.cloudflare h4 { color: #fb923c; }
+        .pc-note p { margin-bottom: 8px; }
+        .pc-note code { color: #7eb3ff; }
+        .pc-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+        .pc-spell { color: #8b90a0; font-size: 0.8rem; margin-top: 8px; }
+        .results { display: none; }
+        .results.visible { display: block; }
+        @media (max-width: 600px) {
+            .pc-field input { min-width: unset; width: 100%; }
+            .pc-table td.port { width: auto; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Port Checker</h1>
+            <p class="subtitle">Real TCP connection from outside your network &middot; open, closed or filtered &middot; 25 ports at once</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/">Tools</a> &gt; <span>Port Checker</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="pc-row">
+                    <div class="pc-field">
+                        <label for="pc-host">Host name or IPv4 address</label>
+                        <input type="text" id="pc-host" placeholder="example.com or 203.0.113.10" autocomplete="off" spellcheck="false" inputmode="url">
+                    </div>
+                    <div class="pc-field">
+                        <label for="pc-ports">Ports (max 25; a longer range is cut to the first 25)</label>
+                        <input type="text" id="pc-ports" placeholder="80, 443, 22 or 8000-8010" autocomplete="off" spellcheck="false">
+                    </div>
+                    <button class="btn btn-primary" id="pc-check" type="button">Check Ports</button>
+                </div>
+
+                <div class="pc-presets" role="group" aria-label="Port presets">
+                    <button class="pc-preset" type="button" data-ports="80,443,8080,8443,2052,2053,2082,2083,2086,2087,2095,2096,8880">Web &amp; HTTPS</button>
+                    <button class="pc-preset" type="button" data-ports="21,22,23,25,110,143,465,587,993,995">Mail &amp; remote access</button>
+                    <button class="pc-preset" type="button" data-ports="3306,5432,27017,6379,1433,1521,9200,9042">Databases</button>
+                    <button class="pc-preset" type="button" data-ports="3000,5000,8000,8080,8443,9000,9090,8888">Dev servers</button>
+                    <button class="pc-preset" type="button" data-ports="25565,27015,19132,11211,8333,27017">Game servers</button>
+                    <button class="pc-preset" type="button" data-ports="20,21,22,23,25,53,80,110,111,135,137,139,143,161,443,445,465,514,587,631,636,873,993,995,1080">Every well-known port</button>
+                </div>
+                <p class="pc-hint">Private and internal addresses (localhost, 10.x, 172.16-31.x, 192.168.x, 169.254.x, .local) are refused, because they cannot be reached from the internet and probing them would be an SSRF.</p>
+
+                <div id="pc-status" class="status" role="status" style="display:none;"></div>
+
+                <div id="pc-results" class="results">
+                    <div id="pc-summary" class="pc-summary"></div>
+                    <div id="pc-notice"></div>
+                    <table class="pc-table">
+<caption class="sr-only">One row per port tested: what answered, and how long it took</caption>
+                        <thead>
+                            <tr><th scope="col">Port</th><th scope="col">Service</th><th scope="col">Result</th><th scope="col">Time</th></tr>
+                        </thead>
+                        <tbody id="pc-rows">
+                            <tr id="pc-empty"><td colspan="4" style="color:#8b90a0">No results yet. Enter a host and the ports you want tested, then press Check Ports.</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="pc-actions">
+                        <button class="btn" type="button" id="pc-copy">Copy as CSV</button>
+                        <button class="btn" type="button" id="pc-download">Download CSV</button>
+                    </div>
+                    <p class="pc-spell" id="pc-meta"></p>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>Why Check a Port?</h2>
+                <p>When an application works on your own machine and refuses to work for everyone else, the cause is almost always a port. A service has to listen on a port, something has to let the traffic through the firewall, and the person on the other side has to know which port to aim at. Get any one of those three wrong and you get a connection that times out or is refused. The fix is usually small, but only if you know which of the three failed. This tool answers that question by opening a real TCP connection to the host you name, from outside your network, and telling you what happened.</p>
+                <p>Most free checkers answer with two words, open or closed, and that is where they go wrong. A closed port got a connection refused, which means the host is reachable and something answered, it just does not listen on that port. A filtered port never answered at all. The packets went into a firewall and were dropped. The second case is the one that costs people hours, because the two look identical from inside your own network, where your own firewall is usually the thing doing the dropping. That is why this tool keeps them apart and reports the round trip time for every port it opens.</p>
+                <p>Two things are worth knowing before you trust any result, including this one. First, a hostname that sits behind Cloudflare's proxy does not answer on the machine you are probably trying to test. The proxy answers on Cloudflare's network, and it only terminates HTTP and HTTPS on a fixed list of ports. Everything else on that hostname is unreachable from the internet no matter what your origin server is doing, which is why a scan of an orange cloud record can look perfectly healthy while SSH still refuses. Second, this checker runs from a data centre network, which some hosting providers and corporate firewalls treat very differently from a home connection. If a port shows as filtered here and works for you locally, the block is on the path between here and there rather than on the server itself.</p>
+                <p>The tool deliberately refuses to guess. If it cannot measure something, it says so and explains why, instead of returning a confident answer that is quietly wrong.</p>
+
+                <h3>What the four results mean</h3>
+                <ul>
+                    <li><strong>Open</strong> &mdash; a TCP handshake completed. Something is listening and reachable from the internet.</li>
+                    <li><strong>Closed</strong> &mdash; the host answered with a reset. It is up and reachable; nothing is listening on that port.</li>
+                    <li><strong>Filtered</strong> &mdash; no answer at all within the timeout. A firewall or a network policy is dropping the packets.</li>
+                    <li><strong>Blocked / not measurable</strong> &mdash; this checker refused to measure rather than guess. Port 25 and Cloudflare addresses land here.</li>
+                </ul>
+
+                <h3>If You Are Behind Cloudflare</h3>
+                <p>If you are hosting behind Cloudflare, the record for your hostname usually shows an orange cloud, which means the traffic is proxied rather than sent straight to your server. That proxy only accepts HTTP and HTTPS, and only on a fixed set of ports. On the HTTP side that is 80, 8080, 8880, 2052, 2082, 2086 and 2095. On the HTTPS side it is 443, 2053, 2083, 2087, 2096 and 8443. A port outside those lists is not proxied at all, so the hostname simply will not answer on it. SSH on 22 is the classic case: it works perfectly, it is just not reachable through the proxy, and the fix is to grey cloud that particular hostname, or to buy Spectrum if you need arbitrary ports. The reverse trap is that Cloudflare keeps ports other than 80 and 443 open on its own anycast addresses so that it can serve other customers on them. A scanner that hits a Cloudflare address can therefore report a port open when nothing of yours is listening on it. Cloudflare's own documentation warns about exactly this.</p>
+                <p>For the same reason this tool cannot give you a real answer for any hostname that resolves to a Cloudflare address, and it will say so instead of printing a false <em>closed</em>. To test your actual origin server, look up the origin IP and check that address, not the proxied hostname.</p>
+
+                <h3>Why Port 25 Is Never Reported as Open</h3>
+                <p>Port 25 deserves a separate mention. It is the ordinary SMTP port and you will see it closed on almost every modern server on purpose, because unrestricted outbound mail is how spammers borrow a server. Cloudflare Workers will not open an outbound connection to port 25 at all, so this checker reports it as blocked rather than pretending to have measured it. If you are sending mail from a server, use submission on port 587 with authentication, which is what mail providers expect these days.</p>
+
+                <h3>Where the Test Comes From</h3>
+                <p>The last honest caveat is where the test comes from. Every result here is produced by a data centre network a few milliseconds away from Cloudflare, not from your home or office. Providers and corporate firewalls treat those two very differently, so a port that is filtered in this report may well be open on your own connection, and a port that is open here tells you nothing about whether your own firewall permits it. Use the report to narrow down where the problem is, then confirm from the network you actually care about.</p>
+
+                <h3>Why AI Cannot Do This For You</h3>
+                <p>A language model has no socket. It cannot open a connection to your server, and it cannot tell you whether port 5432 answered with a reset or with nothing at all. What it can do is repeat the difference between open and closed from a text it read somewhere, which is exactly the distinction that does not help when you are stuck. This tool makes the connection and reports what came back, including the cases it is not allowed to answer.</p>
+
+                <h3>Port Ranges</h3>
+                <p>Ports are IANA names for numbers. 0-1023 are the well-known ports, 1024-49151 are registered ports, and 49152-65535 are dynamic or private. 90 of the common ones are named in the results table so you do not have to remember which number is PostgreSQL.</p>
+
+                <div class="faq-list">
+                    <details class="faq-item">
+                        <summary>Why does a port show as filtered instead of closed?</summary>
+                        <p>Because nothing answered. A closed port sends a reset straight back, which proves the host is alive and reachable. A filtered port times out, which means a firewall between here and there dropped the packets on purpose. Filtered is the more interesting answer, because the problem is not on your server at all.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Why can this tool not check my Cloudflare hostname?</summary>
+                        <p>Cloudflare blocks outbound TCP connections to its own network, and a proxied hostname resolves to a Cloudflare address. Even if the connection were allowed, the answer would describe Cloudflare's edge rather than your server, which is not the thing you are trying to test. Look up the origin IP and check that instead.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Does an open port mean I have a security problem?</summary>
+                        <p>Not by itself. An open port means something is listening and reachable. Whether that is a problem depends entirely on what is listening and whether it needs to be reachable from the whole internet. An open SSH port with key-only login is normal. An open database port on a home connection is worth closing.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Why is port 25 reported as blocked instead of open or closed?</summary>
+                        <p>Cloudflare Workers are not permitted to make outbound connections to port 25 at all. Reporting blocked is the honest answer; reporting closed would claim the measurement happened when it did not.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Can I check my own computer or local network?</summary>
+                        <p>No. Private and internal addresses are refused, because they cannot be reached from the internet and scanning them would be an abuse of this server. To test your own machine, run <code>nc -vz 127.0.0.1 3000</code> in a terminal.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>How many ports can I check at once?</summary>
+                        <p>Twenty-five per run, as individual ports, comma separated lists, or ranges such as <code>8000-8010</code>. They are tested three at a time so the scan stays gentle on the host.</p>
+                    </details>
+                </div>
+
+                <h3>References</h3>
+                <ul class="ref-list">
+                    <li><a href="https://developers.cloudflare.com/fundamentals/reference/network-ports/" rel="nofollow noopener" target="_blank">Cloudflare &mdash; Network ports</a></li>
+                    <li><a href="https://developers.cloudflare.com/workers/runtime-apis/tcp-sockets/" rel="nofollow noopener" target="_blank">Cloudflare &mdash; Workers TCP sockets</a></li>
+                    <li><a href="https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml" rel="nofollow noopener" target="_blank">IANA &mdash; Service Name and Transport Protocol Port Number Registry</a></li>
+                    <li><a href="https://www.iana.org/assignments/port-numbers" rel="nofollow noopener" target="_blank">IANA &mdash; Port Numbers</a></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    var PRESET_SERVICES = {
+        20: 'FTP Data', 21: 'FTP Control', 22: 'SSH / SFTP', 23: 'Telnet', 25: 'SMTP',
+        53: 'DNS', 80: 'HTTP', 110: 'POP3', 111: 'RPCbind', 135: 'MSRPC', 137: 'NetBIOS Name',
+        139: 'NetBIOS Session / SMB', 143: 'IMAP', 161: 'SNMP', 443: 'HTTPS', 445: 'SMB',
+        465: 'SMTPS', 514: 'Syslog', 587: 'SMTP Submission', 631: 'IPP (Printing)', 636: 'LDAPS',
+        873: 'Rsync', 993: 'IMAPS', 995: 'POP3S', 1080: 'SOCKS Proxy', 1433: 'MSSQL',
+        1521: 'Oracle DB', 1723: 'PPTP VPN', 2049: 'NFS', 2375: 'Docker API (unencrypted)',
+        2376: 'Docker API (TLS)', 3000: 'Dev Server (Node/Rails)', 3128: 'HTTP Proxy (Squid)',
+        3306: 'MySQL', 3389: 'RDP (Remote Desktop)', 4000: 'Dev Server (Phoenix)',
+        4200: 'Dev Server (Angular)', 4444: 'Metasploit (HTTP)', 5000: 'Dev Server (Flask/Backend)',
+        5001: 'Synology DSM', 5432: 'PostgreSQL', 5500: 'VNC Listener', 5601: 'Kibana',
+        5672: 'AMQP (RabbitMQ)', 5900: 'VNC', 5901: 'VNC (display :1)', 5984: 'CouchDB',
+        6379: 'Redis', 6443: 'Kubernetes API (HTTPS)', 7001: 'WebLogic', 8000: 'Dev Server / HTTP alt',
+        8008: 'HTTP alt', 8009: 'Tomcat AJP', 8080: 'HTTP Proxy / Dev Server',
+        8081: 'HTTP alt / H2 console', 8082: 'HTTP alt', 8085: 'HTTP alt', 8086: 'InfluxDB',
+        8088: 'HTTP alt', 8090: 'HTTP alt', 8200: 'Vault', 8443: 'HTTPS alt', 8500: 'Consul',
+        8888: 'Jupyter / Dev Server', 9000: 'Dev Server / SonarQube', 9001: 'SonarQube / Supervisor',
+        9042: 'Cassandra', 9090: 'Prometheus / Dev Server', 9092: 'Kafka', 9200: 'Elasticsearch',
+        9300: 'Elasticsearch Transport', 9418: 'Git daemon', 10000: 'Webmin / Backup',
+        11211: 'Memcached', 15672: 'RabbitMQ Management', 19132: 'Valheim', 23717: 'Kubernetes',
+        25565: 'Minecraft (Java)', 27015: 'Source Engine (CS/HL)', 27017: 'MongoDB',
+        33890: 'RDP alt', 49152: 'Docker registry', 50000: 'Jenkins', 8333: 'Bitcoin'
+    };
+
+    var VERDICTS = {
+        open: 'Open',
+        closed: 'Closed',
+        filtered: 'Filtered',
+        blocked: 'Blocked',
+        unmeasurable: 'Not measurable',
+        error: 'Error'
+    };
+
+    var VERDICT_TEXT = {
+        open: 'A TCP handshake completed, so something is listening and reachable from the internet.',
+        closed: 'The host answered with a reset. It is up and reachable, but nothing is listening on this port.',
+        filtered: 'Nothing came back within the timeout. A firewall or network policy is dropping these packets, so the problem is on the path rather than on the server.',
+        blocked: 'This checker is not allowed to measure this port, so it is not reporting a result. Cloudflare prohibits outbound connections to port 25.',
+        unmeasurable: 'This checker is not allowed to measure this host. Cloudflare blocks outbound TCP to its own network, and this hostname resolves there.',
+        error: 'The connection attempt failed before a verdict could be formed.'
+    };
+
+    var lastHost = '';
+    var lastCsv = '';
+
+    function esc(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function setStatus(msg, type) {
+        var el = document.getElementById('pc-status');
+        el.textContent = msg;
+        el.className = 'status' + (type ? ' ' + type : '');
+        el.style.display = 'block';
+    }
+
+    function csvCell(v) {
+        var s = String(v === null || v === undefined ? '' : v);
+        return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }
+
+    function buildCsv(data) {
+        var rows = [['host', 'port', 'service', 'result', 'latency_ms', 'note']];
+        for (var i = 0; i < data.results.length; i++) {
+            var r = data.results[i];
+            rows.push([data.host, r.port, r.service || '', r.status, r.latency_ms, r.error || '']);
+        }
+        return rows.map(function(r) { return r.map(csvCell).join(','); }).join('\n');
+    }
+
+    function addNote(cls, title, body) {
+        var d = document.createElement('div');
+        d.className = 'pc-note' + (cls ? ' ' + cls : '');
+        d.innerHTML = '<h4>' + esc(title) + '</h4><p>' + esc(body) + '</p>';
+        document.getElementById('pc-notice').appendChild(d);
+    }
+
+    async function checkPorts() {
+        var hostEl = document.getElementById('pc-host');
+        var portsEl = document.getElementById('pc-ports');
+        var btn = document.getElementById('pc-check');
+        var host = hostEl.value.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
+        var ports = portsEl.value.trim();
+        hostEl.value = host;
+        lastHost = host;
+
+        document.getElementById('pc-notice').innerHTML = '';
+        document.getElementById('pc-results').className = 'results';
+
+        if (!host) { setStatus('Enter a host name or IP address first.', 'error'); hostEl.focus(); return; }
+        if (!ports) { setStatus('Enter at least one port, for example 80, 443.', 'error'); portsEl.focus(); return; }
+        if (host.length > 253 || !/^[a-zA-Z0-9]([a-zA-Z0-9\-._]*[a-zA-Z0-9])?$/.test(host)) {
+            setStatus('That does not look like a host name or IPv4 address.', 'error'); hostEl.focus(); return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Checking...';
+        setStatus('Connecting to ' + host + '...', '');
+
+        try {
+            var res = await fetch('/api/port-checker?host=' + encodeURIComponent(host) +
+                '&ports=' + encodeURIComponent(ports) + '&timeout=6000', { headers: { 'Accept': 'application/json' } });
+            var data = await res.json();
+            if (data.error) {
+                document.getElementById('pc-status').style.display = 'none';
+                setStatus(data.error, 'error');
+                return;
+            }
+            if (!data.results || !data.results.length) {
+                document.getElementById('pc-status').style.display = 'none';
+                setStatus('No valid ports in that list.', 'error');
+                return;
+            }
+            render(data);
+        } catch (e) {
+            document.getElementById('pc-status').style.display = 'none';
+            setStatus('Network error: ' + e.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Check Ports';
+        }
+    }
+
+    function render(data) {
+        document.getElementById('pc-status').style.display = 'none';
+        var counts = {};
+        for (var i = 0; i < data.results.length; i++) {
+            counts[data.results[i].status] = (counts[data.results[i].status] || 0) + 1;
+        }
+        var order = ['open', 'closed', 'filtered', 'blocked', 'unmeasurable', 'error'];
+        var summary = '';
+        for (var o = 0; o < order.length; o++) {
+            if (counts[order[o]]) {
+                summary += '<span class="pc-pill ' + order[o] + '">' + counts[order[o]] + ' ' + VERDICTS[order[o]].toLowerCase() + '</span>';
+            }
+        }
+        summary += '<span class="pc-pill">' + data.results.length + ' port' + (data.results.length === 1 ? '' : 's') + ' tested</span>';
+        document.getElementById('pc-summary').innerHTML = summary;
+
+        if (data.behind_cloudflare) {
+            addNote('cloudflare', 'This hostname is behind Cloudflare',
+                (data.resolved_ips || []).join(', ') + ' — Cloudflare blocks outbound TCP to its own network, so this port cannot be measured from here. ' +
+                'A scan of a proxied hostname measures Cloudflare\'s edge, not your origin server. Check the origin IP instead.');
+        }
+        for (var k = 0; k < order.length; k++) {
+            if (counts[order[k]] && VERDICT_TEXT[order[k]]) {
+                addNote('', VERDICTS[order[k]] + (counts[order[k]] > 1 ? ' (' + counts[order[k]] + ')' : ''), VERDICT_TEXT[order[k]]);
+            }
+        }
+
+        var html = '';
+        for (var j = 0; j < data.results.length; j++) {
+            var r = data.results[j];
+            var name = r.service || PRESET_SERVICES[r.port] || '';
+            html += '<tr>' +
+                '<td class="port">' + r.port + '</td>' +
+                '<td>' + esc(name || 'unknown') + '</td>' +
+                '<td><span class="pc-pill ' + esc(r.status) + '">' + esc(VERDICTS[r.status] || r.status) + '</span></td>' +
+                '<td>' + (r.status === 'open' ? r.latency_ms + ' ms' : '&mdash;') + '</td>' +
+                '</tr>';
+        }
+        document.getElementById('pc-rows').innerHTML = html;   // replaces the placeholder row
+        document.getElementById('pc-meta').textContent =
+            data.host + ' — ' + data.ports_checked + ' port(s) in ' + data.elapsed_ms + ' ms' +
+            ((data.resolved_ips && data.resolved_ips.length) ? ' — resolved to ' + data.resolved_ips.join(', ') : '');
+        lastCsv = buildCsv(data);
+        document.getElementById('pc-results').className = 'results visible';
+    }
+
+    document.getElementById('pc-check').addEventListener('click', checkPorts);
+    document.getElementById('pc-host').addEventListener('keydown', function(e) { if (e.key === 'Enter') checkPorts(); });
+    document.getElementById('pc-ports').addEventListener('keydown', function(e) { if (e.key === 'Enter') checkPorts(); });
+
+    var presetButtons = document.querySelectorAll('.pc-preset');
+    for (var p = 0; p < presetButtons.length; p++) {
+        presetButtons[p].addEventListener('click', function() {
+            document.getElementById('pc-ports').value = this.getAttribute('data-ports');
+            document.getElementById('pc-ports').focus();
+        });
+    }
+
+    document.getElementById('pc-copy').addEventListener('click', function() {
+        if (!lastCsv) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(lastCsv);
+            setStatus('CSV copied to the clipboard.', '');
+        } else {
+            setStatus('Copy is unavailable here. Use Download CSV instead.', 'error');
+        }
+    });
+
+    document.getElementById('pc-download').addEventListener('click', function() {
+        if (!lastCsv) return;
+        var blob = new Blob([lastCsv], { type: 'text/csv' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'port-check-' + (lastHost || 'report') + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setStatus('CSV downloaded.', '');
+    });
+    </script>
+</body>
+</html>

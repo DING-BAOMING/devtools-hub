@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <meta property="og:image" content="/og-image.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Date Calculator - Days Between Dates &amp; Date Arithmetic | DevTools Hub</title>
+  <meta name="description" content="Free online date calculator. Calculate days between dates, add or subtract days/weeks/months/years from any date, and compute business days. 100% private browser processing. No signup needed.">
+  <link rel="canonical" href="https://tools.scoreroute.com/tools/date-calculator/">
+  <meta property="og:title" content="Date Calculator - Days Between Dates &amp; Date Arithmetic | DevTools Hub">
+  <meta property="og:description" content="Free online date calculator. Calculate days between dates, add or subtract days/weeks/months/years from any date, and compute business days. 100% private browser processing. No signup needed.">
+  <meta property="og:url" content="https://tools.scoreroute.com/tools/date-calculator/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Date Calculator - Days Between Dates &amp; Date Arithmetic | DevTools Hub">
+  <meta name="twitter:description" content="Free online date calculator. Calculate days between dates, add or subtract days/weeks/months/years from any date, and compute business days. 100% private browser processing. No signup needed.">
+  <meta name="twitter:image" content="/og-image.png">
+  <meta name="twitter:url" content="https://tools.scoreroute.com/tools/date-calculator/">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "datePublished": "2026-07-12",
+    "dateModified": "2026-07-12",
+    "author": {"@type": "Person", "name": "BAOMING"},
+    "name": "Date Calculator",
+    "description": "Calculate days between dates, add/subtract dates, compute business days. Free online date arithmetic tool.",
+    "url": "https://tools.scoreroute.com/tools/date-calculator/",
+    "applicationCategory": "UtilityApplication",
+    "operatingSystem": "Any",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+    "featureList": ["Days between two dates", "Add or subtract days, weeks, months, years", "Business days calculator excluding weekends", "Age between two dates"]
+  }
+  </script>
+  <style>
+    .dc-tabs { display: flex; gap: 0; margin-bottom: 24px; border-radius: 10px; overflow: hidden; border: 1px solid #2a2a4a; flex-wrap: wrap; }
+    /* The UA stylesheet gives <button> font: 400 13.33px Arial, inline-block, align-items:center and a
+       2px outset border. Reset all four so the <button> renders exactly like the <div> it replaced
+       (BUG-368). min-height:44px from styles.css still applies and only ever grows a sub-44px tab. */
+    .dc-tab { display: block; border: 0; font-family: inherit; line-height: inherit; flex: 1; padding: 12px 16px; text-align: center; cursor: pointer; background: #0f0f23; color: #888; font-size: 0.9rem; transition: all 0.2s; border-right: 1px solid #2a2a4a; min-width: 120px; }
+    .dc-tab:last-child { border-right: none; }
+    .dc-tab:hover { background: #1a1a3e; color: #ccc; }
+    .dc-tab.active { background: #252545; color: #7eb3ff; border-bottom: 2px solid #7eb3ff; }
+    .dc-panel { display: none; }
+    .dc-panel.active { display: block; }
+    .dc-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; align-items: flex-end; }
+    .dc-field { flex: 1; min-width: 150px; }
+    .dc-field label { display: block; color: #aaa; font-size: 0.85rem; margin-bottom: 6px; }
+    .dc-field input, .dc-field select { width: 100%; padding: 10px 12px; background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 8px; color: #fff; font-size: 0.9rem; box-sizing: border-box; }
+    .dc-field input:focus, .dc-field select:focus { outline: 2px solid transparent; border-color: #7eb3ff; }
+    .dc-field input[type="date"] { color-scheme: dark; }
+    .dc-result { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 12px; padding: 20px; margin-top: 16px; }
+    .dc-result-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1a1a2e; flex-wrap: wrap; }
+    .dc-result-row:last-child { border-bottom: none; }
+    .dc-result-label { color: #888; font-size: 0.85rem; }
+    .dc-result-value { color: #7eb3ff; font-size: 1.1rem; font-weight: 600; }
+    .dc-result-value.days { color: #10b981; font-size: 1.3rem; }
+    .dc-result-value.weeks { color: #f59e0b; }
+    .dc-result-value.months { color: #a78bfa; }
+    .dc-result-value.years { color: #f472b6; }
+    .dc-result-value.business { color: #34d399; }
+    .dc-highlight { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 12px; padding: 24px; text-align: center; margin-top: 16px; }
+    .dc-highlight .big-number { font-size: 3rem; font-weight: 700; color: #7eb3ff; line-height: 1.2; }
+    .dc-highlight .big-label { color: #888; font-size: 0.95rem; margin-top: 4px; }
+    .dc-highlight .big-sub { color: #555; font-size: 0.8rem; margin-top: 8px; }
+    .dc-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .dc-note { color: #555; font-size: 0.8rem; margin-top: 8px; }
+    .dc-note code { color: #888; background: #0f0f23; padding: 2px 6px; border-radius: 4px; }
+    @media (max-width: 600px) { .dc-tab { font-size: 0.8rem; padding: 10px 8px; min-width: 80px; } .dc-highlight .big-number { font-size: 2rem; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Date Calculator</h1>
+      <p class="subtitle">Days Between Dates, Date Arithmetic &amp; Business Days - 100% Private</p>
+      <nav class="breadcrumb">
+        <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Date Calculator</span>
+        <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="tool-page">
+      <div class="tool-main">
+        <h2>Date Arithmetic &amp; Calculation</h2>
+
+        <div class="dc-tabs" role="group" aria-label="Date calculation mode">
+          <button type="button" class="dc-tab active" data-panel="days-between" aria-pressed="true" onclick="switchTab('days-between')">Days Between</button>
+          <button type="button" class="dc-tab" data-panel="add-subtract" aria-pressed="false" onclick="switchTab('add-subtract')">Add / Subtract</button>
+          <button type="button" class="dc-tab" data-panel="business-days" aria-pressed="false" onclick="switchTab('business-days')">Business Days</button>
+        </div>
+
+        <div id="panel-days-between" class="dc-panel active">
+          <div class="dc-row">
+            <div class="dc-field">
+              <label for="db-start">Start Date</label>
+              <input type="date" id="db-start">
+            </div>
+            <div class="dc-field">
+              <label for="db-end">End Date</label>
+              <input type="date" id="db-end">
+            </div>
+          </div>
+          <button onclick="calcDaysBetween()" class="btn btn-primary">Calculate</button>
+          <div class="dc-highlight" id="db-result" style="display:none;">
+            <div class="big-number" id="db-total-days">0</div>
+            <div class="big-label">Total Days</div>
+            <div class="big-sub" id="db-detail"></div>
+          </div>
+          <div class="dc-result" id="db-breakdown" style="display:none;">
+            <div class="dc-result-row"><span class="dc-result-label">Years</span><span class="dc-result-value years" id="db-years">0</span></div>
+            <div class="dc-result-row"><span class="dc-result-label">Months</span><span class="dc-result-value months" id="db-months">0</span></div>
+            <div class="dc-result-row"><span class="dc-result-label">Weeks</span><span class="dc-result-value weeks" id="db-weeks">0</span></div>
+            <div class="dc-result-row"><span class="dc-result-label">Business Days (Mon-Fri)</span><span class="dc-result-value business" id="db-business">0</span></div>
+            <div class="dc-result-row"><span class="dc-result-label">Weekends</span><span class="dc-result-value" id="db-weekends" style="color:#f472b6;">0</span></div>
+          </div>
+        </div>
+
+        <div id="panel-add-subtract" class="dc-panel">
+          <div class="dc-row">
+            <div class="dc-field" style="flex:0 0 auto; min-width:80px;">
+              <label for="as-op">Operation</label>
+              <select id="as-op">
+                <option value="add">Add</option>
+                <option value="subtract">Subtract</option>
+              </select>
+            </div>
+            <div class="dc-field">
+              <label for="as-date">Date</label>
+              <input type="date" id="as-date">
+            </div>
+            <div class="dc-field" style="flex:0 0 80px;">
+              <label for="as-amount">Amount</label>
+              <input type="number" id="as-amount" value="30" min="1">
+            </div>
+            <div class="dc-field" style="flex:0 0 auto; min-width:100px;">
+              <label for="as-unit">Unit</label>
+              <select id="as-unit">
+                <option value="days">Days</option>
+                <option value="weeks">Weeks</option>
+                <option value="months">Months</option>
+                <option value="years">Years</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="calcAddSubtract()" class="btn btn-primary">Calculate</button>
+          <div class="dc-highlight" id="as-result" style="display:none;">
+            <div class="big-number" id="as-result-date">—</div>
+            <div class="big-label" id="as-result-label">Result Date</div>
+            <div class="big-sub" id="as-result-detail"></div>
+          </div>
+        </div>
+
+        <div id="panel-business-days" class="dc-panel">
+          <div class="dc-row">
+            <div class="dc-field" style="flex:0 0 auto; min-width:120px;">
+              <label for="bd-mode">Mode</label>
+              <select id="bd-mode">
+                <option value="count">Count Business Days</option>
+                <option value="add">Add Business Days</option>
+              </select>
+            </div>
+          </div>
+          <div id="bd-count-fields">
+            <div class="dc-row">
+              <div class="dc-field"><label for="bd-start">Start Date</label><input type="date" id="bd-start"></div>
+              <div class="dc-field"><label for="bd-end">End Date</label><input type="date" id="bd-end"></div>
+            </div>
+          </div>
+          <div id="bd-add-fields" style="display:none;">
+            <div class="dc-row">
+              <div class="dc-field"><label for="bd-from">From Date</label><input type="date" id="bd-from"></div>
+              <div class="dc-field" style="flex:0 0 120px;"><label for="bd-count">Business Days</label><input type="number" id="bd-count" value="10" min="1"></div>
+            </div>
+          </div>
+          <button onclick="calcBusinessDays()" class="btn btn-primary">Calculate</button>
+          <div class="dc-highlight" id="bd-result" style="display:none;">
+            <div class="big-number" id="bd-result-number">0</div>
+            <div class="big-label" id="bd-result-label">Business Days</div>
+            <div class="big-sub" id="bd-result-detail"></div>
+          </div>
+        </div>
+
+        <div class="dc-note">
+          <strong>Why use this?</strong> AI cannot reliably compute date math — it gets leap years, month boundaries, and business days wrong. This calculator uses deterministic date arithmetic for accurate results every time.
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3>How It Works</h3>
+        <p>This calculator performs precise, deterministic date arithmetic entirely in your browser. There are three modes:</p>
+        <ul style="color:#aaa; font-size:0.9rem; line-height:1.8; padding-left:20px;">
+          <li><strong>Days Between</strong> — Enter any two dates to get exact days, months, years, weeks, business days, and weekend count.</li>
+          <li><strong>Add / Subtract</strong> — Add or subtract days, weeks, months, or years from any date to find the resulting date.</li>
+          <li><strong>Business Days</strong> — Count business days (Mon-Fri) between two dates, or calculate the date after adding N business days.</li>
+        </ul>
+
+        <h3 style="margin-top:24px;">Why AI Gets Date Math Wrong</h3>
+        <p>Large language models like ChatGPT, Claude, and Gemini frequently make errors in date arithmetic because they:</p>
+        <ul style="color:#aaa; font-size:0.9rem; line-height:1.8; padding-left:20px;">
+          <li>Miscalculate month boundaries (e.g., Jan 31 + 1 month should be Feb 28)</li>
+          <li>Forget or misapply leap year rules (year 2000 is leap, 1900 is not)</li>
+          <li>Give different answers to the same question at different times</li>
+          <li>Cannot reliably count business days when spanning weeks or months</li>
+        </ul>
+        <p>This tool uses JavaScript's native Date object with deterministic algorithms — you get the same correct answer every time.</p>
+
+        <h3 style="margin-top:24px;">Frequently Asked Questions</h3>
+        <details class="faq-item">
+          <summary>How does this calculator count months between dates?</summary>
+          <p>We use full calendar months. For example, March 15 to August 20 is 5 months and 5 days (March→April→May→June→July→August). Partial months are calculated by actual day counts, not average month length.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Does it account for leap years?</summary>
+          <p>Yes. The calculator uses JavaScript's built-in Date object which correctly handles all leap year rules including century years (year 2000 was a leap year, 1900 was not, 2100 will not be).</p>
+        </details>
+        <details class="faq-item">
+          <summary>What counts as a business day?</summary>
+          <p>Business days are Monday through Friday, excluding Saturdays and Sundays. This calculator does not account for public holidays — for holiday-specific calculations, consult a local calendar.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Is my data private?</summary>
+          <p>100%. All date calculations happen locally in your browser. No data is sent to any server. Your dates never leave your device.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+  </footer>
+
+  <script src="/tools.js"></script>
+  <script>
+  function switchTab(tabId) {
+    document.querySelectorAll('.dc-tab').forEach(function(t) {
+      var on = t.getAttribute('data-panel') === tabId;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('.dc-panel').forEach(function(p) { p.classList.remove('active'); });
+    document.getElementById('panel-' + tabId).classList.add('active');
+  }
+
+  document.getElementById('bd-mode').addEventListener('change', function() {
+    document.getElementById('bd-count-fields').style.display = this.value === 'count' ? '' : 'none';
+    document.getElementById('bd-add-fields').style.display = this.value === 'add' ? '' : 'none';
+  });
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function getDateInputs() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  function setDefaultDate(id) {
+    var el = document.getElementById(id);
+    if (el && !el.value) el.value = getDateInputs();
+  }
+
+  setDefaultDate('db-start');
+  setDefaultDate('db-end');
+  setDefaultDate('as-date');
+  setDefaultDate('bd-start');
+  setDefaultDate('bd-end');
+  setDefaultDate('bd-from');
+
+  function parseDate(str) {
+    var parts = str.split('-');
+    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  }
+
+  function formatDate(d) {
+    return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function daysBetween(a, b) {
+    var utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+    var utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+    return Math.floor((utc2 - utc1) / 86400000);
+  }
+
+  function monthDiff(a, b) {
+    var months = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+    if (b.getDate() < a.getDate()) months--;
+    return Math.max(0, months);
+  }
+
+  function addMonthsJS(date, n) {
+    var d = new Date(date);
+    var targetMonth = d.getMonth() + n;
+    d.setMonth(targetMonth);
+    if (d.getMonth() !== ((targetMonth % 12) + 12) % 12) {
+      d.setDate(0);
+    }
+    return d;
+  }
+
+  function countBusinessDays(start, end) {
+    var count = 0;
+    var s = new Date(start);
+    var e = new Date(end);
+    while (s <= e) {
+      var day = s.getDay();
+      if (day !== 0 && day !== 6) count++;
+      s.setDate(s.getDate() + 1);
+    }
+    return count;
+  }
+
+  function addBusinessDays(date, n) {
+    var d = new Date(date);
+    var added = 0;
+    while (added < n) {
+      d.setDate(d.getDate() + 1);
+      var day = d.getDay();
+      if (day !== 0 && day !== 6) added++;
+    }
+    return d;
+  }
+
+  function calcDaysBetween() {
+    var start = document.getElementById('db-start').value;
+    var end = document.getElementById('db-end').value;
+    if (!start || !end) { showStatus('db-result', 'Please select both dates.', 'error'); return; }
+    var s = parseDate(start);
+    var e = parseDate(end);
+    if (e < s) { showStatus('db-result', 'End date must be after start date.', 'error'); return; }
+    var totalDays = daysBetween(s, e);
+    var years = Math.floor(monthDiff(s, e) / 12);
+    var months = monthDiff(s, e);
+    var weeks = Math.floor(totalDays / 7);
+    var remDays = totalDays % 7;
+    var business = countBusinessDays(s, e);
+    var weekends = Math.floor(totalDays / 7) * 2;
+    var remCheck = totalDays % 7;
+    var checkDate = new Date(s);
+    checkDate.setDate(checkDate.getDate() + Math.floor(totalDays / 7) * 7);
+    for (var i = 0; i < remCheck; i++) {
+      checkDate.setDate(checkDate.getDate() + 1);
+      var d = checkDate.getDay();
+      if (d === 0 || d === 6) weekends++;
+    }
+    document.getElementById('db-total-days').textContent = totalDays;
+    document.getElementById('db-detail').textContent = formatDate(s) + ' to ' + formatDate(e);
+    document.getElementById('db-years').textContent = years;
+    document.getElementById('db-months').textContent = months;
+    document.getElementById('db-weeks').textContent = weeks + ' weeks' + (remDays > 0 ? ', ' + remDays + ' day' + (remDays > 1 ? 's' : '') : '');
+    document.getElementById('db-business').textContent = business;
+    document.getElementById('db-weekends').textContent = weekends;
+    document.getElementById('db-result').style.display = '';
+    document.getElementById('db-breakdown').style.display = '';
+  }
+
+  function calcAddSubtract() {
+    var op = document.getElementById('as-op').value;
+    var dateStr = document.getElementById('as-date').value;
+    var amount = parseInt(document.getElementById('as-amount').value, 10);
+    var unit = document.getElementById('as-unit').value;
+    if (!dateStr || !amount) { showStatus('as-result', 'Please fill in all fields.', 'error'); return; }
+    var d = parseDate(dateStr);
+    var result;
+    var sign = op === 'add' ? 1 : -1;
+    switch (unit) {
+      case 'days': result = new Date(d); result.setDate(result.getDate() + sign * amount); break;
+      case 'weeks': result = new Date(d); result.setDate(result.getDate() + sign * amount * 7); break;
+      case 'months': result = addMonthsJS(d, sign * amount); break;
+      case 'years': result = addMonthsJS(d, sign * 12 * amount); break;
+    }
+    document.getElementById('as-result-date').textContent = formatDate(result);
+    document.getElementById('as-result-label').textContent = op.charAt(0).toUpperCase() + op.slice(1) + ' ' + amount + ' ' + unit + (amount > 1 ? '' : '');
+    document.getElementById('as-result-detail').textContent = 'Original: ' + formatDate(d);
+    document.getElementById('as-result').style.display = '';
+  }
+
+  function calcBusinessDays() {
+    var mode = document.getElementById('bd-mode').value;
+    if (mode === 'count') {
+      var start = document.getElementById('bd-start').value;
+      var end = document.getElementById('bd-end').value;
+      if (!start || !end) { showStatus('bd-result', 'Please select both dates.', 'error'); return; }
+      var s = parseDate(start);
+      var e = parseDate(end);
+      if (e < s) { showStatus('bd-result', 'End date must be after start date.', 'error'); return; }
+      var count = countBusinessDays(s, e);
+      var total = daysBetween(s, e);
+      document.getElementById('bd-result-number').textContent = count;
+      document.getElementById('bd-result-label').textContent = 'Business Days (Mon-Fri)';
+      document.getElementById('bd-result-detail').textContent = 'Out of ' + total + ' total days from ' + formatDate(s) + ' to ' + formatDate(e);
+      document.getElementById('bd-result').style.display = '';
+    } else {
+      var from = document.getElementById('bd-from').value;
+      var n = parseInt(document.getElementById('bd-count').value, 10);
+      if (!from || !n) { showStatus('bd-result', 'Please fill in all fields.', 'error'); return; }
+      var d = parseDate(from);
+      var result = addBusinessDays(d, n);
+      document.getElementById('bd-result-number').textContent = formatDate(result);
+      document.getElementById('bd-result-label').textContent = 'Date after ' + n + ' Business Days';
+      document.getElementById('bd-result-detail').textContent = 'Starting from ' + formatDate(d);
+      document.getElementById('bd-result').style.display = '';
+    }
+  }
+  </script>
+</body>
+</html>

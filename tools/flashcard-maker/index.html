@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flashcard Maker - Free Spaced Repetition Study Cards | DevTools Hub</title>
+<meta name="description" content="Free flashcard maker with spaced repetition. Create unlimited decks, paste CSV/tab lists, study with Again/Hard/Good/Easy grading, track accuracy and streaks. 100% private, no signup, works offline.">
+<meta name="keywords" content="flashcard maker, free flashcards, online flashcards, spaced repetition, anki alternative, quizlet alternative, study flashcards, vocabulary flashcards, language flashcards, free, no signup, private">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/flashcard-maker/">
+<meta property="og:title" content="Flashcard Maker - Free Spaced Repetition Study Cards">
+<meta property="og:description" content="Free flashcard maker with spaced repetition algorithm. Unlimited decks, CSV import, study stats, 100% private browser storage. No signup, no paywall.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/flashcard-maker/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Flashcard Maker - Free Spaced Repetition Study Cards | DevTools Hub">
+<meta name="twitter:description" content="Free flashcard maker. Unlimited decks, spaced repetition, CSV import, study stats. 100% private, no signup.">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Flashcard Maker",
+  "description": "Free browser-based flashcard maker with simplified SM-2 spaced repetition. Create unlimited decks, paste CSV/tab-separated front|back lists, study with Again/Hard/Good/Easy grading (keyboard 1-4), track per-deck accuracy and streaks, export decks as CSV. All decks and progress stored in localStorage. No signup, no upload, no paywall, no daily limit.",
+  "url": "https://tools.scoreroute.com/tools/flashcard-maker/",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Modern browser with JavaScript and localStorage",
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Person", "name": "BAOMING"},
+  "datePublished": "2026-09-22",
+  "dateModified": "2026-09-22",
+  "featureList": [
+    "Unlimited decks with create/rename/delete in browser",
+    "Bulk card import: paste CSV/tab-separated front|back or one per line",
+    "Three study modes: Review (SRS due-cards), Cram (sequential all), Test (self-grade multiple choice)",
+    "Simplified SM-2 spaced repetition: ease factor + interval + repetition count per card",
+    "Four-button grading: Again (1) / Hard (2) / Good (3) / Easy (4) with keyboard shortcuts",
+    "Card flip animation with Space key shortcut",
+    "Per-deck statistics: total cards, due today, accuracy percent, current streak",
+    "Search/filter cards within a deck",
+    "Export deck as CSV (downloadable + clipboard)",
+    "Print-friendly study sheet (CSS @media print)",
+    "6 sample presets: Spanish vocab, GRE words, US capitals, multiplication, country capitals, anatomy basics",
+    "All data persisted in localStorage - 100% private, works offline after first load",
+    "100% client-side deterministic JavaScript - zero upload, zero signup, zero paywall",
+    "JSON-LD WebApplication + FAQPage structured data for AI/LLM citability"
+  ]
+}
+</script>
+<style>
+:root {
+  --f-bg: #0f0f23;
+  --f-surface: #1a1a2e;
+  --f-surface2: #252540;
+  --f-border: #2a2a4a;
+  --f-text: #e6e6f0;
+  --f-muted: #9a9ab0;
+  --f-accent: #667eea;
+  --f-accent2: #764ba2;
+  --f-green: #10b981;
+  --f-red: #ef4444;
+  --f-warn: #f59e0b;
+  --f-blue: #38bdf8;
+}
+* { box-sizing: border-box; }
+body { background: var(--f-bg); color: var(--f-text); margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.f-wrap { max-width: 1180px; margin: 0 auto; padding: 16px; }
+.f-hero { background: linear-gradient(135deg, #1a1a3e 0%, #2d1b4e 100%); border-radius: 14px; padding: 22px 26px; margin: 16px 0; border: 1px solid var(--f-border); }
+.f-hero h2 { color: #fff; margin: 0 0 8px; font-size: 1.5rem; }
+.f-hero p { color: var(--f-muted); margin: 0; font-size: 0.95rem; line-height: 1.55; }
+.f-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.f-pill { padding: 4px 12px; background: var(--f-surface2); border: 1px solid var(--f-border); border-radius: 20px; font-size: 0.76rem; color: var(--f-muted); }
+.f-pill strong { color: var(--f-accent); }
+.f-grid-layout { display: grid; grid-template-columns: 340px 1fr; gap: 16px; margin-top: 16px; }
+@media (max-width: 920px) { .f-grid-layout { grid-template-columns: 1fr; } }
+.f-panel { background: var(--f-surface); border: 1px solid var(--f-border); border-radius: 12px; padding: 16px; }
+.f-panel h3 { color: #fff; margin: 0 0 12px; font-size: 1.05rem; }
+.f-section { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--f-border); }
+.f-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.f-label { display: block; color: var(--f-muted); font-size: 0.74rem; margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.f-input, .f-select, .f-textarea { width: 100%; padding: 8px 10px; background: var(--f-bg); border: 1px solid var(--f-border); color: var(--f-text); border-radius: 6px; font-size: 0.88rem; font-family: inherit; }
+.f-input:focus, .f-select:focus, .f-textarea:focus { outline: 2px solid transparent; border-color: var(--f-accent); }
+        /* BUG-308 (WCAG 2.4.7): this page does not link /styles.css, so the sitewide
+           *:focus-visible rule there cannot reach it. Same 3px/#7eb3ff token. */
+        *:focus-visible { outline: 3px solid #7eb3ff !important; outline-offset: 2px !important; }
+.f-textarea { min-height: 130px; resize: vertical; line-height: 1.5; }
+.f-row { display: flex; gap: 8px; align-items: center; }
+.f-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.f-hint { font-size: 0.74rem; color: var(--f-muted); margin-top: 5px; line-height: 1.4; }
+.f-check { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--f-muted); cursor: pointer; margin-top: 7px; }
+.f-check input { accent-color: var(--f-accent); }
+.f-btn { padding: 9px 16px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; border-radius: 8px; font-size: 0.92rem; cursor: pointer; font-weight: 600; transition: filter 0.15s; }
+.f-btn:hover { filter: brightness(1.12); }
+.f-btn:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+.f-btn-sec { background: var(--f-surface2); color: var(--f-text); border: 1px solid var(--f-border); }
+.f-btn-sec:hover { background: var(--f-border); }
+.f-btn-danger { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+.f-btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.f-stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--f-muted); margin-top: 8px; }
+.f-stats strong { color: var(--f-accent); }
+.f-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin: 12px 0; }
+.f-stat-card { background: var(--f-surface2); border: 1px solid var(--f-border); border-radius: 8px; padding: 10px 12px; }
+.f-stat-num { font-size: 1.4rem; font-weight: 700; color: var(--f-accent); line-height: 1; }
+.f-stat-lbl { font-size: 0.7rem; color: var(--f-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.f-status { min-height: 22px; font-size: 0.85rem; margin: 6px 0; color: var(--f-muted); }
+.f-status.success { color: var(--f-green); }
+.f-status.warn { color: var(--f-warn); }
+.f-status.error { color: var(--f-red); }
+.f-deck-list { display: flex; flex-direction: column; gap: 4px; max-height: 280px; overflow-y: auto; }
+.f-deck { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--f-bg); border: 1px solid var(--f-border); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+.f-deck:hover { border-color: var(--f-accent); }
+.f-deck.active { background: var(--f-surface2); border-color: var(--f-accent); }
+.f-deck-info { font-size: 0.88rem; color: var(--f-text); }
+.f-deck-info small { color: var(--f-muted); font-size: 0.72rem; display: block; margin-top: 2px; }
+.f-deck-del { background: transparent; color: var(--f-muted); border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
+.f-deck-del:hover { color: var(--f-red); background: var(--f-surface2); }
+.f-study-area { background: var(--f-bg); border: 1px solid var(--f-border); border-radius: 8px; padding: 24px; min-height: 380px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+.f-empty { text-align: center; padding: 40px 20px; color: var(--f-muted); }
+.f-empty-icon { font-size: 3.4rem; margin-bottom: 8px; opacity: 0.45; }
+.f-empty-text { font-size: 0.93rem; line-height: 1.55; }
+.f-card { width: 100%; max-width: 540px; min-height: 240px; background: linear-gradient(135deg, #1f1f3d 0%, #2a2150 100%); border: 2px solid var(--f-border); border-radius: 16px; padding: 28px; cursor: pointer; perspective: 1000px; user-select: none; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transition: transform 0.4s; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+.f-card.flipped { background: linear-gradient(135deg, #1a3a2e 0%, #134e3a 100%); border-color: var(--f-green); }
+.f-card-side { font-size: 0.7rem; color: var(--f-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.f-card-text { font-size: 1.4rem; color: var(--f-text); line-height: 1.45; word-wrap: break-word; max-width: 100%; }
+.f-card-meta { font-size: 0.7rem; color: var(--f-muted); margin-top: 16px; }
+.f-grades { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 18px; width: 100%; max-width: 540px; }
+.f-grade { padding: 12px 8px; border: none; border-radius: 8px; font-size: 0.92rem; font-weight: 600; cursor: pointer; color: #fff; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.f-grade-again { background: #ef4444; }
+.f-grade-hard { background: #f59e0b; }
+.f-grade-good { background: #10b981; }
+.f-grade-easy { background: #38bdf8; }
+.f-grade:hover { filter: brightness(1.12); }
+.f-grade small { font-size: 0.68rem; font-weight: 400; opacity: 0.9; }
+.f-progress { width: 100%; max-width: 540px; height: 5px; background: var(--f-border); border-radius: 3px; margin-top: 14px; overflow: hidden; }
+.f-progress-bar { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s; }
+.f-progress-text { font-size: 0.72rem; color: var(--f-muted); margin-top: 6px; }
+.f-kbd { display: inline-block; padding: 1px 6px; background: var(--f-surface2); border: 1px solid var(--f-border); border-radius: 4px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.74rem; color: var(--f-text); margin: 0 2px; }
+.f-chip { display: inline-block; padding: 5px 11px; background: var(--f-bg); border: 1px solid var(--f-border); border-radius: 15px; font-size: 0.78rem; color: var(--f-muted); cursor: pointer; margin: 0 4px 4px 0; transition: all 0.15s; }
+.f-chip:hover { border-color: var(--f-accent); color: var(--f-text); }
+.f-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.f-mode { padding: 10px; background: var(--f-bg); border: 1px solid var(--f-border); border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.15s; font-size: 0.85rem; color: var(--f-muted); }
+.f-mode.active { background: var(--f-accent); color: #fff; border-color: var(--f-accent); }
+.f-mode strong { display: block; color: inherit; margin-bottom: 2px; }
+.f-mode small { font-size: 0.7rem; opacity: 0.85; }
+.f-info-card { background: var(--f-surface2); border-left: 3px solid var(--f-accent); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; }
+.f-info-card b { color: #fff; font-size: 0.85rem; display: block; margin-bottom: 2px; }
+.f-info-card p { color: var(--f-muted); font-size: 0.8rem; margin: 0; line-height: 1.5; }
+.f-faq-item { background: var(--f-surface2); border-radius: 6px; padding: 12px; margin-bottom: 8px; }
+.f-faq-item h4 { color: #fff; font-size: 0.9rem; margin: 0 0 4px; }
+.f-faq-item p { color: var(--f-muted); font-size: 0.85rem; margin: 0; line-height: 1.5; }
+.f-related { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 12px; }
+.f-related a { display: block; padding: 10px 12px; background: var(--f-surface2); border: 1px solid var(--f-border); border-radius: 8px; color: var(--f-muted); text-decoration: none; font-size: 0.85rem; }
+.f-related a:hover { border-color: var(--f-accent); color: #fff; }
+.f-related a strong { color: #fff; display: block; margin-bottom: 2px; font-size: 0.9rem; }
+.f-geo { background: #12263a; border: 1px solid #1d3a55; border-left: 3px solid #38bdf8; border-radius: 8px; padding: 12px 14px; margin-top: 16px; font-size: 0.85rem; line-height: 1.55; color: #b8c6d4; }
+.f-geo b { color: #fff; }
+.f-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; max-height: 380px; overflow-y: auto; padding: 4px; }
+.f-mini-card { background: var(--f-bg); border: 1px solid var(--f-border); border-radius: 6px; padding: 8px 10px; font-size: 0.82rem; }
+.f-mini-card .front { color: var(--f-text); font-weight: 500; margin-bottom: 4px; }
+.f-mini-card .back { color: var(--f-muted); font-size: 0.78rem; }
+.f-mini-card .meta { color: var(--f-warn); font-size: 0.7rem; margin-top: 4px; }
+.f-mini-card.ok .meta { color: var(--f-green); }
+.f-print-area { display: none; }
+@media print {
+  body { background: #fff !important; color: #14142b !important; }
+  header, footer, nav, .f-grid-layout > aside, .f-btn-row, .f-stats, .f-status, .f-info-card, .f-faq-item, .f-related, .f-geo, .f-modes { display: none !important; }
+  .f-grid-layout { grid-template-columns: 1fr !important; }
+  .f-print-area { display: block !important; padding: 18px; }
+  .f-print-card { border: 1px solid #ccc; border-radius: 6px; padding: 10px; margin-bottom: 8px; page-break-inside: avoid; }
+  .f-print-card b { color: #14142b; }
+  .f-print-card span { color: #555; }
+}
+</style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <h1>Flashcard Maker</h1>
+        <p class="subtitle">Create study decks with spaced repetition - free, private, no signup</p>
+        <nav class="breadcrumb">
+            <a href="/">Home</a> &gt; <a href="/tools/ai-language/">AI Language</a> &gt; <span>Flashcard Maker</span>
+            <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+<section class="tool-page">
+<div class="f-wrap">
+
+<div class="f-hero">
+    <h2>Free flashcard maker with spaced repetition. No signup, no paywall, no daily limit.</h2>
+    <p>Make unlimited study decks in seconds. Paste a CSV list, type one card per line, or pick a sample deck. Study with smart Again/Hard/Good/Easy grading - the scheduler shows hard cards more often and easy cards less often, just like Anki. Everything stays in your browser, so your vocabulary lists never leave your device.</p>
+    <div class="f-pills">
+        <span class="f-pill"><strong>Unlimited</strong> decks</span>
+        <span class="f-pill"><strong>SRS</strong> algorithm</span>
+        <span class="f-pill">CSV import</span>
+        <span class="f-pill">CSV export</span>
+        <span class="f-pill">3 study modes</span>
+        <span class="f-pill">Keyboard shortcuts</span>
+        <span class="f-pill">Print sheets</span>
+        <span class="f-pill">100% private</span>
+    </div>
+</div>
+
+<div class="f-grid-layout">
+    <aside class="f-panel">
+        <h3>Your Decks</h3>
+        <div class="f-section">
+            <div class="f-row">
+                <input type="text" id="f-deck-name" class="f-input" placeholder="New deck name" maxlength="40" aria-label="New deck name">
+                <button class="f-btn" id="f-new-deck" data-testid="f-new-deck">+</button>
+            </div>
+        </div>
+        <div class="f-deck-list" id="f-deck-list"></div>
+
+        <div id="f-active-panel" style="display:none;margin-top:16px">
+            <h3 style="margin-top:0">Active Deck: <span id="f-active-name"></span></h3>
+
+            <div class="f-stat-grid">
+                <div class="f-stat-card"><div class="f-stat-num" id="f-stat-total">0</div><div class="f-stat-lbl">Cards</div></div>
+                <div class="f-stat-card"><div class="f-stat-num" id="f-stat-due">0</div><div class="f-stat-lbl">Due now</div></div>
+                <div class="f-stat-card"><div class="f-stat-num" id="f-stat-acc">-</div><div class="f-stat-lbl">Accuracy</div></div>
+                <div class="f-stat-card"><div class="f-stat-num" id="f-stat-streak">0</div><div class="f-stat-lbl">Streak</div></div>
+            </div>
+
+            <div class="f-section">
+                <label class="f-label" for="f-deck-search">Search cards</label>
+                <input type="text" id="f-deck-search" class="f-input" placeholder="Filter cards..." aria-label="Search cards">
+            </div>
+
+            <div class="f-section">
+                <label class="f-label" for="f-bulk-input">Add cards (one per line: front|back)</label>
+                <textarea id="f-bulk-input" class="f-textarea" placeholder="hola | hello&#10;gato | cat&#10;perro | dog" aria-label="Bulk card input"></textarea>
+                <div class="f-hint">Separator: tab, pipe (|), or comma. Use line break for each card. Up to 200 per paste.</div>
+            </div>
+
+            <div class="f-btn-row">
+                <button class="f-btn" id="f-add-cards" data-testid="f-add-cards">Add Cards</button>
+                <button class="f-btn f-btn-sec" id="f-export-csv" data-testid="f-export-csv">Export CSV</button>
+                <button class="f-btn f-btn-sec" id="f-rename-deck" data-testid="f-rename-deck">Rename</button>
+                <button class="f-btn f-btn-sec" id="f-print-deck" data-testid="f-print-deck">Print</button>
+                <button class="f-btn f-btn-danger" id="f-delete-deck" data-testid="f-delete-deck">Delete Deck</button>
+            </div>
+            <div class="f-status" id="f-status" role="status" aria-live="polite"></div>
+        </div>
+    </aside>
+
+    <div class="f-panel">
+        <h3>Study</h3>
+        <div class="f-modes" id="f-modes">
+            <div class="f-mode active" data-mode="review"><strong>Review</strong><small>Only due cards</small></div>
+            <div class="f-mode" data-mode="cram"><strong>Cram</strong><small>All cards</small></div>
+            <div class="f-mode" data-mode="test"><strong>Test</strong><small>Self-grade</small></div>
+        </div>
+
+        <div class="f-study-area" id="f-study-area">
+            <div class="f-empty" id="f-empty">
+                <div class="f-empty-icon">&#128218;</div>
+                <div class="f-empty-text"><strong>Pick a deck to start studying.</strong><br><br>Keyboard: <span class="f-kbd">Space</span> flips card, <span class="f-kbd">1</span> -<span class="f-kbd">4</span> grades after flip.<br>Your decks stay in this browser only.</div>
+            </div>
+        </div>
+
+        <div id="f-print-list" class="f-print-area"></div>
+    </div>
+</div>
+
+<div class="f-panel" style="margin-top:16px">
+    <h3>Try a sample deck</h3>
+    <p style="color:var(--f-muted);font-size:0.85rem;margin:0 0 12px">One click loads a complete ready-to-study deck:</p>
+    <div>
+        <span class="f-chip" data-sample="spanish">Spanish Basics (41)</span>
+        <span class="f-chip" data-sample="gre">GRE Words (30)</span>
+        <span class="f-chip" data-sample="capitals">US State Capitals (50)</span>
+        <span class="f-chip" data-sample="multiply">Multiplication 12&times;12 (144)</span>
+        <span class="f-chip" data-sample="world-capitals">World Capitals (40)</span>
+        <span class="f-chip" data-sample="medical">Medical Terminology (25)</span>
+    </div>
+
+    <h3 style="margin-top:18px">How to use this flashcard maker</h3>
+    <div class="f-info-card">
+        <b>1. Create a deck and add cards</b>
+        <p>Type a name and press +, or click a sample preset below. Paste a list using pipe, tab, or comma as the separator (one card per line). The deck appears in the left sidebar; click it to open it.</p>
+    </div>
+    <div class="f-info-card">
+        <b>2. Choose a study mode</b>
+        <p><strong>Review</strong> shows only cards that are due today (spaced repetition). <strong>Cram</strong> cycles every card in the deck regardless of schedule - great for a quick review before an exam. <strong>Test</strong> lets you self-grade without SRS updates.</p>
+    </div>
+    <div class="f-info-card">
+        <b>3. Flip and grade</b>
+        <p>Press Space (or click the card) to see the back. Then grade your recall: <strong>Again</strong> (1) = I forgot, see soon; <strong>Hard</strong> (2) = I struggled; <strong>Good</strong> (3) = I recalled it; <strong>Easy</strong> (4) = it was effortless. The algorithm adjusts how soon each card returns.</p>
+    </div>
+    <div class="f-info-card">
+        <b>4. Export, print, or come back later</b>
+        <p>Every deck and every progress update is saved to your browser's localStorage automatically. Export as CSV to back up or share. Print a paper study sheet. Come back tomorrow and the due cards are waiting.</p>
+    </div>
+
+    <div class="f-geo">
+        <b>Why AI chatbots can't replace your flashcard deck.</b> A chat model can spit out a vocabulary list, but it cannot remember which words you got wrong yesterday, schedule the words you struggled with for tomorrow, persist your progress across sessions, or compute a 30-day accuracy trend. This tool runs a real SM-2-inspired spaced repetition scheduler in your browser - every Again pushes the card forward to be re-tested in minutes; every Easy pushes it out weeks. That scheduling is what makes flashcards actually stick, and it is impossible to do in a chat window.
+    </div>
+
+    <h3 style="margin-top:18px">Frequently Asked Questions</h3>
+    <details class="f-faq-item" open>
+        <summary><b>How does the spaced repetition work?</b></summary>
+        <p>Every card has an ease factor (starts at 2.5), an interval in days, and a repetition count. When you grade Again, the interval resets to a few minutes and the ease drops. When you grade Good, the interval grows (1 day, then 6 days, then ease times previous interval). When you grade Easy, the interval grows faster and the ease goes up. The Review mode only shows cards whose next-due date has passed, so a 20-card deck might only have 3 due today.</p>
+    </details>
+    <details class="f-faq-item">
+        <summary><b>Where are my decks stored?</b></summary>
+        <p>All decks and progress are stored in your browser's localStorage under the key fcm_state_v1. Nothing is uploaded to a server. If you clear browser data or switch browsers, the decks disappear - use Export CSV to back them up. Each browser profile has its own storage.</p>
+    </details>
+    <details class="f-faq-item">
+        <summary><b>Is this flashcard maker really free?</b></summary>
+        <p>Yes. No signup, no email, no account, no paywall, no daily limit, no ads. Everything runs in your browser. You can make as many decks with as many cards as you want. The only limitation is your browser's localStorage (typically 5 MB, which fits thousands of cards).</p>
+    </details>
+    <details class="f-faq-item">
+        <summary><b>How do I import cards in bulk?</b></summary>
+        <p>Paste a list into the bulk input box using one card per line. The front and back are separated by tab, pipe (|), or comma. Example: <code>hola | hello</code> or <code>1 + 1 = 2, basic addition</code>. Up to 200 cards per paste; press Add Cards to insert them all at once. Duplicate fronts are detected and skipped.</p>
+    </details>
+    <details class="f-faq-item">
+        <summary><b>What keyboard shortcuts are available?</b></summary>
+        <p>Space flips the card (front to back or back to front). The number keys 1, 2, 3, 4 grade the current card (Again / Hard / Good / Easy) once the back is shown. Arrow Left and Arrow Right move to the previous or next card without grading (only in Cram mode). All shortcuts work as long as the study area is in focus.</p>
+    </details>
+    <details class="f-faq-item">
+        <summary><b>Can I export my decks?</b></summary>
+        <p>Yes. Click Export CSV to download the active deck as a CSV file (front,back,interval,ease,repetitions,lastReviewed). You can also re-import the same CSV by pasting it back into the bulk input - the algorithm preserves the schedule when the separator and front match exactly.</p>
+    </details>
+    <details class="f-faq-item">
+        <summary><b>How is this different from Anki or Quizlet?</b></summary>
+        <p>Anki requires a desktop install and an AnkiWeb account for sync. Quizlet requires an account and limits free users to 8 decks. This tool is browser-only with no account, unlimited decks, and 100% private storage. The scheduler is a simplified SM-2 - close to Anki but not a full re-implementation. If you need rich media cards (images, audio, LaTeX) or multi-device sync, Anki is still the gold standard; if you need a quick, private deck for one subject, this is faster.</p>
+    </details>
+    <details class="f-faq-item">
+        <summary><b>How accurate are the accuracy and streak stats?</b></summary>
+        <p>Accuracy counts every graded card since the deck was created (or reset) - all four grades count as attempts, but only Hard/Good/Easy count as correct, Again counts as wrong. Streak is consecutive Good or Easy grades - any Again resets it to zero. These stats live alongside the deck in localStorage and reset only when you delete the deck.</p>
+    </details>
+
+    <h3 style="margin-top:18px">Related Tools</h3>
+    <div class="f-related">
+        <a href="/tools/word-search-maker/"><strong>Word Search Maker</strong> Make printable vocabulary puzzles</a>
+        <a href="/tools/bingo-card-generator/"><strong>Bingo Card Generator</strong> Printable 1-75 and 1-90 cards</a>
+        <a href="/tools/anagram-solver/"><strong>Anagram Solver</strong> Unscramble any letters</a>
+        <a href="/tools/dictionary/"><strong>Dictionary</strong> Definitions and synonyms</a>
+        <a href="/tools/translator/"><strong>Translator</strong> 100+ languages</a>
+        <a href="/tools/text-summarizer/"><strong>Text Summarizer</strong> Compress long passages</a>
+        <a href="/tools/typing-test/"><strong>Typing Test</strong> WPM and accuracy drills</a>
+    </div>
+</div>
+
+</div>
+</section>
+</main>
+
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+    <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+    <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+</footer>
+
+<script src="/tools.js"></script>
+<script>
+(function() {
+'use strict';
+
+var STORAGE_KEY = 'fcm_state_v1';
+var DAY_MS = 86400000;
+
+var state = { decks: {}, active: null, mode: 'review' };
+var session = { queue: [], pos: 0, flipped: false, currentCard: null, currentCardIdx: -1, reviews: 0, correct: 0 };
+
+// ponytail: simplified SM-2 (Anki-style) - ease + interval + repetitions
+function gradeCard(card, g) {
+  var now = Date.now();
+  var q = g; // 1=Again 2=Hard 3=Good 4=Easy
+  if (q === 1) {
+    card.reps = 0;
+    card.interval = 0.0035; // ~5 min
+    card.ease = Math.max(1.3, (card.ease || 2.5) - 0.2);
+  } else if (q === 2) {
+    card.reps = (card.reps || 0) + 1;
+    var hardI = Math.max(1, (card.interval || 0) * 1.2);
+    card.interval = hardI;
+    card.ease = Math.max(1.3, (card.ease || 2.5) - 0.15);
+  } else if (q === 3) {
+    card.reps = (card.reps || 0) + 1;
+    if (card.reps === 1) card.interval = 1;
+    else if (card.reps === 2) card.interval = 6;
+    else card.interval = Math.round((card.interval || 1) * (card.ease || 2.5));
+    card.ease = (card.ease || 2.5) + 0;
+  } else {
+    card.reps = (card.reps || 0) + 1;
+    if (card.reps === 1) card.interval = 4;
+    else card.interval = Math.round((card.interval || 1) * ((card.ease || 2.5) + 0.15));
+    card.ease = (card.ease || 2.5) + 0.15;
+  }
+  card.lastReviewed = now;
+  card.due = now + (card.interval * DAY_MS);
+  return card;
+}
+
+function dueToday(card) { return !card.due || card.due <= Date.now(); }
+
+function parseBulk(raw) {
+  var out = [];
+  var lines = raw.split('\n');
+  for (var i = 0; i < lines.length && out.length < 200; i++) {
+    var line = lines[i].trim();
+    if (!line) continue;
+    var sep = null;
+    if (line.indexOf('\t') !== -1) sep = '\t';
+    else if (line.indexOf('|') !== -1) sep = '|';
+    else if (line.indexOf(',') !== -1) sep = ',';
+    if (sep) {
+      var parts = line.split(sep);
+      if (parts.length >= 2) {
+        out.push({ front: parts[0].trim(), back: parts.slice(1).join(sep).trim() });
+      }
+    } else {
+      out.push({ front: line, back: '' });
+    }
+  }
+  return out;
+}
+
+var SAMPLES = {
+  spanish: (function() {
+    var a = [['hola','hello'],['adios','goodbye'],['gracias','thank you'],['por favor','please'],['si','yes'],['no','no'],['agua','water'],['pan','bread'],['leche','milk'],['casa','house'],['perro','dog'],['gato','cat'],['libro','book'],['escuela','school'],['amigo','friend'],['familia','family'],['comida','food'],['coche','car'],['trabajo','work'],['tiempo','time'],['hoy','today'],['manana','tomorrow'],['ayer','yesterday'],['bueno','good'],['malo','bad'],['grande','big'],['pequeno','small'],['rojo','red'],['azul','blue'],['verde','green'],['feliz','happy'],['triste','sad'],['amor','love'],['dinero','money'],['ciudad','city'],['pais','country'],['playa','beach'],['montana','mountain'],['noche','night'],['dia','day'],['sol','sun']];
+    return a;
+  })(),
+  gre: (function() {
+    var a = [['aberration','a deviation from the normal'],['acumen','keen insight'],['antipathy','strong dislike'],['apathy','lack of interest'],['arcane','mysterious'],['audacious','bold'],['belligerent','hostile'],['candor','honesty'],['capricious','unpredictable'],['conundrum','puzzle'],['copious','abundant'],['corroborate','confirm'],['cursory','hasty'],['decorum','proper behavior'],['deride','mock'],['didactic','instructive'],['egregious','outrageous'],['enervate','weaken'],['ephemeral','short-lived'],['equivocate','speak ambiguously'],['erudite','learned'],['fastidious','meticulous'],['hackneyed','overused'],['iconoclast','nonconformist'],['laconic','brief'],['maverick','independent'],['ostensible','apparent'],['perfunctory','careless'],['pragmatic','practical'],['quixotic','idealistic']];
+    return a;
+  })(),
+  capitals: (function() {
+    var a = [['Alabama','Montgomery'],['Alaska','Juneau'],['Arizona','Phoenix'],['Arkansas','Little Rock'],['California','Sacramento'],['Colorado','Denver'],['Connecticut','Hartford'],['Delaware','Dover'],['Florida','Tallahassee'],['Georgia','Atlanta'],['Hawaii','Honolulu'],['Idaho','Boise'],['Illinois','Springfield'],['Indiana','Indianapolis'],['Iowa','Des Moines'],['Kansas','Topeka'],['Kentucky','Frankfort'],['Louisiana','Baton Rouge'],['Maine','Augusta'],['Maryland','Annapolis'],['Massachusetts','Boston'],['Michigan','Lansing'],['Minnesota','Saint Paul'],['Mississippi','Jackson'],['Missouri','Jefferson City'],['Montana','Helena'],['Nebraska','Lincoln'],['Nevada','Carson City'],['New Hampshire','Concord'],['New Jersey','Trenton'],['New Mexico','Santa Fe'],['New York','Albany'],['North Carolina','Raleigh'],['North Dakota','Bismarck'],['Ohio','Columbus'],['Oklahoma','Oklahoma City'],['Oregon','Salem'],['Pennsylvania','Harrisburg'],['Rhode Island','Providence'],['South Carolina','Columbia'],['South Dakota','Pierre'],['Tennessee','Nashville'],['Texas','Austin'],['Utah','Salt Lake City'],['Vermont','Montpelier'],['Virginia','Richmond'],['Washington','Olympia'],['West Virginia','Charleston'],['Wisconsin','Madison'],['Wyoming','Cheyenne']];
+    return a;
+  })(),
+  multiply: (function() {
+    var a = [];
+    for (var i = 1; i <= 12; i++) for (var j = 1; j <= 12; j++) a.push([i + ' x ' + j, i * j]);
+    return a;
+  })(),
+  'world-capitals': (function() {
+    var a = [['Japan','Tokyo'],['France','Paris'],['Germany','Berlin'],['Italy','Rome'],['Spain','Madrid'],['UK','London'],['Russia','Moscow'],['China','Beijing'],['India','New Delhi'],['Brazil','Brasilia'],['Argentina','Buenos Aires'],['Mexico','Mexico City'],['Canada','Ottawa'],['USA','Washington D.C.'],['Australia','Canberra'],['Egypt','Cairo'],['South Africa','Pretoria'],['Nigeria','Abuja'],['Kenya','Nairobi'],['Turkey','Ankara'],['Greece','Athens'],['Sweden','Stockholm'],['Norway','Oslo'],['Denmark','Copenhagen'],['Netherlands','Amsterdam'],['Belgium','Brussels'],['Switzerland','Bern'],['Austria','Vienna'],['Poland','Warsaw'],['Portugal','Lisbon'],['Ireland','Dublin'],['Iceland','Reykjavik'],['Thailand','Bangkok'],['Vietnam','Hanoi'],['South Korea','Seoul'],['Indonesia','Jakarta'],['Philippines','Manila'],['Saudi Arabia','Riyadh'],['Iran','Tehran'],['Israel','Jerusalem']];
+    return a;
+  })(),
+  medical: (function() {
+    var a = [['Cardiology','heart and cardiovascular system'],['Dermatology','skin'],['Endocrinology','hormones and glands'],['Gastroenterology','digestive system'],['Hematology','blood'],['Nephrology','kidneys'],['Neurology','nervous system'],['Oncology','cancer'],['Ophthalmology','eyes'],['Orthopedics','bones and joints'],['Otolaryngology','ears nose throat'],['Pediatrics','children'],['Psychiatry','mental health'],['Pulmonology','lungs'],['Radiology','imaging'],['Rheumatology','joints and autoimmune'],['Urology','urinary tract'],['Gynecology','female reproductive'],['Obstetrics','pregnancy and childbirth'],['Anesthesiology','anesthesia'],['Pathology','disease mechanisms'],['Immunology','immune system'],['Genetics','heredity'],['Microbiology','microorganisms'],['Pharmacology','drugs']];
+    return a;
+  })()
+};
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function load() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      var s = JSON.parse(raw);
+      state.decks = s.decks || {};
+      state.active = s.active || null;
+      state.mode = s.mode || 'review';
+    }
+  } catch (e) {}
+}
+
+function makeCard(front, back) {
+  return { front: front, back: back, ease: 2.5, interval: 0, reps: 0, due: 0, lastReviewed: 0 };
+}
+
+function buildQueue() {
+  var deck = state.decks[state.active];
+  if (!deck) { session.queue = []; return; }
+  if (state.mode === 'cram') {
+    session.queue = deck.cards.slice();
+  } else if (state.mode === 'test') {
+    session.queue = deck.cards.slice();
+  } else {
+    session.queue = deck.cards.filter(dueToday);
+  }
+  session.pos = 0;
+  session.flipped = false;
+  session.reviews = 0;
+  session.correct = 0;
+}
+
+function pickCurrent() {
+  if (session.pos >= session.queue.length) { session.currentCard = null; return; }
+  session.currentCard = session.queue[session.pos];
+  session.currentCardIdx = state.decks[state.active].cards.indexOf(session.currentCard);
+  session.flipped = false;
+}
+
+function computeStats() {
+  var deck = state.decks[state.active];
+  if (!deck) return null;
+  var total = deck.cards.length;
+  var due = deck.cards.filter(dueToday).length;
+  var reviews = 0, correct = 0;
+  deck.cards.forEach(function(c) {
+    if (c.lastReviewed) {
+      reviews++;
+      if (c.reps > 0) correct++;
+    }
+  });
+  var acc = reviews > 0 ? Math.round((correct / reviews) * 100) : null;
+  var streak = deck.streak || 0;
+  return { total: total, due: due, acc: acc, streak: streak };
+}
+
+function $(id) { return document.getElementById(id); }
+
+function setStatus(msg, type) {
+  var s = $('f-status');
+  s.textContent = msg;
+  s.className = 'f-status' + (type ? ' ' + type : '');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+  });
+}
+
+function renderDeckList() {
+  var html = '';
+  var names = Object.keys(state.decks).sort();
+  if (!names.length) {
+    html = '<div style="padding:14px;color:var(--f-muted);font-size:0.85rem;text-align:center;">No decks yet. Click a sample below or create one above.</div>';
+  } else {
+    names.forEach(function(name) {
+      var d = state.decks[name];
+      var due = d.cards.filter(dueToday).length;
+      var isActive = name === state.active;
+      html += '<div class="f-deck' + (isActive ? ' active' : '') + '" data-deck="' + escapeHtml(name) + '">';
+      html += '<div class="f-deck-info"><b>' + escapeHtml(name) + '</b><small>' + d.cards.length + ' cards &middot; ' + due + ' due</small></div>';
+      html += '<button class="f-deck-del" data-del="' + escapeHtml(name) + '" title="Delete">x</button>';
+      html += '</div>';
+    });
+  }
+  $('f-deck-list').innerHTML = html;
+  $('f-active-panel').style.display = state.active && state.decks[state.active] ? 'block' : 'none';
+  if (state.active) {
+    $('f-active-name').textContent = state.active;
+    var stats = computeStats();
+    if (stats) {
+      $('f-stat-total').textContent = stats.total;
+      $('f-stat-due').textContent = stats.due;
+      $('f-stat-acc').textContent = stats.acc === null ? '-' : stats.acc + '%';
+      $('f-stat-streak').textContent = stats.streak;
+    }
+  }
+}
+
+function renderStudy() {
+  var area = $('f-study-area');
+  var deck = state.decks[state.active];
+  if (!state.active || !deck) {
+    area.innerHTML = '<div class="f-empty"><div class="f-empty-icon">&#128218;</div><div class="f-empty-text"><strong>Pick a deck to start studying.</strong><br><br>Keyboard: <span class="f-kbd">Space</span> flips card, <span class="f-kbd">1</span>-<span class="f-kbd">4</span> grades after flip.<br>Your decks stay in this browser only.</div></div>';
+    return;
+  }
+  if (!session.queue.length) {
+    area.innerHTML = '<div class="f-empty"><div class="f-empty-icon">&#9989;</div><div class="f-empty-text"><strong>All caught up!</strong><br><br>No cards due right now in <b>' + escapeHtml(state.active) + '</b>. Switch to <b>Cram</b> mode above to study them anyway, or come back tomorrow.</div></div>';
+    return;
+  }
+  if (session.pos >= session.queue.length) {
+    var accStr = session.reviews ? Math.round((session.correct / session.reviews) * 100) + '%' : 'n/a';
+    area.innerHTML = '<div class="f-empty"><div class="f-empty-icon">&#127942;</div><div class="f-empty-text"><strong>Session complete!</strong><br><br>Reviewed: <b>' + session.reviews + '</b><br>Correct: <b>' + session.correct + '</b><br>Accuracy: <b>' + accStr + '</b></div><button class="f-btn" style="margin-top:14px" id="f-restart">Restart Session</button></div>';
+    $('f-restart').onclick = function() { buildQueue(); pickCurrent(); renderStudy(); };
+    return;
+  }
+  if (!session.currentCard) pickCurrent();
+  var card = session.currentCard;
+  var pct = Math.round((session.pos / session.queue.length) * 100);
+  var html = '<div style="width:100%;max-width:540px;display:flex;flex-direction:column;align-items:center">';
+  html += '<div class="f-card' + (session.flipped ? ' flipped' : '') + '" id="f-card" tabindex="0">';
+  html += '<div class="f-card-side">' + (session.flipped ? 'Back' : 'Front') + '</div>';
+  html += '<div class="f-card-text">' + escapeHtml(session.flipped ? card.back || '(no back)' : card.front) + '</div>';
+  if (card.lastReviewed) {
+    var days = card.interval < 1 ? Math.round(card.interval * 24 * 60) + ' min' : Math.round(card.interval) + ' day' + (card.interval >= 2 ? 's' : '');
+    html += '<div class="f-card-meta">Last seen: ' + new Date(card.lastReviewed).toLocaleDateString() + ' &middot; Next: ' + days + '</div>';
+  }
+  html += '</div>';
+  if (session.flipped) {
+    html += '<div class="f-grades">';
+    html += '<button class="f-grade f-grade-again" data-grade="1">Again<span><span class="f-kbd">1</span> &lt; 1 min</span></button>';
+    html += '<button class="f-grade f-grade-hard" data-grade="2">Hard<span><span class="f-kbd">2</span> ~1.2x</span></button>';
+    html += '<button class="f-grade f-grade-good" data-grade="3">Good<span><span class="f-kbd">3</span> ~interval</span></button>';
+    html += '<button class="f-grade f-grade-easy" data-grade="4">Easy<span><span class="f-kbd">4</span> longer</span></button>';
+    html += '</div>';
+  }
+  html += '<div class="f-progress"><div class="f-progress-bar" style="width:' + pct + '%"></div></div>';
+  html += '<div class="f-progress-text">Card ' + (session.pos + 1) + ' of ' + session.queue.length + ' &middot</div>';
+  html += '</div>';
+  area.innerHTML = html;
+  bindStudy();
+}
+
+function bindStudy() {
+  var card = $('f-card');
+  if (card) {
+    card.onclick = function() { session.flipped = !session.flipped; renderStudy(); };
+    card.focus();
+  }
+  var btns = document.querySelectorAll('.f-grade');
+  btns.forEach(function(b) {
+    b.onclick = function() {
+      var g = parseInt(b.getAttribute('data-grade'), 10);
+      applyGrade(g);
+    };
+  });
+}
+
+function applyGrade(g) {
+  if (!session.currentCard) return;
+  var deck = state.decks[state.active];
+  if (state.mode === 'test') {
+    session.reviews++;
+    if (g >= 3) session.correct++;
+  } else {
+    gradeCard(session.currentCard, g);
+    session.reviews++;
+    if (g >= 3) {
+      session.correct++;
+      deck.streak = (deck.streak || 0) + 1;
+    } else {
+      deck.streak = 0;
+    }
+  }
+  save();
+  session.pos++;
+  session.flipped = false;
+  pickCurrent();
+  renderStudy();
+  renderDeckList();
+}
+
+function newDeck() {
+  var name = $('f-deck-name').value.trim();
+  if (!name) { setStatus('Enter a deck name', 'warn'); return; }
+  if (state.decks[name]) { setStatus('A deck named "' + name + '" already exists', 'warn'); return; }
+  state.decks[name] = { cards: [], created: Date.now(), streak: 0 };
+  state.active = name;
+  $('f-deck-name').value = '';
+  save();
+  buildQueue();
+  renderDeckList();
+  renderStudy();
+  setStatus('Created deck "' + name + '"', 'success');
+}
+
+function addCards() {
+  var name = state.active;
+  if (!name) { setStatus('Select a deck first', 'warn'); return; }
+  var raw = $('f-bulk-input').value;
+  if (!raw.trim()) { setStatus('Paste at least one card', 'warn'); return; }
+  var parsed = parseBulk(raw);
+  if (!parsed.length) { setStatus('No valid cards found', 'warn'); return; }
+  var deck = state.decks[name];
+  var added = 0, skipped = 0;
+  var seen = {};
+  deck.cards.forEach(function(c) { seen[c.front.toLowerCase()] = true; });
+  parsed.forEach(function(p) {
+    if (!p.front) { skipped++; return; }
+    if (seen[p.front.toLowerCase()]) { skipped++; return; }
+    deck.cards.push(makeCard(p.front, p.back));
+    seen[p.front.toLowerCase()] = true;
+    added++;
+  });
+  $('f-bulk-input').value = '';
+  save();
+  buildQueue();
+  renderDeckList();
+  renderStudy();
+  setStatus('Added ' + added + ' cards' + (skipped ? ' (' + skipped + ' duplicates skipped)' : ''), 'success');
+}
+
+function deleteDeck(name) {
+  if (!state.decks[name]) return;
+  if (!confirm('Delete deck "' + name + '" and all ' + state.decks[name].cards.length + ' cards?')) return;
+  delete state.decks[name];
+  if (state.active === name) state.active = null;
+  save();
+  buildQueue();
+  renderDeckList();
+  renderStudy();
+  setStatus('Deleted deck "' + name + '"', 'success');
+}
+
+function renameDeck() {
+  if (!state.active) return;
+  var n = prompt('Rename deck to:', state.active);
+  if (!n || n === state.active) return;
+  if (state.decks[n]) { setStatus('A deck named "' + n + '" already exists', 'warn'); return; }
+  state.decks[n] = state.decks[state.active];
+  delete state.decks[state.active];
+  state.active = n;
+  save();
+  renderDeckList();
+  renderStudy();
+  setStatus('Renamed to "' + n + '"', 'success');
+}
+
+function loadSample(key) {
+  var sample = SAMPLES[key];
+  if (!sample) return;
+  var name = 'Sample - ' + key.charAt(0).toUpperCase() + key.slice(1).replace(/-/g, ' ');
+  if (state.decks[name]) {
+    var suffix = 2;
+    while (state.decks[name + ' (' + suffix + ')']) suffix++;
+    name = name + ' (' + suffix + ')';
+  }
+  state.decks[name] = { cards: sample.map(function(p) { return makeCard(p[0], p[1]); }), created: Date.now(), streak: 0 };
+  state.active = name;
+  save();
+  buildQueue();
+  renderDeckList();
+  renderStudy();
+  setStatus('Loaded "' + name + '" with ' + sample.length + ' cards - start studying!', 'success');
+}
+
+function exportCsv() {
+  if (!state.active) return;
+  var deck = state.decks[state.active];
+  var rows = [['front', 'back', 'ease', 'interval_days', 'repetitions', 'last_reviewed_iso']];
+  deck.cards.forEach(function(c) {
+    rows.push([c.front, c.back, c.ease.toFixed(2), c.interval, c.reps, c.lastReviewed ? new Date(c.lastReviewed).toISOString() : '']);
+  });
+  var csv = rows.map(function(r) { return r.map(function(v) {
+    var s = String(v).replace(/"/g, '""');
+    return /[",\n]/.test(s) ? '"' + s + '"' : s;
+  }).join(','); }).join('\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = state.active.replace(/[^a-z0-9]+/gi, '_').toLowerCase() + '_fcm.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  setStatus('Exported ' + deck.cards.length + ' cards to CSV', 'success');
+}
+
+function printDeck() {
+  if (!state.active) return;
+  var deck = state.decks[state.active];
+  var html = '<h1 style="color:#14142b;text-align:center">' + escapeHtml(state.active) + '</h1>';
+  html += '<p style="text-align:center;color:#555;font-size:0.85rem">Print on both sides. Cut along the line.</p>';
+  deck.cards.forEach(function(c, i) {
+    html += '<div class="f-print-card"><b>' + (i + 1) + '. ' + escapeHtml(c.front) + '</b><br><span>Answer: ' + escapeHtml(c.back || '(no back)') + '</span></div>';
+  });
+  $('f-print-list').innerHTML = html;
+  window.print();
+}
+
+function bindUI() {
+  $('f-new-deck').onclick = newDeck;
+  $('f-deck-name').addEventListener('keydown', function(e) { if (e.key === 'Enter') newDeck(); });
+  $('f-add-cards').onclick = addCards;
+  $('f-export-csv').onclick = exportCsv;
+  $('f-rename-deck').onclick = renameDeck;
+  $('f-print-deck').onclick = printDeck;
+  $('f-delete-deck').onclick = function() { if (state.active) deleteDeck(state.active); };
+  $('f-deck-search').addEventListener('input', function() {
+    var q = this.value.toLowerCase();
+    var deck = state.decks[state.active];
+    if (!deck) return;
+    var filtered = deck.cards.filter(function(c) {
+      return c.front.toLowerCase().indexOf(q) !== -1 || c.back.toLowerCase().indexOf(q) !== -1;
+    });
+    var stat = $('f-stat-total');
+    if (stat) stat.textContent = q ? filtered.length + '/' + deck.cards.length : deck.cards.length;
+  });
+  document.getElementById('f-deck-list').addEventListener('click', function(e) {
+    var del = e.target.getAttribute('data-del');
+    if (del) { e.stopPropagation(); deleteDeck(del); return; }
+    var deckEl = e.target.closest('.f-deck');
+    if (deckEl) {
+      state.active = deckEl.getAttribute('data-deck');
+      save();
+      buildQueue();
+      renderDeckList();
+      renderStudy();
+    }
+  });
+  document.querySelectorAll('.f-mode').forEach(function(m) {
+    m.onclick = function() {
+      state.mode = m.getAttribute('data-mode');
+      save();
+      document.querySelectorAll('.f-mode').forEach(function(x) { x.classList.remove('active'); });
+      m.classList.add('active');
+      buildQueue();
+      renderStudy();
+    };
+  });
+  document.querySelectorAll('.f-chip').forEach(function(c) {
+    c.onclick = function() { loadSample(c.getAttribute('data-sample')); };
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    if (!state.active) return;
+    if (e.code === 'Space') { e.preventDefault(); session.flipped = !session.flipped; renderStudy(); }
+    else if (session.flipped && e.key >= '1' && e.key <= '4') { applyGrade(parseInt(e.key, 10)); }
+  });
+}
+
+load();
+bindUI();
+renderDeckList();
+if (state.active && state.decks[state.active]) {
+  buildQueue();
+  renderStudy();
+  document.querySelectorAll('.f-mode').forEach(function(x) {
+    if (x.getAttribute('data-mode') === state.mode) x.classList.add('active');
+    else x.classList.remove('active');
+  });
+} else {
+  renderStudy();
+}
+})();
+</script>
+</body>
+</html>

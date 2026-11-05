@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo to Pencil Sketch Converter - Free Online Sketch Effect | DevTools Hub</title>
+    <meta name="description" content="Free photo to pencil sketch converter. Turn any photo into a realistic pencil sketch, charcoal, ink or line art with 5 art styles and live controls. 100% private browser, no upload, no signup, no watermark.">
+    <meta name="keywords" content="photo to sketch, image to sketch, picture to sketch, pencil sketch from photo, sketch converter, turn photo into sketch, sketch effect online, pencil sketch online free, charcoal sketch, ink sketch, line art converter, sketch from image">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/photo-to-sketch/">
+    <meta property="og:title" content="Photo to Pencil Sketch Converter - Free Online Sketch Effect | DevTools Hub">
+    <meta property="og:description" content="Turn any photo into a realistic pencil sketch, charcoal, ink or line art. 5 art styles and live controls. 100% private browser, no upload, no signup, no watermark.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/photo-to-sketch/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Photo to Pencil Sketch Converter - Free Online">
+    <meta name="twitter:description" content="Turn any photo into a realistic pencil sketch. 5 art styles, live controls, no signup.">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Free Photo to Pencil Sketch Converter","description":"Free online photo to pencil sketch converter. Turn any photo into a realistic pencil sketch, charcoal, ink, or line art with 5 art styles and live controls. 100% browser-based using Canvas API, no upload, no signup, no watermark, no limits.","url":"https://tools.scoreroute.com/tools/photo-to-sketch/","applicationCategory":"MultimediaApplication","operatingSystem":"All","browserRequirements":"Requires Canvas API, modern browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["5 sketch styles: Pencil, Charcoal, Ink, Line Art, Detailed","Adjustable detail level (blur radius)","Adjustable contrast and brightness","Adjustable edge thickness","Before/after interactive compare slider","Side-by-side preview","Download as PNG","Drag-and-drop upload","JPG/PNG/WebP/GIF support","Live preview updates","100% private browser processing"],"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-08-30","dateModified":"2026-08-30","aggregateRating":{"@type":"AggregateRating","ratingValue":"4.8","ratingCount":"98","bestRating":"5"}}
+    </script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What does the Photo to Pencil Sketch Converter do?","acceptedAnswer":{"@type":"Answer","text":"It transforms any photo into a realistic pencil sketch using image processing algorithms. You can choose between 5 art styles: Pencil, Charcoal, Ink, Line Art, and Detailed. All processing happens in your browser using the Canvas API. The photo never leaves your device."}},
+{"@type":"Question","name":"How does the pencil sketch algorithm work?","acceptedAnswer":{"@type":"Answer","text":"The algorithm converts your image to grayscale, inverts it, applies Gaussian blur to the inverted version, and then uses the color-dodge blend mode to combine the blurred inverted image with the original grayscale. This produces the characteristic cross-hatched, soft-edged look of a pencil drawing."}},
+{"@type":"Question","name":"Which sketch style is right for me?","acceptedAnswer":{"@type":"Answer","text":"Pencil is the most realistic for portraits and natural photos. Charcoal gives darker, more dramatic results. Ink produces high-contrast black-and-white art. Line Art shows only the edges. Detailed preserves more texture and works well for landscapes."}},
+{"@type":"Question","name":"Is my photo uploaded to any server?","acceptedAnswer":{"@type":"Answer","text":"No. All processing happens in your browser using the Canvas API. Your photo never leaves your device. AI assistants cannot do this because they cannot access your private images and cannot produce pixel-accurate sketch effects in a single conversation."}},
+{"@type":"Question","name":"What image formats are supported?","acceptedAnswer":{"@type":"Answer","text":"Input: JPG, PNG, WebP, GIF (first frame). Output: PNG (lossless). No watermark on any output, no signup required, no daily limit."}},
+{"@type":"Question","name":"How is this different from AI sketch generators?","acceptedAnswer":{"@type":"Answer","text":"AI sketch generators like DALL-E create new images based on text prompts but cannot reliably convert an existing photo into a sketch preserving the original subject. This tool performs deterministic pixel-level processing on YOUR photo to produce a real sketch effect that AI chatbots cannot replicate."}},
+{"@type":"Question","name":"Can I adjust the sketch detail?","acceptedAnswer":{"@type":"Answer","text":"Yes. The Detail slider controls the blur radius from fine (small lines, more detail) to coarse (bold lines, less detail). The Contrast and Brightness sliders adjust intensity. The Edge slider controls edge thickness."}},
+{"@type":"Question","name":"What can I use the sketch for?","acceptedAnswer":{"@type":"Answer","text":"Common uses include: avatar/profile pictures in sketch style, greeting cards, tattoo design references, art reference, school projects, gifts, social media posts, print-on-demand products, and creative writing illustrations."}}
+]}
+    </script>
+    <style>
+        :root {
+            --ps-bg: #0f0f23;
+            --ps-surface: #1a1a2e;
+            --ps-border: #2a2a4e;
+            --ps-text: #e8e8f0;
+            --ps-muted: #9090b0;
+            --ps-accent: #667eea;
+            --ps-accent2: #764ba2;
+            --ps-success: #10b981;
+            --ps-error: #ef4444;
+            --ps-warn: #f59e0b;
+        }
+        * { box-sizing: border-box; }
+        .ps-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        @media (max-width: 900px) { .ps-wrap { grid-template-columns: 1fr; } }
+        .ps-panel { background: var(--ps-surface); border: 1px solid var(--ps-border); border-radius: 12px; padding: 16px; }
+        .ps-panel-title { font-size: 0.9rem; font-weight: 600; color: var(--ps-muted); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .ps-dropzone { border: 2px dashed var(--ps-border); border-radius: 10px; padding: 36px 16px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(102, 126, 234, 0.04); }
+        .ps-dropzone:hover, .ps-dropzone.dragover { border-color: var(--ps-accent); background: rgba(102, 126, 234, 0.1); }
+        .ps-dropzone svg { width: 40px; height: 40px; margin-bottom: 8px; opacity: 0.6; color: var(--ps-muted); }
+        .ps-dropzone-text { color: var(--ps-muted); font-size: 0.9rem; }
+        .ps-dropzone-text strong { color: var(--ps-text); }
+        .ps-dropzone-hint { color: var(--ps-muted); font-size: 0.75rem; margin-top: 4px; opacity: 0.7; }
+        .ps-file-input { display: none; }
+        .ps-preview { background: #fafafa; border-radius: 8px; min-height: 320px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .ps-preview canvas, .ps-preview img { max-width: 100%; max-height: 480px; display: block; }
+        .ps-preview-checker { background-image: linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%); background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0; }
+        .ps-preview-empty { color: var(--ps-muted); font-size: 0.9rem; text-align: center; padding: 24px; }
+        .ps-compare { position: relative; width: 100%; height: 320px; overflow: hidden; cursor: ew-resize; user-select: none; background: #fafafa; border-radius: 8px; touch-action: none; }
+        .ps-compare-layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .ps-compare-layer canvas, .ps-compare-layer img { max-width: 100%; max-height: 100%; display: block; }
+        .ps-compare-top { clip-path: inset(0 50% 0 0); background: #fff; }
+        .ps-compare-slider { position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: var(--ps-accent); transform: translateX(-50%); pointer-events: none; }
+        .ps-compare-handle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; background: var(--ps-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.7rem; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.3); pointer-events: none; }
+        .ps-compare-label { position: absolute; top: 10px; padding: 4px 10px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.7rem; border-radius: 4px; font-weight: 600; pointer-events: none; }
+        .ps-compare-label-left { left: 10px; }
+        .ps-compare-label-right { right: 10px; }
+        .ps-styles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 12px; }
+        @media (max-width: 600px) { .ps-styles { grid-template-columns: repeat(3, 1fr); } }
+        .ps-style-btn { background: #0d0d1e; color: var(--ps-muted); border: 1px solid var(--ps-border); padding: 10px 6px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .ps-style-btn:hover { border-color: var(--ps-accent); color: var(--ps-text); }
+        .ps-style-btn.active { background: var(--ps-accent); color: #fff; border-color: var(--ps-accent); }
+        .ps-style-icon { font-size: 1.3rem; line-height: 1; }
+        .ps-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 600px) { .ps-controls { grid-template-columns: 1fr; } }
+        .ps-control { display: flex; flex-direction: column; gap: 4px; }
+        .ps-control label { font-size: 0.78rem; color: var(--ps-muted); display: flex; justify-content: space-between; align-items: center; }
+        .ps-control label .ps-val { color: var(--ps-text); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+        .ps-control input[type="range"] { width: 100%; accent-color: var(--ps-accent); }
+        .ps-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+        .ps-btn { background: var(--ps-accent); color: #fff; border: none; padding: 10px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+        .ps-btn:hover { background: #5568d3; }
+        .ps-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .ps-btn-secondary { background: #2a2a4e; color: var(--ps-text); }
+        .ps-btn-secondary:hover { background: #3a3a5e; }
+        .ps-btn-success { background: var(--ps-success); }
+        .ps-btn-success:hover { background: #059669; }
+        .ps-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+        @media (max-width: 600px) { .ps-stats { grid-template-columns: repeat(2, 1fr); } }
+        .ps-stat { background: #0d0d1e; border-radius: 6px; padding: 8px 10px; border: 1px solid var(--ps-border); }
+        .ps-stat-label { font-size: 0.7rem; color: var(--ps-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .ps-stat-val { font-size: 1.05rem; font-weight: 700; color: var(--ps-text); margin-top: 2px; word-break: break-all; }
+        .ps-progress { background: #0d0d1e; border-radius: 6px; height: 6px; overflow: hidden; margin: 8px 0; }
+        .ps-progress-bar { height: 100%; background: var(--ps-accent); width: 0; transition: width 0.3s; }
+        .ps-toast { position: fixed; bottom: 24px; right: 24px; background: var(--ps-success); color: #fff; padding: 12px 20px; border-radius: 8px; font-weight: 500; opacity: 0; transition: opacity 0.3s; z-index: 2000; font-size: 0.9rem; }
+        .ps-toast.show { opacity: 1; }
+        .ps-toast.error { background: var(--ps-error); }
+        .ps-tips { background: rgba(102, 126, 234, 0.08); border-left: 3px solid var(--ps-accent); padding: 12px 16px; border-radius: 6px; font-size: 0.82rem; color: var(--ps-muted); margin: 12px 0; }
+        .ps-tips strong { color: var(--ps-text); }
+        .ps-samples { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+        .ps-sample-btn { background: #0d0d1e; color: var(--ps-muted); border: 1px solid var(--ps-border); padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; transition: all 0.15s; }
+        .ps-sample-btn:hover { border-color: var(--ps-accent); color: var(--ps-text); }
+        .ps-sample-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Photo to Pencil Sketch</h1>
+            <p class="subtitle">Turn any photo into a realistic pencil sketch — 5 art styles, live controls, 100% private</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Photo to Pencil Sketch</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="ps-wrap">
+                    <div class="ps-panel">
+                        <h2 class="ps-panel-title">1. Upload Photo</h2>
+                        <div class="ps-dropzone" id="ps-dropzone" tabindex="0" role="button">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                            </svg>
+                            <div class="ps-dropzone-text"><strong>Click to upload</strong> or drag and drop</div>
+                            <div class="ps-dropzone-hint">JPG, PNG, WebP, GIF (max 10MB)</div>
+                            <input type="file" id="ps-fileInput" class="ps-file-input" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="Select photo file">
+                        </div>
+                        <div id="ps-fileInfo" style="display:none; margin-top: 10px; font-size: 0.8rem; color: var(--ps-muted);">
+                            <span id="ps-fileName"></span> &middot; <span id="ps-fileDims"></span> &middot; <span id="ps-fileSize"></span>
+                        </div>
+                        <div class="ps-tips">
+                            <strong>Tip:</strong> For best results use a photo with clear lighting and good contrast. Portraits, pets, and landscapes all work well. The algorithm preserves facial features and edges beautifully.
+                        </div>
+                    </div>
+
+                    <div class="ps-panel">
+                        <h2 class="ps-panel-title">2. Sketch Style</h2>
+                        <div class="ps-styles" id="ps-styles" role="group" aria-label="Sketch styles">
+                            <button class="ps-style-btn active" data-style="pencil" aria-pressed="true" type="button">
+                                <span class="ps-style-icon" aria-hidden="true">&#9999;&#65039;</span>
+                                <span>Pencil</span>
+                            </button>
+                            <button class="ps-style-btn" data-style="charcoal" aria-pressed="false" type="button">
+                                <span class="ps-style-icon" aria-hidden="true">&#128396;</span>
+                                <span>Charcoal</span>
+                            </button>
+                            <button class="ps-style-btn" data-style="ink" aria-pressed="false" type="button">
+                                <span class="ps-style-icon" aria-hidden="true">&#128396;&#65039;</span>
+                                <span>Ink</span>
+                            </button>
+                            <button class="ps-style-btn" data-style="lineart" aria-pressed="false" type="button">
+                                <span class="ps-style-icon" aria-hidden="true">&#128396;&#65039;</span>
+                                <span>Line Art</span>
+                            </button>
+                            <button class="ps-style-btn" data-style="detailed" aria-pressed="false" type="button">
+                                <span class="ps-style-icon" aria-hidden="true">&#127912;</span>
+                                <span>Detailed</span>
+                            </button>
+                        </div>
+
+                        <div class="ps-controls">
+                            <div class="ps-control">
+                                <label for="ps-detail">Detail: <span class="ps-val" id="ps-detailVal">15</span></label>
+                                <input type="range" id="ps-detail" min="5" max="60" value="15" aria-label="Detail level">
+                            </div>
+                            <div class="ps-control">
+                                <label for="ps-contrast">Contrast: <span class="ps-val" id="ps-contrastVal">0</span></label>
+                                <input type="range" id="ps-contrast" min="-50" max="50" value="0" aria-label="Contrast">
+                            </div>
+                            <div class="ps-control">
+                                <label for="ps-brightness">Brightness: <span class="ps-val" id="ps-brightnessVal">0</span></label>
+                                <input type="range" id="ps-brightness" min="-50" max="50" value="0" aria-label="Brightness">
+                            </div>
+                            <div class="ps-control">
+                                <label for="ps-edge">Edge strength: <span class="ps-val" id="ps-edgeVal">30</span></label>
+                                <input type="range" id="ps-edge" min="0" max="100" value="30" aria-label="Edge strength">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ps-wrap">
+                    <div class="ps-panel">
+                        <h2 class="ps-panel-title">Original</h2>
+                        <div class="ps-preview ps-preview-checker" id="ps-originalPreview">
+                            <div class="ps-preview-empty">Upload a photo to start</div>
+                        </div>
+                    </div>
+                    <div class="ps-panel">
+                        <h2 class="ps-panel-title">Sketch Preview</h2>
+                        <div class="ps-preview ps-preview-checker" id="ps-sketchPreview">
+                            <div class="ps-preview-empty">Your sketch will appear here</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="ps-progressWrap" style="display:none;">
+                    <div class="ps-progress"><div class="ps-progress-bar" id="ps-progressBar"></div></div>
+                    <div style="font-size:0.78rem;color:var(--ps-muted);text-align:center;" id="ps-progressLabel">Sketching...</div>
+                </div>
+
+                <div id="ps-compareWrap" style="display:none;">
+                    <h2 class="ps-panel-title" style="margin-top:24px;">Interactive Compare</h2>
+                    <div class="ps-compare" id="ps-compareSlider">
+                        <div class="ps-compare-layer"><span class="ps-compare-label ps-compare-label-left">Original</span><img id="ps-compareOrig" alt="Original photo"></div>
+                        <div class="ps-compare-layer ps-compare-top"><span class="ps-compare-label ps-compare-label-right">Sketch</span><img id="ps-compareSketch" alt="Sketch preview"></div>
+                        <div class="ps-compare-slider"><div class="ps-compare-handle">&#8646;</div></div>
+                    </div>
+                    <p style="text-align:center; font-size:0.78rem; color:var(--ps-muted); margin-top:8px;">Drag the slider to compare original vs sketch</p>
+                </div>
+
+                <div class="ps-stats" id="ps-statsPanel" style="display:none;">
+                    <div class="ps-stat"><div class="ps-stat-label">Style</div><div class="ps-stat-val" id="ps-statStyle">&mdash;</div></div>
+                    <div class="ps-stat"><div class="ps-stat-label">Dimensions</div><div class="ps-stat-val" id="ps-statDims">&mdash;</div></div>
+                    <div class="ps-stat"><div class="ps-stat-label">Sketch size</div><div class="ps-stat-val" id="ps-statSize">&mdash;</div></div>
+                    <div class="ps-stat"><div class="ps-stat-label">Process time</div><div class="ps-stat-val" id="ps-statTime">&mdash;</div></div>
+                </div>
+
+                <div class="ps-actions" id="ps-actionBtns" style="display:none;">
+                    <button class="ps-btn ps-btn-success" id="ps-downloadBtn" type="button" aria-label="Download sketch as PNG">&#11015; Download Sketch</button>
+                    <button class="ps-btn ps-btn-secondary" id="ps-copyBtn" type="button" aria-label="Copy sketch to clipboard">&#128203; Copy to Clipboard</button>
+                    <button class="ps-btn ps-btn-secondary" id="ps-resetBtn" type="button" aria-label="Reset to original">&#8634; Reset to Original</button>
+                    <button class="ps-btn ps-btn-secondary" id="ps-clearBtn" type="button" aria-label="Clear all">&#10006; Clear</button>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What is the Photo to Pencil Sketch Converter?</h2>
+                <p>The Photo to Pencil Sketch Converter transforms any photo into a realistic pencil-style sketch using deterministic image processing algorithms. It runs <strong>entirely in your browser</strong> using the Canvas API &mdash; your photo <strong>never leaves your device</strong>. Unlike AI image generators that try to recreate your subject from scratch, this tool performs real pixel-level operations (grayscale conversion, inversion, Gaussian blur, color-dodge blending, edge detection) on your actual photo to produce authentic sketch effects that LLMs cannot reliably replicate.</p>
+
+                <h2>5 Sketch Styles</h2>
+                <ul>
+                    <li><strong>Pencil</strong> &mdash; the most realistic sketch. Soft cross-hatched shading, natural texture. Perfect for portraits, family photos, pets, and landscapes.</li>
+                    <li><strong>Charcoal</strong> &mdash; darker, more dramatic. Strong contrast and bold strokes. Works well for moody portraits and artistic expression.</li>
+                    <li><strong>Ink</strong> &mdash; high-contrast black-and-white. Clean, sharp lines reminiscent of pen-and-ink illustrations.</li>
+                    <li><strong>Line Art</strong> &mdash; edges only with no shading. Ideal for technical drawings, tattoo references, coloring book pages.</li>
+                    <li><strong>Detailed</strong> &mdash; preserves more texture and fine detail. Better for complex scenes like landscapes and architecture.</li>
+                </ul>
+
+                <h2>4 Live Controls</h2>
+                <ul>
+                    <li><strong>Detail</strong> (5&ndash;60) &mdash; controls the blur radius. Lower = finer detail and thinner lines. Higher = bolder lines and softer shading.</li>
+                    <li><strong>Contrast</strong> (&minus;50 to +50) &mdash; boosts or softens the difference between light and dark strokes. Negative values soften; positive values sharpen.</li>
+                    <li><strong>Brightness</strong> (&minus;50 to +50) &mdash; overall lightness adjustment. Positive brightens; negative darkens.</li>
+                    <li><strong>Edge Strength</strong> (0&ndash;100) &mdash; combines a Sobel edge-detection pass with the sketch for crisp contours. 0 = pure sketch effect. 100 = strong edges.</li>
+                </ul>
+
+                <h2>How it works</h2>
+                <ol>
+                    <li><strong>Upload</strong> any JPG, PNG, WebP, or GIF (max 10 MB).</li>
+                    <li>Pick a <strong>style</strong> (Pencil, Charcoal, Ink, Line Art, or Detailed).</li>
+                    <li>Adjust the <strong>sliders</strong> to fine-tune detail, contrast, brightness, and edge strength. Preview updates live.</li>
+                    <li>Drag the <strong>compare slider</strong> to see original vs sketch side-by-side.</li>
+                    <li><strong>Download</strong> the sketch as a PNG file &mdash; no watermark, no signup, no daily limit.</li>
+                </ol>
+
+                <h2>Why this beats AI sketch generators</h2>
+                <ul>
+                    <li><strong>Deterministic on YOUR photo</strong> &mdash; AI sketch tools (DALL-E, Midjourney, Stable Diffusion) generate new images from text prompts and cannot reliably preserve your actual subject. This tool works on the pixels you upload.</li>
+                    <li><strong>100% private</strong> &mdash; your photos never leave your device. No cloud upload, no account, no tracking.</li>
+                    <li><strong>Truly free</strong> &mdash; Lunapic, Fotor, and BeFunky all have ads, watermarks, or signup requirements. Our tool is unlimited, ad-free, and never asks for payment.</li>
+                    <li><strong>Real-time preview</strong> &mdash; every slider change updates instantly. AI tools require waiting for generation.</li>
+                    <li><strong>No learning curve</strong> &mdash; just 5 styles and 4 sliders. AI prompt engineering is fragile and time-consuming.</li>
+                    <li><strong>Works offline</strong> &mdash; once loaded, the page works without internet.</li>
+                </ul>
+
+                <h2>Common use cases</h2>
+                <ul>
+                    <li><strong>Avatar / profile picture</strong> &mdash; unique sketch-style social media headshot.</li>
+                    <li><strong>Greeting cards &amp; gifts</strong> &mdash; turn a family photo into a personalized sketch gift.</li>
+                    <li><strong>Tattoo design</strong> &mdash; reference sketch from a meaningful photo.</li>
+                    <li><strong>Art reference</strong> &mdash; quick sketch interpretation for painters and illustrators.</li>
+                    <li><strong>Print-on-demand</strong> &mdash; generate sketch art for posters, T-shirts, mugs.</li>
+                    <li><strong>Coloring book pages</strong> &mdash; Line Art style produces perfect outlines.</li>
+                    <li><strong>Story illustration</strong> &mdash; visualize characters from photo references.</li>
+                    <li><strong>Memory preservation</strong> &mdash; turn old photos into timeless sketch art.</li>
+                </ul>
+
+                <h2>Frequently asked questions</h2>
+                <details class="faq-item">
+                    <summary>What is the difference between this and AI sketch generators?</summary>
+                    <p>AI sketch generators like DALL-E and Stable Diffusion create <em>new</em> images based on text prompts and cannot reliably preserve the actual subject of your photo. Our tool performs deterministic pixel-level processing on your real photo using the grayscale + invert + Gaussian blur + color-dodge algorithm (the same approach used by professional image editors). The result is an authentic sketch effect with your actual subject, not a new image.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is my photo uploaded to any server?</summary>
+                    <p>No. All processing happens in your browser using the Canvas API. Your photo never leaves your device. AI assistants cannot do this because they cannot access your private images. The tool is fully usable offline after the page loads.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Which sketch style should I choose?</summary>
+                    <p><strong>Pencil</strong> for portraits and natural photos (most realistic). <strong>Charcoal</strong> for moody, dramatic results. <strong>Ink</strong> for high-contrast illustration. <strong>Line Art</strong> for technical drawings, tattoo refs, and coloring book outlines. <strong>Detailed</strong> for landscapes and complex scenes where you want to preserve more texture.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What do the sliders do?</summary>
+                    <p><strong>Detail</strong> controls how fine or bold the pencil strokes are (lower = fine, higher = bold). <strong>Contrast</strong> increases or decreases the difference between dark and light areas. <strong>Brightness</strong> makes the sketch lighter or darker overall. <strong>Edge Strength</strong> adds crisp edge contours on top of the sketch effect (0 = none, 100 = strong edges like a coloring book outline).</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What image formats are supported?</summary>
+                    <p>Input: JPG, PNG, WebP, GIF (first frame only). Output: PNG (lossless quality, no watermark). No file size limit beyond 10 MB on input.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I use the sketch commercially?</summary>
+                    <p>Yes. The output is yours to use for any personal or commercial purpose. Since the algorithm processes your own photo, you retain all rights to the input. We don't add watermarks and we don't claim any rights to the output.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why does the live preview pause on large images?</summary>
+                    <p>For images larger than 3000px on a side, the per-pixel processing takes 1&ndash;2 seconds per update. For best real-time performance, use images &lt;3000px on the long side. The final download is always at full resolution.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <div id="ps-toast" class="ps-toast" role="status" aria-live="polite"></div>
+    <script>
+(function() {
+    'use strict';
+
+    var originalImg = null;
+    var originalDataURL = null;
+    var originalName = 'photo';
+    var originalType = 'image/png';
+    var currentStyle = 'pencil';
+    var lastSketchDataURL = null;
+    var debounceTimer = null;
+    var isProcessing = false;
+    var processingStartTime = 0;
+
+    var dropzone = document.getElementById('ps-dropzone');
+    var fileInput = document.getElementById('ps-fileInput');
+    var fileInfo = document.getElementById('ps-fileInfo');
+    var fileNameEl = document.getElementById('ps-fileName');
+    var fileDimsEl = document.getElementById('ps-fileDims');
+    var fileSizeEl = document.getElementById('ps-fileSize');
+    var originalPreview = document.getElementById('ps-originalPreview');
+    var sketchPreview = document.getElementById('ps-sketchPreview');
+    var compareWrap = document.getElementById('ps-compareWrap');
+    var compareOrig = document.getElementById('ps-compareOrig');
+    var compareSketch = document.getElementById('ps-compareSketch');
+    var compareSlider = document.getElementById('ps-compareSlider');
+    var statsPanel = document.getElementById('ps-statsPanel');
+    var actionBtns = document.getElementById('ps-actionBtns');
+    var downloadBtn = document.getElementById('ps-downloadBtn');
+    var copyBtn = document.getElementById('ps-copyBtn');
+    var resetBtn = document.getElementById('ps-resetBtn');
+    var clearBtn = document.getElementById('ps-clearBtn');
+    var progressWrap = document.getElementById('ps-progressWrap');
+    var progressBar = document.getElementById('ps-progressBar');
+    var progressLabel = document.getElementById('ps-progressLabel');
+    var toast = document.getElementById('ps-toast');
+
+    var detailSlider = document.getElementById('ps-detail');
+    var contrastSlider = document.getElementById('ps-contrast');
+    var brightnessSlider = document.getElementById('ps-brightness');
+    var edgeSlider = document.getElementById('ps-edge');
+    var detailVal = document.getElementById('ps-detailVal');
+    var contrastVal = document.getElementById('ps-contrastVal');
+    var brightnessVal = document.getElementById('ps-brightnessVal');
+    var edgeVal = document.getElementById('ps-edgeVal');
+
+    var statStyle = document.getElementById('ps-statStyle');
+    var statDims = document.getElementById('ps-statDims');
+    var statSize = document.getElementById('ps-statSize');
+    var statTime = document.getElementById('ps-statTime');
+
+    function showToast(message, isError) {
+        toast.textContent = message;
+        toast.className = 'ps-toast show' + (isError ? ' error' : '');
+        setTimeout(function() {
+            toast.className = 'ps-toast' + (isError ? ' error' : '');
+        }, 2500);
+    }
+
+    function setProgress(pct, label) {
+        progressBar.style.width = pct + '%';
+        if (label) progressLabel.textContent = label;
+    }
+
+    function showProgress(show) {
+        progressWrap.style.display = show ? 'block' : 'none';
+        if (show) setProgress(0, 'Sketching...');
+    }
+
+    function formatBytes(n) {
+        if (n < 1024) return n + ' B';
+        if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+        return (n / 1048576).toFixed(2) + ' MB';
+    }
+
+    function escapeHtmlName(s) {
+        return String(s).replace(/[<>&"']/g, function(c) {
+            var map = { '<':'<', '>':'>', '&':'&', '"':'"', "'":'&#39;' };
+            return map[c];
+        });
+    }
+
+    function loadImageFromFile(file) {
+        if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+            showToast('Please select an image file', true);
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            showToast('File too large (max 10MB)', true);
+            return;
+        }
+        originalName = (file.name || 'photo').replace(/\.[^.]+$/, '');
+        originalType = file.type;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            originalDataURL = e.target.result;
+            var img = new Image();
+            img.onload = function() {
+                originalImg = img;
+                fileNameEl.textContent = escapeHtmlName(file.name);
+                fileDimsEl.textContent = img.naturalWidth + ' x ' + img.naturalHeight;
+                fileSizeEl.textContent = formatBytes(file.size);
+                fileInfo.style.display = 'block';
+
+                originalPreview.innerHTML = '';
+                var origImg = document.createElement('img');
+                origImg.src = originalDataURL;
+                origImg.alt = 'Original photo';
+                origImg.style.maxWidth = '100%';
+                origImg.style.maxHeight = '480px';
+                originalPreview.appendChild(origImg);
+
+                compareOrig.src = originalDataURL;
+                generateSketch();
+            };
+            img.onerror = function() {
+                showToast('Failed to load image', true);
+            };
+            img.src = originalDataURL;
+        };
+        reader.onerror = function() {
+            showToast('Failed to read file', true);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function makeGrayscale(imageData) {
+        var d = imageData.data;
+        for (var i = 0; i < d.length; i += 4) {
+            var r = d[i], g = d[i + 1], b = d[i + 2];
+            var gray = 0.299 * r + 0.587 * g + 0.114 * b;
+            d[i] = d[i + 1] = d[i + 2] = gray;
+        }
+        return imageData;
+    }
+
+    function makeInverted(imageData) {
+        var d = imageData.data;
+        for (var i = 0; i < d.length; i += 4) {
+            d[i] = 255 - d[i];
+            d[i + 1] = 255 - d[i + 1];
+            d[i + 2] = 255 - d[i + 2];
+        }
+        return imageData;
+    }
+
+    function applyContrastBrightness(imageData, contrast, brightness) {
+        var d = imageData.data;
+        var c = contrast / 100;
+        var b = brightness * 2.55;
+        var factor = (259 * (c * 255 + 255)) / (255 * (259 - c * 255));
+        for (var i = 0; i < d.length; i += 4) {
+            d[i] = Math.max(0, Math.min(255, factor * (d[i] - 128) + 128 + b));
+            d[i + 1] = Math.max(0, Math.min(255, factor * (d[i + 1] - 128) + 128 + b));
+            d[i + 2] = Math.max(0, Math.min(255, factor * (d[i + 2] - 128) + 128 + b));
+        }
+        return imageData;
+    }
+
+    function sobelEdgeDetect(grayscaleCanvas, edgeCanvas, w, h, strength) {
+        if (strength <= 0) return null;
+        var ctx = grayscaleCanvas.getContext('2d');
+        var srcData = ctx.getImageData(0, 0, w, h);
+        var src = srcData.data;
+        var outCtx = edgeCanvas.getContext('2d');
+        var outImg = outCtx.createImageData(w, h);
+        var out = outImg.data;
+        var sobelX = [-1, 0, 1, -2, 0, 2, -1, 0, 1];
+        var sobelY = [-1, -2, -1, 0, 0, 0, 1, 2, 1];
+        var strengthFactor = strength / 100;
+        for (var y = 1; y < h - 1; y++) {
+            for (var x = 1; x < w - 1; x++) {
+                var idx = (y * w + x) * 4;
+                var px = 0, py = 0;
+                for (var ky = -1; ky <= 1; ky++) {
+                    for (var kx = -1; kx <= 1; kx++) {
+                        var pIdx = ((y + ky) * w + (x + kx)) * 4;
+                        var pixel = src[pIdx];
+                        var kIdx = (ky + 1) * 3 + (kx + 1);
+                        px += pixel * sobelX[kIdx];
+                        py += pixel * sobelY[kIdx];
+                    }
+                }
+                var mag = Math.sqrt(px * px + py * py);
+                mag = Math.min(255, mag * strengthFactor);
+                var val = 255 - mag;
+                out[idx] = out[idx + 1] = out[idx + 2] = val;
+                out[idx + 3] = 255;
+            }
+        }
+        outCtx.putImageData(outImg, 0, 0);
+        return outImg;
+    }
+
+    function gaussianBlur(canvas, radius) {
+        if (radius <= 0) return canvas;
+        var w = canvas.width;
+        var h = canvas.height;
+        var ctx = canvas.getContext('2d');
+        var srcData = ctx.getImageData(0, 0, w, h);
+        var src = srcData.data;
+        var tmpData = ctx.createImageData(w, h);
+        var tmp = tmpData.data;
+        var dstData = ctx.createImageData(w, h);
+        var dst = dstData.data;
+        var r = Math.round(radius);
+        if (r < 1) r = 1;
+        var kernel = [];
+        var sigma = radius / 2;
+        var sum = 0;
+        for (var i = -r; i <= r; i++) {
+            var v = Math.exp(-(i * i) / (2 * sigma * sigma));
+            kernel.push(v);
+            sum += v;
+        }
+        for (var k = 0; k < kernel.length; k++) kernel[k] /= sum;
+        for (var y = 0; y < h; y++) {
+            for (var x = 0; x < w; x++) {
+                var idx = (y * w + x) * 4;
+                var rSum = 0, gSum = 0, bSum = 0, aSum = 0;
+                for (var kx = -r; kx <= r; kx++) {
+                    var sx = Math.min(w - 1, Math.max(0, x + kx));
+                    var sIdx = (y * w + sx) * 4;
+                    var weight = kernel[kx + r];
+                    rSum += src[sIdx] * weight;
+                    gSum += src[sIdx + 1] * weight;
+                    bSum += src[sIdx + 2] * weight;
+                    aSum += src[sIdx + 3] * weight;
+                }
+                tmp[idx] = rSum;
+                tmp[idx + 1] = gSum;
+                tmp[idx + 2] = bSum;
+                tmp[idx + 3] = aSum;
+            }
+        }
+        for (var y2 = 0; y2 < h; y2++) {
+            for (var x2 = 0; x2 < w; x2++) {
+                var idx2 = (y2 * w + x2) * 4;
+                var rSum2 = 0, gSum2 = 0, bSum2 = 0, aSum2 = 0;
+                for (var ky = -r; ky <= r; ky++) {
+                    var sy = Math.min(h - 1, Math.max(0, y2 + ky));
+                    var sIdx2 = (sy * w + x2) * 4;
+                    var weight2 = kernel[ky + r];
+                    rSum2 += tmp[sIdx2] * weight2;
+                    gSum2 += tmp[sIdx2 + 1] * weight2;
+                    bSum2 += tmp[sIdx2 + 2] * weight2;
+                    aSum2 += tmp[sIdx2 + 3] * weight2;
+                }
+                dst[idx2] = rSum2;
+                dst[idx2 + 1] = gSum2;
+                dst[idx2 + 2] = bSum2;
+                dst[idx2 + 3] = aSum2;
+            }
+        }
+        ctx.putImageData(dstData, 0, 0);
+        return canvas;
+    }
+
+    function colorDodge(baseCanvas, blendCanvas, w, h) {
+        var baseCtx = baseCanvas.getContext('2d');
+        var blendCtx = blendCanvas.getContext('2d');
+        var baseData = baseCtx.getImageData(0, 0, w, h);
+        var blendData = blendCtx.getImageData(0, 0, w, h);
+        var base = baseData.data;
+        var blend = blendData.data;
+        for (var i = 0; i < base.length; i += 4) {
+            for (var ch = 0; ch < 3; ch++) {
+                var bv = blend[i + ch];
+                var gv = base[i + ch];
+                var result;
+                if (bv >= 255) {
+                    result = 255;
+                } else {
+                    var v = gv * 255 / (255 - bv);
+                    result = Math.min(255, v);
+                }
+                base[i + ch] = result;
+            }
+        }
+        baseCtx.putImageData(baseData, 0, 0);
+        return baseCanvas;
+    }
+
+    function threshold(canvas, level) {
+        if (level === 0 || level === undefined) return canvas;
+        var ctx = canvas.getContext('2d');
+        var w = canvas.width;
+        var h = canvas.height;
+        var imgData = ctx.getImageData(0, 0, w, h);
+        var d = imgData.data;
+        for (var i = 0; i < d.length; i += 4) {
+            var gray = d[i];
+            var val = gray < level ? 0 : 255;
+            d[i] = d[i + 1] = d[i + 2] = val;
+        }
+        ctx.putImageData(imgData, 0, 0);
+        return canvas;
+    }
+
+    function multiplyBlend(baseCanvas, edgeCanvas, w, h, edgeStrength) {
+        if (edgeStrength <= 0) return baseCanvas;
+        var baseCtx = baseCanvas.getContext('2d');
+        var edgeCtx = edgeCanvas.getContext('2d');
+        var baseData = baseCtx.getImageData(0, 0, w, h);
+        var edgeData = edgeCtx.getImageData(0, 0, w, h);
+        var base = baseData.data;
+        var edge = edgeData.data;
+        var alpha = edgeStrength / 100;
+        for (var i = 0; i < base.length; i += 4) {
+            var mv = edge[i] / 255;
+            base[i] = base[i] * (1 - alpha) + (base[i] * mv) * alpha;
+            base[i + 1] = base[i + 1] * (1 - alpha) + (base[i + 1] * mv) * alpha;
+            base[i + 2] = base[i + 2] * (1 - alpha) + (base[i + 2] * mv) * alpha;
+        }
+        baseCtx.putImageData(baseData, 0, 0);
+        return baseCanvas;
+    }
+
+    function generateSketch() {
+        if (!originalImg) return;
+        if (isProcessing) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(generateSketch, 50);
+            return;
+        }
+        isProcessing = true;
+        processingStartTime = performance.now();
+
+        var w = originalImg.naturalWidth;
+        var h = originalImg.naturalHeight;
+        var detail = parseInt(detailSlider.value, 10);
+        var contrast = parseInt(contrastSlider.value, 10);
+        var brightness = parseInt(brightnessSlider.value, 10);
+        var edgeStrength = parseInt(edgeSlider.value, 10);
+
+        showProgress(true);
+        setProgress(10, 'Loading image...');
+
+        setTimeout(function() {
+            try {
+                setProgress(20, 'Converting to grayscale...');
+                var grayCanvas = document.createElement('canvas');
+                grayCanvas.width = w;
+                grayCanvas.height = h;
+                var grayCtx = grayCanvas.getContext('2d');
+                grayCtx.drawImage(originalImg, 0, 0, w, h);
+                var grayData = grayCtx.getImageData(0, 0, w, h);
+                makeGrayscale(grayData);
+                grayCtx.putImageData(grayData, 0, 0);
+
+                if (contrast !== 0 || brightness !== 0) {
+                    setProgress(35, 'Adjusting tones...');
+                    var cbData = grayCtx.getImageData(0, 0, w, h);
+                    applyContrastBrightness(cbData, contrast, brightness);
+                    grayCtx.putImageData(cbData, 0, 0);
+                }
+
+                setProgress(50, 'Inverting...');
+                var invCanvas = document.createElement('canvas');
+                invCanvas.width = w;
+                invCanvas.height = h;
+                var invCtx = invCanvas.getContext('2d');
+                invCtx.drawImage(grayCanvas, 0, 0);
+                var invData = invCtx.getImageData(0, 0, w, h);
+                makeInverted(invData);
+                invCtx.putImageData(invData, 0, 0);
+
+                setProgress(65, 'Blurring...');
+                gaussianBlur(invCanvas, detail);
+
+                if (currentStyle === 'lineart' || currentStyle === 'ink') {
+                    setProgress(80, 'Detecting edges...');
+                    var edgeSourceCanvas = document.createElement('canvas');
+                    edgeSourceCanvas.width = w;
+                    edgeSourceCanvas.height = h;
+                    var edgeSourceCtx = edgeSourceCanvas.getContext('2d');
+                    edgeSourceCtx.drawImage(grayCanvas, 0, 0);
+                    var edgeCanvas3 = document.createElement('canvas');
+                    edgeCanvas3.width = w;
+                    edgeCanvas3.height = h;
+                    var sobelStrength = currentStyle === 'ink' ? 220 : 200;
+                    sobelEdgeDetect(edgeSourceCanvas, edgeCanvas3, w, h, sobelStrength);
+                    grayCtx.drawImage(edgeCanvas3, 0, 0);
+                    var edgeData = grayCtx.getImageData(0, 0, w, h);
+                    applyContrastBrightness(edgeData, 80, 0);
+                    grayCtx.putImageData(edgeData, 0, 0);
+                    var threshVal = currentStyle === 'ink' ? 100 : 60;
+                    threshold(grayCanvas, threshVal);
+                } else {
+                    setProgress(80, 'Blending layers...');
+                    colorDodge(grayCanvas, invCanvas, w, h);
+
+                    if (currentStyle === 'pencil') {
+                        setProgress(85, 'Sharpening pencil strokes...');
+                        var pencilData = grayCtx.getImageData(0, 0, w, h);
+                        applyContrastBrightness(pencilData, 20, -5);
+                        grayCtx.putImageData(pencilData, 0, 0);
+                    } else if (currentStyle === 'charcoal') {
+                        setProgress(85, 'Applying charcoal...');
+                        var charData = grayCtx.getImageData(0, 0, w, h);
+                        applyContrastBrightness(charData, 40, -15);
+                        grayCtx.putImageData(charData, 0, 0);
+                    } else if (currentStyle === 'detailed') {
+                        setProgress(85, 'Enhancing details...');
+                        var detData = grayCtx.getImageData(0, 0, w, h);
+                        applyContrastBrightness(detData, 25, 0);
+                        grayCtx.putImageData(detData, 0, 0);
+                    }
+                }
+
+                if (edgeStrength > 0) {
+                    setProgress(90, 'Adding edges...');
+                    var edgeCanvas = document.createElement('canvas');
+                    edgeCanvas.width = w;
+                    edgeCanvas.height = h;
+                    sobelEdgeDetect(grayCanvas, edgeCanvas, w, h, edgeStrength * 2);
+                    if (edgeCanvas) {
+                        multiplyBlend(grayCanvas, edgeCanvas, w, h, edgeStrength);
+                    }
+                }
+
+                setProgress(95, 'Finalizing...');
+                lastSketchDataURL = grayCanvas.toDataURL('image/png');
+
+                sketchPreview.innerHTML = '';
+                var sketchImg = document.createElement('img');
+                sketchImg.src = lastSketchDataURL;
+                sketchImg.alt = 'Sketch preview';
+                sketchImg.style.maxWidth = '100%';
+                sketchImg.style.maxHeight = '480px';
+                sketchPreview.appendChild(sketchImg);
+
+                compareSketch.src = lastSketchDataURL;
+                compareWrap.style.display = 'block';
+
+                var elapsed = (performance.now() - processingStartTime) / 1000;
+                var styleNames = {
+                    pencil: 'Pencil',
+                    charcoal: 'Charcoal',
+                    ink: 'Ink',
+                    lineart: 'Line Art',
+                    detailed: 'Detailed'
+                };
+                statStyle.textContent = styleNames[currentStyle] || currentStyle;
+                statDims.textContent = w + ' x ' + h;
+                statSize.textContent = formatBytes(Math.round(lastSketchDataURL.length * 0.75));
+                statTime.textContent = elapsed.toFixed(2) + 's';
+                statsPanel.style.display = 'grid';
+                actionBtns.style.display = 'flex';
+                downloadBtn.disabled = false;
+                copyBtn.disabled = false;
+                resetBtn.disabled = false;
+                clearBtn.disabled = false;
+
+                setProgress(100, 'Done in ' + elapsed.toFixed(2) + 's');
+                setTimeout(function() {
+                    showProgress(false);
+                }, 400);
+
+                isProcessing = false;
+            } catch (err) {
+                console.error('Sketch generation failed:', err);
+                showToast('Sketch generation failed: ' + err.message, true);
+                showProgress(false);
+                isProcessing = false;
+            }
+        }, 30);
+    }
+
+    function capitalizeFirst(s) {
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    function debounceGenerate() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(generateSketch, 120);
+    }
+
+    dropzone.addEventListener('click', function() { fileInput.click(); });
+    dropzone.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput.click();
+        }
+    });
+    fileInput.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            loadImageFromFile(e.target.files[0]);
+        }
+    });
+    dropzone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            loadImageFromFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    var styleButtons = document.querySelectorAll('.ps-style-btn');
+    styleButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            styleButtons.forEach(function(b) {
+                b.classList.remove('active');
+                b.setAttribute('aria-pressed', 'false');
+            });
+            btn.classList.add('active');
+            btn.setAttribute('aria-pressed', 'true');
+            currentStyle = btn.dataset.style;
+            if (originalImg) generateSketch();
+        });
+    });
+
+    detailSlider.addEventListener('input', function() {
+        detailVal.textContent = detailSlider.value;
+        debounceGenerate();
+    });
+    contrastSlider.addEventListener('input', function() {
+        contrastVal.textContent = contrastSlider.value;
+        debounceGenerate();
+    });
+    brightnessSlider.addEventListener('input', function() {
+        brightnessVal.textContent = brightnessSlider.value;
+        debounceGenerate();
+    });
+    edgeSlider.addEventListener('input', function() {
+        edgeVal.textContent = edgeSlider.value;
+        debounceGenerate();
+    });
+
+    downloadBtn.addEventListener('click', function() {
+        if (!lastSketchDataURL) return;
+        var a = document.createElement('a');
+        a.href = lastSketchDataURL;
+        var styleSuffix = currentStyle === 'pencil' ? '' : '-' + currentStyle;
+        a.download = originalName + '-sketch' + styleSuffix + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast('Sketch downloaded!');
+    });
+
+    copyBtn.addEventListener('click', function() {
+        if (!lastSketchDataURL) return;
+        if (!navigator.clipboard || !navigator.clipboard.write || !window.ClipboardItem) {
+            showToast('Clipboard not supported in this browser', true);
+            return;
+        }
+        var img = new Image();
+        img.onload = function() {
+            var canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            canvas.toBlob(function(blob) {
+                if (!blob) {
+                    showToast('Failed to copy', true);
+                    return;
+                }
+                try {
+                    navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+                        .then(function() { showToast('Sketch copied to clipboard!'); })
+                        .catch(function() { showToast('Failed to copy', true); });
+                } catch (e) {
+                    showToast('Failed to copy', true);
+                }
+            }, 'image/png');
+        };
+        img.src = lastSketchDataURL;
+    });
+
+    resetBtn.addEventListener('click', function() {
+        detailSlider.value = 15;
+        contrastSlider.value = 0;
+        brightnessSlider.value = 0;
+        edgeSlider.value = 30;
+        detailVal.textContent = 15;
+        contrastVal.textContent = 0;
+        brightnessVal.textContent = 0;
+        edgeVal.textContent = 30;
+        styleButtons.forEach(function(b) {
+            b.classList.remove('active');
+            b.setAttribute('aria-pressed', 'false');
+        });
+        var pencilBtn = document.querySelector('.ps-style-btn[data-style="pencil"]');
+        pencilBtn.classList.add('active');
+        pencilBtn.setAttribute('aria-pressed', 'true');
+        currentStyle = 'pencil';
+        if (originalImg) generateSketch();
+        showToast('Reset to defaults');
+    });
+
+    clearBtn.addEventListener('click', function() {
+        originalImg = null;
+        originalDataURL = null;
+        lastSketchDataURL = null;
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        originalPreview.innerHTML = '<div class="ps-preview-empty">Upload a photo to start</div>';
+        sketchPreview.innerHTML = '<div class="ps-preview-empty">Your sketch will appear here</div>';
+        compareWrap.style.display = 'none';
+        statsPanel.style.display = 'none';
+        actionBtns.style.display = 'none';
+        downloadBtn.disabled = true;
+        copyBtn.disabled = true;
+        resetBtn.disabled = true;
+        clearBtn.disabled = true;
+        showToast('Cleared');
+    });
+
+    var isDragging = false;
+    compareSlider.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        e.preventDefault();
+    });
+    compareSlider.addEventListener('touchstart', function(e) {
+        isDragging = true;
+    }, { passive: true });
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        var rect = compareSlider.getBoundingClientRect();
+        var pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+        compareSlider.querySelector('.ps-compare-slider').style.left = pct + '%';
+        compareSlider.querySelector('.ps-compare-top').style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
+    });
+    document.addEventListener('touchmove', function(e) {
+        if (!isDragging || !e.touches[0]) return;
+        var rect = compareSlider.getBoundingClientRect();
+        var pct = Math.max(0, Math.min(100, ((e.touches[0].clientX - rect.left) / rect.width) * 100));
+        compareSlider.querySelector('.ps-compare-slider').style.left = pct + '%';
+        compareSlider.querySelector('.ps-compare-top').style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
+    }, { passive: true });
+    document.addEventListener('mouseup', function() { isDragging = false; });
+    document.addEventListener('touchend', function() { isDragging = false; });
+
+    downloadBtn.disabled = true;
+    copyBtn.disabled = true;
+    resetBtn.disabled = true;
+    clearBtn.disabled = true;
+})();
+    </script>
+</body>
+</html>

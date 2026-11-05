@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snow Day Calculator - Will School Close Tomorrow? | DevTools Hub</title>
+    <meta name="description" content="Free snow day calculator. Enter a ZIP code, postal code or city and get a school closure probability from live hourly weather data. School-type aware.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/snow-day-calculator/">
+    <meta property="og:title" content="Snow Day Calculator - Will School Close Tomorrow? | DevTools Hub">
+    <meta property="og:description" content="Free snow day calculator. Enter a ZIP code, postal code or city and get a school closure probability from live hourly weather data. School-type aware.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/snow-day-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-10-25",
+        "dateModified": "2026-10-25",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "Snow Day Calculator",
+        "description": "Predict the chance of a school snow day tomorrow from live hourly weather data for any US or Canadian ZIP or postal code, or any city worldwide.",
+        "url": "https://tools.scoreroute.com/tools/snow-day-calculator/",
+        "applicationCategory": "UtilityApplication",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "operatingSystem": "Any",
+        "permissions": "geolocation",
+        "softwareVersion": "1.0"
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Snow Day Calculator</h1>
+            <p class="subtitle">Will school close tomorrow? A probability from live forecast data</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Snow Day Calculator</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Check Tomorrow's Snow Day Chance</h2>
+                <div class="input-row" style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <input type="text" id="loc" placeholder="ZIP, postal code or city (e.g. 02139 or Boston)" style="flex:1;min-width:220px;" aria-label="Location: ZIP code, postal code or city">
+                    <button onclick="check()" class="btn btn-primary">Check Snow Day</button>
+                </div>
+                <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px;">
+                    <label for="schoolType">School type:</label>
+                    <select id="schoolType">
+                        <option value="suburban">Public suburban</option>
+                        <option value="urban">Public urban</option>
+                        <option value="rural">Public rural</option>
+                        <option value="private">Private / prep</option>
+                        <option value="boarding">Boarding</option>
+                        <option value="college">College</option>
+                    </select>
+                    <button onclick="toggleManual()" class="btn btn-secondary" id="manualBtn">Enter weather manually</button>
+                </div>
+                <div id="manualBox" style="display:none;margin-top:10px;">
+                    <div style="display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+                        <label>Forecast snow tonight (inches) <input type="number" id="mSnow" step="0.1" min="0" value="0"></label>
+                        <label>Overnight low (&deg;F) <input type="number" id="mLow" step="1" value="25"></label>
+                        <label>Expected wind (mph) <input type="number" id="mWind" step="1" min="0" value="10"></label>
+                        <label>Precipitation type
+                            <select id="mPrecip">
+                                <option value="snow">Snow</option>
+                                <option value="ice">Freezing rain / ice</option>
+                                <option value="none">None</option>
+                            </select>
+                        </label>
+                    </div>
+                    <button onclick="checkManual()" class="btn btn-primary" style="margin-top:8px;">Score my numbers</button>
+                </div>
+                <div id="status" class="status" style="display:none;"></div>
+                <div id="result" style="display:none;">
+                    <h3 id="verdict" style="font-size:1.5rem;"></h3>
+                    <div id="scoreBox" style="font-size:3rem;font-weight:700;color:#7eb3ff;"></div>
+                    <div id="delayNote" style="color:#b3b8c0;"></div>
+                    <table id="factorTable" style="width:100%;border-collapse:collapse;margin-top:12px;">
+                        <caption class="sr-only">Factors driving the snow day prediction</caption>
+                        <thead><tr><th style="text-align:left;">Factor</th><th style="text-align:left;">Read</th><th style="text-align:left;">Effect</th></tr></thead>
+                        <tbody><tr><td colspan="3">No data yet.</td></tr></tbody>
+                    </table>
+                    <button onclick="copyResult(this)" class="copy-btn" style="margin-top:10px;">Copy Result</button>
+                </div>
+            </div>
+            <div class="info-section">
+                <h3>How the Snow Day Calculator makes its estimate</h3>
+                <p>The Snow Day Calculator turns tomorrow's weather forecast into one number: the chance that school in your area closes or delays. Enter a US or Canadian ZIP code, postal code, or a city name, choose your school type, and the tool pulls the next 24 hours of hourly data from Open-Meteo and scores it against thresholds that districts actually react to. It is a planning tool, not an official announcement. Your local district makes the final call at dawn, and forecasts can change overnight, so refresh the page the evening before and again in the morning for the latest numbers.</p>
+                <p>The estimate is built from four things districts weigh when they cancel school. First, snowfall: the tool sums the hourly snow forecast from late evening through the morning bus run, because five inches overnight before 9 PM is plowed by 6 AM, while three inches falling between 5 and 8 AM shuts down the commute. Second, temperature: the overnight low decides whether snow packs down into an icy layer or melts through the day. Third, wind: sustained gusts over 20 mph raise whiteout and rural road drift risks, and regions accustomed to wind treat it differently. Fourth, ice: when rain falls while the road surface sits at or near freezing, a thin glaze closes more schools than several inches of dry fluff, so air temperatures hovering around 32 F with active precipitation add a regional adjustment. Your school type sets the bar: urban public districts plow fast and close rarely, rural districts bus on long roads and close earlier, and colleges almost never cancel.</p>
+                <h4>How much snow is needed for a snow day?</h4>
+                <p>There is no single magic number. In many US suburbs two inches landing before 3 AM is enough to cancel, while cities like Minneapolis can plow six inches and open on time. The timing matters more than the total: snow that falls during the morning commute, near-freezing temperatures, ice glaze, and high winds shift the outcome more than an extra inch overnight. That is why the calculator asks for your school type instead of showing one snowfall cutoff for everyone. The factor table under your score shows exactly which conditions are pushing the prediction up or down.</p>
+                <h4>How to use the tool</h4>
+                <p>Type your ZIP code, postal code, or city into the search bar, pick your school type, and press Check Snow Day. No signup, no account. If the weather API is unreachable from your network, switch to manual mode and enter the forecast snow for tonight, the overnight low, and the expected wind; the same scoring runs on whatever numbers you provide, so the tool works anywhere on Earth, not just the United States and Canada.</p>
+                <h4>FAQ</h4>
+                <details class="faq-item"><summary>What data does the snow day predictor use?</summary><p>It reads tomorrow's hour-by-hour forecast for your exact location: how much snow is expected, when it falls, how cold the morning is, how hard the wind blows, and whether ice is likely. Those numbers feed a weighted score that estimates how school districts near you respond to winter weather, returning one percentage you can act on. Forecast data comes from Open-Meteo, a free weather API that aggregates national weather models.</p></details>
+                <details class="faq-item"><summary>How many inches of snow is a snow day?</summary><p>There is no single magic number. In many US suburbs two inches landing before 3 AM is enough to cancel, while cities like Minneapolis can plow six inches and open on time. The timing matters more than the total: snow that falls during the morning commute, near-freezing temperatures, ice glaze, and high winds shift the outcome more than an extra inch overnight. That is why the calculator asks for your school type instead of showing one snowfall cutoff for everyone.</p></details>
+                <details class="faq-item"><summary>How accurate is a snow day prediction?</summary><p>It is a probability estimate, not a promise. The forecast it reads is issued hours ahead and can change by morning, and your district makes decisions based on live road conditions, plowing progress, and student safety that no forecast can see. Treat 80-90% as "very likely, start planning for it" and treat 20-30% as "hope, but keep alarm on".</p></details>
+                <details class="faq-item"><summary>Can I check for cities without a ZIP code?</summary><p>Yes. Type a city name instead, or switch to manual mode and enter the forecast numbers from your local radio, TV station, or weather app. The same scoring runs on whatever numbers you provide, so the tool works anywhere on Earth, not just the United States and Canada.</p></details>
+                <details class="faq-item"><summary>Is my data stored?</summary><p>Nothing is stored: the request goes from your browser straight to Open-Meteo, a free weather forecast API, and the scoring runs in your browser. There is no signup, no account, and no cookie wall. The tool is free forever and adapts to phone screens, which is when the snow day question usually comes up.</p></details>
+                <details class="faq-item"><summary>What is a snow day calculator for college admissions?</summary><p>Academic snow day calculators exist that track the weather rather than admissions. The score here compares your forecasted conditions against the thresholds districts use: inches of expected snow in the critical window, overnight low, wind, and ice risk. The percentage plus the factor table tells you what is driving the call.</p></details>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+    <script src="/tools.js"></script>
+    <script>
+    function sdcStatus(msg, type) {
+        var el = document.getElementById('status');
+        el.style.display = msg ? 'block' : 'none';
+        el.textContent = msg;
+        el.className = 'status' + (type ? ' ' + type : '');
+    }
+    function toggleManual() {
+        var box = document.getElementById('manualBox');
+        box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    }
+    function baseForInches(inches) {
+        if (inches < 0.1) return 2;
+        if (inches < 0.5) return 6;
+        if (inches < 1.5) return 18;
+        if (inches < 2.5) return 38;
+        if (inches < 3.5) return 58;
+        if (inches < 5) return 78;
+        if (inches < 7) return 90;
+        if (inches < 10) return 94;
+        return 96;
+    }
+    var SCHOOL_MULT = {urban: 0.88, suburban: 1.0, rural: 1.12, private: 1.05, college: 0.5, boarding: 0.15};
+    function verdictFor(p) {
+        if (p < 20) return ['No snow day expected', 'Schools very likely open.'];
+        if (p < 45) return ['Elevated chance', 'Something fell but plows likely keep up.'];
+        if (p < 65) return ['Toss-up', 'Genuinely uncertain; watch the forecast.'];
+        if (p < 85) return ['Strong chance', 'Plan for a possible closure or delay.'];
+        return ['Very likely closed', 'Conditions districts routinely cancel for.'];
+    }
+    function render(res, factors, locName) {
+        var v = verdictFor(res.p);
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('verdict').textContent = v[0] + (locName ? ' - ' + locName : '');
+        document.getElementById('scoreBox').textContent = res.p + '%';
+        document.getElementById('delayNote').textContent = (res.p >= 40) ? v[1] + ' A 2-hour delay is the fall-back outcome in the midrange 40-70%.' : v[1];
+        var tb = document.getElementById('factorTable').querySelector('tbody');
+        tb.innerHTML = factors.map(function(f) {
+            return '<tr><td>' + f[0] + '</td><td>' + f[1] + '</td><td>' + f[2] + '</td></tr>';
+        }).join('');
+    }
+    function scoreContext(ctx, schoolType) {
+        var factors = [];
+        var p = baseForInches(ctx.inches);
+        factors.push(['Snow in window', ctx.inches.toFixed(1) + ' in (tonight 18:00 to tomorrow 09:00)', 'base ' + p + '%']);
+        if (ctx.inches < 0.3) { factors.push(['Overnight low', ctx.low + '\u00B0F', '+0 (dry night, cold alone does not close schools)']); }
+        else if (ctx.low > 32) { p -= 25; factors.push(['Overnight low', ctx.low + '\u00B0F (above freezing)', '-25']); }
+        else if (ctx.low >= 28 && ctx.low <= 32) { p += 4; factors.push(['Overnight low', ctx.low + '\u00B0F (near freezing, packing snow)', '+4']); }
+        else if (ctx.low <= 14) { p += 4; factors.push(['Overnight low', ctx.low + '\u00B0F (extreme cold)', '+4']); }
+        else if (ctx.low <= 22) { p += 2; factors.push(['Overnight low', ctx.low + '\u00B0F (cold, packs down)', '+2']); }
+        else { factors.push(['Overnight low', ctx.low + '\u00B0F (mild)', '+0']); }
+        if (ctx.wind > 25 && ctx.inches >= 0.3) { p += 5; factors.push(['Wind', ctx.wind + ' mph (whiteout / drifting risk)', '+5']); }
+        else if (ctx.wind > 18 && ctx.inches >= 0.3) { p += 2; factors.push(['Wind', ctx.wind + ' mph', '+2']); }
+        else { factors.push(['Wind', ctx.wind + ' mph', '+0']); }
+        if (ctx.iceHours >= 1) { p = Math.min(92, p + 18); factors.push(['Ice risk', ctx.iceHours + 'h precip near 32\u00B0F', '+18']); }
+        var mult = SCHOOL_MULT[schoolType] || 1;
+        p = Math.round(p * mult);
+        factors.push(['School type', schoolType, '\u00D7' + mult]);
+        p = Math.max(2, Math.min(98, p));
+        return {p: p, factors: factors};
+    }
+    function checkManual() {
+        var ctx = {
+            inches: parseFloat(document.getElementById('mSnow').value) || 0,
+            low: parseFloat(document.getElementById('mLow').value) || 0,
+            wind: parseFloat(document.getElementById('mWind').value) || 0,
+            iceHours: document.getElementById('mPrecip').value === 'ice' ? 2 : 0
+        };
+        if (document.getElementById('mPrecip').value === 'ice' && ctx.inches < 0.1) ctx.inches = 0;
+        var r = scoreContext(ctx, document.getElementById('schoolType').value);
+        render(r, r.factors, 'manual entry');
+    }
+    async function check() {
+        var q = document.getElementById('loc').value.trim();
+        if (!q) { sdcStatus('Enter a ZIP code, postal code or city name.', 'error'); return; }
+        sdcStatus('Looking up ' + q + '...');
+        document.getElementById('result').style.display = 'none';
+        try {
+            var g = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=1&language=en&format=json');
+            g = await g.json();
+            if (!g.results || !g.results.length) { sdcStatus('Location not found. Try a city name, or use manual entry below.', 'error'); return; }
+            var hit = g.results[0], lat = hit.latitude, lon = hit.longitude, name = hit.name + (hit.country ? ', ' + hit.country : '');
+            sdcStatus('Loaded ' + name + '. Fetching hourly forecast...');
+            var w = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+                '&hourly=temperature_2m,snowfall,precipitation,wind_speed_10m&timezone=auto&forecast_days=2' +
+                '&temperature_unit=fahrenheit&windspeed_unit=mph');
+            w = await w.json();
+            var rows = w.hourly.time, t = w.hourly.temperature_2m, sf = w.hourly.snowfall, pr = w.hourly.precipitation, wd = w.hourly.wind_speed_10m;
+            if (!rows) { sdcStatus('Forecast unavailable. Use manual entry.', 'error'); return; }
+            var d0 = rows[0].slice(0, 10);
+            var d1 = new Date(d0 + 'T00:00:00'); d1.setDate(d1.getDate() + 1);
+            var d1s = d1.getFullYear() + '-' + String(d1.getMonth() + 1).padStart(2, '0') + '-' + String(d1.getDate()).padStart(2, '0');
+            var inches = 0, low = 999, wind = 0, iceHours = 0;
+            for (var i = 0; i < rows.length; i++) {
+                var date = rows[i].slice(0, 10), hour = parseInt(rows[i].slice(11, 13), 10);
+                var isEvening = date === d0 && hour >= 18, isNight = date === d1s && hour < 10;
+                if (isEvening || isNight) {
+                    inches += sf[i] * 0.393701;
+                    if (t[i] < low) low = t[i];
+                    if (wd[i] > wind) wind = wd[i];
+                    if (pr[i] > 0.05 && t[i] >= 29 && t[i] <= 33 && sf[i] < 0.05) iceHours++;
+                }
+            }
+            if (low === 999) { sdcStatus('Forecast window empty. Use manual entry.', 'error'); return; }
+            var ctx = {inches: inches, low: Math.round(low), wind: Math.round(wind), iceHours: iceHours};
+            var r = scoreContext(ctx, document.getElementById('schoolType').value);
+            render(r, r.factors, name);
+            sdcStatus('');
+        } catch (e) {
+            sdcStatus('Weather lookup failed: ' + e.message + '. Switch to manual entry instead.', 'error');
+        }
+    }
+    function copyResult(btn) {
+        var v = document.getElementById('verdict').textContent, s = document.getElementById('scoreBox').textContent;
+        var factors = Array.from(document.querySelectorAll('#factorTable tbody tr')).map(function(tr) {
+            return Array.from(tr.children).map(function(td) { return td.textContent; }).join(' | ');
+        }).join('\n');
+        navigator.clipboard.writeText(v + '\nSnow day chance: ' + s + '\n' + factors).then(function() {
+            var b = btn; if (b) { var o = b.textContent; b.textContent = 'Copied!'; setTimeout(function() { b.textContent = o; }, 1500); }
+        });
+    }
+    </script>
+</body>
+</html>

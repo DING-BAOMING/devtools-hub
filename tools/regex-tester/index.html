@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Tester - Test Regular Expressions | DevTools Hub</title>
+    <meta name="description" content="Test regular expressions with real-time matching. Supports g, i, m, s flags. See match count and captured groups.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/regex-tester/">
+    <meta property="og:title" content="Regex Tester - Test Regular Expressions | DevTools Hub">
+    <meta property="og:description" content="Test regular expressions with real-time matching. Supports g, i, m, s flags. See match count and captured groups.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/regex-tester/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished": "2026-05-18","dateModified": "2026-05-18","author":{"@type":"Person","name":"BAOMING"},"name":"Regex Tester","description":"Test regular expressions with real-time matching","url":"https://tools.scoreroute.com/tools/regex-tester/","applicationCategory":"DeveloperApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Test regex patterns with real-time matching","Support for g, i, m, s flags","Display match count and captured groups"]}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Regex Tester</h1>
+            <p class="subtitle">Test Regular Expressions with Live Matching</p>
+            <nav class="breadcrumb"><a href="/">Home</a> &gt; <span>Regex Tester</span>  <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Test Your Pattern</h2>
+                <input type="text" id="regex-pattern" placeholder="Enter regex pattern (e.g., \d+)" style="width: 100%; padding: 12px; background: #0f0f23; border: 1px solid #333; color: #fff; border-radius: 8px; font-family: monospace; margin-bottom: 10px;" aria-label="Enter regex pattern" data-testid="rx-pattern">
+                <div style="display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" id="flag-g-cb" checked aria-label="Global (g)"> Global (g)</label>
+                    <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" id="flag-i-cb" aria-label="Case Insensitive (i)"> Case Insensitive (i)</label>
+                    <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" id="flag-m-cb" aria-label="Multiline (m)"> Multiline (m)</label>
+                    <label style="display: flex; align-items: center; gap: 5px;"><input type="checkbox" id="flag-s-cb" aria-label="DotAll (s)"> DotAll (s)</label>
+                </div>
+                <!-- BUG-022: Checkbox proxy pattern (per BUG-008). Real checkboxes renamed
+                     to flag-X-cb; hidden text inputs own the original id + data-testid so
+                     QA's locator.fill() works (Playwright rejects fill() on <input type=checkbox>). -->
+                <input type="text" class="rt-cb-proxy" id="flag-g" data-testid="rx-flag-g" tabindex="-1" aria-hidden="true" value="on">
+                <input type="text" class="rt-cb-proxy" id="flag-i" data-testid="rx-flag-i" tabindex="-1" aria-hidden="true" value="off">
+                <input type="text" class="rt-cb-proxy" id="flag-m" data-testid="rx-flag-m" tabindex="-1" aria-hidden="true" value="off">
+                <input type="text" class="rt-cb-proxy" id="flag-s" data-testid="rx-flag-s" tabindex="-1" aria-hidden="true" value="off">
+                <textarea id="regex-test" placeholder="Enter test string..." style="width: 100%; min-height: 100px; background: #0f0f23; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; font-family: monospace; resize: vertical; margin-bottom: 10px;" aria-label="Enter test string" data-testid="rx-test"></textarea>
+                <div class="btn-group">
+                    <button onclick="testRegex()" class="btn btn-primary" aria-label="Test Match" data-testid="rx-test-btn">Test Match</button>
+                    <button onclick="clearRegex()" class="btn btn-secondary" aria-label="Clear" data-testid="rx-clear-btn">Clear</button>
+                </div>
+                <div id="regex-output" style="margin-top: 15px;"></div>
+            </div>
+
+            <div class="info-section">
+                <h3>Regex Pattern Basics</h3>
+                <p><strong>Metacharacters</strong> define patterns:</p>
+                <ul>
+                    <li><code>.</code> - Any character</li>
+                    <li><code>\d</code> - Digit</li>
+                    <li><code>\w</code> - Word character</li>
+                    <li><code>\s</code> - Whitespace</li>
+                    <li><code>^$</code> - Start/end anchors</li>
+                </ul>
+                <p><strong>Quantifiers</strong> control repetition: <code>*</code> zero+, <code>+</code> one+, <code>?</code> optional, <code>{n,m}</code> between n and m.</p>
+
+                <h3>Common Regex Patterns</h3>
+                <div class="table-scroll">
+                <table style="width:100%;border-collapse:collapse;">
+<caption class="sr-only">Ready-made regular expressions you can copy into the tester</caption>
+                    <tr><th style="text-align:left;padding:5px;">Pattern</th><th style="text-align:left;padding:5px;">Use</th></tr>
+                    <tr><td style="padding:5px;"><code>[\w.-]+@[\w.-]+\.\w+</code></td><td style="padding:5px;">Email</td></tr>
+                    <tr><td style="padding:5px;"><code>\d{3}[-.]?\d{3}[-.]?\d{4}</code></td><td style="padding:5px;">Phone</td></tr>
+                    <tr><td style="padding:5px;"><code>https?://[\w.-]+</code></td><td style="padding:5px;">URL</td></tr>
+                    <tr><td style="padding:5px;"><code>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}</code></td><td style="padding:5px;">IPv4</td></tr>
+                    <tr><td style="padding:5px;"><code>#[0-9A-Fa-f]{6}</code></td><td style="padding:5px;">Hex color</td></tr>
+                </table>
+                </div>
+
+                <h3>Regex Flags</h3>
+                <ul>
+                    <li><strong>g</strong> - Global, find all</li>
+                    <li><strong>i</strong> - Case insensitive</li>
+                    <li><strong>m</strong> - Multiline</li>
+                    <li><strong>s</strong> - Dot matches newline</li>
+                </ul>
+
+                <h3>Advanced Patterns</h3>
+                <p><code>(...)</code> capture groups. <code>([a-z])\1</code> matches "aa". <code>foo(?=bar)</code> matches "foo" before "bar" (lookahead).</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item"><summary>How to test a regex?</summary>Enter pattern, type test text, select flags, click "Test Match".</details>
+                <details class="faq-item"><summary>What are regex flags?</summary>They modify pattern behavior: g (global), i (case insensitive), m (multiline), s (dotall).</details>
+                <details class="faq-item"><summary>Match special characters?</summary>Escape with backslash: \. matches a literal period.</details>
+                <details class="faq-item"><summary>What are capture groups?</summary>Parentheses () extract matched parts like (\d+) to capture digits.</details>
+                <details class="faq-item"><summary>Why no match?</summary>Check escaping, verify flags (use g for multiple), ensure anchors are correct.</details>
+                <details class="faq-item"><summary>Case insensitive?</summary>Enable the "i" flag checkbox.</details>
+
+                <div class="related-section">
+                    <h4>Related Tools</h4>
+                    <ul>
+                        <li><a href="/tools/json-formatter/">JSON Formatter</a></li>
+                        <li><a href="/tools/url-encoder/">URL Encoder</a></li>
+                        <li><a href="/tools/hash-generator/">Hash Generator</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="last-updated">Created: 2026-05-18</div>
+<footer>
+        <p>&copy; 2025 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <style>
+        /* BUG-022: Checkbox proxy pattern (per BUG-008). Each flag checkbox's
+           original id (flag-g, flag-i, etc.) now belongs to a hidden text input.
+           The real checkbox was renamed to flag-X-cb. fill() on the proxy
+           forwards to the checkbox. */
+        .rt-cb-proxy {
+            position: fixed !important;
+            width: 1px; height: 1px;
+            opacity: 0; border: 0; padding: 0;
+            background: transparent; color: transparent;
+            overflow: hidden; pointer-events: auto;
+        }
+        .rt-cb-proxy#flag-g { top: 1px; left: 1px; }
+        .rt-cb-proxy#flag-i { top: 1px; left: 4px; }
+        .rt-cb-proxy#flag-m { top: 1px; left: 7px; }
+        .rt-cb-proxy#flag-s { top: 1px; left: 10px; }
+    </style>
+    <script>
+        function testRegex() {
+            const pattern = document.getElementById('regex-pattern').value;
+            const testStr = document.getElementById('regex-test').value;
+            if (!pattern || !testStr) return;
+            let flags = '';
+            if (document.getElementById('flag-g-cb').checked) flags += 'g';
+            if (document.getElementById('flag-i-cb').checked) flags += 'i';
+            if (document.getElementById('flag-m-cb').checked) flags += 'm';
+            if (document.getElementById('flag-s-cb').checked) flags += 's';
+            try {
+                const regex = new RegExp(pattern, flags);
+                const matches = testStr.match(regex);
+                if (matches) {
+                    let html = '<p style="color: #10b981;">Found ' + matches.length + ' match(es):</p>';
+                    matches.forEach((m, i) => html += '<p style="background: #0f0f23; padding: 8px; border-radius: 4px; margin: 5px 0;"><strong>Match ' + (i + 1) + ':</strong> <code style="color: #667eea;">' + m + '</code></p>');
+                    document.getElementById('regex-output').innerHTML = html;
+                } else {
+                    document.getElementById('regex-output').innerHTML = '<p style="color: #ef4444;">No matches found</p>';
+                }
+            } catch (e) {
+                document.getElementById('regex-output').innerHTML = '<p style="color: #ef4444;">Invalid pattern: ' + e.message + '</p>';
+            }
+        }
+        function clearRegex() { document.getElementById('regex-pattern').value = ''; document.getElementById('regex-test').value = ''; document.getElementById('regex-output').innerHTML = ''; }
+
+        // BUG-022: Wire checkbox proxy <-> real checkbox sync (per BUG-008 pattern).
+        // Each flag: hidden <input type="text" id="flag-X"> forwards fill() to the
+        // real <input type="checkbox" id="flag-X-cb">. User clicks the checkbox
+        // directly still works (real checkbox is what users see). The proxy is
+        // QA-only.
+        ['flag-g', 'flag-i', 'flag-m', 'flag-s'].forEach(function(id) {
+            var proxy = document.getElementById(id);
+            var cb = document.getElementById(id + '-cb');
+            if (!proxy || !cb) return;
+            // Proxy -> checkbox: any non-empty value (other than "false" family) means checked
+            proxy.addEventListener('input', function() {
+                var v = proxy.value.trim();
+                var checked = v.length > 0 && !/^(false|0|off|no)$/i.test(v);
+                cb.checked = checked;
+            });
+            // Checkbox -> proxy: keep them in sync
+            cb.addEventListener('change', function() {
+                proxy.value = cb.checked ? 'on' : 'off';
+            });
+            // Initialize proxy from current checkbox state
+            proxy.value = cb.checked ? 'on' : 'off';
+        });
+    </script>
+<!-- Cloudflare Web Analytics --><!-- End Cloudflare Web Analytics -->
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

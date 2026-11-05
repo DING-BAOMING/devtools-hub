@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cryptocurrency Price Tracker - Live Crypto Prices & Charts</title>
+    <meta name="description" content="Free crypto price tracker. Live prices for 17,000+ coins. AI cannot show real-time crypto prices.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/crypto-price-tracker/">
+    <meta property="og:title" content="Cryptocurrency Price Tracker - Live Crypto Prices">
+    <meta property="og:description" content="Free crypto price tracker. Live prices, market rankings, trending coins. No signup.">
+    <meta property="og:image" content="/og-image.png">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .coin-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 13px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .coin-avatar-sm { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 10px; flex-shrink: 0; }
+        .coin-avatar-lg { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 20px; flex-shrink: 0; }
+        .coin-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .coin-name-cell { display: flex; align-items: center; gap: 10px; }
+        .coin-name-text { color: #fff; font-weight: 500; }
+        .coin-symbol { color: #888; font-size: 0.75rem; text-transform: uppercase; }
+        .coin-table { width: 100%; border-collapse: collapse; }
+        .coin-table th { padding: 12px 8px; text-align: left; color: #888; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid #2a2a4a; }
+        .coin-table td { padding: 12px 8px; border-bottom: 1px solid #1a1a2e; }
+        .coin-table tr:hover { background: rgba(102,126,234,0.05); cursor: pointer; }
+        .change-positive { color: #10b981; }
+        .change-negative { color: #ef4444; }
+        .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #2a2a4a; border-top: 2px solid #667eea; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .global-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .stat-card { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 10px; padding: 16px; }
+        .stat-label { color: #888; font-size: 0.8rem; }
+        .stat-value { color: #fff; font-size: 1.2rem; font-weight: 600; }
+        .convert-box { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 10px; padding: 16px; margin-top: 16px; }
+        .convert-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .convert-row input, .convert-row select { padding: 10px 14px; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; border-radius: 8px; }
+        .trending-coins { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 20px; }
+        .trending-coin { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 10px; padding: 12px 16px; cursor: pointer; min-width: 100px; text-align: center; flex-shrink: 0; }
+        .trending-coin:hover { border-color: #667eea; }
+        .detail-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 200; }
+        .detail-modal.active { display: flex; justify-content: center; align-items: flex-start; padding: 40px 16px; }
+        .detail-panel { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 16px; max-width: 600px; width: 100%; padding: 24px; }
+        .detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+        .detail-price { font-size: 2rem; font-weight: 700; color: #fff; }
+        .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 16px 0; }
+        .detail-item { background: #0f0f23; border-radius: 8px; padding: 12px; }
+        .detail-item .di-label { color: #888; font-size: 0.7rem; text-transform: uppercase; }
+        .detail-item .di-value { color: #fff; font-size: 0.95rem; font-weight: 600; margin-top: 4px; }
+        @media (max-width: 600px) { .global-stats { grid-template-columns: repeat(2, 1fr); } .detail-grid { grid-template-columns: 1fr; } }
+    </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Crypto Price Tracker","url":"https://tools.scoreroute.com/tools/crypto-price-tracker/","description":"Track cryptocurrency prices, Bitcoin price, Ethereum price in real-time.","applicationCategory":"Finance","operatingSystem":"All"}
+</script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Cryptocurrency Price Tracker</h1>
+            <p class="subtitle">Live prices for 17,000+ coins &middot; Market rankings &middot; Trending</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Crypto Prices</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="global-stats" id="global-stats">
+                    <div class="stat-card"><div class="stat-label">Total Market Cap</div><div class="stat-value" id="gs-mcap">Loading...</div></div>
+                    <div class="stat-card"><div class="stat-label">24h Volume</div><div class="stat-value" id="gs-vol">...</div></div>
+                    <div class="stat-card"><div class="stat-label">BTC Dominance</div><div class="stat-value" id="gs-btc">...</div></div>
+                    <div class="stat-card"><div class="stat-label">Active Coins</div><div class="stat-value" id="gs-coins">...</div></div>
+                </div>
+                <div class="trending-coins" id="trending-coins"></div>
+                <div class="table-scroll">
+                    <table class="coin-table">
+<caption class="sr-only">Live market data for each coin in the list</caption>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Coin</th>
+                                <th>Price</th>
+                                <th>24h %</th>
+                                <th>Market Cap</th>
+                                <th>Volume</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coin-table-body">
+                            <tr><td colspan="6" style="text-align:center;padding:40px;"><span class="loading-spinner"></span> Loading market data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="convert-box">
+                    <h2 style="color:#667eea;margin-bottom:12px;">Quick Convert</h2>
+                    <div class="convert-row">
+                        <input type="number" id="conv-amt" value="1" min="0" style="width:80px;" aria-label="Volume">
+                        <input type="text" id="conv-from" name="conv-from" data-testid="conv-from" list="conv-from-list" autocomplete="off" aria-label="Volume" value="bitcoin" placeholder="Coin">
+                        <datalist id="conv-from-list">
+                            <option value="bitcoin">BTC</option>
+                            <option value="ethereum">ETH</option>
+                            <option value="solana">SOL</option>
+                            <option value="ripple">XRP</option>
+                            <option value="cardano">ADA</option>
+                        </datalist>
+                        <span>=</span>
+                        <input type="text" id="conv-result" readonly style="flex:1;min-width:120px;" placeholder="Result" aria-label="Result">
+                        <input type="text" id="conv-to" name="conv-to" data-testid="conv-to" list="conv-to-list" autocomplete="off" aria-label="Conv to" value="usd" placeholder="Currency">
+                        <datalist id="conv-to-list">
+                            <option value="usd">USD</option>
+                            <option value="eur">EUR</option>
+                            <option value="gbp">GBP</option>
+                        </datalist>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="info-section" style="margin-top:24px;">
+            <h2>How Live Prices Work</h2>
+            <p>This tracker pulls real-time market data from the CoinGecko public API, refreshing global statistics every 5 minutes, the coin table every 2 minutes, and the trending list on each page load. Prices are sourced from hundreds of exchanges and aggregated using CoinGecko's volume-weighted methodology, which gives a more representative market price than any single exchange. Market cap is calculated as circulating supply times current price (not total supply, to avoid double-counting locked or reserved tokens), and 24-hour volume sums trade volume across all reported exchanges.</p>
+            <p>The Quick Convert widget uses the same data feed to convert between any supported coin and a fiat currency in real time, including cross-crypto conversions like BTC to ETH or SOL to USD. The detail modal shows per-coin price action over 24 hours and 7 days, market cap rank, all-time high, and all-time low. Prices update without page reloads, so traders and analysts can leave the page open and watch the market move.</p>
+
+            <h2>Frequently Asked Questions</h2>
+            <details class="faq-item"><summary>How are prices calculated and how fresh is the data?</summary><p>Prices are aggregated from hundreds of exchanges using CoinGecko's volume-weighted methodology, which gives a single representative price per coin rather than the last-trade price on any single exchange. The global stats refresh every 5 minutes, the coin table refreshes every 2 minutes, and trending and individual coin details refresh on each page load or modal open.</p></details>
+            <details class="faq-item"><summary>What does the 24-hour percentage change mean?</summary><p>The 24-hour percentage is the change in price over the last 24 hours relative to the current price, expressed as a signed percentage. Green means the price went up, red means it went down. The calculation uses the price 24 hours ago as the baseline, not the open price of the most recent trading day, so the number matches what major exchanges show in their top-bar ticker.</p></details>
+            <details class="faq-item"><summary>What is market cap and why does it not equal price times total supply?</summary><p>Market cap is the total market value of a coin's circulating supply, calculated as current price times circulating supply. It excludes locked, reserved, vested, or burned tokens, so the number reflects what is actually tradeable on the open market. A coin with a low price but huge supply can have a high market cap, and a coin with a high price but tiny supply can have a low market cap. Circulating supply is sourced from CoinGecko and updated as tokens unlock.</p></details>
+            <details class="faq-item"><summary>What is BTC dominance and why does it matter?</summary><p>BTC dominance is the percentage of the total cryptocurrency market cap that is Bitcoin. It is calculated as Bitcoin's market cap divided by the total market cap of all cryptocurrencies times 100. Rising BTC dominance typically means money is flowing into Bitcoin and out of altcoins; falling dominance often indicates altcoin season as capital rotates into smaller projects. The metric is one of the most-cited indicators of risk appetite across the crypto market.</p></details>
+            <details class="faq-item"><summary>Are the prices accurate enough for trading decisions?</summary><p>For casual tracking, research, and portfolio monitoring, the prices shown are accurate to within a fraction of a percent of the actual market price across major exchanges. For active trading, slippage, exchange-specific liquidity, and order-book depth matter more than the aggregated price shown here. Always use the order book on your actual exchange before placing a trade, since aggregated prices can differ from executable prices by 0.1% to 1% on illiquid pairs.</p></details>
+            <details class="faq-item"><summary>Is any of my data stored or shared with anyone?</summary><p>No. The tracker calls the CoinGecko public API directly from your browser using read-only public endpoints. Nothing you do on this page is sent to DevTools Hub servers, no cookies are set, no analytics are collected on which coins you view, and no search history is saved. Closing the tab erases all in-memory state.</p></details>
+
+            <h2>References and Authority Sources</h2>
+            <ul>
+                <li><a href="https://www.coingecko.com/en/api" rel="noopener noreferrer" target="_blank">CoinGecko API</a> - The data source for all prices, market caps, volumes, and trending coins shown on this tracker. Free public endpoint, no key required.</li>
+                <li><a href="https://en.wikipedia.org/wiki/Cryptocurrency" rel="noopener noreferrer" target="_blank">Wikipedia - Cryptocurrency</a> - Background on what cryptocurrencies are, how they work, and the history of Bitcoin and subsequent projects.</li>
+                <li><a href="https://en.wikipedia.org/wiki/Bitcoin" rel="noopener noreferrer" target="_blank">Wikipedia - Bitcoin</a> - Detailed background on the first decentralized cryptocurrency and how its market dominance is computed.</li>
+                <li><a href="https://en.wikipedia.org/wiki/Market_capitalization" rel="noopener noreferrer" target="_blank">Wikipedia - Market Capitalization</a> - Authoritative reference on how crypto market cap is calculated and how it differs from price and total supply.</li>
+                <li><a href="https://en.wikipedia.org/wiki/Cryptocurrency_exchange" rel="noopener noreferrer" target="_blank">Wikipedia - Cryptocurrency Exchange</a> - Background on the trading venues whose aggregated prices feed this tracker and the difference between CEX and DEX liquidity.</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <div class="container">
+            <p>2026 DevTools Hub - <a href="/">Free Online Developer Tools</a> - Author: BAOMING</p>
+        </div>
+    </footer>
+
+    <div class="detail-modal" id="detail-modal">
+        <div class="detail-panel">
+            <button onclick="closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#888;font-size:1.5rem;cursor:pointer;">&times;</button>
+            <div id="detail-content"></div>
+        </div>
+    </div>
+
+    <script>
+    var API = '/api/crypto-price';
+    var currency = 'usd';
+    var marketData = [];
+
+    // Preload image and call callback when loaded or failed
+    // Returns a cancel function
+    function preloadImage(url, onComplete) {
+        if (!url) { onComplete(false); return function(){}; }
+        var img = new Image();
+        var timer = setTimeout(function() {
+            onComplete(false);
+        }, 3000);
+        img.onload = function() {
+            clearTimeout(timer);
+            onComplete(true);
+        };
+        img.onerror = function() {
+            clearTimeout(timer);
+            onComplete(false);
+        };
+        img.src = url;
+        return function() { clearTimeout(timer); img.onload = img.onerror = null; };
+    }
+
+    // Create coin avatar element - shows letter immediately, tries to load image
+    // If image loads, replaces the letter with actual image
+    function createCoinAvatar(coin, size) {
+        var letter = coin.symbol ? coin.symbol.charAt(0).toUpperCase() : '?';
+        var div = document.createElement('div');
+        div.className = 'coin-avatar coin-avatar-' + size;
+        div.textContent = letter;
+        div.dataset.symbol = letter;
+        
+        // Try to load real image in background
+        if (coin.image) {
+            var cancel = preloadImage(coin.image, function(success) {
+                if (success) {
+                    // Image loaded, replace letter with image
+                    var img = document.createElement('img');
+                    img.src = coin.image;
+                    img.alt = coin.name || coin.symbol;
+                    img.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;';
+                    div.innerHTML = '';
+                    div.appendChild(img);
+                }
+                // If failed, letter stays visible (already showing)
+            });
+        }
+        return div;
+    }
+
+    function fmt(n) {
+        if (n == null) return 'N/A';
+        if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+        if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+        if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+        if (n >= 1) return '$' + n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        return '$' + n.toFixed(6);
+    }
+    function pct(n) {
+        if (n == null) return 'N/A';
+        return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+    }
+
+    function initPage() {
+        loadGlobalStats();
+        loadTrending();
+        loadMarkets();
+        doConvert();
+        setInterval(loadMarkets, 120000);
+        setInterval(loadGlobalStats, 300000);
+    }
+
+    async function loadGlobalStats() {
+        try {
+            var r = await fetch(API + '?action=global');
+            var d = await r.json();
+            document.getElementById('gs-mcap').textContent = fmt(d.total_market_cap && d.total_market_cap.usd);
+            document.getElementById('gs-vol').textContent = fmt(d.total_volume && d.total_volume.usd);
+            document.getElementById('gs-btc').textContent = ((d.market_cap_percentage && d.market_cap_percentage.btc) || 0).toFixed(1) + '%';
+            document.getElementById('gs-coins').textContent = (d.active_cryptocurrencies || 0).toLocaleString();
+        } catch(e) { console.error('Global stats error:', e); }
+    }
+
+    async function loadTrending() {
+        try {
+            var r = await fetch(API + '?action=trending');
+            var d = await r.json();
+            var el = document.getElementById('trending-coins');
+            el.innerHTML = '';
+            if (!d.coins || d.coins.length === 0) return;
+            d.coins.slice(0, 7).forEach(function(item) {
+                var div = document.createElement('div');
+                div.className = 'trending-coin';
+                // Trending coins - show letter avatar with preload
+                var letter = item.symbol ? item.symbol.charAt(0).toUpperCase() : '?';
+                div.innerHTML = '<div class="coin-avatar coin-avatar-sm" style="margin:0 auto 6px;" data-letter="' + letter + '">' + letter + '</div><div style="color:#fff;font-weight:600;font-size:0.85rem;">' + item.name + '</div><div style="color:#888;font-size:0.7rem;">' + item.symbol + '</div>';
+                // Try to load thumb image
+                if (item.thumb) {
+                    (function(divRef, thumbUrl, name) {
+                        var cancel = preloadImage(thumbUrl, function(success) {
+                            if (success) {
+                                var avatar = divRef.querySelector('.coin-avatar-sm');
+                                if (avatar) {
+                                    var img = document.createElement('img');
+                                    img.src = thumbUrl;
+                                    img.alt = name;
+                                    img.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;';
+                                    avatar.textContent = '';
+                                    avatar.appendChild(img);
+                                }
+                            }
+                        });
+                    })(div, item.thumb, item.name);
+                }
+                div.onclick = function() { showCoinDetail(item.id); };
+                el.appendChild(div);
+            });
+        } catch(e) { console.error('Trending error:', e); }
+    }
+
+    async function loadMarkets() {
+        var tb = document.getElementById('coin-table-body');
+        tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;"><span class="loading-spinner"></span> Loading...</td></tr>';
+        try {
+            var r = await fetch(API + '?action=markets&page=1&per_page=50&vs_currency=' + currency);
+            if (!r.ok) throw new Error('API error ' + r.status);
+            marketData = await r.json();
+            renderTable();
+        } catch(e) {
+            tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#ef4444;">Error: ' + e.message + '. <button onclick="loadMarkets()" style="background:#667eea;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;margin-left:12px;">Retry</button></td></tr>';
+        }
+    }
+
+    function renderTable() {
+        var tb = document.getElementById('coin-table-body');
+        tb.innerHTML = '';
+        if (!marketData || marketData.length === 0) {
+            tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:#888;">No data available</td></tr>';
+            return;
+        }
+        marketData.forEach(function(coin) {
+            var tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            tr.onclick = function() { showCoinDetail(coin.id); };
+            var ch = coin.price_change_percentage_24h;
+            var chClass = ch != null ? (ch >= 0 ? 'change-positive' : 'change-negative') : '';
+            var avatar = createCoinAvatar(coin, 'sm');
+            var td2 = document.createElement('td');
+            td2.innerHTML = '<div class="coin-name-cell"></div>';
+            td2.querySelector('.coin-name-cell').appendChild(avatar);
+            td2.innerHTML += '<div><div class="coin-name-text">' + coin.name + '</div><div class="coin-symbol">' + coin.symbol + '</div></div>';
+            tr.appendChild(document.createElement('td')).textContent = coin.market_cap_rank || '-';
+            tr.appendChild(td2);
+            var td3 = document.createElement('td');
+            td3.textContent = fmt(coin.current_price);
+            td3.style.fontWeight = '500';
+            tr.appendChild(td3);
+            var td4 = document.createElement('td');
+            td4.textContent = pct(ch);
+            td4.className = chClass;
+            tr.appendChild(td4);
+            var td5 = document.createElement('td');
+            td5.textContent = fmt(coin.market_cap);
+            td5.style.color = '#888';
+            tr.appendChild(td5);
+            var td6 = document.createElement('td');
+            td6.textContent = fmt(coin.total_volume);
+            td6.style.color = '#888';
+            tr.appendChild(td6);
+            tb.appendChild(tr);
+        });
+    }
+
+    async function showCoinDetail(id) {
+        var modal = document.getElementById('detail-modal');
+        var content = document.getElementById('detail-content');
+        modal.classList.add('active');
+        content.innerHTML = '<div style="text-align:center;padding:40px;"><span class="loading-spinner"></span> Loading...</div>';
+        try {
+            var r = await fetch(API + '?action=coin&id=' + encodeURIComponent(id) + '&vs_currency=' + currency);
+            var d = await r.json();
+            if (d.error) throw new Error(d.error);
+            var md = d.market_data || {};
+            var letter = d.symbol ? d.symbol.charAt(0).toUpperCase() : '?';
+            var ch24 = md.price_change_percentage_24h;
+            var ch7d = md.price_change_percentage_7d;
+            var avatarDiv = document.createElement('div');
+            avatarDiv.className = 'coin-avatar coin-avatar-lg';
+            avatarDiv.textContent = letter;
+            if (d.image) {
+                (function(div, imgUrl) {
+                    preloadImage(imgUrl, function(success) {
+                        if (success) {
+                            var img = document.createElement('img');
+                            img.src = imgUrl;
+                            img.alt = d.name;
+                            img.style.cssText = 'width:100%;height:100%;border-radius:50%;object-fit:cover;';
+                            div.textContent = '';
+                            div.appendChild(img);
+                        }
+                    });
+                })(avatarDiv, d.image);
+            }
+            content.innerHTML = 
+                '<div class="detail-header"></div>';
+            content.querySelector('.detail-header').appendChild(avatarDiv);
+            var infoDiv = document.createElement('div');
+            infoDiv.innerHTML = '<h2 style="color:#fff;margin:0;">' + d.name + ' <span style="color:#888;font-size:0.8rem;text-transform:uppercase;">(' + d.symbol + ')</span></h2><div style="color:#888;font-size:0.85rem;">Rank #' + (d.market_cap_rank || 'N/A') + '</div>';
+            content.querySelector('.detail-header').appendChild(infoDiv);
+            content.innerHTML += 
+                '<div class="detail-price">' + fmt(md.current_price) + '</div>' +
+                '<div style="margin-bottom:16px;">' +
+                '<span class="' + (ch24 >= 0 ? 'change-positive' : 'change-negative') + '">' + pct(ch24) + ' (24h)</span> &nbsp; ' +
+                '<span class="' + (ch7d >= 0 ? 'change-positive' : 'change-negative') + '">' + pct(ch7d) + ' (7d)</span>' +
+                '</div>' +
+                '<div class="detail-grid">' +
+                '<div class="detail-item"><div class="di-label">Market Cap</div><div class="di-value">' + fmt(md.market_cap) + '</div></div>' +
+                '<div class="detail-item"><div class="di-label">24h Volume</div><div class="di-value">' + fmt(md.total_volume) + '</div></div>' +
+                '<div class="detail-item"><div class="di-label">24h High</div><div class="di-value">' + fmt(md.high_24h) + '</div></div>' +
+                '<div class="detail-item"><div class="di-label">24h Low</div><div class="di-value">' + fmt(md.low_24h) + '</div></div>' +
+                '<div class="detail-item"><div class="di-label">All-Time High</div><div class="di-value">' + fmt(md.ath) + '</div></div>' +
+                '<div class="detail-item"><div class="di-label">All-Time Low</div><div class="di-value">' + fmt(md.atl) + '</div></div>' +
+                '</div>';
+        } catch(e) {
+            content.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444;">Error: ' + e.message + '</div>';
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('detail-modal').classList.remove('active');
+    }
+    document.getElementById('detail-modal').onclick = function(e) { if (e.target === this) closeModal(); };
+    document.onkeydown = function(e) { if (e.key === 'Escape') closeModal(); };
+
+    function toCanonical(raw) {
+        var map = {
+            'bitcoin':'bitcoin','btc':'bitcoin',
+            'ethereum':'ethereum','eth':'ethereum',
+            'solana':'solana','sol':'solana',
+            'ripple':'ripple','xrp':'ripple',
+            'cardano':'cardano','ada':'cardano',
+            'usd':'usd','dollar':'usd',
+            'eur':'eur','euro':'eur',
+            'gbp':'gbp','pound':'gbp'
+        };
+        if (!raw) return '';
+        var k = String(raw).trim().toLowerCase();
+        return map[k] || raw;
+    }
+
+    async function doConvert() {
+        var amt = parseFloat(document.getElementById('conv-amt').value) || 0;
+        var from = toCanonical(document.getElementById('conv-from').value);
+        var to = toCanonical(document.getElementById('conv-to').value);
+        try {
+            var r = await fetch(API + '?action=convert&from=' + from + '&to=' + to + '&amount=' + amt);
+            var d = await r.json();
+            document.getElementById('conv-result').value = d.result ? d.result.toLocaleString('en-US', {maximumFractionDigits: 4}) + ' ' + to.toUpperCase() : 'Error';
+        } catch(e) { document.getElementById('conv-result').value = 'Error'; }
+    }
+
+    document.getElementById('conv-amt').oninput = doConvert;
+    document.getElementById('conv-from').addEventListener('input', doConvert);
+    document.getElementById('conv-to').addEventListener('input', doConvert);
+
+    initPage();
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

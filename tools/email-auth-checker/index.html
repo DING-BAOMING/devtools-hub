@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Authentication Checker - SPF DKIM DMARC Check Online | DevTools Hub</title>
+<meta name="description" content="Free email authentication checker. Check SPF, DKIM, and DMARC DNS records for any domain. Fix email deliverability. AI cannot check real DNS records - we do.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/email-auth-checker/">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/email-auth-checker/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Email Authentication Checker - SPF DKIM DMARC Check Online">
+<meta property="og:description" content="Free email authentication checker. Check SPF, DKIM, and DMARC DNS records for any domain. Fix email deliverability.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Email Authentication Checker - SPF DKIM DMARC Check Online">
+<meta name="twitter:description" content="Free email authentication checker. Check SPF, DKIM, and DMARC records for any domain. Fix email deliverability.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:url" content="https://tools.scoreroute.com/tools/email-auth-checker/">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Email Authentication Checker",
+  "description": "Free online email authentication checker. Check SPF, DKIM, DMARC, and MX records for any domain. Diagnose email deliverability issues and fix authentication problems.",
+  "url": "https://tools.scoreroute.com/tools/email-auth-checker/",
+  "applicationCategory": "NetworkApplication",
+  "datePublished": "2026-07-01",
+  "dateModified": "2026-07-01",
+  "author": {"@type": "Person", "name": "BAOMING"},
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "featureList": ["SPF record check and validation", "DKIM key lookup", "DMARC policy check", "MX record lookup", "Email authentication report", "Actionable fix recommendations"]
+}
+</script>
+<style>
+.eac-input-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.eac-input-row input[type="text"] { flex: 1; min-width: 250px; padding: 14px 18px; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; font-size: 1rem; font-family: monospace; transition: border-color 0.2s; }
+.eac-input-row input[type="text"]:focus { outline: 2px solid transparent; border-color: #667eea; }
+.eac-input-row input[type="text"]::placeholder { color: #555; }
+.eac-quick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-top: 12px; margin-bottom: 20px; }
+.eac-quick-item { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 10px 14px; cursor: pointer; transition: border-color 0.2s; text-align: center; }
+.eac-quick-item:hover { border-color: #667eea; background: #0f0f23; }
+.eac-quick-item .eac-qc-domain { color: #667eea; font-weight: 600; font-size: 0.9rem; }
+.eac-quick-item .eac-qc-desc { color: #666; font-size: 0.8rem; margin-top: 2px; }
+.eac-loading { text-align: center; padding: 40px 20px; display: none; }
+.eac-loading.visible { display: block; }
+.eac-spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #2a2a4a; border-top: 4px solid #667eea; border-radius: 50%; animation: eac-spin 0.8s linear infinite; margin-bottom: 12px; }
+@keyframes eac-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.eac-loading p { color: #888; font-size: 1rem; }
+.eac-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 16px 20px; color: #f87171; margin-bottom: 20px; display: none; }
+.eac-results { display: none; }
+.eac-results.visible { display: block; }
+.eac-overall { text-align: center; padding: 30px 20px; border-radius: 16px; margin-bottom: 24px; }
+.eac-overall.pass { background: rgba(16,185,129,0.12); border: 2px solid rgba(16,185,129,0.3); }
+.eac-overall.warning { background: rgba(234,179,8,0.12); border: 2px solid rgba(234,179,8,0.3); }
+.eac-overall.fail { background: rgba(239,68,68,0.12); border: 2px solid rgba(239,68,68,0.3); }
+.eac-overall-icon { font-size: 3rem; margin-bottom: 8px; }
+.eac-overall-label { font-size: 1.6rem; font-weight: 800; margin-bottom: 4px; }
+.eac-overall.pass .eac-overall-label { color: #4ade80; }
+.eac-overall.warning .eac-overall-label { color: #fbbf24; }
+.eac-overall.fail .eac-overall-label { color: #ef4444; }
+.eac-overall-subtitle { color: #b3b8c0; font-size: 0.95rem; margin-bottom: 16px; }
+.eac-module { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.eac-module-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; cursor: pointer; user-select: none; }
+.eac-module-header:hover { background: rgba(102,126,234,0.05); }
+.eac-module-icon { font-size: 1.5rem; width: 36px; text-align: center; }
+.eac-module-title { flex: 1; font-size: 1.1rem; font-weight: 600; color: #fff; }
+.eac-module-status { font-size: 0.85rem; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
+.eac-status-pass { background: rgba(16,185,129,0.15); color: #4ade80; }
+.eac-status-fail { background: rgba(239,68,68,0.15); color: #ef4444; }
+.eac-status-skip { background: rgba(107,114,128,0.15); color: #9ca3af; }
+.eac-status-warn { background: rgba(234,179,8,0.15); color: #fbbf24; }
+.eac-module-arrow { color: #555; font-size: 0.8rem; transition: transform 0.2s; }
+.eac-module-header.open .eac-module-arrow { transform: rotate(180deg); }
+.eac-module-body { display: none; padding: 0 20px 20px; border-top: 1px solid #2a2a4a; }
+.eac-module-body.open { display: block; }
+.eac-module-body pre { background: #0f0f23; padding: 12px 16px; border-radius: 8px; overflow-x: auto; color: #ccc; font-size: 0.85rem; line-height: 1.5; margin-top: 12px; font-family: monospace; word-break: break-all; white-space: pre-wrap; }
+.eac-record-row { padding: 10px 0; border-bottom: 1px solid #2a2a4a; }
+.eac-record-row:last-child { border-bottom: none; }
+.eac-record-label { color: #888; font-size: 0.85rem; margin-bottom: 4px; }
+.eac-record-value { color: #ccc; font-family: monospace; font-size: 0.9rem; word-break: break-all; line-height: 1.5; }
+.eac-record-warning { background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.2); border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-size: 0.85rem; color: #fbbf24; }
+.eac-record-good { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-size: 0.85rem; color: #4ade80; }
+.eac-record-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 6px; padding: 8px 12px; margin-top: 8px; font-size: 0.85rem; color: #ef4444; }
+.eac-summary-list { background: #0f0f23; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
+.eac-summary-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: 0.9rem; }
+.eac-summary-item .eac-si-icon { flex-shrink: 0; }
+.eac-summary-item .eac-si-text { color: #ccc; }
+.eac-dkim-selectors { margin-top: 8px; }
+.eac-dkim-selector-item { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; font-family: monospace; font-size: 0.85rem; }
+.eac-dkim-selector-item .eac-ds-name { color: #667eea; }
+.eac-dkim-selector-item .eac-ds-status { float: right; }
+.popular-label { color: #888; font-size: 0.85rem; margin-bottom: 4px; }
+@media (max-width: 600px) {
+  .eac-input-row { flex-direction: column; }
+  .eac-input-row input[type="text"] { min-width: unset; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Email Authentication Checker</h1>
+    <p class="subtitle">Check SPF, DKIM, DMARC & MX Records for Any Domain</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <span>Email Auth Checker</span>
+      <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <h2>Check Domain Email Authentication</h2>
+      <div class="eac-input-row">
+        <input type="text" id="eac-domain" placeholder="example.com" autocomplete="off" spellcheck="false" aria-label="Enter a domain">
+        <button class="btn btn-primary" onclick="checkAuth()" id="eac-check-btn">Check</button>
+      </div>
+
+      <div>
+        <p class="popular-label">Popular domains:</p>
+        <div class="eac-quick-grid">
+          <div class="eac-quick-item" onclick="quickCheck('gmail.com')"><div class="eac-qc-domain">gmail.com</div><div class="eac-qc-desc">Google Mail</div></div>
+          <div class="eac-quick-item" onclick="quickCheck('outlook.com')"><div class="eac-qc-domain">outlook.com</div><div class="eac-qc-desc">Microsoft</div></div>
+          <div class="eac-quick-item" onclick="quickCheck('yahoo.com')"><div class="eac-qc-domain">yahoo.com</div><div class="eac-qc-desc">Yahoo Mail</div></div>
+          <div class="eac-quick-item" onclick="quickCheck('github.com')"><div class="eac-qc-domain">github.com</div><div class="eac-qc-desc">GitHub</div></div>
+          <div class="eac-quick-item" onclick="quickCheck('tools.scoreroute.com')"><div class="eac-qc-domain">scoreroute.com</div><div class="eac-qc-desc">This site</div></div>
+          <div class="eac-quick-item" onclick="quickCheck('openai.com')"><div class="eac-qc-domain">openai.com</div><div class="eac-qc-desc">OpenAI</div></div>
+        </div>
+      </div>
+
+      <div id="eac-loading" class="eac-loading">
+        <div class="eac-spinner"></div>
+        <p id="eac-loading-text">Querying DNS records...</p>
+      </div>
+
+      <div id="eac-error" class="eac-error"></div>
+
+      <div id="eac-results" class="eac-results">
+        <div id="eac-overall" class="eac-overall"></div>
+
+        <div id="eac-summary" class="eac-summary-list"></div>
+
+        <div id="eac-modules"></div>
+
+        <div class="btn-group" style="margin-top:16px;">
+          <button class="btn btn-secondary" onclick="resetTool()">Check Another Domain</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>Problem: Emails Going to Spam?</h3>
+      <p>When your emails land in spam folders or get rejected, it's usually because your domain's email authentication is not set up correctly. SPF, DKIM, and DMARC are DNS records that tell receiving mail servers whether your email is legitimate. <strong>AI chatbots cannot check real DNS records</strong> — they can only describe what authentication looks like in theory, not what your domain actually has configured.</p>
+
+      <h3>How This Tool Solves It</h3>
+      <ul>
+        <li><strong>Real-time DNS queries</strong> — We query Cloudflare's DNS-over-HTTPS to read your actual SPF, DKIM, DMARC, and MX records live.</li>
+        <li><strong>Combined report</strong> — Instead of checking each record separately, you get one comprehensive email health report.</li>
+        <li><strong>Actionable warnings</strong> — We flag missing records, dangerous configurations (+all), excessive lookups, and policy issues.</li>
+        <li><strong>DKIM selector auto-detection</strong> — We check multiple common selectors to find your DKIM key.</li>
+        <li><strong>100% private</strong> — No data is stored, logged, or tracked. We never record which domains you check.</li>
+      </ul>
+
+      <h3>What Each Record Does</h3>
+      <details class="faq-item">
+        <summary>What is SPF?</summary>
+        <p>SPF (Sender Policy Framework) is a DNS TXT record that lists which mail servers are authorized to send email on behalf of your domain. It starts with <code>v=spf1</code> and includes mechanisms like <code>include</code>, <code>ip4</code>, <code>mx</code>, and <code>a</code>. The <code>-all</code> or <code>~all</code> at the end tells receivers what to do with unauthorized mail. Without SPF, anyone can forge emails from your domain (spoofing).</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is DKIM?</summary>
+        <p>DKIM (DomainKeys Identified Mail) adds a digital signature to your outgoing emails. The signature is verified using a public key published as a DNS TXT record at <code>&lt;selector&gt;._domainkey.yourdomain.com</code>. If the signature matches, the email hasn't been tampered with. Each email service (Google, Microsoft, SendGrid, etc.) uses its own selector — that's why we check multiple common selectors.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is DMARC?</summary>
+        <p>DMARC (Domain-based Message Authentication, Reporting, and Conformance) tells receiving servers what to do when SPF or DKIM fail. Published at <code>_dmarc.yourdomain.com</code>, it specifies a policy: <code>p=none</code> (monitor only), <code>p=quarantine</code> (send to spam), or <code>p=reject</code> (block outright). Google and Microsoft now require DMARC for bulk senders sending 5,000+ messages/day.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What do MX records tell me?</summary>
+        <p>MX (Mail Exchange) records specify the mail servers that accept incoming email for your domain. They reveal who handles your email (Google Workspace, Microsoft 365, etc.) and the priority order of mail servers. Missing MX records mean your domain cannot receive email at all.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What does a "pass" result mean?</summary>
+        <p>For SPF: the record exists, has valid syntax, doesn't exceed the 10-lookup limit, and doesn't use the dangerous <code>+all</code> mechanism. For DKIM: a valid public key was found. For DMARC: a record exists with a policy of <code>p=quarantine</code> or <code>p=reject</code> (not <code>p=none</code>). Passing all three means your domain has strong email authentication — you're protected from spoofing and your emails are more likely to reach the inbox.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why are my emails still going to spam if authentication passes?</summary>
+        <p>Email deliverability depends on more than authentication. Common factors include: high bounce rates, spam complaint rates above 0.1%, poor sender reputation, low engagement (recipients never open your mail), shared IP reputation, and content that triggers spam filters. Authentication is necessary but not sufficient — you also need good sending practices.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is this tool free and private?</summary>
+        <p>Yes, 100% free with no signup required. DNS queries are processed server-side via Cloudflare's DNS-over-HTTPS and results are returned as JSON. We do not store, log, or track any domains you check.</p>
+      </details>
+
+      <h3>Why AI Cannot Replace This Tool</h3>
+      <p>AI chatbots (ChatGPT, Claude, Gemini) cannot:</p>
+      <ul>
+        <li>Query live DNS records to read your actual SPF, DKIM, or DMARC configuration</li>
+        <li>Detect whether a specific domain has email authentication set up right now</li>
+        <li>Verify the syntax of your SPF record or count DNS lookups</li>
+        <li>Find your DKIM key by trying multiple selectors</li>
+        <li>Check if your DMARC policy is <code>p=none</code> (no protection) or <code>p=reject</code> (full protection)</li>
+      </ul>
+      <p>This tool <strong>does all of this</strong> by making real DNS-over-HTTPS queries to Cloudflare and parsing every record in detail.</p>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <ul>
+          <li><a href="/tools/dns-lookup/">DNS Lookup & WHOIS</a></li>
+          <li><a href="/tools/ssl-checker/">SSL Certificate Checker</a></li>
+          <li><a href="/tools/website-down-checker/">Website Down Checker</a></li>
+          <li><a href="/tools/http-status-checker/">HTTP Status & Header Checker</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+function quickCheck(domain) {
+  document.getElementById('eac-domain').value = domain;
+  checkAuth();
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+async function checkAuth() {
+  var domain = document.getElementById('eac-domain').value.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split('@').pop();
+  if (!domain) {
+    showError('Please enter a domain name');
+    return;
+  }
+
+  document.getElementById('eac-domain').value = domain;
+  document.getElementById('eac-check-btn').disabled = true;
+  document.getElementById('eac-check-btn').textContent = 'Checking...';
+  document.getElementById('eac-error').style.display = 'none';
+  document.getElementById('eac-results').className = 'eac-results';
+  var loading = document.getElementById('eac-loading');
+  loading.className = 'eac-loading visible';
+  document.getElementById('eac-loading-text').textContent = 'Querying DNS records for ' + domain + '...';
+
+  try {
+    var response = await fetch('/api/email-auth-checker?domain=' + encodeURIComponent(domain));
+    var data = await response.json();
+
+    if (data.error) {
+      showError(data.error);
+      return;
+    }
+
+    showResults(data);
+  } catch (err) {
+    showError('Network error: ' + err.message);
+  } finally {
+    document.getElementById('eac-check-btn').disabled = false;
+    document.getElementById('eac-check-btn').textContent = 'Check';
+    document.getElementById('eac-loading').className = 'eac-loading';
+  }
+}
+
+function showResults(r) {
+  var overallEl = document.getElementById('eac-overall');
+  var modulesEl = document.getElementById('eac-modules');
+  var summaryEl = document.getElementById('eac-summary');
+
+  // Calculate overall score
+  var score = { pass: 0, warn: 0, fail: 0 };
+  var statuses = [r.spf.status, r.dkim.status, r.dmarc.status, r.mx.status];
+  for (var i = 0; i < statuses.length; i++) {
+    if (statuses[i] === 'pass') score.pass++;
+    else if (statuses[i] === 'warn') score.warn++;
+    else score.fail++;
+  }
+
+  var overallStatus, overallIcon, overallLabel, overallSub;
+  if (score.fail === 0 && score.warn === 0) {
+    overallStatus = 'pass'; overallIcon = '\u2705'; overallLabel = 'All Checks Passed'; overallSub = 'Your domain has strong email authentication.';
+  } else if (score.fail === 0) {
+    overallStatus = 'warning'; overallIcon = '\u26A0\uFE0F'; overallLabel = 'Passing with Warnings'; overallSub = score.warn + ' issue' + (score.warn > 1 ? 's' : '') + ' found. Review recommendations below.';
+  } else {
+    overallStatus = 'fail'; overallIcon = '\u274C'; overallLabel = score.fail + ' Check' + (score.fail > 1 ? 's' : '') + ' Failed'; overallSub = 'Your email authentication needs attention. Emails may be rejected or land in spam.';
+  }
+
+  overallEl.className = 'eac-overall ' + overallStatus;
+  overallEl.innerHTML = '<div class="eac-overall-icon">' + overallIcon + '</div><div class="eac-overall-label">' + overallLabel + '</div><div class="eac-overall-subtitle">' + escHtml(r.domain) + ' &mdash; ' + escHtml(overallSub) + '</div>';
+
+  // Summary
+  var summaryHtml = '<h4 style="color:#667eea;margin-bottom:8px;">Summary</h4>';
+  var summaryItems = [
+    { icon: (r.spf.status === 'pass' ? '\u2705' : (r.spf.status === 'warn' ? '\u26A0\uFE0F' : '\u274C')), text: 'SPF: ' + (r.spf.record ? 'Found' : 'Missing') },
+    { icon: (r.dkim.status === 'pass' ? '\u2705' : (r.dkim.status === 'warn' ? '\u26A0\uFE0F' : '\u274C')), text: 'DKIM: ' + (r.dkim.found && r.dkim.found.length > 0 ? 'Found at ' + r.dkim.found[0] + '._domainkey' : 'Not found for common selectors') },
+    { icon: (r.dmarc.status === 'pass' ? '\u2705' : (r.dmarc.status === 'warn' ? '\u26A0\uFE0F' : '\u274C')), text: 'DMARC: ' + (r.dmarc.record ? 'Found' : 'Missing') },
+    { icon: (r.mx.status === 'pass' ? '\u2705' : '\u274C'), text: 'MX: ' + r.mx.records.length + ' mail server' + (r.mx.records.length !== 1 ? 's' : '') }
+  ];
+  for (var i = 0; i < summaryItems.length; i++) {
+    summaryHtml += '<div class="eac-summary-item"><span class="eac-si-icon">' + summaryItems[i].icon + '</span><span class="eac-si-text">' + summaryItems[i].text + '</span></div>';
+  }
+  summaryEl.innerHTML = summaryHtml;
+
+  // Modules
+  var modules = [
+    { id: 'spf', icon: '\uD83D\uDCE7', title: 'SPF Record', data: r.spf },
+    { id: 'dkim', icon: '\uD83D\uDD11', title: 'DKIM Signatures', data: r.dkim },
+    { id: 'dmarc', icon: '\uD83D\uDEE1\uFE0F', title: 'DMARC Policy', data: r.dmarc },
+    { id: 'mx', icon: '\uD83D\uDCE8', title: 'MX Records', data: r.mx }
+  ];
+
+  var modulesHtml = '';
+  for (var m = 0; m < modules.length; m++) {
+    var mod = modules[m];
+    var d = mod.data;
+    var statusClass = d.status === 'pass' ? 'eac-status-pass' : (d.status === 'warn' ? 'eac-status-warn' : (d.status === 'fail' ? 'eac-status-fail' : 'eac-status-skip'));
+    var statusLabel = d.status === 'pass' ? 'Pass' : (d.status === 'warn' ? 'Warning' : (d.status === 'fail' ? 'Failed' : 'N/A'));
+
+    modulesHtml += '<div class="eac-module">' +
+      '<div class="eac-module-header" onclick="toggleModule(this)">' +
+      '<span class="eac-module-icon">' + mod.icon + '</span>' +
+      '<span class="eac-module-title">' + mod.title + '</span>' +
+      '<span class="eac-module-status ' + statusClass + '">' + statusLabel + '</span>' +
+      '<span class="eac-module-arrow">\u25BC</span>' +
+      '</div>' +
+      '<div class="eac-module-body">';
+
+    if (mod.id === 'spf') {
+      if (d.record) {
+        modulesHtml += '<div class="eac-record-row"><div class="eac-record-label">Record</div><div class="eac-record-value">' + escHtml(d.record) + '</div></div>';
+        var hasSoftfail = d.record.indexOf('~all') !== -1;
+        var hasHardfail = d.record.indexOf('-all') !== -1;
+        if (hasHardfail) {
+          modulesHtml += '<div class="eac-record-good">\u2705 Hard fail (-all) configured. Unauthorized senders will be rejected.</div>';
+        } else if (hasSoftfail) {
+          modulesHtml += '<div class="eac-record-good">\u2705 Softfail (~all) configured. Unauthorized senders will be marked but not rejected.</div>';
+        }
+      } else {
+        modulesHtml += '<p style="color:#ef4444;">No SPF record found for this domain.</p>';
+      }
+    } else if (mod.id === 'dkim') {
+      if (d.found) {
+        modulesHtml += '<div class="eac-record-good">\u2705 DKIM key found at <strong>' + escHtml(d.found[0]) + '._domainkey.' + escHtml(r.domain) + '</strong></div>';
+      } else {
+        modulesHtml += '<p style="color:#fbbf24;">No DKIM record found for the selectors checked.</p>';
+      }
+      modulesHtml += '<div class="eac-record-label" style="margin-top:12px;">Checked selectors:</div>';
+      for (var s = 0; s < d.selectors.length; s++) {
+        var sel = d.selectors[s];
+        var hasData = sel.found;
+        modulesHtml += '<div class="eac-dkim-selector-item"><span class="eac-ds-name">' + escHtml(sel.selector) + '._domainkey</span><span class="eac-ds-status">' + (hasData ? '\u2705 Found' : '\u274C No record') + '</span>' +
+          (hasData ? '<div style="font-size:0.8rem;color:#888;word-break:break-all;margin-top:4px;">' + escHtml(sel.record.substring(0, 200)) + '</div>' : '') +
+          '</div>';
+      }
+    } else if (mod.id === 'dmarc') {
+      if (d.record) {
+        modulesHtml += '<div class="eac-record-row"><div class="eac-record-label">Record</div><div class="eac-record-value">' + escHtml(d.record) + '</div></div>';
+        var policyMatch = d.record.match(/\bp=(\w+)/);
+        var policy = policyMatch ? policyMatch[1] : 'none';
+        modulesHtml += '<div class="eac-record-row"><div class="eac-record-label">Policy</div><div class="eac-record-value">p=' + escHtml(policy) + ' ' + (policy === 'reject' ? '(\u2705 Best - reject unauthorized mail)' : (policy === 'quarantine' ? '(\u2705 Good - quarantine suspicious mail)' : '(\u26A0\uFE0F Monitor only - no protection)')) + '</div></div>';
+      } else {
+        modulesHtml += '<p style="color:#ef4444;">No DMARC record found for this domain.</p>';
+      }
+    } else if (mod.id === 'mx') {
+      if (d.records.length > 0) {
+        modulesHtml += '<div class="eac-record-row"><div class="eac-record-label">Mail servers (' + d.records.length + ' found)</div>';
+        for (var i = 0; i < d.records.length; i++) {
+          modulesHtml += '<div class="eac-record-value" style="margin-top:4px;">' + escHtml(d.records[i].exchange) + ' (priority ' + (d.records[i].priority || 0) + ')</div>';
+        }
+        modulesHtml += '</div>';
+      } else {
+        modulesHtml += '<p style="color:#ef4444;">No MX records found. This domain cannot receive email.</p>';
+      }
+    }
+
+    // Warnings
+    if (d.warnings && d.warnings.length > 0) {
+      for (var w = 0; w < d.warnings.length; w++) {
+        modulesHtml += '<div class="eac-record-warning">\u26A0\uFE0F ' + escHtml(d.warnings[w]) + '</div>';
+      }
+    }
+
+    // Show raw record
+    if (d.record) {
+      modulesHtml += '<pre>' + escHtml(d.record) + '</pre>';
+    }
+
+    modulesHtml += '</div></div>';
+  }
+  modulesEl.innerHTML = modulesHtml;
+
+  // Open first module by default
+  var firstHeader = document.querySelector('.eac-module-header');
+  if (firstHeader) {
+    firstHeader.classList.add('open');
+    firstHeader.nextElementSibling.classList.add('open');
+  }
+
+  document.getElementById('eac-results').className = 'eac-results visible';
+}
+
+function toggleModule(header) {
+  header.classList.toggle('open');
+  var body = header.nextElementSibling;
+  if (body) body.classList.toggle('open');
+}
+
+function showError(msg) {
+  document.getElementById('eac-loading').className = 'eac-loading';
+  document.getElementById('eac-results').className = 'eac-results';
+  var el = document.getElementById('eac-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('eac-check-btn').disabled = false;
+  document.getElementById('eac-check-btn').textContent = 'Check';
+}
+
+function resetTool() {
+  document.getElementById('eac-domain').value = '';
+  document.getElementById('eac-results').className = 'eac-results';
+  document.getElementById('eac-error').style.display = 'none';
+  document.getElementById('eac-check-btn').disabled = false;
+  document.getElementById('eac-check-btn').textContent = 'Check';
+}
+
+document.getElementById('eac-domain').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') checkAuth();
+});
+</script>
+
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+  <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+  <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSL Certificate Checker | DevTools Hub</title>
+    <meta name="description" content="Free SSL checker. Scan any website for TLS security and certificate validity. Get grade A+ to F. No signup. AI cannot test real SSL certificates.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/ssl-checker/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:title" content="SSL Certificate Checker | DevTools Hub">
+    <meta property="og:description" content="Free SSL checker. Scan any website for TLS security and certificate validity. Get grade A+ to F. No signup.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Free SSL Certificate Checker",
+      "description": "Scan any website's SSL/TLS certificate for security vulnerabilities. Get A+ to F grade powered by Qualys SSL Labs. No signup required.",
+      "url": "https://tools.scoreroute.com/tools/ssl-checker/",
+      "applicationCategory": "UtilityApplication",
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+    }
+    </script>
+    <style>
+        .ssl-input-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .ssl-input-row input[type="text"] { flex: 1; min-width: 250px; padding: 12px 16px; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; border-radius: 8px; font-size: 1rem; }
+        .ssl-input-row input[type="text"]:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .ssl-input-row input[type="text"]::placeholder { color: #555; }
+        .grade-badge { display: inline-block; min-width: 56px; text-align: center; padding: 8px 16px; border-radius: 12px; font-size: 2rem; font-weight: 800; margin-right: 12px; }
+        .grade-A-plus { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+        .grade-A { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+        .grade-A-minus { background: linear-gradient(135deg, #84cc16, #65a30d); color: #fff; }
+        .grade-B-plus, .grade-B { background: linear-gradient(135deg, #eab308, #ca8a04); color: #000; }
+        .grade-B-minus, .grade-C-plus, .grade-C { background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; }
+        .grade-C-minus, .grade-D-plus, .grade-D, .grade-D-minus, .grade-F { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+        .grade-T { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: #fff; }
+        .grade-M { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; }
+        .grade-unknown { background: #374151; color: #9ca3af; }
+        .endpoint-card { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+        .endpoint-card .ep-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .endpoint-card .ep-ip { color: #aaa; font-size: 0.9rem; font-family: 'Fira Code', monospace; }
+        .endpoint-card .ep-grade { font-size: 1.2rem; font-weight: 700; }
+        .issue-box { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
+        .issue-box h4 { color: #ef4444; margin-bottom: 8px; }
+        .issue-box ul { color: #fca5a5; margin-left: 20px; }
+        .issue-box li { margin-bottom: 4px; }
+        .rec-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
+        .rec-box h4 { color: #10b981; margin-bottom: 8px; }
+        .rec-box ul { color: #6ee7b7; margin-left: 20px; }
+        .rec-box li { margin-bottom: 4px; }
+        .warning-box { background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
+        .warning-box h4 { color: #eab308; margin-bottom: 8px; }
+        .warning-box ul { color: #fde68a; margin-left: 20px; }
+        .warning-box li { margin-bottom: 4px; }
+        .scan-progress { text-align: center; padding: 30px; }
+        .scan-progress .spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #2a2a4a; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .scan-progress p { color: #aaa; }
+        .quick-check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 16px; margin-bottom: 20px; }
+        .quick-check-item { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 8px; padding: 12px 16px; cursor: pointer; transition: border-color 0.2s; }
+        .quick-check-item:hover { border-color: #667eea; }
+        .quick-check-item .qc-domain { color: #667eea; font-weight: 600; font-size: 0.95rem; }
+        .quick-check-item .qc-desc { color: #888; font-size: 0.8rem; margin-top: 4px; }
+        .ssl-results { display: none; }
+        .ssl-results.visible { display: block; }
+        .grade-summary { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding: 20px; background: #1a1a2e; border-radius: 12px; border: 1px solid #2a2a4a; }
+        .grade-summary .grade-text h3 { color: #fff; margin-bottom: 4px; }
+        .grade-summary .grade-text p { color: #aaa; font-size: 0.9rem; }
+        .result-meta { color: #888; font-size: 0.85rem; margin-top: 8px; }
+        .result-meta a { color: #667eea; }
+        @media (max-width: 600px) { .ssl-input-row { flex-direction: column; } .ssl-input-row input[type="text"] { min-width: unset; } .grade-summary { flex-direction: column; text-align: center; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>SSL Certificate Checker</h1>
+            <p class="subtitle">Scan any website for TLS security &middot; Grade A+ to F &middot; Powered by Qualys SSL Labs</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>SSL Checker</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="ssl-input-row">
+                    <input type="text" id="ssl-host" placeholder="Enter a domain name (e.g., google.com)" autocomplete="url" spellcheck="false" aria-label="Enter a domain name">
+                    <button class="btn btn-primary" onclick="checkSSL()" id="check-btn">Scan Website</button>
+                </div>
+
+                <div id="quick-check-section">
+                    <p style="color: #888; font-size: 0.85rem; margin-bottom: 4px;">Quick check popular websites:</p>
+                    <div class="quick-check-grid">
+                        <div class="quick-check-item" onclick="quickCheck('google.com')">
+                            <div class="qc-domain">google.com</div>
+                            <div class="qc-desc">World's most visited website</div>
+                        </div>
+                        <div class="quick-check-item" onclick="quickCheck('github.com')">
+                            <div class="qc-domain">github.com</div>
+                            <div class="qc-desc">Code hosting platform</div>
+                        </div>
+                        <div class="quick-check-item" onclick="quickCheck('cloudflare.com')">
+                            <div class="qc-domain">cloudflare.com</div>
+                            <div class="qc-desc">CDN & security provider</div>
+                        </div>
+                        <div class="quick-check-item" onclick="quickCheck('tools.scoreroute.com')">
+                            <div class="qc-domain">tools.scoreroute.com</div>
+                            <div class="qc-desc">This website (DevTools Hub)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="scan-progress" class="scan-progress" style="display:none;">
+                    <div class="spinner"></div>
+                    <p id="progress-text">Scanning SSL certificate...</p>
+                    <p id="progress-sub" style="font-size:0.85rem;color:#666;margin-top:8px;">This may take 60-180 seconds for a new scan</p>
+                </div>
+
+                <div id="ssl-error" class="status error" style="display:none;"></div>
+
+                <div id="ssl-results" class="ssl-results">
+                    <div id="grade-summary" class="grade-summary"></div>
+                    <div id="warnings-section"></div>
+                    <div id="issues-section"></div>
+                    <div id="endpoints-section"></div>
+                    <div id="recommendations-section"></div>
+                    <div id="meta-section" class="result-meta"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>Why Check Your SSL Certificate?</h2>
+                <p>An SSL/TLS certificate is what makes the padlock icon appear in your browser. It encrypts data between your visitors and your server. Without it, passwords, credit cards, and personal data are sent in plain text that anyone can intercept.</p>
+                <p><strong>AI chatbots cannot check your real SSL certificate.</strong> They can only tell you general facts about SSL. This tool actually connects to your server and tests its real TLS configuration.</p>
+
+                <h3>What the Grades Mean</h3>
+                <ul>
+                    <li><strong>A+</strong> &mdash; Exceptional. Best possible configuration.</li>
+                    <li><strong>A</strong> &mdash; Very good. Strong configuration with minor improvements possible.</li>
+                    <li><strong>B</strong> &mdash; Needs improvement. Some TLS weaknesses detected.</li>
+                    <li><strong>C</strong> &mdash; Poor. Significant security issues that should be fixed immediately.</li>
+                    <li><strong>F</strong> &mdash; Failed. TLS is broken or virtually absent.</li>
+                    <li><strong>T</strong> &mdash; No trust. Certificate is not trusted by browsers.</li>
+                </ul>
+
+                <h3>Common SSL Problems This Tool Detects</h3>
+                <ul>
+                    <li><strong>Expired certificates</strong> &mdash; visitors see "Your connection is not private" error</li>
+                    <li><strong>Misconfigured chains</strong> &mdash; intermediate certificates missing</li>
+                    <li><strong>Weak cipher suites</strong> &mdash; vulnerable to BEAST, POODLE attacks</li>
+                    <li><strong>Missing HSTS</strong> &mdash; browser doesn't enforce HTTPS</li>
+                    <li><strong>Outdated TLS versions</strong> &mdash; TLS 1.0/1.1 are deprecated</li>
+                    <li><strong>Missing Forward Secrecy</strong> &mdash; past sessions can be decrypted</li>
+                </ul>
+
+                <h3>How to Fix Common Issues</h3>
+                <ul>
+                    <li><strong>Grade B or lower:</strong> Disable TLS 1.0 and 1.1, remove weak ciphers</li>
+                    <li><strong>Missing HSTS:</strong> Add <code>Strict-Transport-Security</code> header</li>
+                    <li><strong>Certificate chain:</strong> Install all intermediate certificates on your server</li>
+                    <li><strong>OCSP Stapling:</strong> Enable on your server for faster validation</li>
+                    <li><strong>Want A+?</strong> Use Cloudflare (free) or configure TLS 1.3 only with ECDHE cipher suites</li>
+                </ul>
+
+                <h3>Why AI Cannot Replace This Tool</h3>
+                <p>AI chatbots can explain what SSL is, but they <strong>cannot</strong>:</p>
+                <ul>
+                    <li>Connect to your actual server and test its TLS handshake</li>
+                    <li>Detect real-time certificate expiry for any domain</li>
+                    <li>Test cipher suites against known vulnerabilities</li>
+                    <li>Verify certificate chain completeness</li>
+                    <li>Check HSTS, OCSP stapling, and other headers</li>
+                </ul>
+                <p>This tool <strong>does all of that</strong> by running a real TLS assessment powered by Qualys SSL Labs.</p>
+
+                <h3>Privacy</h3>
+                <p>We use the free Qualys SSL Labs API. Your domain name is sent to SSL Labs for scanning. We do not store or log any scan results. SSL Labs may cache results for up to 24 hours.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | Free Developer Tools | <a href="/sitemap.xml">Sitemap</a></p>
+    </footer>
+
+    <script>
+    var pollTimer = null;
+
+    function getGradeClass(grade) {
+        if (!grade) return 'grade-unknown';
+        var g = grade.replace('+', '-plus').replace('-', '-minus');
+        if (['A-plus', 'A', 'A-minus', 'B-plus', 'B', 'B-minus', 'C-plus', 'C', 'C-minus', 'D-plus', 'D', 'D-minus', 'F', 'T', 'M'].indexOf(g) !== -1) {
+            return 'grade-' + g;
+        }
+        return 'grade-unknown';
+    }
+
+    function formatDate(isoStr) {
+        try { return new Date(isoStr).toLocaleString(); }
+        catch(e) { return isoStr; }
+    }
+
+    function quickCheck(domain) {
+        document.getElementById('ssl-host').value = domain;
+        checkSSL();
+    }
+
+    async function checkSSL() {
+        var host = document.getElementById('ssl-host').value.trim();
+        if (!host) {
+            host = document.getElementById('ssl-host').placeholder;
+            document.getElementById('ssl-host').value = '';
+            return;
+        }
+
+        host = host.replace(/^https?:\/\//, '').replace(/\/.*$/, '').toLowerCase();
+        document.getElementById('ssl-host').value = host;
+
+        document.getElementById('check-btn').disabled = true;
+        document.getElementById('check-btn').textContent = 'Scanning...';
+        document.getElementById('quick-check-section').style.display = 'none';
+        document.getElementById('ssl-error').style.display = 'none';
+        document.getElementById('ssl-results').className = 'ssl-results';
+        document.getElementById('scan-progress').style.display = 'block';
+        document.getElementById('progress-text').textContent = 'Checking SSL certificate for ' + host + '...';
+        document.getElementById('progress-sub').textContent = 'Using cached results if available, otherwise starting new scan...';
+
+        if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+
+        try {
+            var response = await fetch('/api/ssl-check?host=' + encodeURIComponent(host) + '&fromCache=on');
+            var data = await response.json();
+
+            if (data.error && !data.status) {
+                showError(data.error);
+                return;
+            }
+
+            if (data.status === 'DNS' || data.status === 'IN_PROGRESS') {
+                showProgress(data);
+                pollTimer = setInterval(function() { pollSSL(host); }, 10000);
+                return;
+            }
+
+            if (data.status === 'READY') {
+                showResults(data);
+                return;
+            }
+
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+
+            showError('Unexpected response from SSL Labs.');
+        } catch (err) {
+            showError('Network error: ' + err.message);
+        } finally {
+            document.getElementById('check-btn').disabled = false;
+            document.getElementById('check-btn').textContent = 'Scan Website';
+        }
+    }
+
+    async function pollSSL(host) {
+        try {
+            var response = await fetch('/api/ssl-check?host=' + encodeURIComponent(host) + '&fromCache=on');
+            var data = await response.json();
+
+            if (data.status === 'DNS' || data.status === 'IN_PROGRESS') {
+                showProgress(data);
+                return;
+            }
+
+            if (data.status === 'READY') {
+                if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+                showResults(data);
+                document.getElementById('check-btn').disabled = false;
+                document.getElementById('check-btn').textContent = 'Scan Website';
+                return;
+            }
+
+            if (data.error) {
+                if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+                showError(data.error);
+                document.getElementById('check-btn').disabled = false;
+                document.getElementById('check-btn').textContent = 'Scan Website';
+            }
+        } catch (err) {
+            if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+            showError('Network error: ' + err.message);
+            document.getElementById('check-btn').disabled = false;
+            document.getElementById('check-btn').textContent = 'Scan Website';
+        }
+    }
+
+    function showProgress(data) {
+        document.getElementById('scan-progress').style.display = 'block';
+        document.getElementById('ssl-results').className = 'ssl-results';
+        document.getElementById('ssl-error').style.display = 'none';
+
+        var epInfo = '';
+        if (data.endpoints && data.endpoints.length > 0) {
+            epInfo = ' Checking ' + data.endpoints.length + ' server(s)...';
+        }
+
+        document.getElementById('progress-text').textContent = data.statusMessage || 'Scanning ' + data.host + '...';
+        document.getElementById('progress-sub').textContent = 'Estimated time: ' + (data.estimatedTime || '60-180 seconds') + epInfo;
+    }
+
+    function showError(message) {
+        document.getElementById('scan-progress').style.display = 'none';
+        document.getElementById('ssl-results').className = 'ssl-results';
+        var errorEl = document.getElementById('ssl-error');
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+        document.getElementById('quick-check-section').style.display = 'grid';
+        document.getElementById('check-btn').disabled = false;
+        document.getElementById('check-btn').textContent = 'Scan Website';
+    }
+
+    function showResults(data) {
+        document.getElementById('scan-progress').style.display = 'none';
+        document.getElementById('ssl-error').style.display = 'none';
+
+        var grade = data.overallGrade || 'Unknown';
+        var gradeClass = getGradeClass(grade);
+
+        var summaryHtml = '<div class="grade-badge ' + gradeClass + '">' + grade + '</div>' +
+            '<div class="grade-text">' +
+            '<h3>' + data.host + ' &mdash; SSL Grade: ' + grade + '</h3>' +
+            '<p>' + (data.gradeExplanation || '') + '</p>' +
+            '</div>';
+        document.getElementById('grade-summary').innerHTML = summaryHtml;
+
+        var warningsHtml = '';
+        if (data.warnings && data.warnings.length > 0) {
+            warningsHtml = '<div class="warning-box"><h4>Warnings</h4><ul>';
+            for (var w = 0; w < data.warnings.length; w++) {
+                warningsHtml += '<li>' + data.warnings[w] + '</li>';
+            }
+            warningsHtml += '</ul></div>';
+        }
+        document.getElementById('warnings-section').innerHTML = warningsHtml;
+
+        var issuesHtml = '';
+        if (data.issues && data.issues.length > 0) {
+            issuesHtml = '<div class="issue-box"><h4>Issues Found</h4><ul>';
+            for (var iss = 0; iss < data.issues.length; iss++) {
+                issuesHtml += '<li>' + data.issues[iss] + '</li>';
+            }
+            issuesHtml += '</ul></div>';
+        }
+        document.getElementById('issues-section').innerHTML = issuesHtml;
+
+        var endpointsHtml = '<h3 style="color:#667eea;margin-bottom:12px;">Server Endpoints (' + data.endpoints.length + ')</h3>';
+        for (var e = 0; e < data.endpoints.length; e++) {
+            var ep = data.endpoints[e];
+            var epGradeClass = getGradeClass(ep.grade);
+            endpointsHtml += '<div class="endpoint-card">' +
+                '<div class="ep-header">' +
+                '<span class="ep-ip">' + ep.ipAddress + '</span>' +
+                '<span class="ep-grade ' + epGradeClass + '">' + (ep.grade || 'Pending') + '</span>' +
+                '</div>' +
+                '<div style="color:#888;font-size:0.85rem;">' + (ep.statusMessage || '') + '</div>' +
+                '</div>';
+        }
+        document.getElementById('endpoints-section').innerHTML = endpointsHtml;
+
+        var recsHtml = '';
+        if (data.recommendations && data.recommendations.length > 0) {
+            recsHtml = '<div class="rec-box"><h4>Recommendations to Improve</h4><ul>';
+            for (var r = 0; r < data.recommendations.length; r++) {
+                recsHtml += '<li>' + data.recommendations[r] + '</li>';
+            }
+            recsHtml += '</ul></div>';
+        }
+        document.getElementById('recommendations-section').innerHTML = recsHtml;
+
+        var metaHtml = 'Scanned: ' + (data.scanTime ? formatDate(data.scanTime) : 'N/A') +
+            ' &middot; Engine: SSL Labs v' + (data.engineVersion || '?') +
+            ' &middot; <a href="' + (data.sslLabsUrl || '#') + '" target="_blank" rel="noopener">View full report on SSL Labs</a>';
+        document.getElementById('meta-section').innerHTML = metaHtml;
+
+        document.getElementById('ssl-results').className = 'ssl-results visible';
+    }
+
+    document.getElementById('ssl-host').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') checkSSL();
+    });
+    </script>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

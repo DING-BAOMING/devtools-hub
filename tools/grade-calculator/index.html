@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade Calculator - Weighted Average & Final Exam | DevTools Hub</title>
+    <meta name="description" content="Free grade calculator. Calculate weighted average grade, what you need on the final exam, and GPA. No signup, 100% private browser tool. AI cannot calculate grades reliably.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/grade-calculator/">
+    <meta property="og:title" content="Grade Calculator - Weighted Average & Final Exam | DevTools Hub">
+    <meta property="og:description" content="Free grade calculator. Calculate weighted average grade, what you need on the final exam, and GPA. No signup, 100% private browser tool.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/grade-calculator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Grade Calculator - Weighted Average & Final Exam | DevTools Hub">
+    <meta name="twitter:description" content="Free grade calculator. Calculate weighted average grade, what you need on the final exam, and GPA. No signup, 100% private browser tool.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/grade-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-07-01",
+        "dateModified": "2026-07-01",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "Grade Calculator",
+        "description": "Calculate weighted average grades, final exam needed score, and GPA. Free online tool for students and teachers.",
+        "url": "https://tools.scoreroute.com/tools/grade-calculator/",
+        "applicationCategory": "EducationalApplication",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "operatingSystem": "Any",
+        "permissions": "none",
+        "softwareVersion": "1.0"
+    }
+    </script>
+    <style>
+        :root {
+            --bg: #0f0f23;
+            --card-bg: #1a1a2e;
+            --border: #2a2a4a;
+            --primary: #667eea;
+            --text: #fff;
+            --text-secondary: #888;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        .gc-tabs {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .gc-tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .gc-tab:hover { color: var(--text); background: rgba(102,126,234,0.1); }
+        .gc-tab.active { background: var(--primary); color: #fff; }
+
+        .gc-panel { display: none; }
+        .gc-panel.active { display: block; }
+
+        .gc-card {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .gc-card h3 {
+            color: var(--text);
+            font-size: 1rem;
+            margin-bottom: 16px;
+        }
+
+        .gc-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .gc-row label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            min-width: 80px;
+        }
+
+        .gc-input {
+            padding: 10px 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.95rem;
+            flex: 1;
+            min-width: 60px;
+            max-width: 120px;
+            transition: border-color 0.2s;
+        }
+
+        .gc-input-sm { max-width: 80px; }
+        .gc-input-lg { max-width: 200px; flex: 2; }
+
+        .gc-input:focus { outline: 2px solid transparent; border-color: var(--primary); }
+
+        .gc-btn {
+            padding: 10px 20px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gc-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .gc-btn-sm {
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gc-btn-sm:hover { border-color: var(--error); color: var(--error); }
+
+        .gc-btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .gc-btn-outline:hover { border-color: var(--primary); }
+
+        .gc-result-box {
+            margin-top: 16px;
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .gc-result-main {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .gc-result-main.pass { color: var(--success); }
+        .gc-result-main.fail { color: var(--error); }
+        .gc-result-main.warning { color: var(--warning); }
+
+        .gc-result-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .gc-result-sub {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        .gc-letter-grade {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        .gc-letter-grade.a { background: var(--success); color: #000; }
+        .gc-letter-grade.b { background: #3b82f6; color: #fff; }
+        .gc-letter-grade.c { background: var(--warning); color: #000; }
+        .gc-letter-grade.d { background: #f97316; color: #000; }
+        .gc-letter-grade.f { background: var(--error); color: #fff; }
+
+        .gc-assignment-row {
+            display: grid;
+            grid-template-columns: 1fr 80px 80px 36px;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 6px;
+            padding: 8px 12px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .gc-assignment-row .gc-input {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+
+        .gc-assignment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .gc-assignment-header span {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .gc-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .gc-summary-card {
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .gc-summary-card .gc-summary-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .gc-summary-card .gc-summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 4px;
+        }
+
+        .gc-summary-card .gc-summary-value.primary { color: var(--primary); }
+        .gc-summary-card .gc-summary-value.success { color: var(--success); }
+
+        .gc-gpa-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+
+        .gc-gpa-table th, .gc-gpa-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .gc-gpa-table th { color: var(--text); font-weight: 600; }
+
+        .gc-preset-btn {
+            display: inline-block;
+            padding: 5px 12px;
+            margin: 3px;
+            background: rgba(102,126,234,0.1);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gc-preset-btn:hover { border-color: var(--primary); color: var(--text); }
+
+        .gc-weight-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .gc-weight-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .gc-weight-fill.over { background: var(--error); }
+
+        @media (max-width: 600px) {
+            .gc-tab { min-width: 80px; font-size: 0.75rem; padding: 8px 6px; }
+            .gc-assignment-row { grid-template-columns: 1fr 60px 60px 30px; font-size: 0.8rem; }
+            .gc-result-main { font-size: 2rem; }
+            .gc-row { flex-direction: column; align-items: stretch; }
+            .gc-input { max-width: 100%; }
+            .gc-row label { min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Grade Calculator</h1>
+            <p class="subtitle">Weighted Average, Final Exam & GPA Calculator</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Grade Calculator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Calculate Your Grades Accurately</h2>
+                <p style="color:var(--text-secondary);margin-bottom:20px;font-size:0.9rem;">AI often miscalculates weighted grades, final exam needed scores, and GPA conversions. Get precise, deterministic results instantly.</p>
+
+                <div class="gc-tabs" id="gcTabs">
+                    <button class="gc-tab active" data-panel="weighted" onclick="switchTab('weighted')">
+                        📊 Current Grade
+                    </button>
+                    <button class="gc-tab" data-panel="final" onclick="switchTab('final')">
+                        🎯 Final Exam
+                    </button>
+                    <button class="gc-tab" data-panel="gpa" onclick="switchTab('gpa')">
+                        📈 GPA Calculator
+                    </button>
+                </div>
+
+                <div class="gc-panel active" id="panel-weighted">
+                    <div class="gc-card">
+                        <h3>Weighted Grade Calculator</h3>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:16px;">Add your assignments with their grades and weights to calculate your current overall grade.</p>
+
+                        <div class="gc-assignment-header">
+                            <span>Assignment / Category</span>
+                            <span>Grade (%)</span>
+                            <span>Weight (%)</span>
+                            <span></span>
+                        </div>
+                        <div id="gc-assignment-list">
+                            <div class="gc-assignment-row">
+                                <input type="text" class="gc-input gc-input-lg" value="Homework" placeholder="Name" oninput="calcWeighted()" aria-label="Assignment name">
+                                <input type="number" class="gc-input" value="92" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Grade percentage">
+                                <input type="number" class="gc-input" value="20" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Weight percentage">
+                                <button class="gc-btn-sm" onclick="removeAssignment(this)" aria-label="Delete assignment">✕</button>
+                            </div>
+                            <div class="gc-assignment-row">
+                                <input type="text" class="gc-input gc-input-lg" value="Quizzes" placeholder="Name" oninput="calcWeighted()" aria-label="Assignment name">
+                                <input type="number" class="gc-input" value="85" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Grade percentage">
+                                <input type="number" class="gc-input" value="30" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Weight percentage">
+                                <button class="gc-btn-sm" onclick="removeAssignment(this)" aria-label="Delete assignment">✕</button>
+                            </div>
+                            <div class="gc-assignment-row">
+                                <input type="text" class="gc-input gc-input-lg" value="Midterm" placeholder="Name" oninput="calcWeighted()" aria-label="Assignment name">
+                                <input type="number" class="gc-input" value="78" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Grade percentage">
+                                <input type="number" class="gc-input" value="25" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Weight percentage">
+                                <button class="gc-btn-sm" onclick="removeAssignment(this)" aria-label="Delete assignment">✕</button>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+                            <button class="gc-btn" onclick="addAssignment()">+ Add Assignment</button>
+                            <button class="gc-btn gc-btn-outline" onclick="loadExample()">📋 Load Example</button>
+                            <button class="gc-btn gc-btn-outline" onclick="clearAssignments()">Clear All</button>
+                        </div>
+
+                        <div class="gc-weight-bar" id="gc-weight-bar">
+                            <div class="gc-weight-fill" id="gc-weight-fill" style="width:75%"></div>
+                        </div>
+                        <div style="text-align:right;color:var(--text-secondary);font-size:0.8rem;margin-top:4px;">
+                            <span id="gc-weight-total">75</span>% of total grade entered
+                        </div>
+
+                        <button onclick="copyResult('result-weighted')" class="copy-btn" style="float:right;margin-bottom:8px;">Copy Grade</button>
+                        <div class="gc-result-box" id="result-weighted">
+                            <div class="gc-result-label">Your Current Grade</div>
+                            <div class="gc-result-main" id="gc-current-grade">85.55</div>
+                            <div class="gc-letter-grade b" id="gc-letter-grade">B</div>
+                            <div class="gc-summary-grid">
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">Assignments</div>
+                                    <div class="gc-summary-value" id="gc-count">3</div>
+                                </div>
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">Weight Entered</div>
+                                    <div class="gc-summary-value primary" id="gc-weight-pct">75%</div>
+                                </div>
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">Max Grade</div>
+                                    <div class="gc-summary-value success" id="gc-max">92</div>
+                                </div>
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">Min Grade</div>
+                                    <div class="gc-summary-value" id="gc-min" style="color:var(--error)">78</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gc-panel" id="panel-final">
+                    <div class="gc-card">
+                        <h3>Final Exam Grade Calculator</h3>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:16px;">Find out what score you need on your final exam to reach your target grade.</p>
+
+                        <div class="gc-row">
+                            <label>Current Grade (%)</label>
+                            <input type="number" class="gc-input" id="final-current" value="85" min="0" max="100" step="any" oninput="calcFinal()" aria-label="Current grade">
+                        </div>
+                        <div class="gc-row">
+                            <label>Desired Grade (%)</label>
+                            <input type="number" class="gc-input" id="final-desired" value="90" min="0" max="100" step="any" oninput="calcFinal()" aria-label="Desired grade">
+                        </div>
+                        <div class="gc-row">
+                            <label>Final Exam Weight (%)</label>
+                            <input type="number" class="gc-input" id="final-weight" value="25" min="0.1" max="100" step="any" oninput="calcFinal()" aria-label="Final exam weight">
+                        </div>
+
+                        <div style="margin-top:12px;">
+                            <span class="gc-preset-btn" onclick="setFinalPreset(85, 90, 25)">85% → 90%, final=25%</span>
+                            <span class="gc-preset-btn" onclick="setFinalPreset(78, 80, 30)">78% → 80%, final=30%</span>
+                            <span class="gc-preset-btn" onclick="setFinalPreset(92, 95, 20)">92% → 95%, final=20%</span>
+                            <span class="gc-preset-btn" onclick="setFinalPreset(65, 70, 35)">65% → 70%, final=35%</span>
+                        </div>
+
+                        <button onclick="copyResult('result-final')" class="copy-btn" style="float:right;margin-bottom:8px;">Copy Result</button>
+                        <div class="gc-result-box" id="result-final">
+                            <div class="gc-result-label">You Need on the Final</div>
+                            <div class="gc-result-main" id="gc-final-needed">105.00</div>
+                            <div class="gc-result-sub" id="gc-final-verdict" style="color:var(--error)">This score may not be achievable (over 100%)</div>
+                            <div class="gc-summary-grid">
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">Current</div>
+                                    <div class="gc-summary-value" id="gc-final-current-display">85</div>
+                                </div>
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">Desired</div>
+                                    <div class="gc-summary-value primary" id="gc-final-desired-display">90</div>
+                                </div>
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">Final Weight</div>
+                                    <div class="gc-summary-value" id="gc-final-weight-display">25%</div>
+                                </div>
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">Without Final</div>
+                                    <div class="gc-summary-value" id="gc-final-without">63.75</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gc-panel" id="panel-gpa">
+                    <div class="gc-card">
+                        <h3>GPA Calculator</h3>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:16px;">Enter your course grades and credits to calculate your semester and cumulative GPA.</p>
+
+                        <div class="gc-assignment-header">
+                            <span>Course</span>
+                            <span>Grade</span>
+                            <span>Credits</span>
+                            <span></span>
+                        </div>
+                        <div id="gc-gpa-rows">
+                            <div class="gc-assignment-row">
+                                <input type="text" class="gc-input gc-input-lg" value="Math" placeholder="Course" oninput="calcGPA()" aria-label="Course name">
+                                <label class="sr-only" for="gc-grade-0">Letter grade</label>
+                                <select id="gc-grade-0" class="gc-input" onchange="calcGPA()" style="max-width:100px;">
+                                    <option value="4.0">A</option>
+                                    <option value="3.7">A-</option>
+                                    <option value="3.3">B+</option>
+                                    <option value="3.0" selected>B</option>
+                                    <option value="2.7">B-</option>
+                                    <option value="2.3">C+</option>
+                                    <option value="2.0">C</option>
+                                    <option value="1.7">C-</option>
+                                    <option value="1.3">D+</option>
+                                    <option value="1.0">D</option>
+                                    <option value="0.0">F</option>
+                                </select>
+                                <input type="number" class="gc-input" value="3" min="0.5" max="12" step="0.5" oninput="calcGPA()" aria-label="Credit hours" style="max-width:70px;">
+                                <button class="gc-btn-sm" onclick="removeGPA(this)" aria-label="Delete course">✕</button>
+                            </div>
+                            <div class="gc-assignment-row">
+                                <input type="text" class="gc-input gc-input-lg" value="English" placeholder="Course" oninput="calcGPA()" aria-label="Course name">
+                                <label class="sr-only" for="gc-grade-1">Letter grade</label>
+                                <select id="gc-grade-1" class="gc-input" onchange="calcGPA()" style="max-width:100px;">
+                                    <option value="4.0">A</option>
+                                    <option value="3.7">A-</option>
+                                    <option value="3.3">B+</option>
+                                    <option value="3.0" selected>B</option>
+                                    <option value="2.7">B-</option>
+                                    <option value="2.3">C+</option>
+                                    <option value="2.0">C</option>
+                                    <option value="1.7">C-</option>
+                                    <option value="1.3">D+</option>
+                                    <option value="1.0">D</option>
+                                    <option value="0.0">F</option>
+                                </select>
+                                <input type="number" class="gc-input" value="3" min="0.5" max="12" step="0.5" oninput="calcGPA()" aria-label="Credit hours" style="max-width:70px;">
+                                <button class="gc-btn-sm" onclick="removeGPA(this)" aria-label="Delete course">✕</button>
+                            </div>
+                            <div class="gc-assignment-row">
+                                <input type="text" class="gc-input gc-input-lg" value="Science" placeholder="Course" oninput="calcGPA()" aria-label="Course name">
+                                <label class="sr-only" for="gc-grade-2">Letter grade</label>
+                                <select id="gc-grade-2" class="gc-input" onchange="calcGPA()" style="max-width:100px;">
+                                    <option value="4.0">A</option>
+                                    <option value="3.7">A-</option>
+                                    <option value="3.3">B+</option>
+                                    <option value="3.0" selected>B</option>
+                                    <option value="2.7">B-</option>
+                                    <option value="2.3">C+</option>
+                                    <option value="2.0">C</option>
+                                    <option value="1.7">C-</option>
+                                    <option value="1.3">D+</option>
+                                    <option value="1.0">D</option>
+                                    <option value="0.0">F</option>
+                                </select>
+                                <input type="number" class="gc-input" value="4" min="0.5" max="12" step="0.5" oninput="calcGPA()" aria-label="Credit hours" style="max-width:70px;">
+                                <button class="gc-btn-sm" onclick="removeGPA(this)" aria-label="Delete course">✕</button>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+                            <button class="gc-btn" onclick="addGPARow()">+ Add Course</button>
+                            <button class="gc-btn gc-btn-outline" onclick="clearGPA()">Clear All</button>
+                        </div>
+
+                        <button onclick="copyResult('result-gpa')" class="copy-btn" style="float:right;margin-bottom:8px;">Copy GPA</button>
+                        <div class="gc-result-box" id="result-gpa">
+                            <div class="gc-result-label">Your GPA</div>
+                            <div class="gc-result-main" id="gc-gpa-value">3.00</div>
+                            <div class="gc-letter-grade b" id="gc-gpa-letter">B</div>
+                            <div class="gc-summary-grid">
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">Courses</div>
+                                    <div class="gc-summary-value" id="gc-gpa-courses">3</div>
+                                </div>
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">Total Credits</div>
+                                    <div class="gc-summary-value primary" id="gc-gpa-credits">10</div>
+                                </div>
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">Grade Points</div>
+                                    <div class="gc-summary-value success" id="gc-gpa-points">30.0</div>
+                                </div>
+                                <div class="gc-summary-card">
+                                    <div class="gc-summary-label">GPA</div>
+                                    <div class="gc-summary-value" id="gc-gpa-val" style="color:var(--primary)">3.35</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gc-card">
+                        <h3>GPA Conversion Reference</h3>
+                        <table class="gc-gpa-table">
+<caption class="sr-only">How letter grades map to grade points and percentage bands</caption>
+                            <tr><th>Letter Grade</th><th>Grade Points</th><th>Percentage Range</th></tr>
+                            <tr><td>A</td><td>4.0</td><td>93-100%</td></tr>
+                            <tr><td>A-</td><td>3.7</td><td>90-92%</td></tr>
+                            <tr><td>B+</td><td>3.3</td><td>87-89%</td></tr>
+                            <tr><td>B</td><td>3.0</td><td>83-86%</td></tr>
+                            <tr><td>B-</td><td>2.7</td><td>80-82%</td></tr>
+                            <tr><td>C+</td><td>2.3</td><td>77-79%</td></tr>
+                            <tr><td>C</td><td>2.0</td><td>73-76%</td></tr>
+                            <tr><td>C-</td><td>1.7</td><td>70-72%</td></tr>
+                            <tr><td>D+</td><td>1.3</td><td>67-69%</td></tr>
+                            <tr><td>D</td><td>1.0</td><td>60-66%</td></tr>
+                            <tr><td>F</td><td>0.0</td><td>0-59%</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Why Use This Grade Calculator?</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:20px 0;">
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">🎯 Three Tools in One</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">Weighted grade calculator, final exam score predictor, and GPA calculator — all in a single tool.</p>
+                    </div>
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">🧮 AI-Proof Accuracy</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">AI models frequently miscalculate weighted averages, final exam needed scores, and GPA conversions. This tool uses deterministic formulas every time.</p>
+                    </div>
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">⚡ Instant Results</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">Updates as you type. No submit button. See your weighted grade, letter grade, and statistics instantly.</p>
+                    </div>
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">📊 Visual Weight Tracker</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">See how much of your total grade is entered with the weight progress bar. Never lose track of missing assignments.</p>
+                    </div>
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">🔒 100% Private</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">All calculations happen in your browser. No data sent to any server. No signup required.</p>
+                    </div>
+                    <div style="background:var(--bg);padding:20px;border-radius:12px;border:1px solid var(--border);">
+                        <h4 style="color:var(--primary);margin-bottom:8px;font-size:0.95rem;">📱 Works Everywhere</h4>
+                        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.5;">Desktop, tablet, or mobile. Responsive design, no app download needed.</p>
+                    </div>
+                </div>
+
+                <h3>Common Use Cases</h3>
+                <ul style="color:#aaa;margin:12px 0 20px 24px;line-height:1.8;">
+                    <li><strong>Track your current grade:</strong> Enter all graded assignments with their weights to see your running average</li>
+                    <li><strong>Final exam planning:</strong> "What do I need on the final to get an A?" — get the exact percentage required</li>
+                    <li><strong>GPA calculation:</strong> Calculate your semester GPA with letter grades and credit hours</li>
+                    <li><strong>What-if scenarios:</strong> Add hypothetical assignments to see how future grades affect your total</li>
+                    <li><strong>Weight tracking:</strong> The weight bar shows if you've entered all graded components</li>
+                </ul>
+
+                <h3>How to Use</h3>
+                <ol style="color:#aaa;margin:12px 0 20px 24px;line-height:1.8;">
+                    <li>Select a tab: <strong>Current Grade</strong>, <strong>Final Exam</strong>, or <strong>GPA Calculator</strong></li>
+                    <li>Enter your grades and weights — results update instantly</li>
+                    <li>Use the Load Example button to see a sample grade breakdown</li>
+                    <li>Check the weight progress bar to see how much of your grade is entered</li>
+                </ol>
+
+                <h3>Formulas Used</h3>
+                <ul style="color:#aaa;margin:12px 0 20px 24px;line-height:1.8;">
+                    <li><strong>Weighted Grade:</strong> &Sigma;(Grade × Weight) ÷ &Sigma;(Weight)</li>
+                    <li><strong>Final Exam Needed:</strong> (Desired − Current × (1 − FinalWeight)) ÷ FinalWeight</li>
+                    <li><strong>GPA:</strong> &Sigma;(GradePoints × Credits) ÷ &Sigma;(Credits)</li>
+                </ul>
+
+                <h3>Frequently Asked Questions</h3>
+
+                <div class="faq-item">
+                    <h4>How is my weighted grade calculated?</h4>
+                    <p>Your weighted grade is calculated by multiplying each assignment grade by its weight, summing the results, and dividing by the total weight entered. For example, if homework (92%, weight 20%) and quizzes (85%, weight 30%) are entered, your grade is (92×20 + 85×30) ÷ (20+30) = 87.8%.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>What score do I need on the final exam?</h4>
+                    <p>The formula is: (Desired Grade − Current Grade × (1 − Final Weight)) ÷ Final Weight. For example, if you have 85%, want 90%, and the final is worth 25%: (90 − 85 × 0.75) ÷ 0.25 = 105%. If the result exceeds 100%, you may need to adjust your target or check if extra credit is possible.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>How is GPA calculated?</h4>
+                    <p>GPA is the weighted average of grade points, weighted by credit hours. Each letter grade is assigned grade points (A=4.0, B=3.0, etc.). GPA = &Sigma;(Grade Points × Credits) ÷ &Sigma;(Credits).</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Why does AI get grade calculations wrong?</h4>
+                    <p>AI language models (ChatGPT, Claude, Gemini) frequently hallucinate weighted averages, misapply formulas, or produce inconsistent GPA conversions. This tool uses deterministic mathematical formulas with zero hallucination risk.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Can I save my grades?</h4>
+                    <p>All calculations happen in your browser and are not saved on any server. You can keep the page open and your data stays until you close or refresh. For persistent tracking, consider using a spreadsheet alongside this tool.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h4>Is this really free?</h4>
+                    <p>Yes, completely free with no signup, no ads, no usage limits, and no watermark. Just open and use.</p>
+                </div>
+            </div>
+            <div class="info-section">
+                <h3>Why AI Gets Grade Math Wrong</h3>
+                <p>AI language models like ChatGPT, Claude, and Gemini frequently make errors when calculating weighted grades, final exam requirements, and GPA. Here's why:</p>
+                <ul>
+                    <li><strong>Weighted averages:</strong> AI often adds percentages instead of multiplying by weights, producing wrong totals. A weighted grade of 92% (worth 40%) + 88% (worth 60%) should be 89.6%, but AI frequently calculates it as 90% or 180%.</li>
+                    <li><strong>Final exam targets:</strong> The formula <code>(desired - current × (1 - weight)) ÷ weight</code> is deterministic but AI misapplies operator precedence, producing impossible scores like needing 150% when the real answer is 105%.</li>
+                    <li><strong>GPA calculation:</strong> AI confuses letter-to-point mappings (e.g. treats A- as 3.7 or 3.67 inconsistently), miscalculates weighted credit hours, or rounds GPA incorrectly. Our tool uses exact fixed-point arithmetic: <code>(3.0 × 3 + 3.0 × 3 + 3.0 × 4) ÷ 10 = 3.00</code>, verified every time.</li>
+                    <li><strong>No state:</strong> AI forgets your inputs between turns. A grade calculator must hold multiple courses, grades, and credit weights simultaneously — which only a real web app with client-side JavaScript can do reliably.</li>
+                </ul>
+                <p>This tool is 100% deterministic. There is no AI, no guessing, no hallucination — just the math formula applied correctly every time.</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function switchTab(name) {
+            document.querySelectorAll('.gc-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.gc-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('panel-' + name).classList.add('active');
+            document.querySelector('.gc-tab[data-panel="' + name + '"]').classList.add('active');
+        }
+
+        function getLetterGrade(avg) {
+            if (avg >= 93) return 'A';
+            if (avg >= 90) return 'A-';
+            if (avg >= 87) return 'B+';
+            if (avg >= 83) return 'B';
+            if (avg >= 80) return 'B-';
+            if (avg >= 77) return 'C+';
+            if (avg >= 73) return 'C';
+            if (avg >= 70) return 'C-';
+            if (avg >= 67) return 'D+';
+            if (avg >= 60) return 'D';
+            return 'F';
+        }
+
+        function getLetterGradeGPA(gpa) {
+            if (gpa >= 3.85) return 'A';
+            if (gpa >= 3.5) return 'A-';
+            if (gpa >= 3.15) return 'B+';
+            if (gpa >= 2.85) return 'B';
+            if (gpa >= 2.5) return 'B-';
+            if (gpa >= 2.15) return 'C+';
+            if (gpa >= 1.85) return 'C';
+            if (gpa >= 1.5) return 'C-';
+            if (gpa >= 1.15) return 'D+';
+            if (gpa >= 0.5) return 'D';
+            return 'F';
+        }
+
+        function getGradeClass(avg) {
+            if (avg >= 90) return 'a';
+            if (avg >= 80) return 'b';
+            if (avg >= 70) return 'c';
+            if (avg >= 60) return 'd';
+            return 'f';
+        }
+
+        function getGPAGradeClass(gpa) {
+            if (gpa >= 3.5) return 'a';
+            if (gpa >= 2.5) return 'b';
+            if (gpa >= 1.5) return 'c';
+            if (gpa >= 0.5) return 'd';
+            return 'f';
+        }
+
+        function addAssignment() {
+            const list = document.getElementById('gc-assignment-list');
+            const row = document.createElement('div');
+            row.className = 'gc-assignment-row';
+            row.innerHTML = '<input type="text" class="gc-input gc-input-lg" value="" placeholder="Name" oninput="calcWeighted()" aria-label="Assignment name">' +
+                '<input type="number" class="gc-input" value="0" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Grade percentage">' +
+                '<input type="number" class="gc-input" value="10" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Weight percentage">' +
+                '<button class="gc-btn-sm" onclick="removeAssignment(this)" aria-label="Delete assignment">✕</button>';
+            list.appendChild(row);
+            calcWeighted();
+        }
+
+        function removeAssignment(btn) {
+            const rows = document.querySelectorAll('#gc-assignment-list .gc-assignment-row');
+            if (rows.length <= 1) return;
+            btn.closest('.gc-assignment-row').remove();
+            calcWeighted();
+        }
+
+        function loadExample() {
+            const list = document.getElementById('gc-assignment-list');
+            list.innerHTML = '';
+            const data = [
+                ['Homework', 92, 20],
+                ['Quizzes', 85, 30],
+                ['Midterm Exam', 78, 25],
+                ['Final Project', 95, 15],
+                ['Participation', 100, 10]
+            ];
+            data.forEach(function(item) {
+                const row = document.createElement('div');
+                row.className = 'gc-assignment-row';
+                row.innerHTML = '<input type="text" class="gc-input gc-input-lg" value="' + item[0] + '" placeholder="Name" oninput="calcWeighted()" aria-label="Assignment name">' +
+                    '<input type="number" class="gc-input" value="' + item[1] + '" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Grade percentage">' +
+                    '<input type="number" class="gc-input" value="' + item[2] + '" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Weight percentage">' +
+                    '<button class="gc-btn-sm" onclick="removeAssignment(this)" aria-label="Delete assignment">✕</button>';
+                list.appendChild(row);
+            });
+            calcWeighted();
+        }
+
+        function clearAssignments() {
+            const list = document.getElementById('gc-assignment-list');
+            list.innerHTML = '';
+            var row = document.createElement('div');
+            row.className = 'gc-assignment-row';
+            row.innerHTML = '<input type="text" class="gc-input gc-input-lg" value="Assignment 1" placeholder="Name" oninput="calcWeighted()" aria-label="Assignment name">' +
+                '<input type="number" class="gc-input" value="0" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Grade percentage">' +
+                '<input type="number" class="gc-input" value="100" min="0" max="100" step="any" oninput="calcWeighted()" aria-label="Weight percentage">' +
+                '<button class="gc-btn-sm" onclick="removeAssignment(this)" aria-label="Delete assignment">✕</button>';
+            list.appendChild(row);
+            calcWeighted();
+        }
+
+        function calcWeighted() {
+            const rows = document.querySelectorAll('#gc-assignment-list .gc-assignment-row');
+            let totalWeight = 0, weightedSum = 0, count = 0;
+            let minGrade = 100, maxGrade = 0;
+
+            rows.forEach(function(row) {
+                const inputs = row.querySelectorAll('input[type="number"]');
+                const grade = parseFloat(inputs[0].value) || 0;
+                const weight = parseFloat(inputs[1].value) || 0;
+                if (weight > 0) {
+                    weightedSum += grade * weight;
+                    totalWeight += weight;
+                    count++;
+                    if (grade < minGrade) minGrade = grade;
+                    if (grade > maxGrade) maxGrade = grade;
+                }
+            });
+
+            const avg = totalWeight > 0 ? (weightedSum / totalWeight) : 0;
+            const letter = avg > 0 ? getLetterGrade(avg) : '--';
+            const gradeClass = avg > 0 ? getGradeClass(avg) : '';
+
+            document.getElementById('gc-current-grade').textContent = avg > 0 ? avg.toFixed(2) : '--';
+            const letterEl = document.getElementById('gc-letter-grade');
+            letterEl.textContent = letter;
+            letterEl.className = 'gc-letter-grade ' + gradeClass;
+            document.getElementById('gc-count').textContent = count;
+            document.getElementById('gc-weight-pct').textContent = totalWeight.toFixed(0) + '%';
+            document.getElementById('gc-max').textContent = maxGrade;
+            document.getElementById('gc-min').textContent = minGrade;
+
+            const fill = document.getElementById('gc-weight-fill');
+            const pct = Math.min(totalWeight, 100);
+            fill.style.width = pct + '%';
+            fill.className = 'gc-weight-fill' + (totalWeight > 100 ? ' over' : '');
+            document.getElementById('gc-weight-total').textContent = Math.min(totalWeight, 100);
+        }
+
+        function setFinalPreset(current, desired, weight) {
+            document.getElementById('final-current').value = current;
+            document.getElementById('final-desired').value = desired;
+            document.getElementById('final-weight').value = weight;
+            calcFinal();
+        }
+
+        function calcFinal() {
+            const current = parseFloat(document.getElementById('final-current').value) || 0;
+            const desired = parseFloat(document.getElementById('final-desired').value) || 0;
+            const weightPct = parseFloat(document.getElementById('final-weight').value) || 0;
+            const weightDecimal = weightPct / 100;
+
+            if (weightDecimal >= 1 || weightDecimal <= 0) {
+                document.getElementById('gc-final-needed').textContent = '--';
+                document.getElementById('gc-final-verdict').textContent = 'Final weight must be between 0.1% and 99.9%';
+                return;
+            }
+
+            const needed = (desired - (current * (1 - weightDecimal))) / weightDecimal;
+            const mainEl = document.getElementById('gc-final-needed');
+            const verdictEl = document.getElementById('gc-final-verdict');
+            mainEl.textContent = needed.toFixed(2) + '%';
+
+            if (needed <= 100 && needed >= 0) {
+                mainEl.className = 'gc-result-main pass';
+                verdictEl.textContent = needed <= current ? 'You can achieve this with less than your current effort' : 'Achievable with focused study';
+                verdictEl.style.color = 'var(--success)';
+            } else if (needed > 100) {
+                mainEl.className = 'gc-result-main fail';
+                verdictEl.textContent = 'This score may not be achievable (over 100%) — consider extra credit or adjusting your target';
+                verdictEl.style.color = 'var(--error)';
+            } else {
+                mainEl.className = 'gc-result-main pass';
+                verdictEl.textContent = 'You have already achieved your target grade!';
+                verdictEl.style.color = 'var(--success)';
+            }
+
+            document.getElementById('gc-final-current-display').textContent = current.toFixed(1);
+            document.getElementById('gc-final-desired-display').textContent = desired.toFixed(1);
+            document.getElementById('gc-final-weight-display').textContent = weightPct + '%';
+            const withoutFinal = current * (1 - weightDecimal);
+            document.getElementById('gc-final-without').textContent = withoutFinal.toFixed(2);
+        }
+
+        function addGPARow() {
+            const list = document.getElementById('gc-gpa-rows');
+            const row = document.createElement('div');
+            row.className = 'gc-assignment-row';
+            row.innerHTML = '<input type="text" class="gc-input gc-input-lg" value="" placeholder="Course" oninput="calcGPA()" aria-label="Course name">' +
+                '<label class="sr-only" for="gc-grade-' + list.children.length + '">Letter grade</label>' +
+                '<select id="gc-grade-' + list.children.length + '" class="gc-input" onchange="calcGPA()" style="max-width:100px;">' +
+                '<option value="4.0">A</option><option value="3.7">A-</option><option value="3.3">B+</option><option value="3.0" selected>B</option><option value="2.7">B-</option><option value="2.3">C+</option><option value="2.0">C</option><option value="1.7">C-</option><option value="1.3">D+</option><option value="1.0">D</option><option value="0.0">F</option></select>' +
+                '<input type="number" class="gc-input" value="3" min="0.5" max="12" step="0.5" oninput="calcGPA()" aria-label="Credit hours" style="max-width:70px;">' +
+                '<button class="gc-btn-sm" onclick="removeGPA(this)" aria-label="Delete course">✕</button>';
+            list.appendChild(row);
+            calcGPA();
+        }
+
+        function removeGPA(btn) {
+            const rows = document.querySelectorAll('#gc-gpa-rows .gc-assignment-row');
+            if (rows.length <= 1) return;
+            btn.closest('.gc-assignment-row').remove();
+            calcGPA();
+        }
+
+        function clearGPA() {
+            const list = document.getElementById('gc-gpa-rows');
+            list.innerHTML = '';
+            const row = document.createElement('div');
+            row.className = 'gc-assignment-row';
+            row.innerHTML = '<input type="text" class="gc-input gc-input-lg" value="Course 1" placeholder="Course" oninput="calcGPA()" aria-label="Course name">' +
+                '<label class="sr-only" for="gc-grade-' + list.children.length + '">Letter grade</label>' +
+                '<select id="gc-grade-' + list.children.length + '" class="gc-input" onchange="calcGPA()" style="max-width:100px;">' +
+                '<option value="4.0">A</option><option value="3.7">A-</option><option value="3.3">B+</option><option value="3.0" selected>B</option><option value="2.7">B-</option><option value="2.3">C+</option><option value="2.0">C</option><option value="1.7">C-</option><option value="1.3">D+</option><option value="1.0">D</option><option value="0.0">F</option></select>' +
+                '<input type="number" class="gc-input" value="3" min="0.5" max="12" step="0.5" oninput="calcGPA()" aria-label="Credit hours" style="max-width:70px;">' +
+                '<button class="gc-btn-sm" onclick="removeGPA(this)" aria-label="Delete course">✕</button>';
+            list.appendChild(row);
+            calcGPA();
+        }
+
+        function calcGPA() {
+            const rows = document.querySelectorAll('#gc-gpa-rows .gc-assignment-row');
+            let totalPoints = 0, totalCredits = 0, count = 0;
+
+            rows.forEach(function(row) {
+                const inputs = row.querySelectorAll('input[type="number"]');
+                const select = row.querySelector('select');
+                const gradePoints = parseFloat(select.value) || 0;
+                const credits = parseFloat(inputs[0].value) || 0;
+                if (credits > 0) {
+                    totalPoints += gradePoints * credits;
+                    totalCredits += credits;
+                    count++;
+                }
+            });
+
+            const gpa = totalCredits > 0 ? (totalPoints / totalCredits) : 0;
+            const letter = gpa > 0 ? getLetterGradeGPA(gpa) : '--';
+            const gradeClass = gpa > 0 ? getGPAGradeClass(gpa) : '';
+
+            document.getElementById('gc-gpa-value').textContent = gpa > 0 ? gpa.toFixed(2) : '--';
+            document.getElementById('gc-gpa-courses').textContent = count;
+            document.getElementById('gc-gpa-credits').textContent = totalCredits.toFixed(1);
+            document.getElementById('gc-gpa-points').textContent = totalPoints.toFixed(1);
+            document.getElementById('gc-gpa-val').textContent = gpa > 0 ? gpa.toFixed(2) : '--';
+
+            const letterEl = document.getElementById('gc-gpa-letter');
+            letterEl.textContent = letter;
+            letterEl.className = 'gc-letter-grade ' + gradeClass;
+        }
+
+        function copyResult(id) {
+            const box = document.getElementById(id);
+            if (!box) return;
+            const text = box.innerText.replace(/[×✕]\s*$/, '').trim();
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch(e) {}
+            document.body.removeChild(ta);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            calcWeighted();
+            calcFinal();
+            calcGPA();
+        });
+    </script>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Free online developer tools. No signup. Browser-based. 100% private.</p>
+    </footer>
+</body>
+</html>

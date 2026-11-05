@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UUID Generator - UUID v1 v4 v7 Generator | DevTools Hub</title>
+    <meta name="description" content="Generate UUID v1, v4, and v7 identifiers. Single or bulk generation up to 100 UUIDs at once.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/uuid-generator/">
+    <meta property="og:title" content="UUID Generator - UUID v1 v4 v7 Generator | DevTools Hub">
+    <meta property="og:description" content="Generate UUID v1, v4, and v7 identifiers. Single or bulk generation up to 100 UUIDs at once.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/uuid-generator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <style>.unit-proxy{position:absolute;left:-9999px;opacity:0;pointer-events:none;width:1px;height:1px}</style>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished": "2026-05-18","dateModified": "2026-05-18","author":{"@type":"Person","name":"BAOMING"},"name":"UUID Generator","description":"Generate UUID v1, v4, and v7 identifiers","url":"https://tools.scoreroute.com/tools/uuid-generator/","applicationCategory":"DeveloperApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>UUID Generator</h1>
+            <p class="subtitle">Generate Unique Identifiers</p>
+            <nav class="breadcrumb"><a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>UUID Generator</span>  <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Generate UUID</h2>
+                <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                    <input type="text" id="uuid-version" class="unit-proxy" data-testid="uuid-version" tabindex="-1" aria-hidden="true" autocomplete="off">
+                    <label class="sr-only" for="uuid-version-select">UUID Generator</label><select id="uuid-version-select" style="padding: 10px; background: #0f0f23; border: 1px solid #333; color: #fff; border-radius: 8px;">
+                        <option value="v4">UUID v4 (Random)</option>
+                        <option value="v1">UUID v1 (Timestamp)</option>
+                        <option value="v7">UUID v7 (Unix Epoch)</option>
+                    </select>
+                    <input type="number" id="uuid-count" value="1" min="1" max="100" placeholder="Count" style="padding: 10px; background: #0f0f23; border: 1px solid #333; color: #fff; border-radius: 8px; width: 100px;" aria-label="Count">
+                </div>
+                <div class="btn-group">
+                    <button onclick="generateUUID()" class="btn btn-primary">Generate</button>
+                    <button onclick="generateBulkUUID()" class="btn btn-primary">Bulk Generate</button>
+                </div>
+                <div id="uuid-output" style="font-family: monospace; padding: 15px; background: #0f0f23; border-radius: 8px; margin-top: 10px;"></div>
+                <button onclick="copyAllUUID()" class="btn btn-small">Copy All</button>
+            </div>
+
+            <div class="info-section">
+                <h3>What is a UUID?</h3>
+                <p>UUID (Universally Unique Identifier) is a 128-bit label used to identify information in computer systems. They follow RFC 4122 with several versions, each with different generation methods.</p>
+
+                <h3>UUID Versions Explained</h3>
+                <div class="example-box">
+                    <div class="example-item">
+                        <strong>UUID v1 (Timestamp)</strong>
+                        <code>xxxxxxxx-xxxx-1xxx-xxxx-xxxxxxxxxxxx</code>
+                        <span style="color: #10b981; display: block; margin-top: 4px;">Embeds timestamp and MAC address. Sortable but exposes node information.</span>
+                    </div>
+                    <div class="example-item">
+                        <strong>UUID v4 (Random)</strong>
+                        <code>xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx</code>
+                        <span style="color: #10b981; display: block; margin-top: 4px;">Most common version. Random generation means negligible collision probability.</span>
+                    </div>
+                    <div class="example-item">
+                        <strong>UUID v7 (Unix Epoch)</strong>
+                        <code>xxxxxxxx-xxxx-7xxx-xxxx-xxxxxxxxxxxx</code>
+                        <span style="color: #10b981; display: block; margin-top: 4px;">Combines Unix timestamp with randomness. Sortable and privacy-preserving.</span>
+                    </div>
+                </div>
+
+                <h3>When to Use Each UUID Type</h3>
+                <ul>
+                    <li><strong>v4:</strong> General-purpose identifiers for databases, sessions, and any case where privacy matters.</li>
+                    <li><strong>v1:</strong> Legacy systems needing chronological ordering. Use cautiously due to MAC exposure.</li>
+                    <li><strong>v7:</strong> Modern apps needing time-sortable IDs without v1's privacy issues. Ideal for distributed systems.</li>
+                </ul>
+
+                <h3>Security Considerations</h3>
+                <p>UUID v4 is not cryptographically secure. Do not use standard UUIDs for security tokens or cryptographic keys. Use dedicated CSPRNG libraries instead.</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item"><summary>What is the collision probability for UUID v4?</summary>Approximately 1 in 5.3 x 10^36. Even generating 1 billion UUIDs per second for 100 years yields less than 0.001% collision chance.</details>
+                <details class="faq-item"><summary>Can UUIDs be used as database primary keys?</summary>Yes, especially in distributed systems. UUID v7 is recommended for indexed columns due to its time-ordered structure.</details>
+                <details class="faq-item"><summary>Are UUIDs cryptographically secure?</summary>No. UUID v4 uses pseudo-random generation, not cryptographic randomness. Use CSPRNG for security tokens.</details>
+                <details class="faq-item"><summary>Which version is best for database indexes?</summary>UUID v7. Its time-ordered structure allows sequential B-tree fills, reducing index fragmentation and improving insert performance.</details>
+                <details class="faq-item"><summary>Can UUIDs be converted between versions?</summary>No. Each version has a different structure and algorithm. Generate a new UUID with the desired version.</details>
+                <details class="faq-item"><summary>What does the version number mean?</summary>The version byte (position 13) indicates the generation method: v1=timestamp+MAC, v4=random, v7=Unix epoch+random.</details>
+
+                <div class="related-section">
+                    <h4>Related Tools</h4>
+                    <ul>
+                        <li><a href="/tools/hash-generator/">Hash Generator</a></li>
+                        <li><a href="/tools/timestamp-converter/">Timestamp Converter</a></li>
+                        <li><a href="/tools/json-formatter/">JSON Formatter</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+    <div class="last-updated">Created: 2026-05-18</div>
+<footer><p>&copy; 2025 DevTools Hub | <a href="/">Free Developer Tools</a></p></footer>
+    <script src="/tools.js"></script>
+    <script>
+        function createUUID(v) {
+            if (v === 'v4') return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { const r = Math.random() * 16 | 0; const va = c === 'x' ? r : (r & 0x3 | 0x8); return va.toString(16); });
+            else if (v === 'v1') { const t = Date.now().toString(16).padStart(12, '0'); return t.slice(0, 8) + '-' + t.slice(8, 12) + '-1xxx-xxxx-xxxxxxxxxxxx'.replace(/[x]/g, () => Math.floor(Math.random() * 16).toString(16)); }
+            else { const t = Date.now().toString(16).padStart(12, '0'); return t.slice(0, 8) + '-' + t.slice(8, 12) + '-7xxx-xxxx-xxxxxxxxxxxx'.replace(/[x]/g, () => Math.floor(Math.random() * 16).toString(16)); }
+        }
+        function getUuidVersion() { return document.getElementById('uuid-version-select').value; }
+        function generateUUID() { document.getElementById('uuid-output').innerHTML = '<p>' + createUUID(getUuidVersion()) + '</p>'; }
+        function generateBulkUUID() { const count = parseInt(document.getElementById('uuid-count').value) || 1; const uuids = []; for (let i = 0; i < Math.min(count, 100); i++) uuids.push(createUUID(getUuidVersion())); document.getElementById('uuid-output').innerHTML = uuids.map(u => '<p>' + u + '</p>').join(''); }
+        (function() {
+            var proxy = document.getElementById('uuid-version');
+            var sel = document.getElementById('uuid-version-select');
+            if (proxy && sel) {
+                proxy.value = sel.value;
+                proxy.addEventListener('input', function() {
+                    var val = proxy.value.trim();
+                    if (val && Array.from(sel.options).some(function(o) { return o.value === val || o.textContent === val; })) {
+                        sel.value = val;
+                    }
+                });
+                sel.addEventListener('change', function() { proxy.value = sel.value; });
+            }
+        })();
+        function copyAllUUID() {
+  var texts = [];
+  var ps = document.getElementById('uuid-output').querySelectorAll('p');
+  ps.forEach(function(p) { texts.push(p.textContent); });
+  var text = texts.join('\n');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(function() {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+}
+    </script>
+<!-- Cloudflare Web Analytics --><!-- End Cloudflare Web Analytics -->
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

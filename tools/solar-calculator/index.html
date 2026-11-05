@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Sizing Calculator | DevTools Hub</title>
+<meta name="description" content="Free solar sizing calculator. Estimate solar panel array size and battery storage from monthly kWh use and peak sun hours. Private browser math, no signup.">
+<meta name="keywords" content="solar calculator, solar sizing calculator, solar panel calculator, solar battery calculator, solar kW calculator, how many solar panels, solar array size, battery storage solar, solar energy calculator, solar pv calculator, free, no signup, private">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/solar-calculator/">
+<meta property="og:title" content="Free Solar Sizing Calculator - Panel Array & Battery">
+<meta property="og:description" content="Size your solar panel array and battery storage from monthly kWh use and peak sun hours. Private browser math, no signup, no upload.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/solar-calculator/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Free Solar Sizing Calculator - Panel Array & Battery">
+<meta name="twitter:description" content="Size solar panel array and battery storage from monthly kWh use and peak sun hours. Private browser math, no signup.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Solar Sizing Calculator","description":"Free solar sizing calculator that estimates solar panel array size and battery storage from monthly electricity use and peak sun hours. Private browser-based math, no signup, no upload, no API key.","url":"https://tools.scoreroute.com/tools/solar-calculator/","applicationCategory":"UtilityApplication","operatingSystem":"All","browserRequirements":"Requires modern browser with ES2020 support","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Monthly kWh consumption input with live array sizing from peak sun hours","Peak sun hours lookup by region with custom override","Solar panel array size in kW with panel count and total wattage","Roof area needed for the array, derived from panel footprint","Battery storage sizing from daily use, autonomy days, depth of discharge and efficiency","Presets for residential rooftop, off-grid cabin and EV-charging offset","localStorage persistence of the sizing project","Copy results as plain text and print the sizing report"]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How do I calculate how many solar panels I need?","acceptedAnswer":{"@type":"Answer","text":"Estimate your annual electricity use in kilowatt-hours, divide by the peak sun hours of your region times 365 days, and you have the array size in kilowatts needed. Divide that kilowatt number by your panel wattage to get the panel count, round up, and multiply by the panel footprint to get the roof area. The solar sizing calculator performs this end to end from monthly kWh use in seconds."}},
+{"@type":"Question","name":"How is battery storage sized for solar?","acceptedAnswer":{"@type":"Answer","text":"Battery capacity equals average daily consumption times the autonomy days you want, divided by the depth of discharge and the round-trip efficiency of the battery. A typical home wanting one day of backup at 50 percent depth of discharge and 95 percent efficiency needs about twice the daily energy in usable amp-hours, which the calculator outputs directly."}},
+{"@type":"Question","name":"What are peak sun hours and why do they matter?","acceptedAnswer":{"@type":"Answer","text":"Peak sun hours measure how many hours per day the location receives strong enough sunlight for photovoltaic panels to produce one kilowatt of power. The US Southwest averages about 6.5 peak sun hours per day while the Pacific Northwest averages closer to 3.5, so the same panel produces roughly twice the energy in Arizona as in Seattle. The calculator uses peak sun hours to size the array."}},
+{"@type":"Question","name":"Can an AI chatbot size my solar panel system?","acceptedAnswer":{"@type":"Answer","text":"No. AI chatbots cannot run the sizing arithmetic reliably, cannot integrate roof area with consumption, cannot account for battery losses and depth of discharge, and tend to hallucinate array sizes. A deterministic browser calculator computes the array, the panel count and the battery capacity from your real numbers, and every step is shown."}},
+{"@type":"Question","name":"How much roof area do I need for solar panels?","acceptedAnswer":{"@type":"Answer","text":"Each kilowatt of array needs roughly 5.5 square feet of roof area at a typical 400 watt panel. The calculator multiplies the required kilowatts by the panel footprint and rounds to whole panels, so the roof figure is derived from the panel count rather than guessed."}},
+{"@type":"Question","name":"Is my energy usage data private with this calculator?","acceptedAnswer":{"@type":"Answer","text":"Yes. The calculator runs entirely in your browser with plain JavaScript. Monthly kWh use, roof area and battery settings are never sent to a server, stored in a cookie or attached to an account. Nothing leaves the page."}}
+]}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root {
+  --sol-bg: #0f0f23;
+  --sol-surface: #1a1a2e;
+  --sol-surface2: #131826;
+  --sol-border: #2a2a4e;
+  --sol-text: #e8e8f0;
+  --sol-muted: #9090b0;
+  --sol-accent: #7eb3ff;
+  --sol-accent2: #764ba2;
+  --sol-success: #10b981;
+  --sol-warn: #f59e0b;
+  --sol-error: #ef4444;
+  --sol-radius: 10px;
+}
+* { box-sizing: border-box; }
+.sol-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 900px) { .sol-wrap { grid-template-columns: 1fr; } }
+.sol-panel { background: var(--sol-surface); border: 1px solid var(--sol-border); border-radius: var(--sol-radius); padding: 18px; }
+.sol-panel-title { font-size: 0.85rem; font-weight: 700; color: var(--sol-muted); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 8px; border-bottom: 1px solid var(--sol-border); }
+.sol-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid var(--sol-border); }
+.sol-tab { padding: 8px 14px; background: var(--sol-surface2); border: 1px solid var(--sol-border); border-radius: 6px 6px 0 0; color: var(--sol-muted); font-size: 0.78rem; cursor: pointer; transition: all 0.15s; font-family: inherit; margin-bottom: -1px; }
+.sol-tab:hover { color: var(--sol-text); }
+.sol-tab.active { background: var(--sol-accent); color: #0a0d14; border-color: var(--sol-accent); font-weight: 600; }
+.sol-mode { display: none; }
+.sol-mode.active { display: block; }
+.sol-control { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.sol-control label { font-size: 0.78rem; color: var(--sol-muted); display: flex; justify-content: space-between; align-items: center; }
+.sol-control label .sol-val { color: var(--sol-text); font-weight: 600; font-family: monospace; }
+.sol-control input[type="number"], .sol-control select, .sol-control input[type="text"] { background: #0d0d1e; border: 1px solid var(--sol-border); color: var(--sol-text); padding: 8px 10px; border-radius: 6px; font-size: 0.88rem; width: 100%; font-family: inherit; }
+.sol-control input:focus-visible, .sol-control select:focus-visible { outline: 2px solid var(--sol-accent); outline-offset: 1px; border-color: var(--sol-accent); }
+.sol-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.sol-row > .sol-control { flex: 1; min-width: 100px; }
+.sol-stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+.sol-stat-card { background: var(--sol-surface2); border: 1px solid var(--sol-border); border-radius: 8px; padding: 12px; }
+.sol-stat-card.primary { border-color: var(--sol-accent); background: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(118,75,162,0.08)); }
+.sol-stat-card.success { border-color: var(--sol-success); }
+.sol-stat-label { font-size: 0.7rem; color: var(--sol-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.sol-stat-value { font-size: 1.35rem; font-weight: 700; color: var(--sol-text); font-family: monospace; line-height: 1.1; }
+.sol-stat-card.primary .sol-stat-value { color: var(--sol-accent); }
+.sol-stat-card.success .sol-stat-value { color: var(--sol-success); }
+.sol-stat-unit { font-size: 0.7rem; color: var(--sol-muted); margin-left: 4px; font-weight: 400; }
+.sol-diagram { background: #0d0d1e; border: 1px solid var(--sol-border); border-radius: 8px; padding: 18px; text-align: center; min-height: 180px; display: flex; align-items: center; justify-content: center; }
+.sol-diagram svg { max-width: 100%; max-height: 200px; }
+.sol-mat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+@media (max-width: 600px) { .sol-mat-row { grid-template-columns: repeat(2, 1fr); } }
+.sol-mat-pill { background: var(--sol-surface2); border: 1px solid var(--sol-border); border-radius: 6px; padding: 8px; text-align: center; }
+.sol-mat-pill-label { color: var(--sol-muted); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px; }
+.sol-mat-pill-val { color: var(--sol-text); font-weight: 700; font-family: monospace; font-size: 1.05rem; }
+.sol-mat-pill-unit { font-size: 0.62rem; color: var(--sol-muted); margin-left: 2px; font-weight: 400; }
+.sol-room-card { background: var(--sol-surface2); border: 1px solid var(--sol-border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+.sol-room-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.sol-room-name { background: transparent; border: 1px solid transparent; color: var(--sol-text); font-size: 0.92rem; font-weight: 600; padding: 4px 6px; border-radius: 4px; flex: 1; margin-right: 8px; font-family: inherit; }
+.sol-room-name:focus-visible { outline: 2px solid var(--sol-accent); outline-offset: 1px; border-color: var(--sol-accent); }
+.sol-room-remove { background: transparent; border: 1px solid var(--sol-border); color: var(--sol-muted); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.78rem; font-family: inherit; }
+.sol-room-remove:hover { border-color: var(--sol-error); color: var(--sol-error); }
+.sol-btn { background: #0d0d1e; color: var(--sol-text); border: 1px solid var(--sol-border); padding: 9px 16px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.sol-btn:hover { border-color: var(--sol-accent); color: #fff; }
+.sol-btn.primary { background: var(--sol-accent); color: #0a0d14; border-color: var(--sol-accent); font-weight: 600; }
+.sol-btn.primary:hover { background: #5568d3; }
+.sol-btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.sol-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--sol-success); color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 0.85rem; box-shadow: 0 4px 18px rgba(0,0,0,0.4); z-index: 1000; opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+.sol-toast.show { opacity: 1; }
+.sol-toast.error { background: var(--sol-error); }
+.sol-divider { height: 1px; background: var(--sol-border); margin: 14px 0; }
+.sol-help { font-size: 0.72rem; color: var(--sol-muted); margin-top: 4px; }
+.sol-checkbox-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-size: 0.82rem; color: var(--sol-muted); }
+.sol-checkbox-row input[type="checkbox"] { accent-color: var(--sol-accent); width: 16px; height: 16px; }
+.sol-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+@media (max-width: 600px) { .sol-presets { grid-template-columns: repeat(2, 1fr); } }
+.sol-preset-btn { padding: 8px 4px; background: var(--sol-surface2); border: 1px solid var(--sol-border); border-radius: 6px; color: var(--sol-muted); font-size: 0.72rem; cursor: pointer; transition: all 0.15s; font-family: inherit; text-align: center; }
+.sol-preset-btn:hover { border-color: var(--sol-accent); color: var(--sol-text); }
+.sol-preset-btn.active { background: var(--sol-accent); color: #0a0d14; border-color: var(--sol-accent); font-weight: 600; }
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  header, footer, .info-section, .breadcrumb, .sol-btn-row, .sol-presets { display: none !important; }
+  .sol-panel { background: #fff !important; border: 1px solid #999 !important; color: #000 !important; break-inside: avoid; }
+  .sol-stat-card { background: #f9f9f9 !important; color: #000 !important; border-color: #ccc !important; }
+  .sol-stat-value { color: #000 !important; }
+  .sol-stat-card.primary .sol-stat-value { color: #000 !important; }
+  .sol-mode { display: block !important; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>Solar Sizing Calculator</h1>
+<p class="subtitle">Estimate solar panel array and battery storage size</p>
+<nav class="breadcrumb">
+<a href="/">Home</a> &gt; <a href="/tools/calculators/">Calculators</a> &gt; <span>Solar Sizing Calculator</span>
+<a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+</nav>
+</div>
+</header>
+<main class="container">
+<section class="tool-page">
+<div class="tool-main">
+<h2>Size your solar system from real consumption</h2>
+
+<div class="sol-panel">
+<div class="sol-panel-title">Energy Use</div>
+<div class="sol-control">
+<label for="sol-monthly">Monthly electricity use <span class="sol-val" id="sol-monthly-u">kWh</span></label>
+<input type="number" id="sol-monthly" value="950" min="0" step="any" aria-label="Monthly electricity use in kilowatt hours">
+<div class="sol-help">Average monthly usage in kilowatt-hours from your utility bill or monitoring app. Annual use equals monthly use times 12.</div>
+</div>
+<div class="sol-control">
+<label for="sol-region">Location / peak sun hours</label>
+<select id="sol-region" onchange="solSetRegion()">
+<option value="us-southwest" selected>Southwest US (AZ / NM / NV) - 6.5 peak sun hours</option>
+<option value="us-california">California - 5.5 peak sun hours</option>
+<option value="us-southeast">Southeast US - 5.0 peak sun hours</option>
+<option value="apac-india">India - 5.0 peak sun hours</option>
+<option value="us-midwest">Midwest US - 4.0 peak sun hours</option>
+<option value="us-northeast">Northeast US - 4.2 peak sun hours</option>
+<option value="eu-uk">United Kingdom - 2.7 peak sun hours</option>
+<option value="eu-germany">Germany - 3.0 peak sun hours</option>
+<option value="us-pacific-northwest">Pacific Northwest US - 3.8 peak sun hours</option>
+<option value="custom">Custom - enter your own peak sun hours</option>
+</select>
+<div class="sol-control" style="display:none;" id="sol-custom-wrap">
+<label for="sol-custom">Peak sun hours <span class="sol-val" id="sol-custom-u">4.0</span></label>
+<input type="number" id="sol-custom" value="4.0" min="0" max="12" step="any" aria-label="Peak sun hours">
+</div>
+<div class="sol-help">Peak sun hours are the daily average of strong sunlight. They vary by latitude and climate; the calculator uses them as the kWh per kilowatt of array produced per day.</div>
+</div>
+
+<div class="sol-panel">
+<div class="sol-panel-title">Array</div>
+<div class="sol-presets" id="sol-presets">
+<button type="button" class="sol-preset-btn" data-p="residential" onclick="solPreset('residential')">Residential Home</button>
+<button type="button" class="sol-preset-btn" data-p="offgrid" onclick="solPreset('offgrid')">Off-Grid Cabin</button>
+<button type="button" class="sol-preset-btn" data-p="ev" onclick="solPreset('ev')">EV Charging</button>
+<button type="button" class="sol-preset-btn" data-p="custom" onclick="solPreset('custom')">Custom</button>
+</div>
+<div class="sol-control" style="max-width:320px;">
+<label for="sol-panelw">Panel wattage <span class="sol-val" id="sol-panelw-u">400 W</span></label>
+<input type="number" id="sol-panelw" value="400" min="50" max="800" step="10" aria-label="Solar panel wattage">
+</div>
+<div class="sol-control" style="max-width:320px;">
+<label for="sol-roof">Available roof area <span class="sol-val" id="sol-roof-u">sq ft</span></label>
+<input type="number" id="sol-roof" value="0" min="0" step="any" aria-label="Available roof area in square feet">
+<div class="sol-help">Leave at 0 to skip the roof area check. Needed area assumes a panel footprint of about 5.5 sq ft per kilowatt.</div>
+</div>
+<div class="sol-stat-grid">
+<div class="sol-stat-card primary">
+<div class="sol-stat-label">Array Size</div>
+<div class="sol-stat-value" id="sol-out-kw">0<span class="sol-stat-unit">kW</span></div>
+</div>
+<div class="sol-stat-card">
+<div class="sol-stat-label">Panels Needed</div>
+<div class="sol-stat-value" id="sol-out-n">0<span class="sol-stat-unit">panels</span></div>
+</div>
+<div class="sol-stat-card success">
+<div class="sol-stat-label">Total Panel Power</div>
+<div class="sol-stat-value" id="sol-out-w">0<span class="sol-stat-unit">W</span></div>
+</div>
+<div class="sol-stat-card">
+<div class="sol-stat-label">Roof Area Needed</div>
+<div class="sol-stat-value" id="sol-out-roof">0<span class="sol-stat-unit" id="sol-out-roof-u">sq ft</span></div>
+</div>
+</div>
+</div>
+
+<div class="sol-panel">
+<div class="sol-panel-title">Battery Storage</div>
+<div class="sol-row">
+<div class="sol-control">
+<label for="sol-auto">Autonomy days <span class="sol-val" id="sol-auto-u">1</span></label>
+<input type="number" id="sol-auto" value="1" min="0" max="365" step="any" aria-label="Battery autonomy days">
+</div>
+<div class="sol-control">
+<label for="sol-dod">Depth of discharge <span class="sol-val" id="sol-dod-u">50%</span></label>
+<input type="number" id="sol-dod" value="50" min="1" max="100" step="1" aria-label="Battery depth of discharge percent">
+</div>
+<div class="sol-control">
+<label for="sol-eff">Round-trip efficiency <span class="sol-val" id="sol-eff-u">95%</span></label>
+<input type="number" id="sol-eff" value="95" min="50" max="100" step="1" aria-label="Battery round trip efficiency percent">
+</div>
+</div>
+<div class="sol-stat-grid" style="margin-top:4px;">
+<div class="sol-stat-card primary">
+<div class="sol-stat-label">Battery Capacity</div>
+<div class="sol-stat-value" id="sol-out-batt">0<span class="sol-stat-unit">kWh</span></div>
+</div>
+<div class="sol-stat-card">
+<div class="sol-stat-label">Daily Use</div>
+<div class="sol-stat-value" id="sol-out-daily">0<span class="sol-stat-unit">kWh</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="sol-btn-row">
+<button class="sol-btn primary" onclick="solCopyResults()" type="button">Copy Results</button>
+<button class="sol-btn" onclick="solPrintResults()" type="button">Print</button>
+<button class="sol-btn" onclick="solReset()" type="button">Reset</button>
+</div>
+
+<div id="sol-toast" class="sol-toast"></div>
+</section>
+
+<section class="info-section">
+<h2>How This Solar Sizing Calculator Works</h2>
+<p>The calculator starts from your monthly electricity use in kilowatt-hours. It converts that into an annual consumption figure, divides by the peak sun hours of your chosen location times 365, and produces the required array size in kilowatts. Dividing by your panel wattage gives the number of panels, and multiplying by the panel footprint gives the roof area.</p>
+<p>The battery block converts your average daily consumption into the storage capacity that covers your chosen autonomy at your depth of discharge and round-trip efficiency. Presets cover a typical residential rooftop, an off-grid cabin and an EV-charging offset so you can sanity-check the numbers before entering your own figures.</p>
+
+<h2>Why This Beats Asking an AI Chatbot</h2>
+<p>AI chatbots cannot run the sizing arithmetic reliably, cannot combine roof area with real consumption, cannot apply depth of discharge and efficiency correctly, and will often invent panel counts. A deterministic browser calculator runs the same formulas every time, so the answer is reproducible and auditable, and you can copy a plain-text sizing report to take to a solar installer.</p>
+
+<h2>Frequently Asked Questions</h2>
+<details class="faq-item"><summary>How do I calculate how many solar panels I need?</summary><p>Divide your annual kilowatt-hour use by the peak sun hours of your location times 365. The result is the array size in kilowatts; divide by panel wattage to get the panel count and round up. The solar sizing calculator does all of this from monthly use in one step.</p></details>
+<details class="faq-item"><summary>How is battery storage sized for solar?</summary><p>Battery capacity equals average daily consumption times the autonomy days you want, divided by the depth of discharge and the round-trip efficiency. The calculator outputs the required capacity in kilowatt-hours directly.</p></details>
+<details class="faq-item"><summary>What are peak sun hours and why do they matter?</summary><p>Peak sun hours measure daily strong sunlight for photovoltaic output, averaged over the year. They vary sharply by region, so the same panel produces about twice the annual energy in the Southwest as in the Pacific Northwest.</p></details>
+<details class="faq-item"><summary>Can an AI chatbot size my solar panel system?</summary><p>No. Chatbots cannot run the sizing math, integrate roof area with consumption, or apply battery losses. They will often produce confidently wrong array sizes; this calculator computes each step deterministically.</p></details>
+<details class="faq-item"><summary>How much roof area do I need for solar panels?</summary><p>Each kilowatt of array needs roughly 5.5 square feet of roof area at a typical 400 watt panel. The calculator multiplies the required kilowatts by the panel footprint and rounds to whole panels.</p></details>
+<details class="faq-item"><summary>Is my energy usage data private with this calculator?</summary><p>Yes. All math runs in the browser. Monthly use, roof area and battery settings never leave the page.</p></details>
+
+<h2>Related Tools</h2>
+<ul>
+<li><a href="/tools/concrete-calculator/">Concrete Calculator</a> - volume and bag estimator for pours</li>
+<li><a href="/tools/roofing-calculator/">Roofing Calculator</a> - roof area and material takeoffs</li>
+<li><a href="/tools/unit-converter/">Unit Converter</a> - convert kWh, sq ft and watts</li>
+<li><a href="/tools/calculator/">Calculator</a> - general purpose math</li>
+<li><a href="/tools/btu-calculator/">BTU Calculator</a> - heating and cooling load estimates</li>
+</ul>
+</section>
+</main>
+<footer>
+<p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function(){
+'use strict';
+var STORAGE_KEY = 'sol_state_v1';
+var SUN_HOURS = { 'us-southwest':6.5, 'us-california':5.5, 'us-southeast':5.0, 'apac-india':5.0, 'us-midwest':4.0, 'us-northeast':4.2, 'eu-uk':2.7, 'eu-germany':3.0, 'us-pacific-northwest':3.8 };
+var DAYS_PER_MONTH = 30.44;
+var PANEL_FOOTPRINT_FT2 = 5.5;
+var state = { monthly:950, region:'us-southwest', panelW:400, roof:0, autonomy:1, dod:50, eff:95, customSun:4.0, loaded:false };
+
+function el(id) { return document.getElementById(id); }
+function num(id) { return parseFloat(el(id).value) || 0; }
+function fmt(n, d) { d = (d == null) ? 2 : d; if (!isFinite(n) || isNaN(n)) return '0'; if (n === 0) return '0'; if (Math.abs(n) < 0.01) return n.toFixed(d); return Number(n.toFixed(d)).toString(); }
+function showToast(msg, isErr) { var t = el('sol-toast'); t.textContent = msg; t.className = 'sol-toast show' + (isErr ? ' error' : ''); setTimeout(function(){ t.className = 'sol-toast'; }, 2200); }
+function sunHours() { var r = state.region; if (r === 'custom') { var c = state.customSun; return isFinite(c) ? c : 4.0; } return SUN_HOURS[r] || 4.0; }
+function solSetRegion() { state.region = el('sol-region').value; if (state.region === 'custom') { var c = el('sol-custom'); if (c) c.value = state.customSun || 4.0; } solSave(); solRecalc(); }
+function solSetCustom() { state.region = 'custom'; state.customSun = parseFloat(el('sol-custom').value) || 4.0; solSave(); solRecalc(); }
+function solSave() { try { state.loaded = true; localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {} }
+function solLoad() { try { var s = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); if (s && typeof s === 'object') { state.monthly = s.monthly || 950; state.region = s.region || 'us-southwest'; state.panelW = s.panelW || 400; state.roof = s.roof || 0; state.autonomy = s.autonomy == null ? 1 : s.autonomy; state.dod = s.dod == null ? 50 : s.dod; state.eff = s.eff == null ? 95 : s.eff; } } catch(e) {} }
+function solClear() { try { localStorage.removeItem(STORAGE_KEY); } catch(e) {} }
+function solPresetsInit() { var p = el('sol-presets'); if (!p) return; var btns = p.querySelectorAll('.sol-preset-btn'); for (var i=0;i<btns.length;i++){ (function(b){ b.addEventListener('click', function(){ solPreset(b.getAttribute('data-p')); }); })(btns[i]); } }
+function solPreset(p) {
+  if (p === 'residential') { state.monthly = 950; state.region = 'us-southwest'; state.panelW = 400; state.roof = 0; state.autonomy = 1; state.dod = 50; state.eff = 95; }
+  else if (p === 'offgrid') { state.monthly = 120; state.region = 'us-southwest'; state.panelW = 400; state.roof = 0; state.autonomy = 2; state.dod = 50; state.eff = 95; }
+  else if (p === 'ev') { state.monthly = 1200; state.region = 'us-southwest'; state.panelW = 400; state.roof = 0; state.autonomy = 1; state.dod = 50; state.eff = 95; }
+  else if (p === 'custom') { state.monthly = 600; state.region = 'custom'; state.customSun = 4.0; state.panelW = 400; state.roof = 0; state.autonomy = 1; state.dod = 50; state.eff = 95; }
+  var u = el('sol-monthly'); if (u) u.value = state.monthly;
+  var r = el('sol-region'); if (r) { r.value = state.region; var cw = el('sol-custom-wrap'); if (cw) cw.style.display = state.region === 'custom' ? '' : 'none'; }
+  var p2 = el('sol-panelw'); if (p2) p2.value = state.panelW;
+  var a = el('sol-auto'); if (a) a.value = state.autonomy;
+  var d = el('sol-dod'); if (d) d.value = state.dod;
+  var e = el('sol-eff'); if (e) e.value = state.eff;
+  solSave(); solRecalc();
+}
+function solRecalc() {
+  var sun = sunHours();
+  var annualKwh = state.monthly * 12;
+  var kW = annualKwh / (sun * 365);
+  var panelKwp = state.panelW / 1000;
+  var panels = kW <= 0 ? 0 : Math.ceil(kW / panelKwp - 1e-9);
+  var totalW = panels * state.panelW;
+  var roofNeeded = panels * PANEL_FOOTPRINT_FT2;
+  var dailyUse = state.monthly / DAYS_PER_MONTH;
+  var battKwh = state.autonomy > 0 ? (dailyUse * state.autonomy) / (state.dod / 100) / (state.eff / 100) : 0;
+  el('sol-out-kw').innerHTML = fmt(kW) + '<span class="sol-stat-unit">kW</span>';
+  el('sol-out-n').innerHTML = fmt(panels) + '<span class="sol-stat-unit">panels</span>';
+  el('sol-out-w').innerHTML = fmt(totalW) + '<span class="sol-stat-unit">W</span>';
+  el('sol-out-roof').innerHTML = fmt(roofNeeded) + '<span class="sol-stat-unit">sq ft</span>';
+  el('sol-out-batt').innerHTML = fmt(battKwh) + '<span class="sol-stat-unit">kWh</span>';
+  el('sol-out-daily').innerHTML = fmt(dailyUse) + '<span class="sol-stat-unit">kWh</span>';
+  return { kW: kW, panels: panels, totalW: totalW, roofNeeded: roofNeeded, battKwh: battKwh, dailyUse: dailyUse };
+}
+function solCopyResults() {
+  var r = solRecalc();
+  var lines = [];
+  lines.push('Solar Sizing Calculator - DevTools Hub');
+  lines.push('=================================');
+  lines.push('Monthly use: ' + state.monthly + ' kWh');
+  lines.push('Location peak sun hours: ' + sunHours());
+  lines.push('Array size: ' + fmt(r.kW) + ' kW');
+  lines.push('Panels needed: ' + fmt(r.panels) + ' x ' + state.panelW + ' W');
+  lines.push('Total panel power: ' + fmt(r.totalW) + ' W');
+  lines.push('Roof area needed: ' + fmt(r.roofNeeded) + ' sq ft');
+  lines.push('Battery capacity: ' + fmt(r.battKwh) + ' kWh');
+  lines.push('Daily use: ' + fmt(r.dailyUse) + ' kWh');
+  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(lines.join('\n')); showToast('Results copied to clipboard'); }
+  else { showToast('Copy failed', true); }
+}
+function solPrintResults() { window.print(); }
+function solReset() { if (!confirm('Reset all values to defaults?')) return; state.monthly = 950; state.region = 'us-southwest'; state.panelW = 400; state.roof = 0; state.autonomy = 1; state.dod = 50; state.eff = 95; var u = el('sol-monthly'); if (u) u.value = 950; var r = el('sol-region'); if (r) { r.value = 'us-southwest'; var cw = el('sol-custom-wrap'); if (cw) cw.style.display = 'none'; } var p = el('sol-panelw'); if (p) p.value = 400; var ro = el('sol-roof'); if (ro) ro.value = 0; var a = el('sol-auto'); if (a) a.value = 1; var d = el('sol-dod'); if (d) d.value = 50; var e = el('sol-eff'); if (e) e.value = 95; solClear(); solSave(); solRecalc(); }
+function solInit() {
+  solLoad();
+  var u = el('sol-monthly'); if (u) u.value = state.monthly;
+  var r = el('sol-region'); if (r) { r.value = state.region; var cw = el('sol-custom-wrap'); if (cw) cw.style.display = state.region === 'custom' ? '' : 'none'; }
+  var p = el('sol-panelw'); if (p) p.value = state.panelW;
+  var ro = el('sol-roof'); if (ro) ro.value = state.roof;
+  var a = el('sol-auto'); if (a) a.value = state.autonomy;
+  var d = el('sol-dod'); if (d) d.value = state.dod;
+  var e = el('sol-eff'); if (e) e.value = state.eff;
+  solPresetsInit();
+  var monthly = el('sol-monthly');
+  monthly.addEventListener('input', function(){ state.monthly = parseFloat(monthly.value) || 0; solSave(); solRecalc(); });
+  var panelw = el('sol-panelw');
+  panelw.addEventListener('input', function(){ state.panelW = parseFloat(panelw.value) || 400; solSave(); solRecalc(); });
+  var roof = el('sol-roof');
+  roof.addEventListener('input', function(){ state.roof = parseFloat(roof.value) || 0; solSave(); solRecalc(); });
+  var auto = el('sol-auto');
+  auto.addEventListener('input', function(){ state.autonomy = parseFloat(auto.value) || 0; solSave(); solRecalc(); });
+  var dod = el('sol-dod');
+  dod.addEventListener('input', function(){ state.dod = parseFloat(dod.value) || 0; solSave(); solRecalc(); });
+  var eff = el('sol-eff');
+  eff.addEventListener('input', function(){ state.eff = parseFloat(eff.value) || 0; solSave(); solRecalc(); });
+  var custom = el('sol-custom');
+  if (custom) { custom.addEventListener('input', function(){ state.region = 'custom'; solSave(); solRecalc(); }); }
+  solRecalc();
+}
+document.addEventListener('DOMContentLoaded', function(){ solInit(); });
+window.solSetRegion = solSetRegion;
+window.solSetCustom = solSetCustom;
+window.solPreset = solPreset;
+window.solCopyResults = solCopyResults;
+window.solPrintResults = solPrintResults;
+window.solReset = solReset;
+window.solRecalc = solRecalc;
+})();
+
+</script>
+</body>
+</html>

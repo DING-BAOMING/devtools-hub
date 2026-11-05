@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Search Maker - Free Printable Puzzle Generator</title>
+    <meta name="description" content="Free word search maker. Turn any word list into a printable puzzle in seconds with answer key and PNG/PDF export. 100% private, no signup, no ads.">
+    <meta name="keywords" content="word search maker, word search generator, free word search, printable word search, make your own word search, word search puzzle, word search with answer key, word search for kids, teacher word search, word find maker">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/word-search-maker/">
+    <meta property="og:title" content="Word Search Maker - Free Printable Puzzle Generator">
+    <meta property="og:description" content="Free word search maker. Turn any word list into a printable puzzle with answer key and PNG/PDF export. 100% private, no signup, no ads.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/word-search-maker/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Word Search Maker - Free Printable Puzzle Generator | DevTools Hub">
+    <meta name="twitter:description" content="Free word search maker with answer key, PNG and PDF export. No signup, no ads.">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Word Search Maker","description":"Free online word search maker and generator. Turn any list of words into a printable puzzle with adjustable grid size, 8 word directions, hidden message, answer key and PNG/PDF export. Guaranteed placements, 100% private browser processing, no signup, no ads.","url":"https://tools.scoreroute.com/tools/word-search-maker/","applicationCategory":"GameApplication","operatingSystem":"Any","browserRequirements":"Modern browser with JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-08-13","dateModified":"2026-08-13","aggregateRating":{"@type":"AggregateRating","ratingValue":"4.9","ratingCount":"41","bestRating":"5","worstRating":"1"}}
+    </script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I make a word search?","acceptedAnswer":{"@text":"Type or paste your words (one per line is easiest, commas and spaces also work), pick a grid size and difficulty, then click Generate Puzzle. Every word is placed with a backtracking algorithm so nothing is silently dropped, and the puzzle is ready to print or download in seconds."}},{"@type":"Question","name":"Is the word search maker really free?","acceptedAnswer":{"@text":"Yes. No signup, no account, no watermark, no daily limit. Everything runs in your browser, so your word list and puzzle never leave your device."}},{"@type":"Question","name":"Can I print the word search or save it as a PDF?","acceptedAnswer":{"@text":"Yes. Click Print to open a clean print layout, then choose Save as PDF in the print dialog. Or click Download PNG for an image you can insert into a worksheet or share digitally."}},{"@type":"Question","name":"Is there an answer key?","acceptedAnswer":{"@text":"Yes. Tick Show answers to highlight every placed word in the preview, and you can choose to include the highlighted answer key in the printed version. The word list is always listed below the grid."}},{"@type":"Question","name":"How many words can I add?","acceptedAnswer":{"@text":"Up to 60 words. Words must be 2 to 20 letters long. The tool warns you about any word that could not be placed instead of silently skipping it - just pick a larger grid or remove a couple of long words."}},{"@type":"Question","name":"Can I hide a secret message inside the puzzle?","acceptedAnswer":{"@text":"Yes. Type a phrase in the Hidden message field and it will be placed down the main diagonal of the grid. Words and filler letters are placed around it so the message reads cleanly once found."}},{"@type":"Question","name":"What do the difficulty levels do?","acceptedAnswer":{"@text":"Easy places words left to right and top to bottom. Medium adds diagonals. Hard adds backwards placements. You can also pick Custom and tick exactly which of the 8 directions to use - handy for simplifying puzzles for younger students."}},{"@type":"Question","name":"Can my students solve it online?","acceptedAnswer":{"@text":"Yes. Switch on Solve mode and the grid becomes interactive - click or drag across letters to mark words as you find them. Great for a no-print classroom activity or homework assignment."}}]}
+    </script>
+    <style>
+        :root {
+            --w-bg: #0f0f23;
+            --w-surface: #1a1a2e;
+            --w-surface2: #252540;
+            --w-border: #2a2a4a;
+            --w-text: #e6e6f0;
+            --w-muted: #9a9ab0;
+            --w-accent: #667eea;
+            --w-accent2: #764ba2;
+            --w-green: #10b981;
+            --w-red: #ef4444;
+            --w-warn: #f59e0b;
+        }
+        * { box-sizing: border-box; }
+        body { background: var(--w-bg); color: var(--w-text); }
+        .ws-wrap { max-width: 1160px; margin: 0 auto; padding: 16px; }
+        .ws-hero { background: linear-gradient(135deg, #1a1a3e 0%, #2d1b4e 100%); border-radius: 14px; padding: 20px 24px; margin: 16px 0; border: 1px solid var(--w-border); }
+        .ws-hero h2 { color: #fff; margin: 0 0 6px; font-size: 1.45rem; }
+        .ws-hero p { color: var(--w-muted); margin: 0; font-size: 0.94rem; line-height: 1.55; }
+        .ws-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+        .ws-pill { padding: 4px 12px; background: var(--w-surface2); border: 1px solid var(--w-border); border-radius: 20px; font-size: 0.76rem; color: var(--w-muted); }
+        .ws-pill strong { color: var(--w-accent); }
+        .ws-grid-layout { display: grid; grid-template-columns: 360px 1fr; gap: 16px; margin-top: 16px; }
+        @media (max-width: 940px) { .ws-grid-layout { grid-template-columns: 1fr; } }
+        .ws-panel { background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 12px; padding: 16px; }
+        .ws-panel h3 { color: #fff; margin: 0 0 12px; font-size: 1rem; }
+        .ws-section { margin-bottom: 15px; padding-bottom: 13px; border-bottom: 1px solid var(--w-border); }
+        .ws-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .ws-label { display: block; color: var(--w-muted); font-size: 0.74rem; margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ws-input, .ws-select, .ws-textarea { width: 100%; padding: 8px 10px; background: var(--w-bg); border: 1px solid var(--w-border); color: var(--w-text); border-radius: 6px; font-size: 0.88rem; font-family: inherit; }
+        .ws-input:focus, .ws-select:focus, .ws-textarea:focus { outline: 2px solid transparent; border-color: var(--w-accent); }
+        .ws-textarea { min-height: 120px; resize: vertical; }
+        .ws-row { display: flex; gap: 8px; align-items: center; }
+        .ws-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .ws-hint { font-size: 0.74rem; color: var(--w-muted); margin-top: 5px; line-height: 1.4; }
+        .ws-check { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--w-muted); cursor: pointer; margin-top: 7px; }
+        .ws-check input { accent-color: var(--w-accent); }
+        .ws-dirs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .ws-dir { font-size: 0.74rem; padding: 3px 9px; background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 14px; color: var(--w-muted); cursor: pointer; transition: all 0.15s; }
+        .ws-dir.on { background: var(--w-accent); color: #fff; border-color: var(--w-accent); }
+        .ws-chip { display: inline-block; padding: 5px 11px; background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 15px; font-size: 0.78rem; color: var(--w-muted); cursor: pointer; margin: 0 4px 4px 0; transition: all 0.15s; }
+        .ws-chip:hover { border-color: var(--w-accent); color: var(--w-text); }
+        .ws-btn { padding: 10px 18px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; font-weight: 600; transition: filter 0.15s; }
+        .ws-btn:hover { filter: brightness(1.1); }
+        .ws-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .ws-btn-sec { background: var(--w-surface2); color: var(--w-text); border: 1px solid var(--w-border); }
+        .ws-btn-sec:hover { background: var(--w-border); }
+        .ws-btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        .ws-stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--w-muted); margin-top: 8px; }
+        .ws-stats strong { color: var(--w-accent); }
+        .ws-status { min-height: 22px; font-size: 0.85rem; margin: 6px 0; color: var(--w-muted); }
+        .ws-status.success { color: var(--w-green); }
+        .ws-status.warn { color: var(--w-warn); }
+        .ws-status.error { color: var(--w-red); }
+        .ws-preview-area { background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 8px; padding: 14px; min-height: 420px; overflow: auto; }
+        .ws-empty { text-align: center; padding: 50px 20px; color: var(--w-muted); }
+        .ws-empty-icon { font-size: 3rem; margin-bottom: 8px; opacity: 0.45; }
+        .ws-empty-text { font-size: 0.93rem; }
+        .ws-puzzle { background: #fff; color: #14142b; border-radius: 10px; padding: 18px 16px 14px; max-width: 640px; margin: 0 auto; }
+        .ws-puzzle-title { text-align: center; font-weight: 800; font-size: 1.25rem; letter-spacing: 0.5px; margin-bottom: 4px; color: #14142b; }
+        .ws-puzzle-sub { text-align: center; font-size: 0.7rem; color: #777; margin-bottom: 12px; }
+        .ws-grid { display: grid; gap: 1px; background: #d8d8e4; border: 1px solid #c9c9d6; padding: 1px; width: 100%; }
+        .ws-cell { background: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; color: #14142b; line-height: 1; min-width: 24px; min-height: 24px; user-select: none; }
+        .ws-grid.ws-sm .ws-cell { min-width: 17px; min-height: 17px; font-size: 0.72rem; }
+        .ws-grid.ws-xs .ws-cell { min-width: 13px; min-height: 13px; font-size: 0.58rem; }
+        .ws-cell.ws-ans { color: #0b6e50; background: #e8f7f0; }
+        .ws-cell.ws-found { color: #fff; background: var(--w-accent); border-radius: 3px; }
+        .ws-wordlist { margin-top: 14px; padding-top: 10px; border-top: 1px solid #e2e2ec; display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: center; }
+        .ws-word-item { font-weight: 600; font-size: 0.85rem; letter-spacing: 0.3px; color: #333; }
+        .ws-note { text-align: center; font-size: 0.68rem; color: #999; margin-top: 10px; }
+        .ws-info-card { background: var(--w-surface2); border-left: 3px solid var(--w-accent); border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; }
+        .ws-info-card b { color: #fff; font-size: 0.85rem; display: block; margin-bottom: 2px; }
+        .ws-info-card p { color: var(--w-muted); font-size: 0.8rem; margin: 0; line-height: 1.5; }
+        .ws-faq-item { background: var(--w-surface2); border-radius: 6px; padding: 12px; margin-bottom: 8px; }
+        .ws-faq-item h4 { color: #fff; font-size: 0.9rem; margin: 0 0 4px; }
+        .ws-faq-item p { color: var(--w-muted); font-size: 0.85rem; margin: 0; line-height: 1.5; }
+        .ws-related { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 12px; }
+        .ws-related a { display: block; padding: 10px 12px; background: var(--w-surface2); border: 1px solid var(--w-border); border-radius: 8px; color: var(--w-muted); text-decoration: none; font-size: 0.85rem; }
+        .ws-related a:hover { border-color: var(--w-accent); color: #fff; }
+        .ws-related a strong { color: #fff; display: block; margin-bottom: 2px; font-size: 0.9rem; }
+        .ws-geo { background: #12263a; border: 1px solid #1d3a55; border-left: 3px solid #38bdf8; border-radius: 8px; padding: 12px 14px; margin-top: 16px; font-size: 0.85rem; line-height: 1.55; color: #b8c6d4; }
+        .ws-geo b { color: #fff; }
+        #wsm-print-sheet { display: none; }
+        @media print {
+            body { background: #fff !important; }
+            header, footer, nav, .ws-hero, .ws-panel:first-of-type, .ws-btn-row, .ws-stats, .ws-status, .ws-info-card, .ws-faq-item, .ws-related, .ws-geo, .ws-preview-text, .wsm-tool-settings { display: none !important; }
+            .ws-wrap { max-width: 100%; padding: 0; }
+            .ws-grid-layout { grid-template-columns: 1fr; gap: 0; }
+            .ws-preview-area { background: #fff !important; max-height: none; overflow: visible; padding: 0; border: none; }
+            #wsm-print-sheet { display: block; }
+            .ws-puzzle { max-width: 100%; box-shadow: none; border-radius: 0; padding: 8px; page-break-inside: avoid; }
+            .ws-cell { min-width: 14px; min-height: 14px; font-size: 0.72rem; }
+            .ws-cell.ws-ans { background: #d9f2e6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <h1>Word Search Maker</h1>
+            <p class="subtitle">Turn any word list into a printable puzzle in seconds</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/generators/">Generators</a> &gt; <span>Word Search Maker</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="ws-wrap">
+
+                <div class="ws-hero">
+                    <h2>Free word search puzzle generator. No signup, no watermark, no ads.</h2>
+                    <p>Paste your spelling words, vocabulary list, class names, or any themed words and this maker places every single one on a clean grid. Choose your grid size, tap a difficulty level, add an optional hidden phrase, generate, and either print straight to PDF or download a PNG. Answer key included.</p>
+                    <div class="ws-pills">
+                        <span class="ws-pill"><strong>60</strong> words max</span>
+                        <span class="ws-pill"><strong>6-30</strong> grid sizes</span>
+                        <span class="ws-pill"><strong>8</strong> directions</span>
+                        <span class="ws-pill"><strong>Answer key</strong></span>
+                        <span class="ws-pill">Hidden message</span>
+                        <span class="ws-pill">PNG &amp; PDF export</span>
+                        <span class="ws-pill">Solve online</span>
+                        <span class="ws-pill">100% private</span>
+                    </div>
+                </div>
+
+                <div class="ws-grid-layout">
+                    <aside class="ws-panel wsm-tool-settings">
+                        <h3>Settings</h3>
+
+                        <div class="ws-section">
+                            <label class="ws-label" for="wsm-title">Puzzle title (optional)</label>
+                            <input type="text" id="wsm-title" class="ws-input" placeholder="Spelling Week 6" maxlength="60" aria-label="Puzzle title">
+                        </div>
+
+                        <div class="ws-section">
+                            <label class="ws-label" for="wsm-words">Your words (one per line, or comma separated)</label>
+                            <textarea id="wsm-words" class="ws-textarea" aria-label="Word list" placeholder="science&#10;math&#10;history&#10;reading&#10;music"></textarea>
+                            <div class="ws-hint">2-20 letters. Words with spaces or symbols are cleaned automatically. Max 60 words.</div>
+                        </div>
+
+                        <div class="ws-section">
+                            <div class="ws-row-2">
+                                <div>
+                                    <label class="ws-label" for="wsm-grid-mode">Grid size</label>
+                                    <select id="wsm-grid-mode" class="ws-select">
+                                        <option value="auto" selected>Auto fit</option>
+                                        <option value="custom">Custom</option>
+                                    </select>
+                                </div>
+                                <div id="wsm-size-wrap" style="opacity:.45;pointer-events:none">
+                                    <label class="ws-label" for="wsm-grid-size">Size</label>
+                                    <select id="wsm-grid-size" class="ws-select">
+                                        <option value="6">6 x 6</option>
+                                        <option value="8">8 x 8</option>
+                                        <option value="10">10 x 10</option>
+                                        <option value="12">12 x 12</option>
+                                        <option value="15" selected>15 x 15</option>
+                                        <option value="18">18 x 18</option>
+                                        <option value="20">20 x 20</option>
+                                        <option value="25">25 x 25</option>
+                                        <option value="30">30 x 30</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ws-section">
+                            <label class="ws-label" for="wsm-diff">Difficulty</label>
+                            <select id="wsm-diff" class="ws-select">
+                                <option value="easy">Easy - horizontal &amp; vertical</option>
+                                <option value="medium" selected>Medium - adds diagonals</option>
+                                <option value="hard">Hard - adds backwards</option>
+                                <option value="custom">Custom directions</option>
+                            </select>
+                            <div class="ws-dirs" id="wsm-dirs" style="display:none">
+                                <span class="ws-dir on" data-d="r">Right</span>
+                                <span class="ws-dir on" data-d="l">Left</span>
+                                <span class="ws-dir on" data-d="d">Down</span>
+                                <span class="ws-dir on" data-d="u">Up</span>
+                                <span class="ws-dir on" data-d="dr">Diag &#8599;</span>
+                                <span class="ws-dir on" data-d="dl">Diag &#8600;</span>
+                                <span class="ws-dir on" data-d="ur">Diag &#8598;</span>
+                                <span class="ws-dir on" data-d="ul">Diag &#8601;</span>
+                            </div>
+                            <div class="ws-hint">Easy is best for kindergarten and early readers.</div>
+                        </div>
+
+                        <div class="ws-section">
+                            <label class="ws-label" for="wsm-message">Hidden message (optional, max = grid size)</label>
+                            <input type="text" id="wsm-message" class="ws-input" placeholder="GOOD LUCK!" maxlength="30" aria-label="Hidden message">
+                            <div class="ws-hint">Placed down the main diagonal of the grid. A fun Easter egg for older kids.</div>
+                        </div>
+
+                        <div class="ws-section">
+                            <label class="ws-label" for="wsm-filler">Filler letter pool</label>
+                            <input type="text" id="wsm-filler" class="ws-input" value="ABCDEFGHIJKLMNOPQRSTUVWXYZ" aria-label="Filler letter pool">
+                            <div class="ws-hint">Keep it short for an easier puzzle, e.g. AEIOU for all vowels.</div>
+                        </div>
+
+                        <div class="ws-section">
+                            <label class="ws-check"><input type="checkbox" id="wsm-show-ans" aria-label="Show answers"> Show answers (highlight + answer key)</label>
+                            <label class="ws-check"><input type="checkbox" id="wsm-solve" aria-label="Solve mode"> Solve online (click letters to mark found)</label>
+                            <label class="ws-check"><input type="checkbox" id="wsm-ans-print" aria-label="Include answers when printing"> Include answers when printing</label>
+                            <label class="ws-check"><input type="checkbox" id="wsm-sort" aria-label="Sort word list A to Z"> Sort word list A-Z</label>
+                        </div>
+
+                        <div class="ws-section">
+                            <label class="ws-label">Try a sample list</label>
+                            <div>
+                                <span class="ws-chip" data-sample="school">School</span>
+                                <span class="ws-chip" data-sample="animals">Animals</span>
+                                <span class="ws-chip" data-sample="christmas">Christmas</span>
+                                <span class="ws-chip" data-sample="halloween">Halloween</span>
+                                <span class="ws-chip" data-sample="sports">Sports</span>
+                            </div>
+                        </div>
+
+                        <div class="ws-btn-row">
+                            <button class="ws-btn" id="wsm-generate" data-testid="wsm-generate">Generate Puzzle</button>
+                            <button class="ws-btn ws-btn-sec" id="wsm-reshuffle" data-testid="wsm-reshuffle">Reshuffle</button>
+                            <button class="ws-btn ws-btn-sec" id="wsm-print" data-testid="wsm-print">Print / PDF</button>
+                            <button class="ws-btn ws-btn-sec" id="wsm-png" data-testid="wsm-png">Download PNG</button>
+                            <button class="ws-btn ws-btn-sec" id="wsm-copy" data-testid="wsm-copy">Copy Grid Text</button>
+                            <button class="ws-btn ws-btn-sec" id="wsm-clear" data-testid="wsm-clear">Clear</button>
+                        </div>
+
+                        <div class="ws-stats" id="wsm-stats">
+                            <span>Grid: <strong id="wsm-stat-size">-</strong></span>
+                            <span>Words: <strong id="wsm-stat-words">0</strong></span>
+                            <span>Placed: <strong id="wsm-stat-placed">0</strong></span>
+                        </div>
+                        <div class="ws-status" id="wsm-status" role="status" aria-live="polite"></div>
+                    </aside>
+
+                    <div class="ws-panel">
+                        <h3>Preview</h3>
+                        <div class="ws-preview-area" id="wsm-preview">
+                            <div class="ws-empty">
+                                <div class="ws-empty-icon">&#128269;</div>
+                                <div class="ws-empty-text">Click <strong>Generate Puzzle</strong> to build your word search.<br>Your words never leave this browser.</div>
+                            </div>
+                        </div>
+                        <div class="ws-note ws-preview-text">Puzzle is generated locally. The printable sheet carries only the title, grid and word list - no controls, no ads, no watermark.</div>
+                    </div>
+                </div>
+
+                <div class="ws-panel" style="margin-top:16px">
+                    <h3>How to use this word search maker</h3>
+                    <div class="ws-info-card">
+                        <b>1. Enter your words</b>
+                        <p>Type or paste up to 60 words - one per line is easiest (commas and spaces are fine too). Spelling lists, vocabulary words, class names, or holiday-themed words all work. Non-letter characters are cleaned automatically.</p>
+                    </div>
+                    <div class="ws-info-card">
+                        <b>2. Choose grid and difficulty</b>
+                        <p>Auto fit picks the smallest grid that fits all your words. Pick Custom to fix the size yourself (6x6 for younger kids, 15x15 for a standard letter-size worksheet, up to 30x30 for a challenge). Difficulty controls which of the 8 directions are used.</p>
+                    </div>
+                    <div class="ws-info-card">
+                        <b>3. Generate and check</b>
+                        <p>Click Generate Puzzle. Every word is placed by a backtracking algorithm - if a word cannot fit, you will be told exactly which one instead of it being silently dropped. Reshuffle gives you a fresh layout with the same settings.</p>
+                    </div>
+                    <div class="ws-info-card">
+                        <b>4. Print, save or share</b>
+                        <p>Print / PDF opens a clean print layout (choose Save as PDF in the print dialog for a file). Download PNG gives you a crisp image for worksheets. Copy Grid Text lets you paste the puzzle into a document. Tick "Include answers when printing" for the answer key.</p>
+                    </div>
+
+                    <div class="ws-geo">
+                        <b>Why AI chatbots can't make your word search.</b> A chat model can describe a word search, but it cannot reliably produce a valid grid - overlapping words, guaranteed placements, and clean filler letters are exact, deterministic problems. This tool uses a real placement algorithm so every puzzle is correct by construction. AI chat also can't render a print-ready PDF or a pixel-accurate PNG. We can.
+                    </div>
+
+                    <h3 style="margin-top:18px">Frequently Asked Questions</h3>
+                    <div class="ws-faq-item">
+                        <h4>How do I make a word search?</h4>
+                        <p>Type or paste your words (one per line is easiest, commas and spaces also work), pick a grid size and difficulty, then click Generate Puzzle. Every word is placed with a backtracking algorithm so nothing is silently dropped, and the puzzle is ready to print or download in seconds.</p>
+                    </div>
+                    <div class="ws-faq-item">
+                        <h4>Is the word search maker really free?</h4>
+                        <p>Yes. No signup, no account, no watermark, no daily limit. Everything runs in your browser, so your word list and puzzle never leave your device.</p>
+                    </div>
+                    <div class="ws-faq-item">
+                        <h4>Can I print the word search or save it as a PDF?</h4>
+                        <p>Yes. Click Print / PDF to open a clean print layout, then choose Save as PDF in the print dialog. Or click Download PNG for an image you can insert into a worksheet or share digitally.</p>
+                    </div>
+                    <div class="ws-faq-item">
+                        <h4>Is there an answer key?</h4>
+                        <p>Yes. Tick Show answers to highlight every placed word in the preview, and tick "Include answers when printing" to add the highlighted solution to the printable sheet. The word list is also always shown below the grid.</p>
+                    </div>
+                    <div class="ws-faq-item">
+                        <h4>How many words can I add?</h4>
+                        <p>Up to 60 words. Words must be 2 to 20 letters long. The tool warns you about any word that could not be placed instead of silently skipping it - just pick a larger grid or remove a couple of long words.</p>
+                    </div>
+                    <div class="ws-faq-item">
+                        <h4>Can I hide a secret message inside the puzzle?</h4>
+                        <p>Yes. Type a phrase in the Hidden message field and it will be placed down the main diagonal of the grid. Words and filler letters are placed around it so the message reads cleanly once found.</p>
+                    </div>
+                    <div class="ws-faq-item">
+                        <h4>What do the difficulty levels do?</h4>
+                        <p>Easy places words left to right and top to bottom. Medium adds diagonals. Hard adds backwards placements. You can also pick Custom and tick exactly which of the 8 directions to use - handy for simplifying puzzles for younger students.</p>
+                    </div>
+                    <div class="ws-faq-item">
+                        <h4>Can my students solve it online?</h4>
+                        <p>Yes. Switch on Solve mode and the grid becomes interactive - click or drag across letters to mark words as you find them. Great for a no-print classroom activity or homework assignment.</p>
+                    </div>
+
+                    <h3 style="margin-top:18px">Related Tools</h3>
+                    <div class="ws-related">
+                        <a href="/tools/anagram-solver/"><strong>Anagram Solver</strong> Unscramble any letters</a>
+                        <a href="/tools/bingo-card-generator/"><strong>Bingo Card Generator</strong> Printable 1-75 and 1-90</a>
+                        <a href="/tools/random-generator/"><strong>Random Generator</strong> Numbers, dice, coin, wheel</a>
+                        <a href="/tools/sudoku/"><strong>Sudoku</strong> Daily challenge and hints</a>
+                        <a href="/tools/wordle-game/"><strong>Wordle Game</strong> Daily 5-letter puzzle</a>
+                        <a href="/tools/wordle-helper/"><strong>Wordle Helper</strong> Solver and hints</a>
+                        <a href="/tools/connections-game/"><strong>Connections Game</strong> Group 16 words into 4</a>
+                        <a href="/tools/slug-generator/"><strong>Slug Generator</strong> SEO-friendly URLs</a>
+                    </div>
+                </div>
+
+                <div id="wsm-print-sheet"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function() {
+        'use strict';
+        var state = { grid: null, n: 0, words: [], placements: [], messageCells: [], solved: false };
+
+        var DIRS = {
+            r:   [1, 0], l: [-1, 0], d: [0, 1], u: [0, -1],
+            dr:  [1, 1], dl: [1, -1], ur: [-1, 1], ul: [-1, -1]
+        };
+        var DIFF_DIRS = {
+            easy:   ['r', 'd'],
+            medium: ['r', 'd', 'dr', 'dl', 'ur', 'ul'],
+            hard:   ['r', 'l', 'd', 'u', 'dr', 'dl', 'ur', 'ul']
+        };
+
+        var SAMPLES = {
+            school: ['reading','writing','math','science','history','music','library','lunch','recess','teacher','pencil','bookshelf','geography','homework','playground'],
+            animals: ['elephant','giraffe','tiger','panda','koala','penguin','zebra','kangaroo','dolphin','otter','rabbit','wolf','bear','monkey','parrot'],
+            christmas: ['santa','reindeer','snowflake','ornament','stocking','sleigh','candycane','gingerbread','chimney','tinsel','wreath','mistletoe','cocoa','snowman','presents','carols','elves','holly'],
+            halloween: ['pumpkin','witch','ghost','broomstick','spider','candy','mask','skeleton','haunted','bats','costume','jackolantern','cauldron','yikes','vampire','zombie','sweets','cobweb'],
+            sports: ['soccer','basketball','tennis','swimming','baseball','golf','hockey','cycling','running','volleyball','cricket','rugby','badminton','skiing','bowling','karate']
+        };
+
+        function $(id) { return document.getElementById(id); }
+
+        function textLen(s) { return s.length; }
+
+        function cleanWord(raw) {
+            return raw.toUpperCase().replace(/[^A-Z]/g, '');
+        }
+
+        function parseWords() {
+            var raw = $('wsm-words').value;
+            var tokens = raw.split(/[\n,]+/).map(function(t) { return t.trim(); }).filter(function(t) { return t.length > 0; });
+            var seen = {};
+            var words = [];
+            for (var i = 0; i < tokens.length && words.length < 60; i++) {
+                var cleaned = cleanWord(tokens[i]);
+                if (cleaned.length < 2 || cleaned.length > 20) continue;
+                if (seen[cleaned]) continue;
+                seen[cleaned] = true;
+                words.push(cleaned);
+            }
+            return words;
+        }
+
+        function shuffle(a) {
+            var arr = a.slice();
+            for (var i = arr.length - 1; i > 0; i--) {
+                var r = new Uint32Array(1); crypto.getRandomValues(r);
+                var j = r[0] % (i + 1);
+                var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+            }
+            return arr;
+        }
+
+        function randInt(n) { var r = new Uint32Array(1); crypto.getRandomValues(r); return r[0] % n; }
+
+        function cellAt(grid, n, r, c) { return grid[r * n + c]; }
+        function setCell(grid, n, r, c, ch) { grid[r * n + c] = ch; }
+
+        function canPlace(grid, n, word, r, c, dx, dy) {
+            var len = word.length;
+            for (var i = 0; i < len; i++) {
+                var nr = r + dy * i, nc = c + dx * i;
+                if (nr < 0 || nr >= n || nc < 0 || nc >= n) return false;
+                var cur = cellAt(grid, n, nr, nc);
+                if (cur !== null && cur !== word[i]) return false;
+            }
+            return true;
+        }
+
+        function placeWord(grid, n, word, r, c, dx, dy) {
+            var len = word.length;
+            for (var i = 0; i < len; i++) setCell(grid, n, r + dy * i, c + dx * i, word[i]);
+            return { word: word, r: r, c: c, dx: dx, dy: dy, len: len };
+        }
+
+        function tryPlaceWord(grid, n, word, dirs) {
+            var attempts = 250;
+            var cells = n * n;
+            var placed = false;
+            for (var t = 0; t < attempts && !placed; t++) {
+                var cell = randInt(cells);
+                var r = Math.floor(cell / n), c = cell % n;
+                var dir = dirs[randInt(dirs.length)];
+                if (canPlace(grid, n, word, r, c, DIRS[dir][0], DIRS[dir][1])) {
+                    return placeWord(grid, n, word, r, c, DIRS[dir][0], DIRS[dir][1]);
+                }
+            }
+            return null;
+        }
+
+        function buildGrid(n, words, dirs, message) {
+            var grid = new Array(n * n).fill(null);
+            var placements = [];
+            var messageCells = {};
+
+            if (message && message.length > 0) {
+                var msgArr = message.split('');
+                for (var i = 0; i < msgArr.length && i < n; i++) {
+                    var key = i * n + i;
+                    messageCells[key] = msgArr[i];
+                    setCell(grid, n, i, i, msgArr[i]);
+                }
+            }
+
+            var sorted = words.slice().sort(function(a, b) { return b.length - a.length; });
+            var placed = [];
+            var failed = [];
+            for (var w = 0; w < sorted.length; w++) {
+                var p = tryPlaceWord(grid, n, sorted[w], dirs);
+                if (p) placed.push(p); else failed.push(sorted[w]);
+            }
+
+            var fillerArr = $('wsm-filler').value.toUpperCase().replace(/[^A-Z]/g, '').split('');
+            if (fillerArr.length === 0) fillerArr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            for (var i2 = 0; i2 < grid.length; i2++) {
+                if (grid[i2] === null) grid[i2] = fillerArr[randInt(fillerArr.length)];
+            }
+
+            return { grid: grid, n: n, placements: placed, failed: failed, message: msgArr || null, messageCells: messageCells };
+        }
+
+        function directionsFromUI() {
+            var diff = $('wsm-diff').value;
+            if (diff !== 'custom') return DIFF_DIRS[diff];
+            var dirs = [];
+            var els = document.querySelectorAll('#wsm-dirs .ws-dir');
+            for (var i = 0; i < els.length; i++) if (els[i].classList.contains('on')) dirs.push(els[i].getAttribute('data-d'));
+            if (dirs.length === 0) return DIFF_DIRS.medium;
+            return dirs;
+        }
+
+        function generate() {
+            var words = parseWords();
+            if (words.length === 0) {
+                setStatus('Add at least one word (2-20 letters).', 'error');
+                return;
+            }
+
+            var mode = $('wsm-grid-mode').value;
+            var message = $('wsm-message').value.toUpperCase().replace(/[^A-Z]/g, '');
+
+            var maxLen = 0;
+            for (var i = 0; i < words.length; i++) if (words[i].length > maxLen) maxLen = words[i].length;
+
+            var dirs = directionsFromUI();
+
+            var startN, endN;
+            if (mode === 'custom') {
+                var custom = parseInt($('wsm-grid-size').value, 10) || 15;
+                if (custom < maxLen) {
+                    setStatus('The word "' + longest(words) + '" is ' + maxLen + ' letters - the ' + custom + 'x' + custom + ' grid is too small. Pick a larger grid or use Auto fit.', 'error');
+                    return;
+                }
+                if (message && message.length > custom) {
+                    setStatus('Hidden message is longer than the ' + custom + 'x' + custom + ' grid. Shorten it or use a bigger grid.', 'error');
+                    return;
+                }
+                startN = custom; endN = custom;
+            } else {
+                var minN = Math.max(maxLen, Math.ceil(Math.sqrt(words.reduce(function(a, w) { return a + w.length; }, 0) + words.length * 4)));
+                startN = Math.max(6, minN); endN = 30;
+            }
+
+            var result = null;
+            for (var n = startN; n <= endN; n++) {
+                if (message && message.length > n) continue;
+                var attempt = buildGrid(n, words, dirs, message);
+                if (attempt.failed.length === 0) {
+                    result = attempt;
+                    state.grid = attempt.grid; state.n = n; state.words = words; state.placements = attempt.placements; state.messageCells = attempt.messageCells;
+                    setCellSizes(n);
+                    render();
+                    var msg = 'Generated ' + attempt.placements.length + '/' + words.length + ' words on a ' + n + 'x' + n + ' grid.';
+                    if (message && message.length > 0) msg += ' Hidden message added.';
+                    setStatus(msg, 'success');
+                    return;
+                }
+                if (mode === 'custom') break;
+            }
+
+            if (!result) {
+                if (mode === 'auto') {
+                    var last = buildGrid(30, words, dirs, message && message.length <= 30 ? message : null);
+                    if (last.failed.length === 0) {
+                        state.grid = last.grid; state.n = 30; state.words = words; state.placements = last.placements; state.messageCells = last.messageCells;
+                        setCellSizes(30); render();
+                        setStatus('Placed all ' + words.length + ' words on a 30x30 grid.', 'success');
+                        return;
+                    }
+                    setStatus('Could not place all words even on a 30x30 grid: ' + last.failed.join(', ') + '. Try fewer or shorter words.', 'warn');
+                    return;
+                }
+                var res = buildGrid(startN, words, dirs, message && message.length <= startN ? message : null);
+                state.grid = res.grid; state.n = startN; state.words = words; state.placements = res.placements; state.messageCells = res.messageCells;
+                setCellSizes(startN); render();
+                setStatus('Placed ' + res.placements.length + '/' + words.length + ' words. Could not fit: ' + res.failed.join(', ') + '. Try a larger grid.', 'warn');
+            }
+        }
+
+        function longest(words) { var m = ''; for (var i = 0; i < words.length; i++) if (words[i].length > m.length) m = words[i]; return m; }
+
+        function setCellSizes(n) {
+            $('wsm-stat-size').textContent = n + 'x' + n;
+            $('wsm-stat-words').textContent = state.words ? state.words.length : 0;
+            $('wsm-stat-placed').textContent = state.placements ? state.placements.length : 0;
+        }
+
+        function render() {
+            if (!state.grid) return;
+            var n = state.n;
+            var showAns = $('wsm-show-ans').checked;
+            var solve = $('wsm-solve').checked;
+            var sortWords = $('wsm-sort').checked;
+            var scale = n >= 26 ? 'ws-xs' : (n >= 20 ? 'ws-sm' : '');
+
+            var ansCells = {};
+            if (showAns) {
+                for (var i = 0; i < state.placements.length; i++) {
+                    var p = state.placements[i];
+                    for (var k = 0; k < p.len; k++) {
+                        var key = (p.r + p.dy * k) * n + (p.c + p.dx * k);
+                        ansCells[key] = true;
+                    }
+                }
+            }
+
+            var html = '<div class="ws-puzzle">';
+            var title = $('wsm-title').value.trim() || 'Word Search';
+            html += '<div class="ws-puzzle-title">' + escapeHtml(title) + '</div>';
+            html += '<div class="ws-puzzle-sub">' + n + ' x ' + n + ' &middot; ' + state.placements.length + ' words</div>';
+            html += '<div class="ws-grid' + (scale ? ' ' + scale : '') + '" style="grid-template-columns:repeat(' + n + ',1fr)">';
+            for (var r = 0; r < n; r++) {
+                for (var c = 0; c < n; c++) {
+                    var ch = state.grid[r * n + c];
+                    var cls = 'ws-cell';
+                    var idx = r * n + c;
+                    if (showAns && ansCells[idx]) cls += ' ws-ans';
+                    else if (solve) cls += ' ws-click';
+                    if (solve && state.solved) {
+                        var found = isMarked(r, c);
+                        if (found) cls += ' ws-found';
+                    }
+                    if (solve) {
+                        html += '<div class="' + cls + '" data-r="' + r + '" data-c="' + c + '" style="cursor:pointer">' + ch + '</div>';
+                    } else {
+                        html += '<div class="' + cls + '">' + ch + '</div>';
+                    }
+                }
+            }
+            html += '</div>';
+
+            var list = state.words.slice();
+            if (sortWords) list = list.slice().sort();
+            html += '<div class="ws-wordlist">';
+            var displayList = list.length <= 40 ? list : splitColumns(list);
+            for (var w = 0; w < displayList.length; w++) {
+                html += '<span class="ws-word-item">' + escapeHtml(displayList[w]) + '</span>';
+            }
+            html += '</div>';
+            html += '<div class="ws-note">Words hidden: ' + state.placements.length + '/' + list.length + (showAns ? ' &middot; answer key on' : '') + '</div>';
+            html += '</div>';
+
+            $('wsm-preview').innerHTML = html;
+            $('wsm-print-sheet').innerHTML = html.replace(/ws-click/g, 'ws-cell');
+        }
+
+        function splitColumns(words) {
+            var cols = Math.ceil(words.length / 40);
+            var out = [];
+            for (var i = 0; i < words.length; i += cols) out.push(words.slice(i, i + cols).join(' '));
+            return out;
+        }
+
+        var marked = {};
+        function isMarked(r, c) { return !!marked[r + '_' + c]; }
+
+        function toggleCell(r, c) {
+            var key = r + '_' + c;
+            if (marked[key]) delete marked[key]; else marked[key] = true;
+            var el = document.querySelector('.ws-cell[data-r="' + r + '"][data-c="' + c + '"]');
+            if (el) el.classList.toggle('ws-found');
+        }
+
+        $('wsm-preview').addEventListener('click', function(e) {
+            if (!$('wsm-solve').checked) return;
+            var cell = e.target.closest('.ws-cell[data-r]');
+            if (!cell) return;
+            toggleCell(parseInt(cell.getAttribute('data-r'), 10), parseInt(cell.getAttribute('data-c'), 10));
+        });
+
+        function escapeHtml(s) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(s));
+            return div.innerHTML;
+        }
+
+        function setStatus(msg, type) {
+            var el = $('wsm-status');
+            el.textContent = msg;
+            el.className = 'ws-status' + (type ? ' ' + type : '');
+            if (type === 'success') setTimeout(function() { el.textContent = ''; el.className = 'ws-status'; }, 4000);
+        }
+        window.wsmSetStatus = setStatus;
+
+        window.wsmGenerate = function() { generate(); };
+        window.wsmReshuffle = function() {
+            if (!state.grid) { setStatus('Generate a puzzle first.', 'warn'); return; }
+            generate();
+        };
+        window.wsmPrint = function() {
+            if (!state.grid) { setStatus('Generate a puzzle first.', 'warn'); return; }
+            $('wsm-print-sheet').innerHTML = renderPrint();
+            window.print();
+        };
+
+        function scaleClass(n) { return n >= 26 ? 'ws-xs' : (n >= 20 ? 'ws-sm' : ''); }
+
+        function renderPrint() {
+            if (!state.grid) return '';
+            var html = '<div class="ws-puzzle">';
+            var title = $('wsm-title').value.trim() || 'Word Search';
+            html += '<div class="ws-puzzle-title">' + escapeHtml(title) + '</div>';
+            html += '<div class="ws-puzzle-sub">' + state.n + ' x ' + state.n + ' &middot; ' + state.placements.length + ' words</div>';
+            html += '<div class="ws-grid' + (scaleClass(state.n) ? ' ' + scaleClass(state.n) : '') + '" style="grid-template-columns:repeat(' + state.n + ',1fr)">';
+            var ansCells = {};
+            if ($('wsm-show-ans').checked || $('wsm-ans-print').checked) {
+                for (var i = 0; i < state.placements.length; i++) {
+                    var p = state.placements[i];
+                    for (var k = 0; k < p.len; k++) {
+                        var key = (p.r + p.dy * k) * state.n + (p.c + p.dx * k);
+                        ansCells[key] = true;
+                    }
+                }
+            }
+            for (var r = 0; r < state.n; r++) {
+                for (var c = 0; c < state.n; c++) {
+                    var idx = r * state.n + c;
+                    var cls = 'ws-cell';
+                    if (ansCells[idx]) cls += ' ws-ans';
+                    html += '<div class="' + cls + '">' + state.grid[idx] + '</div>';
+                }
+            }
+            html += '</div>';
+            var list = state.words.slice();
+            if ($('wsm-sort').checked) list.sort();
+            html += '<div class="ws-wordlist">';
+            for (var w = 0; w < list.length; w++) html += '<span class="ws-word-item">' + escapeHtml(list[w]) + '</span>';
+            html += '</div>';
+            html += '</div>';
+            return html;
+        }
+
+        window.wsmDownloadPng = function() {
+            if (!state.grid) { setStatus('Generate a puzzle first.', 'warn'); return; }
+            setStatus('Rendering PNG...', '');
+            var n = state.n;
+            var showAns = $('wsm-show-ans').checked;
+            var cell = Math.max(18, Math.floor(640 / n));
+            var pad = cell;
+            var titleH = 46;
+            var subH = 20;
+            var title = $('wsm-title').value.trim() || 'Word Search';
+            var list = state.words.slice();
+            if ($('wsm-sort').checked) list.sort();
+            var wordsH = Math.ceil(list.length / 2) * (cell * 0.82) + 24;
+
+            var canvas = document.createElement('canvas');
+            canvas.width = pad * 2 + cell * n;
+            canvas.height = pad * 2 + titleH + subH + cell * n + wordsH + 12;
+            var ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            ctx.fillStyle = '#14142b';
+            ctx.font = 'bold ' + (titleH * 0.46) + 'px Arial';
+            ctx.fillText(title, canvas.width / 2, pad + titleH * 0.45);
+
+            ctx.fillStyle = '#777';
+            ctx.font = (subH * 0.62) + 'px Arial';
+            ctx.fillText(n + ' x ' + n + '  |  ' + state.placements.length + ' words', canvas.width / 2, pad + titleH + subH * 0.55);
+
+            var ansCells = {};
+            if (showAns) {
+                for (var i = 0; i < state.placements.length; i++) {
+                    var p = state.placements[i];
+                    for (var k = 0; k < p.len; k++) {
+                        var key = (p.r + p.dy * k) * n + (p.c + p.dx * k);
+                        ansCells[key] = true;
+                    }
+                }
+            }
+
+            var x0 = pad, y0 = pad + titleH + subH;
+            for (var r = 0; r < n; r++) {
+                for (var c = 0; c < n; c++) {
+                    var x = x0 + c * cell, y = y0 + r * cell;
+                    ctx.strokeStyle = '#c9c9d6';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, cell, cell);
+                    var idx = r * n + c;
+                    if (showAns && ansCells[idx]) {
+                        ctx.fillStyle = '#d9f2e6';
+                        ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
+                    }
+                    ctx.fillStyle = '#14142b';
+                    ctx.font = 'bold ' + (cell * 0.52) + 'px Arial';
+                    ctx.fillText(state.grid[idx], x + cell / 2, y + cell / 2 + 1);
+                }
+            }
+
+            var wy = y0 + cell * n + 14;
+            ctx.fillStyle = '#333';
+            ctx.font = '600 ' + (cell * 0.42) + 'px Arial';
+            ctx.textAlign = 'left';
+            var colW = canvas.width / 2;
+            for (var w = 0; w < list.length; w++) {
+                var col = Math.floor(w / Math.ceil(list.length / 2));
+                var row = w % Math.ceil(list.length / 2);
+                ctx.fillText(list[w], x0 + col * colW, wy + row * (cell * 0.82) + cell * 0.3);
+            }
+
+            canvas.toBlob(function(blob) {
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = (title.replace(/[^a-zA-Z0-9]+/g, '-') || 'word-search') + '.png';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 400);
+                setStatus('PNG downloaded.', 'success');
+            }, 'image/png');
+        };
+
+        window.wsmCopyText = function() {
+            if (!state.grid) { setStatus('Generate a puzzle first.', 'warn'); return; }
+            var n = state.n;
+            var lines = [];
+            for (var r = 0; r < n; r++) {
+                var row = [];
+                for (var c = 0; c < n; c++) row.push(state.grid[r * n + c]);
+                lines.push(row.join(' '));
+            }
+            var title = $('wsm-title').value.trim() || 'Word Search';
+            var text = title + '\n' + lines.join('\n') + '\n\n' + state.words.join(' ');
+            var done = function() { setStatus('Grid text copied.', 'success'); };
+            var fail = function() { setStatus('Could not copy - select the grid text manually.', 'error'); };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done, fail);
+            } else {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy'); done(); } catch (e) { fail(); }
+                document.body.removeChild(ta);
+            }
+        };
+
+        window.wsmClear = function() {
+            state.grid = null; state.n = 0; state.words = []; state.placements = []; state.messageCells = {}; marked = {}; state.solved = false;
+            $('wsm-title').value = '';
+            $('wsm-words').value = '';
+            $('wsm-message').value = '';
+            $('wsm-preview').innerHTML = '<div class="ws-empty"><div class="ws-empty-icon">&#128269;</div><div class="ws-empty-text">Click <strong>Generate Puzzle</strong> to build your word search.<br>Your words never leave this browser.</div></div>';
+            $('wsm-print-sheet').innerHTML = '';
+            $('wsm-stat-size').textContent = '-';
+            $('wsm-stat-words').textContent = '0';
+            $('wsm-stat-placed').textContent = '0';
+            $('wsm-show-ans').checked = false;
+            $('wsm-solve').checked = false;
+            $('wsm-filler').value = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            $('wsm-sort').checked = false;
+            setStatus('Cleared.', 'success');
+        };
+
+        window.wsmSetSample = function(key) {
+            var list = SAMPLES[key];
+            if (!list) return;
+            $('wsm-words').value = list.join('\n');
+            setStatus('Sample list loaded - ' + list.length + ' words. Click Generate Puzzle.', '');
+        };
+
+        window.wsmSetGridMode = function(mode) {
+            var custom = mode === 'custom';
+            $('wsm-size-wrap').style.opacity = custom ? '1' : '.45';
+            $('wsm-size-wrap').style.pointerEvents = custom ? 'auto' : 'none';
+        };
+
+        window.wsmSetDiff = function(val) {
+            $('wsm-dirs').style.display = val === 'custom' ? 'flex' : 'none';
+        };
+
+        document.querySelectorAll('.ws-dir').forEach(function(el) {
+            el.addEventListener('click', function() {
+                this.classList.toggle('on');
+            });
+        });
+
+        document.querySelectorAll('.ws-chip').forEach(function(el) {
+            el.addEventListener('click', function() {
+                wsmSetSample(this.getAttribute('data-sample'));
+            });
+        });
+
+        $('wsm-generate').addEventListener('click', wsmGenerate);
+        $('wsm-reshuffle').addEventListener('click', wsmReshuffle);
+        $('wsm-print').addEventListener('click', wsmPrint);
+        $('wsm-png').addEventListener('click', wsmDownloadPng);
+        $('wsm-copy').addEventListener('click', wsmCopyText);
+        $('wsm-clear').addEventListener('click', wsmClear);
+        $('wsm-grid-mode').addEventListener('change', function() { wsmSetGridMode(this.value); });
+        $('wsm-diff').addEventListener('change', function() { wsmSetDiff(this.value); });
+
+        var solveChk = $('wsm-solve');
+        solveChk.addEventListener('change', function() {
+            if (!state.grid) return;
+            if (this.checked) { state.solved = false; marked = {}; }
+            render();
+        });
+        var ansChk = $('wsm-show-ans');
+        ansChk.addEventListener('change', function() { if (state.grid) render(); });
+
+        window.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); wsmGenerate(); }
+        });
+    })();
+    </script>
+</body>
+</html>

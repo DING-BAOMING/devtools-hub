@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>Photo Collage Maker - Free Image Combiner | DevTools Hub</title>
+    <meta name="description" content="Free photo collage maker. Combine multiple images into collages with 8 layout templates, custom spacing, background, border radius.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/photo-collage-maker/">
+    <meta property="og:title" content="Photo Collage Maker - Free Online Image Combiner | DevTools Hub">
+    <meta property="og:description" content="Combine multiple images into beautiful collages with 8 layout templates. No signup, 100% private browser processing.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/photo-collage-maker/">
+    <meta property="og:type" content="website">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Photo Collage Maker - Free Online">
+    <meta name="twitter:description" content="Combine images into beautiful collages. 8 layout templates, 100% private.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Photo Collage Maker","description":"This online photo collage maker is free to use. You can combine multiple images into a single collage. The tool offers 8 layout templates. You can also customize the spacing, background color, and border radius to suit your needs. Since it is 100 percent browser-based, you do not need to upload anything or create an account. Your collages will not have watermarks either.","url":"https://tools.scoreroute.com/tools/photo-collage-maker/","applicationCategory":"MultimediaApplication","operatingSystem":"All","browserRequirements":"Requires Canvas API, modern browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["8 layout templates (2x2, 3x3, 2+1, 1+2, horizontal strip, vertical strip, 4-grid, 6-grid)","Upload 2-9 images via click or drag-and-drop","Custom gap/spacing slider","Background color picker","Border radius control","Drag-and-drop image reordering","Aspect ratio selector (1:1, 4:5, 16:9, 9:16)","Download as high-resolution PNG","100% private browser processing"],"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-23","dateModified":"2026-06-23"}
+    </script>
+    <style>
+        .pcm-dropzone { border: 3px dashed #555; border-radius: 16px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; margin-bottom: 16px; }
+        .pcm-dropzone:hover, .pcm-dropzone.dragover { border-color: #667eea; background: #222250; }
+        .pcm-dropzone.has-images { display: none; }
+        .pcm-dropzone-icon { font-size: 3rem; margin-bottom: 8px; }
+        .pcm-dropzone-text { font-size: 1.1rem; color: #ccc; }
+        .pcm-dropzone-text strong { color: #667eea; }
+        .pcm-dropzone-sub { font-size: 0.85rem; color: #888; margin-top: 6px; }
+        .pcm-editor { display: none; }
+        .pcm-editor.visible { display: block; }
+        .pcm-thumb-strip { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 16px; min-height: 60px; align-items: center; }
+        .pcm-thumb-item { width: 56px; height: 56px; border-radius: 6px; overflow: hidden; border: 2px solid #444; cursor: grab; position: relative; flex-shrink: 0; }
+        .pcm-thumb-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .pcm-thumb-item .pcm-remove-btn { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: #e74c3c; color: #fff; border: none; font-size: 11px; line-height: 18px; text-align: center; cursor: pointer; display: none; }
+        .pcm-thumb-item:hover .pcm-remove-btn { display: block; }
+        .pcm-thumb-item.dragging { opacity: 0.5; }
+        .pcm-thumb-placeholder { width: 56px; height: 56px; border-radius: 6px; border: 2px dashed #555; display: flex; align-items: center; justify-content: center; color: #666; font-size: 1.5rem; cursor: pointer; flex-shrink: 0; }
+        .pcm-canvas-wrap { background: #0f0f23; border-radius: 12px; border: 1px solid #333; padding: 16px; margin-bottom: 16px; text-align: center; overflow: auto; }
+        .pcm-canvas-wrap canvas { max-width: 100%; max-height: 500px; border-radius: 4px; }
+        .pcm-controls { padding: 20px; background: #1a1a3e; border-radius: 12px; border: 1px solid #333; margin-bottom: 16px; }
+        .pcm-control-row { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #2a2a4e; }
+        .pcm-control-row:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .pcm-label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: #aaa; }
+        .pcm-label input[type="range"] { width: 120px; }
+        .pcm-label input[type="color"] { width: 40px; height: 32px; border: 1px solid #555; border-radius: 4px; background: transparent; cursor: pointer; padding: 2px; }
+        .pcm-label select { padding: 5px 8px; background: #0f0f23; border: 1px solid #555; border-radius: 6px; color: #ccc; font-size: 0.85rem; }
+        .pcm-layout-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; margin-bottom: 10px; }
+        .pcm-layout-btn { padding: 8px 4px; background: #0f0f23; border: 1px solid #333; border-radius: 8px; cursor: pointer; text-align: center; font-size: 0.75rem; color: #aaa; transition: all 0.2s; }
+        .pcm-layout-btn:hover { border-color: #667eea; color: #ccc; }
+        .pcm-layout-btn.active { background: #667eea; color: #fff; border-color: #667eea; }
+        .pcm-layout-btn .pcm-layout-icon { display: block; margin: 0 auto 3px; width: 36px; height: 28px; }
+        .pcm-layout-btn .pcm-layout-icon svg { width: 100%; height: 100%; }
+        .pcm-btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .pcm-empty-state { text-align: center; padding: 40px 20px; color: #888; }
+        .pcm-empty-state p { font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Photo Collage Maker</h1>
+            <p class="subtitle">Combine multiple images into a single beautiful collage — free, private, no signup</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Photo Collage Maker</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div id="pcmDropzone" class="pcm-dropzone">
+                    <div class="pcm-dropzone-icon">🖼️</div>
+                    <div class="pcm-dropzone-text">Drop images here or <strong>browse</strong></div>
+                    <div class="pcm-dropzone-sub">Supports JPG, PNG, WebP, GIF, BMP &middot; 2-9 images</div>
+                    <input aria-label="Photo file input" type="file" id="pcmFileInput" accept="image/*" multiple style="display:none">
+                </div>
+
+                <div id="pcmEditor" class="pcm-editor">
+                    <div class="pcm-thumb-strip" id="pcmThumbStrip"></div>
+
+                    <div class="pcm-controls">
+                        <div class="pcm-control-row">
+                            <div class="pcm-label">
+                                <span>Layout</span>
+                                <div class="pcm-layout-grid" id="pcmLayoutGrid"></div>
+                            </div>
+                        </div>
+                        <div class="pcm-control-row">
+                            <div class="pcm-label">
+                                <span>Gap: <span id="pcmGapVal">4</span>px</span>
+                                <input aria-label="Gap" type="range" id="pcmGap" min="0" max="40" value="4">
+                            </div>
+                            <div class="pcm-label">
+                                <span>Border Radius: <span id="pcmRadiusVal">0</span>px</span>
+                                <input aria-label="Corner Radius" type="range" id="pcmRadius" min="0" max="30" value="0">
+                            </div>
+                            <div class="pcm-label">
+                                <span>Background</span>
+                                <input aria-label="Background Color" type="color" id="pcmBgColor" value="#0f0f23">
+                            </div>
+                            <div class="pcm-label">
+                                <span>Aspect Ratio</span>
+                                <label class="sr-only" for="pcmAspect">Aspect Ratio</label><select id="pcmAspect">
+                                    <option value="0">Auto (fit images)</option>
+                                    <option value="1">1:1 Square</option>
+                                    <option value="0.8">4:5 Portrait</option>
+                                    <option value="0.5625">16:9 Landscape</option>
+                                    <option value="1.777">9:16 Story</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="pcm-btn-row">
+                            <button onclick="PCM.addMore()" class="btn">Add Images</button>
+                            <button onclick="PCM.download()" class="btn btn-primary" id="pcmDownloadBtn">Download Collage</button>
+                            <button onclick="PCM.reset()" class="btn btn-secondary">Clear All</button>
+                        </div>
+                    </div>
+
+                    <div class="pcm-canvas-wrap">
+                        <canvas id="pcmCanvas"></canvas>
+                    </div>
+                </div>
+                <div id="pcmStatus" class="status"></div>
+            </div>
+
+            <div class="info-section">
+                <h2>How to Make a Photo Collage</h2>
+                <ol>
+                    <li><strong>Upload</strong> — Drag and drop 2 to 9 images or click to browse. Supports JPG, PNG, WebP, GIF, and BMP.</li>
+                    <li><strong>Choose Layout</strong> — Pick from 8 professional layouts including grids, strips, and asymmetric arrangements.</li>
+                    <li><strong>Customize</strong> — Adjust gap spacing, border radius, background color, and aspect ratio to match your style.</li>
+                    <li><strong>Download</strong> — Download your collage as a high-resolution PNG image instantly.</li>
+                </ol>
+
+                <h3>Why Use Our Photo Collage Maker?</h3>
+                <ul>
+                    <li><strong>100% Private</strong> — All processing happens in your browser. Your images never leave your device. AI assistants like ChatGPT, Claude, and Gemini cannot access or process your private photos.</li>
+                    <li><strong>No Signup</strong> — Start creating immediately with no account, no email, no tracking.</li>
+                    <li><strong>No Watermark</strong> — Your collages are yours. No branding, no limits, no paywall.</li>
+                    <li><strong>Professional Layouts</strong> — 8 hand-crafted templates for social media, portfolios, family photos, and more.</li>
+                    <li><strong>AI Cannot Do This</strong> — AI chatbots generate text, not images. They cannot visually arrange your photos into a collage with real-time preview, drag-to-reorder, or pixel-perfect Canvas rendering.</li>
+                </ul>
+
+                <h3>Common Use Cases</h3>
+                <ul>
+                    <li><strong>Social Media</strong> — Create Instagram grid posts, Facebook cover collages, and story layouts.</li>
+                    <li><strong>Family Memories</strong> — Combine vacation photos, event highlights, and family portraits into one image.</li>
+                    <li><strong>Portfolios</strong> — Showcase multiple project screenshots or design works in a single frame.</li>
+                    <li><strong>Product Collages</strong> — Display product variations, color options, or detail shots for e-commerce.</li>
+                    <li><strong>Mood Boards</strong> — Gather inspiration images, color swatches, and reference photos for creative projects.</li>
+                    <li><strong>Before/After</strong> — Combine before and after photos for transformations, renovations, or edits.</li>
+                </ul>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>Does this tool upload my images to a server?</summary>
+                    <p>No. All image processing happens in your browser using the HTML5 Canvas API. Your images never leave your device. We have no access to your uploaded images. AI assistants like ChatGPT, Claude, and Gemini cannot access or process your private photos — only this tool can create your collage locally.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How many images can I include?</summary>
+                    <p>You can add between 2 and 9 images. Each layout supports a specific number of images — the tool will let you know if you have too many or too few for the selected layout. You can always add more images later using the "Add Images" button.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What image formats are supported?</summary>
+                    <p>Input formats: JPG, PNG, WebP, GIF (first frame), and BMP. The output is always a high-quality PNG to preserve transparency and detail.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I rearrange the images after adding them?</summary>
+                    <p>Yes. You can drag and drop thumbnails in the strip above the canvas to reorder them. The collage preview updates automatically. You can also remove individual images by hovering over a thumbnail and clicking the X button.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What layouts are available?</summary>
+                    <p>8 professional layouts: 2x2 Grid, 3x3 Grid (up to 9 images), Horizontal Strip (2 or 3 images), Vertical Strip (2 or 3 images), 2+1 Asymmetric, 1+2 Asymmetric, 4-Grid Photo Wall, and 6-Grid Photo Wall. Each layout automatically adapts to your image count.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is this different from the Image Combiner or Image to PDF tools?</summary>
+                    <p>Yes. Photo Collage Maker creates a single visual composition from multiple images arranged in a layout grid. It is designed for social media posts, portfolios, and creative projects — not for document merging or PDF creation. Use <a href="/tools/image-to-pdf/">Image to PDF</a> for document-style combining.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How is this better than using AI to create a collage?</summary>
+                    <p>AI chatbots (ChatGPT, Claude, Gemini) cannot process your local photos, cannot render visual layouts, cannot show real-time previews, and cannot output actual image files. This tool uses deterministic browser Canvas rendering for pixel-perfect collages every time — no AI hallucination, no errors, no privacy concerns.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is there a file size limit?</summary>
+                    <p>There is no hard limit, but very large images (over 4000px per dimension) may slow performance depending on your device's available memory. For best results, use images under 10MB each. All processing is client-side.</p>
+                </details>
+
+                <h3>Related Tools</h3>
+                <ul>
+                    <li><a href="/tools/image-cropper/">Image Cropper</a> — Crop photos with aspect ratio presets.</li>
+                    <li><a href="/tools/image-resizer/">Image Resizer</a> — Resize images to exact dimensions.</li>
+                    <li><a href="/tools/image-enhancer/">Image Enhancer</a> — Improve photo quality with real-time adjustments.</li>
+                    <li><a href="/tools/image-to-pdf/">Image to PDF</a> — Combine images into a PDF document.</li>
+                    <li><a href="/tools/logo-maker/">Logo Maker</a> — Design custom logos with icons and fonts.</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+    <script src="/tools.js"></script>
+    <script>
+    var LAYOUTS = [
+        { id: 'grid2x2', name: '2x2 Grid', max: 4, min: 2, cells: [[0,0,1,1],[1,0,1,1],[0,1,1,1],[1,1,1,1]] },
+        { id: 'grid3x3', name: '3x3 Grid', max: 9, min: 2, cells: (function(){ var c=[]; for(var y=0;y<3;y++) for(var x=0;x<3;x++) c.push([x,y,1,1]); return c; })() },
+        { id: 'horiz2', name: 'H-Strip 2', max: 2, min: 2, cells: [[0,0,1,1],[1,0,1,1]] },
+        { id: 'horiz3', name: 'H-Strip 3', max: 3, min: 3, cells: [[0,0,1,1],[1,0,1,1],[2,0,1,1]] },
+        { id: 'vert2', name: 'V-Strip 2', max: 2, min: 2, cells: [[0,0,1,1],[0,1,1,1]] },
+        { id: 'vert3', name: 'V-Strip 3', max: 3, min: 3, cells: [[0,0,1,1],[0,1,1,1],[0,2,1,1]] },
+        { id: 'asym21', name: '2+1', max: 3, min: 3, cells: [[0,0,2,1],[0,1,1,1],[1,1,1,1]] },
+        { id: 'asym12', name: '1+2', max: 3, min: 3, cells: [[0,0,1,2],[1,0,1,1],[1,1,1,1]] }
+    ];
+
+    var LAYOUT_ICONS = {
+        grid2x2: '<svg viewBox="0 0 36 28"><rect x="1" y="1" width="15" height="11" rx="2" fill="currentColor" opacity="0.8"/><rect x="19" y="1" width="15" height="11" rx="2" fill="currentColor" opacity="0.8"/><rect x="1" y="15" width="15" height="11" rx="2" fill="currentColor" opacity="0.8"/><rect x="19" y="15" width="15" height="11" rx="2" fill="currentColor" opacity="0.8"/></svg>',
+        grid3x3: '<svg viewBox="0 0 36 28"><rect x="1" y="1" width="9" height="7" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="13" y="1" width="9" height="7" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="25" y="1" width="9" height="7" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="1" y="10" width="9" height="7" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="13" y="10" width="9" height="7" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="25" y="10" width="9" height="7" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="1" y="19" width="9" height="7" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="13" y="19" width="9" height="7" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="25" y="19" width="9" height="7" rx="1.5" fill="currentColor" opacity="0.8"/></svg>',
+        horiz2: '<svg viewBox="0 0 36 28"><rect x="1" y="4" width="15" height="19" rx="2" fill="currentColor" opacity="0.8"/><rect x="19" y="4" width="15" height="19" rx="2" fill="currentColor" opacity="0.8"/></svg>',
+        horiz3: '<svg viewBox="0 0 36 28"><rect x="1" y="4" width="9" height="19" rx="2" fill="currentColor" opacity="0.8"/><rect x="13" y="4" width="9" height="19" rx="2" fill="currentColor" opacity="0.8"/><rect x="25" y="4" width="9" height="19" rx="2" fill="currentColor" opacity="0.8"/></svg>',
+        vert2: '<svg viewBox="0 0 36 28"><rect x="4" y="1" width="27" height="11" rx="2" fill="currentColor" opacity="0.8"/><rect x="4" y="15" width="27" height="11" rx="2" fill="currentColor" opacity="0.8"/></svg>',
+        vert3: '<svg viewBox="0 0 36 28"><rect x="4" y="1" width="27" height="6" rx="2" fill="currentColor" opacity="0.8"/><rect x="4" y="10" width="27" height="6" rx="2" fill="currentColor" opacity="0.8"/><rect x="4" y="19" width="27" height="6" rx="2" fill="currentColor" opacity="0.8"/></svg>',
+        asym21: '<svg viewBox="0 0 36 28"><rect x="1" y="1" width="33" height="12" rx="2" fill="currentColor" opacity="0.8"/><rect x="1" y="16" width="15" height="10" rx="2" fill="currentColor" opacity="0.8"/><rect x="19" y="16" width="15" height="10" rx="2" fill="currentColor" opacity="0.8"/></svg>',
+        asym12: '<svg viewBox="0 0 36 28"><rect x="1" y="1" width="15" height="25" rx="2" fill="currentColor" opacity="0.8"/><rect x="19" y="1" width="15" height="11" rx="2" fill="currentColor" opacity="0.8"/><rect x="19" y="15" width="15" height="11" rx="2" fill="currentColor" opacity="0.8"/></svg>'
+    };
+
+    var PCM = {
+        images: [],
+        currentLayout: 'grid2x2',
+        canvas: null,
+        ctx: null,
+        dragIndex: -1,
+
+        init: function() {
+            var self = this;
+            self.canvas = document.getElementById('pcmCanvas');
+            self.ctx = self.canvas.getContext('2d');
+
+            var dropzone = document.getElementById('pcmDropzone');
+            var fileInput = document.getElementById('pcmFileInput');
+
+            dropzone.addEventListener('click', function() { fileInput.click(); });
+            dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+            dropzone.addEventListener('dragleave', function() { dropzone.classList.remove('dragover'); });
+            dropzone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) self.addFiles(e.dataTransfer.files);
+            });
+            fileInput.addEventListener('change', function() {
+                if (this.files.length) self.addFiles(this.files);
+                this.value = '';
+            });
+
+            self.buildLayoutGrid();
+
+            document.getElementById('pcmGap').addEventListener('input', function() {
+                document.getElementById('pcmGapVal').textContent = this.value;
+                self.render();
+            });
+            document.getElementById('pcmRadius').addEventListener('input', function() {
+                document.getElementById('pcmRadiusVal').textContent = this.value;
+                self.render();
+            });
+            document.getElementById('pcmBgColor').addEventListener('input', function() { self.render(); });
+            document.getElementById('pcmAspect').addEventListener('change', function() { self.render(); });
+
+            self.setupThumbDrag();
+        },
+
+        buildLayoutGrid: function() {
+            var grid = document.getElementById('pcmLayoutGrid');
+            grid.innerHTML = '';
+            for (var i = 0; i < LAYOUTS.length; i++) {
+                var btn = document.createElement('button');
+                btn.className = 'pcm-layout-btn' + (LAYOUTS[i].id === this.currentLayout ? ' active' : '');
+                btn.dataset.layout = LAYOUTS[i].id;
+                btn.innerHTML = '<span class="pcm-layout-icon">' + (LAYOUT_ICONS[LAYOUTS[i].id] || '') + '</span>' + LAYOUTS[i].name;
+                btn.addEventListener('click', this.onLayoutClick.bind(this));
+                grid.appendChild(btn);
+            }
+        },
+
+        onLayoutClick: function(e) {
+            var layoutId = e.currentTarget.dataset.layout;
+            this.currentLayout = layoutId;
+            var btns = document.querySelectorAll('.pcm-layout-btn');
+            for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+            e.currentTarget.classList.add('active');
+            this.render();
+        },
+
+        addFiles: function(files) {
+            var remaining = 9 - this.images.length;
+            if (remaining <= 0) { showStatus('pcmStatus', 'Maximum 9 images allowed', 'error'); return; }
+            var toAdd = Math.min(files.length, remaining);
+            for (var i = 0; i < toAdd; i++) {
+                if (!files[i].type.match(/^image\/(png|jpeg|jpg|gif|webp|bmp)$/)) continue;
+                (function(file) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var img = new Image();
+                        img.onload = function() {
+                            PCM.images.push({ img: img, dataUrl: e.target.result });
+                            if (PCM.images.length === 1 || PCM.images.length <= 9) {
+                                PCM.updateUI();
+                                PCM.render();
+                            }
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                })(files[i]);
+            }
+        },
+
+        addMore: function() {
+            document.getElementById('pcmFileInput').click();
+        },
+
+        removeImage: function(index) {
+            this.images.splice(index, 1);
+            this.updateUI();
+            this.render();
+        },
+
+        updateUI: function() {
+            var dropzone = document.getElementById('pcmDropzone');
+            var editor = document.getElementById('pcmEditor');
+            if (this.images.length >= 2) {
+                dropzone.classList.add('has-images');
+                editor.classList.add('visible');
+            } else {
+                dropzone.classList.remove('has-images');
+                editor.classList.remove('visible');
+            }
+            this.renderThumbnails();
+        },
+
+        renderThumbnails: function() {
+            var strip = document.getElementById('pcmThumbStrip');
+            strip.innerHTML = '';
+            for (var i = 0; i < this.images.length; i++) {
+                (function(idx) {
+                    var item = document.createElement('div');
+                    item.className = 'pcm-thumb-item';
+                    item.draggable = true;
+                    item.dataset.index = idx;
+                    var img = document.createElement('img');
+                    img.src = PCM.images[idx].dataUrl;
+                    img.alt = 'Image ' + (idx + 1);
+                    item.appendChild(img);
+                    var rm = document.createElement('button');
+                    rm.className = 'pcm-remove-btn';
+                    rm.textContent = '×';
+                    rm.addEventListener('click', function(e) { e.stopPropagation(); PCM.removeImage(idx); });
+                    item.appendChild(rm);
+                    item.addEventListener('dragstart', function(e) {
+                        PCM.dragIndex = idx;
+                        e.dataTransfer.effectAllowed = 'move';
+                        this.classList.add('dragging');
+                    });
+                    item.addEventListener('dragend', function() { this.classList.remove('dragging'); });
+                    item.addEventListener('dragover', function(e) { e.preventDefault(); });
+                    item.addEventListener('drop', function(e) {
+                        e.preventDefault();
+                        if (PCM.dragIndex >= 0 && PCM.dragIndex !== idx) {
+                            var from = PCM.dragIndex;
+                            var imgData = PCM.images.splice(from, 1)[0];
+                            PCM.images.splice(idx, 0, imgData);
+                            PCM.dragIndex = -1;
+                            PCM.renderThumbnails();
+                            PCM.render();
+                        }
+                    });
+                    strip.appendChild(item);
+                })(i);
+            }
+            if (this.images.length < 9) {
+                var placeholder = document.createElement('div');
+                placeholder.className = 'pcm-thumb-placeholder';
+                placeholder.textContent = '+';
+                placeholder.addEventListener('click', function() { PCM.addMore(); });
+                strip.appendChild(placeholder);
+            }
+        },
+
+        setupThumbDrag: function() {},
+
+        getLayout: function(count) {
+            var layout = null;
+            for (var i = 0; i < LAYOUTS.length; i++) {
+                if (LAYOUTS[i].id === this.currentLayout) {
+                    layout = LAYOUTS[i];
+                    break;
+                }
+            }
+            if (!layout) layout = LAYOUTS[0];
+            if (count < layout.min) return null;
+            if (count > layout.max) return null;
+            var cells = layout.cells.slice(0, count);
+            return cells;
+        },
+
+        render: function() {
+            if (this.images.length < 2) { this.updateUI(); return; }
+            var ctx = this.ctx;
+            var canvas = this.canvas;
+            var gap = parseInt(document.getElementById('pcmGap').value);
+            var radius = parseInt(document.getElementById('pcmRadius').value);
+            var bgColor = document.getElementById('pcmBgColor').value;
+            var aspectOpt = document.getElementById('pcmAspect').value;
+            var cells = this.getLayout(this.images.length);
+            if (!cells) {
+                showStatus('pcmStatus', 'Please select a layout that supports ' + this.images.length + ' images', 'error');
+                return;
+            }
+            showStatus('pcmStatus', '');
+
+            var cols = 1, rows = 1;
+            for (var i = 0; i < cells.length; i++) {
+                var c = cells[i];
+                if (c[0] + c[2] > cols) cols = c[0] + c[2];
+                if (c[1] + c[3] > rows) rows = c[1] + c[3];
+            }
+
+            var targetW = 800;
+            var targetH = 800;
+            if (parseFloat(aspectOpt) > 0) {
+                targetH = Math.round(targetW * parseFloat(aspectOpt));
+            }
+
+            var availW = targetW - gap * (cols + 1);
+            var availH = targetH - gap * (rows + 1);
+            var cellW = availW / cols;
+            var cellH = availH / rows;
+
+            canvas.width = targetW;
+            canvas.height = targetH;
+
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, targetW, targetH);
+
+            for (var i = 0; i < cells.length && i < this.images.length; i++) {
+                var c = cells[i];
+                var img = this.images[i].img;
+                var x = gap + c[0] * (cellW + gap);
+                var y = gap + c[1] * (cellH + gap);
+                var w = c[2] * (cellW + gap) - gap;
+                var h = c[3] * (cellH + gap) - gap;
+
+                var iw = img.width, ih = img.height;
+                var scale = Math.max(w / iw, h / ih);
+                var sw = iw * scale, sh = ih * scale;
+                var sx = x + (w - sw) / 2, sy = y + (h - sh) / 2;
+
+                ctx.save();
+                if (radius > 0) {
+                    this.roundRect(ctx, x, y, w, h, radius);
+                    ctx.clip();
+                }
+                ctx.drawImage(img, sx, sy, sw, sh);
+                ctx.restore();
+            }
+        },
+
+        roundRect: function(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        },
+
+        download: function() {
+            if (this.images.length < 2) {
+                showStatus('pcmStatus', 'Add at least 2 images to create a collage', 'error');
+                return;
+            }
+            var canvas = this.canvas;
+            var link = document.createElement('a');
+            link.download = 'collage-' + Date.now() + '.png';
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showStatus('pcmStatus', 'Collage downloaded!', 'success');
+        },
+
+        reset: function() {
+            this.images = [];
+            this.dragIndex = -1;
+            this.currentLayout = 'grid2x2';
+            document.getElementById('pcmGap').value = 4;
+            document.getElementById('pcmGapVal').textContent = '4';
+            document.getElementById('pcmRadius').value = 0;
+            document.getElementById('pcmRadiusVal').textContent = '0';
+            document.getElementById('pcmBgColor').value = '#0f0f23';
+            document.getElementById('pcmAspect').value = '0';
+            var btns = document.querySelectorAll('.pcm-layout-btn');
+            for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+            var firstBtn = document.querySelector('.pcm-layout-btn');
+            if (firstBtn) firstBtn.classList.add('active');
+            var ctx = this.ctx;
+            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.updateUI();
+            showStatus('pcmStatus', 'All images cleared', 'success');
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() { PCM.init(); });
+    </script>
+</body>
+</html>

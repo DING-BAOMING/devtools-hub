@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback - Report a Bug or Suggest a Tool | DevTools Hub</title>
+    <meta property="og:title" content="Feedback - Report a Bug or Suggest a Tool | DevTools Hub">
+    <meta property="og:description" content="Report a bug, a wrong result, or suggest a missing tool on DevTools Hub, the free online developer tools. Your feedback helps us fix and improve our tools.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/feedback/">
+    <meta property="og:type" content="website">
+    <meta name="description" content="Report a bug, a wrong result, or suggest a missing tool on DevTools Hub, the free online developer tools. Your feedback helps us fix and improve our tools.">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/feedback/">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-05-21","dateModified":"2026-10-17","author":{"@type":"Person","name":"BAOMING"},"name":"Feedback - Report a Bug or Suggest a Tool - DevTools Hub","description":"Report a bug, a wrong result, or suggest a missing tool on DevTools Hub's free online developer tools","url":"https://tools.scoreroute.com/tools/feedback/","applicationCategory":"UtilityApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        .feedback-form-container {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .feedback-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .feedback-columns { grid-template-columns: 1fr; }
+        }
+        .feedback-column {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 75vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .feedback-column h3 { position: sticky; top: 0; background: var(--surface); padding-bottom: 8px; margin-bottom: 8px; z-index: 1; }
+        .feedback-column .column-count { position: sticky; top: 44px; background: var(--surface); padding-bottom: 4px; z-index: 1; }
+        .feedback-column .column-list {
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 6px;
+            margin-right: -6px;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+        .feedback-column .column-list::-webkit-scrollbar { width: 8px; }
+        .feedback-column .column-list::-webkit-scrollbar-track { background: transparent; }
+        .feedback-column .column-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .feedback-column .column-list::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        .feedback-column h3 {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+        .feedback-column.open h3 { color: var(--primary); border-color: var(--primary); }
+        .feedback-column.resolved h3 { color: var(--success); border-color: var(--success); }
+        .feedback-item {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--primary);
+        }
+        .feedback-item.resolved {
+            border-left-color: var(--success);
+            opacity: 0.75;
+        }
+        .feedback-header {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .feedback-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .feedback-badge.bug { background: #ef444440; color: #ef4444; }
+        .feedback-badge.suggestion { background: #3b82f640; color: #3b82f6; }
+        .feedback-badge.content { background: #f59e0b40; color: #f59e0b; }
+        .feedback-badge.performance { background: #8b5cf640; color: #8b5cf6; }
+        .feedback-badge.other { background: #6b728040; color: #9ca3af; }
+        .feedback-badge.resolved-badge { background: #22c55e40; color: #22c55e; }
+        .feedback-category, .feedback-tool {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .feedback-tool a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        .feedback-tool a:hover { text-decoration: underline; }
+        .feedback-description {
+            color: var(--text);
+            margin: 8px 0;
+            line-height: 1.4;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            max-height: 4.5em;
+            overflow: hidden;
+            position: relative;
+            transition: max-height 0.25s ease;
+        }
+        .feedback-description.expanded {
+            max-height: 5000px;
+        }
+        .feedback-description.collapsible::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1.5em;
+            background: linear-gradient(to bottom, transparent, var(--bg) 80%);
+            pointer-events: none;
+        }
+        .feedback-description.collapsible.expanded::after { display: none; }
+        .feedback-toggle {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 4px 0;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+        .feedback-toggle:hover { text-decoration: underline; }
+        .feedback-source {
+            display: inline-block;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            background: var(--bg);
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .feedback-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        .admin-note {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--success);
+        }
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+        .no-feedback {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 24px;
+            font-size: 0.9rem;
+        }
+        .loading { text-align: center; color: var(--text-muted); padding: 24px; }
+        .column-count {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        .form-group .hint {
+            margin: 6px 0 0;
+            font-size: 0.8rem;
+            color: #8a8ab0;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            background: #0f0f23;
+            color: #fff;
+            font-size: 0.875rem;
+            min-height: 44px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: 2px solid transparent;
+            border-color: #667eea;
+        }
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #555;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Report a Bug or Suggest a Tool</h1>
+            <p class="subtitle">Help Us Improve Our Free Developer Tools</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Feedback</span>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="feedback-form-container">
+                    <h2>Submit Feedback</h2>
+                    
+                    <form id="feedback-form" action="#" method="post">
+                        <div class="form-group">
+                            <label for="category">Category *</label>
+                            <select id="category" name="category" required onchange="updateTools()" enterkeyhint="next">
+                                <option value="">Select a category</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="tool-group" style="display:none;">
+                            <label for="tool">Tool</label>
+                            <select id="tool" name="tool" enterkeyhint="next">
+                                <option value="">Select a tool (optional)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="feedback-type">Feedback Type *</label>
+                            <select id="feedback-type" name="type" required enterkeyhint="next">
+                                <option value="">Select type</option>
+                                <option value="bug">Bug Report</option>
+                                <option value="suggestion">Feature Suggestion</option>
+                                <option value="content">Content Error</option>
+                                <option value="performance">Performance Issue</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Description *</label>
+                            <textarea id="description" name="description" rows="4" placeholder="Please describe the problem in detail..." required enterkeyhint="send"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email (optional, for follow-up)</label>
+                            <input type="email" id="email" name="email" placeholder="your@email.com" enterkeyhint="send" autocomplete="email">
+                            <!-- BUG-401: the address is only used to answer you. It is never
+                                 published: the public feedback API does not return it and no
+                                 page on this site renders it. -->
+                            <p class="hint">Used only to reply to you. Never published, never shared.</p>
+                        </div>
+
+                        <button type="submit" class="submit-btn btn btn-primary" id="submitBtn">Submit Feedback</button>
+                    </form>
+
+                    <div id="submit-success" class="success-message" style="display:none;">
+                        <p>Thank you for your feedback! We have received your report.</p>
+                    </div>
+                </div>
+
+                <div class="feedback-columns">
+                    <div class="feedback-column open">
+                        <h3>Open Issues</h3>
+                        <p class="column-count" id="open-count">Loading...</p>
+                        <div id="open-list" class="column-list">
+                            <p class="loading">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="feedback-column resolved">
+                        <h3>Resolved</h3>
+                        <p class="column-count" id="resolved-count"></p>
+                        <div id="resolved-list" class="column-list">
+                            <p class="loading">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>How to Report Problems</h2>
+                <p>Found a bug or have a suggestion? Let us know! Your feedback helps us improve hundreds of free browser-based developer tools used by millions worldwide. We review every submission and prioritize fixes based on impact and severity. No signup, no tracking, no spam — just honest feedback that makes our tools better for everyone.</p>
+
+                <h3>Tips for Effective Bug Reports</h3>
+                <p>When reporting a problem, include the specific tool you were using, what you expected to happen, and what actually happened. Browser name and version help us reproduce issues faster. For layout or visual bugs, attaching a screenshot or screen recording is extremely helpful. If you encountered an error message, please include the exact text or a screenshot of it.</p>
+                <p>Feature suggestions are always welcome. Describe what you want to accomplish, how the feature would work ideally, and which existing tools it relates to. We evaluate suggestions based on usefulness to the broader developer community.</p>
+                
+                <div class="faq-item">
+                    <h3>What should I include in a bug report?</h3>
+                    <p>Please include: what you were trying to do, what went wrong, and any error messages you saw. Screenshots are helpful! Also note which browser and device you are using (Chrome, Firefox, Safari, mobile, desktop).</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>What happens after I submit?</h3>
+                    <p>We review all feedback and fix critical bugs as soon as possible. You can include your email if you want us to follow up. Resolved issues are marked with a green badge so you can track progress. Major fixes are deployed daily.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>What kind of feedback do you accept?</h3>
+                    <p>We accept bug reports, feature suggestions, content error corrections, performance issue reports, and general feedback. All categories are equally welcome. For security vulnerabilities, please include a detailed description so we can address them urgently.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>How long does it take to fix a bug?</h3>
+                    <p>Critical bugs that break tool functionality are typically fixed within 24 hours. Minor issues and feature suggestions are reviewed weekly. The status of your report is visible on this page — open issues are listed in the left column and resolved ones on the right.</p>
+                </div>
+
+                <div class="faq-item">
+                    <h3>Is feedback really free?</h3>
+                    <p>Yes! Reporting problems is completely free and requires no login. There are no hidden charges, no subscription required, and we never share your email with third parties if you choose to provide it.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | Free Developer Tools | <a href="/sitemap.xml">Sitemap</a></p>
+    </footer>
+
+    <script>
+        let toolData = { categories: {}, tools: [] };
+
+        async function loadToolData() {
+            try {
+                const response = await fetch('/api/tools');
+                toolData = await response.json();
+                populateCategories();
+            } catch (e) {
+                console.error('Failed to load tools:', e);
+            }
+        }
+
+        function populateCategories() {
+            const categorySelect = document.getElementById('category');
+            categorySelect.innerHTML = '<option value="">Select a category</option>';
+            
+            for (const [key, label] of Object.entries(toolData.categories)) {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = label;
+                categorySelect.appendChild(option);
+            }
+            const otherOption = document.createElement('option');
+            otherOption.value = 'other';
+            otherOption.textContent = 'Other';
+            categorySelect.appendChild(otherOption);
+        }
+
+        function updateTools() {
+            const category = document.getElementById('category').value;
+            const toolGroup = document.getElementById('tool-group');
+            const toolSelect = document.getElementById('tool');
+            
+            toolSelect.innerHTML = '<option value="">Select a tool</option>';
+            
+            if (!category) {
+                toolGroup.style.display = 'none';
+                return;
+            }
+            
+            const toolsInCategory = toolData.tools.filter(t => t.category === category);
+            
+            if (category === 'other') {
+                toolGroup.style.display = 'block';
+                const otherOption = document.createElement('option');
+                otherOption.value = 'Other';
+                otherOption.textContent = 'Other';
+                toolSelect.appendChild(otherOption);
+            } else if (toolsInCategory.length > 0) {
+                toolGroup.style.display = 'block';
+                toolsInCategory.forEach(tool => {
+                    const option = document.createElement('option');
+                    option.value = tool.name;
+                    option.textContent = tool.name;
+                    toolSelect.appendChild(option);
+                });
+                const otherOption = document.createElement('option');
+                otherOption.value = 'Other';
+                otherOption.textContent = 'Other';
+                toolSelect.appendChild(otherOption);
+            } else {
+                toolGroup.style.display = 'none';
+            }
+        }
+
+        async function loadFeedback() {
+            try {
+                const response = await fetch('/api/feedback');
+                const feedbackData = await response.json();
+                renderFeedback(feedbackData);
+            } catch (e) {
+                document.getElementById('open-list').innerHTML = '<p class="no-feedback">Failed to load feedback.</p>';
+                document.getElementById('resolved-list').innerHTML = '<p class="no-feedback">Failed to load feedback.</p>';
+            }
+        }
+
+        async function submitFeedback(event) {
+            event.preventDefault();
+            
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            const data = {
+                category: document.getElementById('category').value,
+                tool: document.getElementById('tool').value || 'Other',
+                type: document.getElementById('feedback-type').value,
+                description: document.getElementById('description').value.trim(),
+                email: document.getElementById('email').value.trim() || ''
+            };
+
+            try {
+                const response = await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    document.getElementById('feedback-form').reset();
+                    document.getElementById('tool-group').style.display = 'none';
+                    document.getElementById('submit-success').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        document.getElementById('submit-success').style.display = 'none';
+                    }, 5000);
+                    
+                    loadFeedback();
+                } else {
+                    alert('Failed to submit feedback. Please try again.');
+                }
+            } catch (e) {
+                alert('Failed to submit feedback. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Feedback';
+            }
+        }
+
+        function getCategoryLabel(cat) {
+            return toolData.categories[cat] || cat;
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                'bug': 'Bug',
+                'suggestion': 'Suggestion',
+                'content': 'Content',
+                'performance': 'Performance',
+                'other': 'Other'
+            };
+            return labels[type] || type;
+        }
+
+        function renderFeedback(feedbackData) {
+            feedbackData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            const openList = document.getElementById('open-list');
+            const resolvedList = document.getElementById('resolved-list');
+            const openCount = document.getElementById('open-count');
+            const resolvedCount = document.getElementById('resolved-count');
+            
+            const unresolved = feedbackData.filter(f => !f.resolved);
+            const resolved = feedbackData.filter(f => f.resolved);
+            
+            openCount.textContent = unresolved.length + ' open issue' + (unresolved.length !== 1 ? 's' : '');
+            resolvedCount.textContent = resolved.length + ' resolved';
+            
+            if (unresolved.length === 0) {
+                openList.innerHTML = '<p class="no-feedback">No open issues. Great!</p>';
+            } else {
+                openList.innerHTML = unresolved.map(f => createFeedbackHTML(f, false)).join('');
+            }
+
+            if (resolved.length === 0) {
+                resolvedList.innerHTML = '<p class="no-feedback">No resolved issues yet.</p>';
+            } else {
+                resolvedList.innerHTML = resolved.map(f => createFeedbackHTML(f, true)).join('');
+            }
+
+            bindToggleButtons(openList);
+            bindToggleButtons(resolvedList);
+        }
+
+        function createFeedbackHTML(f, isResolved) {
+            const desc = f.description || '';
+            const isLong = desc.length > 280 || desc.split('\n').length > 6;
+            // BUG-401: no address in the payload any more — the public API withholds it
+            // (the owner's admin request still carries it), so this list can no longer
+            // tell "who wrote this" and must not pretend to.
+            const isAutoAudit = /^Site Audit Report /m.test(desc) || /^自动质检发现问题/m.test(desc) || /^Issue Report\s*\n\s*Tool:/m.test(desc) || /^反馈问题\s*\n/m.test(desc);
+            const defaultCollapsed = isAutoAudit;
+            const descClass = 'feedback-description' + (isLong ? ' collapsible' : '');
+            const uniqueId = 'desc-' + (f.id || Math.random().toString(36).slice(2, 10));
+            const sourceTag = isAutoAudit ? '<span class="feedback-source">auto</span>' : '';
+            const toggleHtml = isLong
+                ? `<button type="button" class="feedback-toggle" data-target="${uniqueId}" data-collapsed="${defaultCollapsed}">${defaultCollapsed ? 'Show more' : 'Show less'}</button>`
+                : '';
+            return `
+                <div class="feedback-item ${isResolved ? 'resolved' : ''}">
+                    <div class="feedback-header">
+                        <span class="feedback-badge ${f.type}">${getTypeLabel(f.type)}</span>
+                        ${isResolved ? '<span class="feedback-badge resolved-badge">Resolved</span>' : ''}
+                        <span class="feedback-category">${getCategoryLabel(f.category)}</span>
+                        <span class="feedback-tool">${escapeHtml(f.tool || 'Other')}</span>
+                        ${sourceTag}
+                    </div>
+                    <div class="${descClass}" id="${uniqueId}">${escapeHtml(desc)}</div>
+                    ${toggleHtml}
+                    <div class="feedback-meta">
+                        <span>${formatTime(f.timestamp)}</span>
+                    </div>
+                    ${f.adminNote ? `<div class="admin-note"><strong>Admin:</strong> ${escapeHtml(f.adminNote)}</div>` : ''}
+                </div>
+            `;
+        }
+
+        function bindToggleButtons(scope) {
+            const root = scope || document;
+            root.querySelectorAll('.feedback-toggle').forEach(btn => {
+                if (btn.dataset.bound === '1') return;
+                btn.dataset.bound = '1';
+                btn.addEventListener('click', function() {
+                    const target = document.getElementById(btn.dataset.target);
+                    if (!target) return;
+                    const expanded = target.classList.toggle('expanded');
+                    btn.dataset.collapsed = expanded ? 'false' : 'true';
+                    btn.textContent = expanded ? 'Show less' : 'Show more';
+                });
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text || '';
+            return div.innerHTML;
+        }
+
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Form submit handler (replaces inline onsubmit which was unreliable)
+        document.getElementById('feedback-form').addEventListener('submit', submitFeedback);
+        // Direct click handler on submit button as fallback (ensures reliability)
+        document.getElementById('submitBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const f = document.getElementById('feedback-form');
+            // Trigger the submit event so the submit handler runs
+            if (typeof f.requestSubmit === 'function') {
+                f.requestSubmit();
+            } else {
+                // Fallback: call submitFeedback directly with a fake event
+                submitFeedback({ target: f, preventDefault: function() {} });
+            }
+        });
+
+        loadToolData();
+        loadFeedback();
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

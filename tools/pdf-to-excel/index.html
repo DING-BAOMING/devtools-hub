@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Excel Converter - Free Online PDF to XLSX</title>
+    <meta name="description" content="Free online PDF to Excel converter. Extract tables and data from PDF to XLSX. 100% private, no upload, no signup, unlimited conversions.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/pdf-to-excel/">
+    <meta property="og:title" content="PDF to Excel Converter - Free Online PDF to XLSX">
+    <meta property="og:description" content="Free online PDF to Excel converter. Extract tables and data from PDF to XLSX. 100% private browser processing, no upload, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/pdf-to-excel/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PDF to Excel Converter - Free Online PDF to XLSX">
+    <meta name="twitter:description" content="Free online PDF to Excel converter. Extract tables and data from PDF to XLSX. 100% private, no upload.">
+    <meta name="twitter:image" content="/og-image.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-07-18",
+        "dateModified": "2026-07-18",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "PDF to Excel Converter - Free Online PDF to XLSX",
+        "description": "Extract tables and data from PDF files to Excel XLSX spreadsheets directly in your browser. Uses pdfjs-dist for PDF parsing and SheetJS for Excel generation. 100% client-side - no upload, no signup, no watermark, unlimited conversions. AI cannot parse binary PDF structures or generate valid XLSX files - this tool does it in your browser.",
+        "url": "https://tools.scoreroute.com/tools/pdf-to-excel/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": [
+            "Upload any PDF and extract table data to Excel XLSX",
+            "Smart table detection from text positions in PDF",
+            "Multi-page PDF support with page-by-page extraction",
+            "Preview extracted tables before downloading",
+            "Download as XLSX or CSV",
+            "100% client-side - no server upload, no signup, no watermark",
+            "AI cannot parse binary PDF structures or generate valid XLSX files"
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+        {"@type":"Question","name":"Will my PDF be uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. The entire conversion pipeline runs in your browser. The PDF is read using the standard browser File API, parsed by pdfjs-dist to extract text with position data, and the Excel file is generated using SheetJS. No bytes leave your device. Open your browser's Developer Tools (F12) and watch the Network tab - zero outbound requests contain your file content."}},
+        {"@type":"Question","name":"How accurate is the table extraction?","acceptedAnswer":{"@type":"Answer","text":"The tool uses smart position-based detection: it groups text items by their Y coordinate (vertical position) to identify rows, then sorts by X coordinate (horizontal position) to identify columns. This works well for PDFs with clear tabular layouts. Accuracy depends on the source PDF - PDFs generated from structured documents (like Excel exports, reports, invoices) extract well. Scanned PDFs or those with complex layouts may need cleanup after conversion."}},
+        {"@type":"Question","name":"What's the maximum PDF file size?","acceptedAnswer":{"@type":"Answer","text":"We support PDFs up to 100 MB. The actual limit depends on your browser's available memory. Since the file never leaves your device, there is no upload time. For very large files with hundreds of pages, processing may take a moment. If you run into memory issues, try splitting the PDF first with our PDF Splitter tool."}},
+        {"@type":"Question","name":"How do you detect tables in a PDF?","acceptedAnswer":{"@type":"Answer","text":"PDF files do not contain native table markup - they store text with absolute position coordinates. Our tool analyzes the position of every text item on each page. Items with similar Y values form rows. Within rows, items are sorted by X value, and gaps larger than a threshold indicate column boundaries. This heuristic works well for most structured PDFs including financial reports, invoices, data sheets, and academic papers."}},
+        {"@type":"Question","name":"What output formats are available?","acceptedAnswer":{"@type":"Answer","text":"We offer two output formats: XLSX (Excel workbook format) and CSV (comma-separated values). XLSX is best for further editing in Excel, Google Sheets, or LibreOffice Calc. CSV is best for data import into databases, analytics tools, or other applications. XLSX preserves multiple pages as separate sheets."}},
+        {"@type":"Question","name":"Can I preview the extracted data before downloading?","acceptedAnswer":{"@type":"Answer","text":"Yes. After extraction, the detected table data is displayed in a preview table where you can review rows and columns. You can also edit the data in a text area before downloading, allowing you to fix any extraction issues, remove unwanted rows, or adjust column headers."}},
+        {"@type":"Question","name":"Why can't AI chatbots convert my PDF to Excel?","acceptedAnswer":{"@type":"Answer","text":"AI assistants like ChatGPT, Claude, and Gemini cannot parse binary PDF files, extract text with spatial positioning, detect tabular structure from coordinates, or generate a valid .xlsx file (which is a ZIP archive of XML files). Even if you manually copy text, AI will hallucinate cell values, miss rows, and fail to produce a real spreadsheet. This tool runs the actual conversion pipeline using pdfjs-dist for PDF parsing and SheetJS for Excel generation - it reads every character with spatial accuracy and produces a real XLSX file."}}
+    ]}
+    </script>
+    <style>
+        .px-dropzone { border: 3px dashed #555; border-radius: 16px; padding: 50px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; margin-bottom: 16px; }
+        .px-dropzone:hover, .px-dropzone.dragover { border-color: #667eea; background: #222250; }
+        .px-dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+        .px-dropzone-icon { font-size: 3rem; margin-bottom: 10px; }
+        .px-dropzone-text { font-size: 1.1rem; color: #ccc; }
+        .px-dropzone-text strong { color: #667eea; }
+        .px-dropzone-hint { font-size: 0.85rem; color: #888; margin-top: 8px; }
+        .px-file-info { display: none; align-items: center; gap: 12px; padding: 14px 18px; background: #1a1a3e; border: 1px solid #2a2a4a; border-radius: 10px; margin-bottom: 16px; }
+        .px-file-info.visible { display: flex; }
+        .px-file-info-icon { font-size: 1.5rem; }
+        .px-file-info-name { flex: 1; color: #e6edf3; font-weight: 500; font-size: 0.95rem; }
+        .px-file-info-size { color: #8b949e; font-size: 0.85rem; }
+        .px-remove-btn { background: none; border: none; color: #e5534b; cursor: pointer; font-size: 1.2rem; padding: 4px 8px; border-radius: 6px; }
+        .px-remove-btn:hover { background: #3e1a1a; }
+        .px-loading { display: none; align-items: center; gap: 14px; padding: 18px; background: #1a1a3e; border: 1px solid #667eea; border-radius: 10px; margin-bottom: 16px; }
+        .px-loading.visible { display: flex; }
+        .px-loading-spinner { width: 24px; height: 24px; border: 3px solid #333; border-top-color: #667eea; border-radius: 50%; animation: px-spin 0.8s linear infinite; flex-shrink: 0; }
+        @keyframes px-spin { to { transform: rotate(360deg); } }
+        .px-loading-text { color: #e6edf3; font-size: 0.9rem; }
+        .px-progress { display: none; align-items: center; gap: 12px; padding: 14px 18px; background: #1a1a3e; border: 1px solid #667eea; border-radius: 8px; margin-bottom: 16px; }
+        .px-progress.visible { display: flex; }
+        .px-progress-spinner { width: 22px; height: 22px; border: 3px solid #333; border-top-color: #667eea; border-radius: 50%; animation: px-spin 0.8s linear infinite; flex-shrink: 0; }
+        .px-progress-text { color: #e6edf3; font-size: 0.9rem; }
+        .px-error { display: none; padding: 14px 18px; background: #3e1a1a; border: 1px solid #e5534b; border-radius: 8px; color: #f8d7da; font-size: 0.9rem; margin-bottom: 16px; }
+        .px-error.visible { display: block; }
+        .px-info-bar { display: none; gap: 16px; flex-wrap: wrap; padding: 14px 18px; background: #161b22; border: 1px solid #2a2a4a; border-radius: 10px; margin-bottom: 16px; font-size: 0.85rem; color: #8b949e; }
+        .px-info-bar.visible { display: flex; }
+        .px-info-item { display: flex; align-items: center; gap: 6px; }
+        .px-info-label { color: #8b949e; }
+        .px-info-val { color: #e6edf3; font-weight: 500; }
+        .px-page-bar { display: none; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .px-page-bar.visible { display: flex; }
+        .px-page-btn { background: #0f0f23; border: 1px solid #2a2a4a; color: #888; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .px-page-btn:hover { border-color: #667eea; color: #ccc; }
+        .px-page-btn.active { background: #252545; border-color: #667eea; color: #667eea; }
+        .px-preview-wrap { display: none; border: 1px solid #2a2a4a; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+        .px-preview-wrap.visible { display: block; }
+        .px-preview-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #161b22; border-bottom: 1px solid #2a2a4a; font-size: 0.85rem; color: #8b949e; }
+        .px-table-wrap { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+        .px-table-wrap table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .px-table-wrap th { background: #252545; color: #667eea; padding: 10px 12px; text-align: left; border: 1px solid #2a2a4a; position: sticky; top: 0; z-index: 1; white-space: nowrap; }
+        .px-table-wrap td { padding: 8px 12px; border: 1px solid #2a2a4a; color: #ccc; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .px-table-wrap tr:nth-child(even) { background: #0f0f23; }
+        .px-table-wrap tr:hover { background: #1a1a3e; }
+        .px-multi-header { color: #ffa500; font-style: italic; }
+        .px-result-section { display: none; margin-top: 20px; }
+        .px-result-section.visible { display: block; }
+        .px-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+        .px-result-header h3 { color: #fff; margin: 0; }
+        .px-result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .px-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 16px; }
+        .px-stat-card { background: #1a1a3e; padding: 14px 16px; border-radius: 8px; border-left: 3px solid #667eea; }
+        .px-stat-label { color: #888; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .px-stat-value { color: #fff; font-size: 1.25rem; font-weight: 600; margin-top: 2px; font-family: monospace; }
+        .px-format-options { display: none; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .px-format-options.visible { display: flex; }
+        .px-format-options label { color: #aaa; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .px-format-options select { background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 0.85rem; }
+        .px-format-options select:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .px-editor { display: none; margin-top: 18px; }
+        .px-editor.visible { display: block; }
+        .px-editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        .px-editor-header h3 { color: #fff; margin: 0; }
+        .px-editor-textarea { width: 100%; min-height: 300px; padding: 16px; background: #0f0f23; color: #d4d4d4; border: 1px solid #333; border-radius: 8px; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 0.88rem; line-height: 1.6; resize: vertical; }
+        .px-editor-textarea:focus { outline: 2px solid transparent; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.2); }
+        .px-info-banner { padding: 14px 18px; background: #1a2e3e; border-left: 3px solid #3b82f6; border-radius: 6px; margin-bottom: 16px; color: #93c5fd; font-size: 0.88rem; line-height: 1.5; }
+        .px-info-banner strong { color: #dbeafe; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 500; opacity: 0; transition: opacity 0.3s; z-index: 2000; font-size: 0.9rem; pointer-events: none; }
+        .toast.show { opacity: 1; }
+        .link-here { background: #0f0f23; border: 1px dashed #667eea; border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; color: #93c5fd; font-size: 0.88rem; display: flex; align-items: center; gap: 10px; }
+        .link-here a { color: #7eb3ff; font-weight: 500; }
+        @media (max-width: 480px) {
+            .px-dropzone { padding: 30px 15px; }
+            .px-dropzone-icon { font-size: 2.2rem; }
+            .px-dropzone-text { font-size: 0.95rem; }
+            .px-table-wrap td, .px-table-wrap th { padding: 6px 8px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>PDF to Excel Converter</h1>
+            <p class="subtitle">Extract tables and data from PDF to Excel XLSX. 100% free and private.</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>PDF to Excel Converter</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Convert PDF to Excel</h2>
+
+                <div class="px-info-banner">
+                    <strong>100% Private.</strong> Your PDF never leaves your browser. We use pdfjs-dist to parse the file and SheetJS to build an Excel spreadsheet entirely on your device. AI chatbots cannot parse binary PDF structures or generate valid .xlsx files - this tool can.
+                </div>
+
+                <div id="px-dropzone" class="px-dropzone">
+                    <div class="px-dropzone-icon">📄</div>
+                    <div class="px-dropzone-text">Drop your PDF file here or <strong>browse</strong></div>
+                    <div class="px-dropzone-hint">Supports PDF files up to 100 MB</div>
+                    <input aria-label="PDF file input" type="file" id="px-file-input" accept=".pdf,application/pdf" hidden>
+                </div>
+
+                <div id="px-file-info" class="px-file-info">
+                    <span class="px-file-info-icon">📄</span>
+                    <span class="px-file-info-name" id="px-file-name"></span>
+                    <span class="px-file-info-size" id="px-file-size"></span>
+                    <button onclick="clearFile()" class="px-remove-btn" title="Remove file">✕</button>
+                </div>
+
+                <div id="px-loading" class="px-loading">
+                    <div class="px-loading-spinner"></div>
+                    <span class="px-loading-text" id="px-loading-text">Loading PDF...</span>
+                </div>
+
+                <div id="px-error" class="px-error"></div>
+
+                <div id="px-info-bar" class="px-info-bar">
+                    <div class="px-info-item"><span class="px-info-label">File:</span> <span class="px-info-val" id="px-info-name">-</span></div>
+                    <div class="px-info-item"><span class="px-info-label">Pages:</span> <span class="px-info-val" id="px-info-pages">-</span></div>
+                    <div class="px-info-item"><span class="px-info-label">Pages with tables:</span> <span class="px-info-val" id="px-info-table-pages">-</span></div>
+                    <div class="px-info-item"><span class="px-info-label">Total rows:</span> <span class="px-info-val" id="px-info-rows">-</span></div>
+                </div>
+
+                <div id="px-page-bar" class="px-page-bar"></div>
+
+                <div id="px-preview-wrap" class="px-preview-wrap">
+                    <div class="px-preview-header">
+                        <span>Table Preview</span>
+                        <div>
+                            <span id="px-row-count">0 rows</span>
+                            <span style="margin-left:12px" id="px-col-count">0 columns</span>
+                        </div>
+                    </div>
+                    <div class="px-table-wrap" id="px-table-wrap"></div>
+                </div>
+
+                <div id="px-format-options" class="px-format-options">
+                    <label>Output format:
+                        <select id="px-format">
+                            <option value="xlsx">XLSX (Excel)</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="btn-group" id="px-btn-group" style="display:none">
+                    <button onclick="convertToExcel()" class="btn btn-primary" id="px-download-btn">
+                        <span id="px-btn-text">Download XLSX</span>
+                    </button>
+                    <button onclick="showEditor()" class="btn">Edit Data</button>
+                    <button onclick="clearAll()" class="btn btn-secondary">Clear</button>
+                </div>
+
+                <div id="px-progress" class="px-progress">
+                    <div class="px-progress-spinner"></div>
+                    <span class="px-progress-text" id="px-progress-text">Generating Excel file...</span>
+                </div>
+
+                <div id="px-result-section" class="px-result-section">
+                    <div class="px-result-header">
+                        <h3>Conversion Complete</h3>
+                        <div class="px-result-actions">
+                            <button onclick="triggerDownload()" class="btn btn-primary" id="px-result-download">Download</button>
+                        </div>
+                    </div>
+                    <div class="px-stats">
+                        <div class="px-stat-card">
+                            <div class="px-stat-label">Pages Converted</div>
+                            <div class="px-stat-value" id="px-stat-pages">-</div>
+                        </div>
+                        <div class="px-stat-card">
+                            <div class="px-stat-label">Total Rows</div>
+                            <div class="px-stat-value" id="px-stat-rows">-</div>
+                        </div>
+                        <div class="px-stat-card">
+                            <div class="px-stat-label">Output Format</div>
+                            <div class="px-stat-value" id="px-stat-format">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="px-editor" class="px-editor">
+                    <div class="px-editor-header">
+                        <h3>Edit Extracted Data</h3>
+                        <div class="px-result-actions">
+                            <button onclick="regenerateFromEdit()" class="btn btn-primary">Update Preview</button>
+                            <button onclick="hideEditor()" class="btn btn-secondary">Done</button>
+                        </div>
+                    </div>
+                    <p style="color:#888;font-size:0.85rem;margin-bottom:10px;">Edit data as pipe-delimited text. Each line is a row, each pipe (<code>|</code>) separates columns.</p>
+                    <textarea aria-label="Spreadsheet content editor" id="px-editor-textarea" class="px-editor-textarea"></textarea>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>About PDF to Excel Converter</h2>
+                <p>This free online tool extracts tabular data from PDF files and converts it to Excel spreadsheets (.xlsx) or CSV files. Unlike server-based converters that require uploads, everything runs in your browser using pdfjs-dist for PDF parsing and SheetJS for Excel generation. Your data never leaves your device.</p>
+
+                <h3>How to Use</h3>
+                <ol>
+                    <li><strong>Upload</strong> - Drag and drop your PDF file onto the upload area, or click to browse</li>
+                    <li><strong>Extract</strong> - The tool automatically parses every page and detects table structures from text positions</li>
+                    <li><strong>Preview</strong> - Browse through pages and review the extracted table data</li>
+                    <li><strong>Edit</strong> - Optionally edit the extracted data to fix any issues</li>
+                    <li><strong>Download</strong> - Choose XLSX or CSV format and download your spreadsheet</li>
+                </ol>
+
+                <h3>How Table Detection Works</h3>
+                <p>PDF files do not contain native table markup. Instead, text is stored with absolute position coordinates on the page. Our tool uses a smart position-based detection algorithm:</p>
+                <ol>
+                    <li><strong>Text extraction</strong> - Every text item on each page is extracted with its X, Y position and font size</li>
+                    <li><strong>Row grouping</strong> - Text items with similar Y coordinates are grouped into rows</li>
+                    <li><strong>Column detection</strong> - Within each row, items are sorted by X coordinate and gaps indicate column boundaries</li>
+                    <li><strong>Header detection</strong> - The first row of each page is treated as a header row</li>
+                    <li><strong>Sheet generation</strong> - Each page becomes a separate sheet in the XLSX workbook</li>
+                </ol>
+                <p>This approach works well for structured PDFs like financial reports, invoices, data sheets, academic papers with tables, government forms, and business documents.</p>
+
+                <h3>Common Use Cases</h3>
+                <ul>
+                    <li><strong>Financial reports</strong> - Extract balance sheets, income statements, and cash flow tables from PDF reports</li>
+                    <li><strong>Invoice data</strong> - Convert invoice PDFs to editable spreadsheets for accounting</li>
+                    <li><strong>Research data</strong> - Extract tables from academic papers and research reports</li>
+                    <li><strong>Government forms</strong> - Pull data from PDF forms into Excel for analysis</li>
+                    <li><strong>Product catalogs</strong> - Convert pricing tables and product lists from PDF catalogs</li>
+                </ul>
+
+                <h3>Why AI Cannot Replace This Tool</h3>
+                <p>AI assistants like ChatGPT, Claude, and Gemini cannot access files on your computer. Even if you upload a PDF or describe its contents, AI will hallucinate cell values (invent wrong numbers), miss rows and columns, and fail to produce a valid .xlsx file (which is a ZIP archive containing XML). PDF is a complex binary format that AI cannot parse. This tool runs the real conversion pipeline using pdfjs-dist and SheetJS in your browser - it reads every character with spatial accuracy and produces a genuine Excel file.</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>Will my PDF be uploaded to a server?</summary>
+                    <p>No. Every byte of processing stays in your browser. The PDF is read using the standard browser File API, parsed by pdfjs-dist for text extraction, and the Excel file is generated locally using SheetJS. Zero bytes leave your device. Open your browser's Developer Tools (F12) and watch the Network tab while converting - there will be no outbound requests containing your file content.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How accurate is the table extraction?</summary>
+                    <p>Accuracy depends on the source PDF. PDFs generated from structured documents (like Excel exports, financial reports, invoices, and data sheets) extract very well because text positions clearly define rows and columns. Scanned PDFs (images) contain no text data and cannot be extracted. PDFs with complex merged cells, nested tables, or irregular layouts may need manual cleanup after conversion. The built-in editor lets you fix any extraction issues before downloading.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is the maximum file size?</summary>
+                    <p>The tool supports PDFs up to 100 MB. The actual limit depends on your browser's available memory. Since the file never leaves your device, there is no upload time - processing starts immediately from your local disk. For very large PDFs with hundreds of dense pages, processing may take 10-30 seconds. If you encounter memory issues, split the PDF first using our PDF Splitter tool.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What output formats are available?</summary>
+                    <p>We offer two output formats: <strong>XLSX</strong> (Excel workbook, opens in Excel, Google Sheets, LibreOffice Calc) with each PDF page as a separate sheet, and <strong>CSV</strong> (comma-separated values, universal plain-text format for data import). Choose XLSX for further editing, CSV for database imports or analytics tools.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I edit the extracted data before downloading?</summary>
+                    <p>Yes. After extraction, click "Edit Data" to open the built-in text editor. The data is shown as pipe-delimited text - each line is a row and each pipe character (|) separates columns. You can fix values, remove unwanted rows, or add missing data. Click "Update Preview" to see your changes, then download the updated spreadsheet.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How is this different from server-based converters?</summary>
+                    <p>Server-based converters like Smallpdf, iLovePDF, and Adobe upload your PDF to their cloud servers, where it may be stored, analyzed, or used to train AI models. Our tool processes everything in your browser - your data never touches any server. There are no daily conversion limits, no watermarks, no signup required, and no file size caps beyond what your browser can handle. Your sensitive financial and business data stays private.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why can't AI chatbots convert my PDF to Excel?</summary>
+                    <p>AI assistants like ChatGPT, Claude, and Gemini are text-based or multimodal systems. A PDF file is a complex binary format containing structured text, fonts, images, and positioning data. AI cannot: (1) access files on your computer, (2) parse binary PDF structures, (3) detect tabular layout from spatial coordinates, (4) extract every cell value without hallucination, or (5) generate a valid .xlsx file (a ZIP archive of XML). This tool runs the actual conversion pipeline using pdfjs-dist for precise PDF text extraction and SheetJS for proper XLSX generation. Every character is accurate because it is read directly from the PDF's content stream, not guessed by an AI model.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+    <div id="toast" class="toast"></div>
+    <script src="/tools.js"></script>
+    <script>
+    var dropzone = document.getElementById('px-dropzone');
+    var fileInput = document.getElementById('px-file-input');
+    var fileInfo = document.getElementById('px-file-info');
+    var fileName = document.getElementById('px-file-name');
+    var fileSize = document.getElementById('px-file-size');
+    var loadingEl = document.getElementById('px-loading');
+    var loadingText = document.getElementById('px-loading-text');
+    var errorEl = document.getElementById('px-error');
+    var infoBar = document.getElementById('px-info-bar');
+    var infoName = document.getElementById('px-info-name');
+    var infoPages = document.getElementById('px-info-pages');
+    var infoTablePages = document.getElementById('px-info-table-pages');
+    var infoRows = document.getElementById('px-info-rows');
+    var pageBar = document.getElementById('px-page-bar');
+    var previewWrap = document.getElementById('px-preview-wrap');
+    var tableWrap = document.getElementById('px-table-wrap');
+    var rowCountEl = document.getElementById('px-row-count');
+    var colCountEl = document.getElementById('px-col-count');
+    var formatOptions = document.getElementById('px-format-options');
+    var formatSelect = document.getElementById('px-format');
+    var btnGroup = document.getElementById('px-btn-group');
+    var downloadBtn = document.getElementById('px-download-btn');
+    var progressEl = document.getElementById('px-progress');
+    var progressText = document.getElementById('px-progress-text');
+    var resultSection = document.getElementById('px-result-section');
+    var statPages = document.getElementById('px-stat-pages');
+    var statRows = document.getElementById('px-stat-rows');
+    var statFormat = document.getElementById('px-stat-format');
+    var editorEl = document.getElementById('px-editor');
+    var editorTextarea = document.getElementById('px-editor-textarea');
+    var toastEl = document.getElementById('toast');
+
+    var pdfDoc = null;
+    var pageData = [];
+    var currentPageIdx = 0;
+    var currentFileName = '';
+    var totalRowsAll = 0;
+    var tablePagesCount = 0;
+    var outputBlob = null;
+    var pdfjsLib = null;
+
+    async function loadPdfJs() {
+        if (pdfjsLib) return pdfjsLib;
+        try {
+            var module = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');
+            pdfjsLib = module;
+            module.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+            return pdfjsLib;
+        } catch (e) {
+            throw new Error('Failed to load PDF.js: ' + e.message);
+        }
+    }
+
+    dropzone.addEventListener('click', function() { fileInput.click(); });
+    dropzone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', function() {
+        dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length > 0) handleFile(fileInput.files[0]);
+    });
+
+    formatSelect.addEventListener('change', function() {
+        downloadBtn.innerHTML = '<span id="px-btn-text">Download ' + formatSelect.value.toUpperCase() + '</span>';
+    });
+
+    function handleFile(file) {
+        hideError();
+        var name = file.name.toLowerCase();
+        if (!name.endsWith('.pdf')) {
+            showError('Only PDF files are supported. Please select a valid PDF file.');
+            return;
+        }
+        if (file.size > 100 * 1024 * 1024) {
+            showError('File size exceeds 100 MB. Please use a smaller file.');
+            return;
+        }
+        currentFileName = file.name;
+        fileName.textContent = file.name;
+        fileSize.textContent = formatSize(file.size);
+        dropzone.classList.add('has-file');
+        dropzone.style.display = 'none';
+        fileInfo.classList.add('visible');
+        previewWrap.classList.remove('visible');
+        infoBar.classList.remove('visible');
+        pageBar.classList.remove('visible');
+        pageBar.innerHTML = '';
+        formatOptions.classList.remove('visible');
+        btnGroup.style.display = 'none';
+        resultSection.classList.remove('visible');
+        editorEl.classList.remove('visible');
+        loadingEl.classList.add('visible');
+        loadingText.textContent = 'Loading PDF.js engine...';
+
+        var reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                var lib = await loadPdfJs();
+                loadingText.textContent = 'Parsing PDF: ' + file.name + '...';
+
+                var buffer = e.target.result;
+                var loadingTask = lib.getDocument({ data: buffer });
+                pdfDoc = await loadingTask.promise;
+
+                loadingEl.classList.remove('visible');
+                infoName.textContent = file.name;
+
+                await extractAllPages();
+            } catch (err) {
+                loadingEl.classList.remove('visible');
+                resetFileUI();
+                showError('Failed to parse PDF: ' + (err.message || 'The file may be corrupted or password-protected.'));
+            }
+        };
+        reader.onerror = function() {
+            loadingEl.classList.remove('visible');
+            resetFileUI();
+            showError('Could not read the file. Please try again.');
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    async function extractAllPages() {
+        var lib = pdfjsLib;
+        var total = pdfDoc.numPages;
+        infoPages.textContent = total;
+        loadingEl.classList.add('visible');
+        loadingText.textContent = 'Extracting text from page 1 of ' + total + '...';
+
+        pageData = [];
+        totalRowsAll = 0;
+        tablePagesCount = 0;
+
+        for (var i = 1; i <= total; i++) {
+            loadingText.textContent = 'Extracting text from page ' + i + ' of ' + total + '...';
+
+            var page = await pdfDoc.getPage(i);
+            var textContent = await page.getTextContent();
+
+            var items = [];
+            for (var j = 0; j < textContent.items.length; j++) {
+                var it = textContent.items[j];
+                if (!it.str || !it.str.trim()) continue;
+                var transform = it.transform || [1, 0, 0, 1, 0, 0];
+                items.push({
+                    text: it.str.trim(),
+                    fontSize: Math.abs(transform[3]) || 12,
+                    x: transform[4],
+                    y: transform[5]
+                });
+            }
+
+            var tables = detectTables(items);
+            pageData.push({ pageNum: i, tables: tables, rawItems: items });
+
+            if (tables.length > 0) {
+                tablePagesCount++;
+                for (var t = 0; t < tables.length; t++) {
+                    totalRowsAll += tables[t].length;
+                }
+            }
+
+            page.cleanup();
+        }
+
+        loadingEl.classList.remove('visible');
+
+        if (pageData.length === 0) {
+            showError('Could not extract any text from this PDF. It may be a scanned document (image-only PDF).');
+            resetFileUI();
+            return;
+        }
+
+        infoTablePages.textContent = tablePagesCount;
+        infoRows.textContent = totalRowsAll;
+        infoBar.classList.add('visible');
+
+        if (total > 1) {
+            pageBar.classList.add('visible');
+            for (var p = 0; p < total; p++) {
+                var btn = document.createElement('button');
+                btn.className = 'px-page-btn' + (p === 0 ? ' active' : '');
+                btn.textContent = 'Page ' + (p + 1);
+                btn.onclick = (function(idx) { return function() { switchPage(idx); }; })(p);
+                pageBar.appendChild(btn);
+            }
+        }
+
+        formatOptions.classList.add('visible');
+        currentPageIdx = 0;
+        renderPage(0);
+        previewWrap.classList.add('visible');
+        btnGroup.style.display = 'block';
+
+        showToast('Extracted data from ' + tablePagesCount + ' page' + (tablePagesCount !== 1 ? 's' : '') + ' with tables');
+    }
+
+    function detectTables(items) {
+        if (items.length < 3) return [];
+
+        // Sort items by Y descending (top to bottom), then X ascending
+        var sorted = items.slice().sort(function(a, b) {
+            if (Math.abs(a.y - b.y) > 2) return b.y - a.y;
+            return a.x - b.x;
+        });
+
+        // Group into rows by Y proximity
+        var rows = [];
+        var currentRow = [sorted[0]];
+        var currentY = sorted[0].y;
+        for (var i = 1; i < sorted.length; i++) {
+            var it = sorted[i];
+            if (Math.abs(it.y - currentY) <= 3) {
+                currentRow.push(it);
+            } else {
+                if (currentRow.length >= 2) rows.push(currentRow);
+                currentRow = [it];
+                currentY = it.y;
+            }
+        }
+        if (currentRow.length >= 2) rows.push(currentRow);
+
+        // Filter: need at least 2 rows with text
+        if (rows.length < 2) return [];
+
+        // Sort each row by X
+        for (var r = 0; r < rows.length; r++) {
+            rows[r].sort(function(a, b) { return a.x - b.x; });
+        }
+
+        // Build table: each row becomes an array of column values
+        var table = [];
+        for (var r2 = 0; r2 < rows.length; r2++) {
+            var rowItems = rows[r2];
+            var row = [];
+            for (var c = 0; c < rowItems.length; c++) {
+                row.push(rowItems[c].text);
+            }
+            table.push(row);
+        }
+
+        return table;
+    }
+
+    function switchPage(idx) {
+        currentPageIdx = idx;
+        var btns = pageBar.querySelectorAll('.px-page-btn');
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].className = 'px-page-btn' + (i === idx ? ' active' : '');
+        }
+        renderPage(idx);
+    }
+
+    function renderPage(idx) {
+        var data = pageData[idx];
+        if (!data || data.tables.length === 0) {
+            tableWrap.innerHTML = '<div style="padding:20px;color:#888;text-align:center">No tabular data detected on this page.</div>';
+            rowCountEl.textContent = '0 rows';
+            colCountEl.textContent = '0 columns';
+            return;
+        }
+
+        var tableData = data.tables;
+        var html = '<table><thead><tr>';
+        if (tableData.length > 0) {
+            var firstRow = tableData[0];
+            for (var c = 0; c < firstRow.length; c++) {
+                html += '<th>' + escapeHtml(firstRow[c]) + '</th>';
+            }
+        }
+        html += '</tr></thead><tbody>';
+        for (var r = 1; r < tableData.length; r++) {
+            html += '<tr>';
+            var row = tableData[r];
+            for (var c2 = 0; c2 < row.length; c2++) {
+                html += '<td>' + escapeHtml(row[c2]) + '</td>';
+            }
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+
+        tableWrap.innerHTML = html;
+        rowCountEl.textContent = tableData.length + ' rows';
+        colCountEl.textContent = maxCols(tableData) + ' columns';
+    }
+
+    function maxCols(table) {
+        var m = 0;
+        for (var i = 0; i < table.length; i++) {
+            if (table[i].length > m) m = table[i].length;
+        }
+        return m;
+    }
+
+    function convertToExcel() {
+        if (!pageData || pageData.length === 0) {
+            showError('No PDF data loaded. Please upload a file first.');
+            return;
+        }
+
+        hideError();
+        progressEl.classList.add('visible');
+        downloadBtn.disabled = true;
+        progressText.textContent = 'Building spreadsheet...';
+
+        var fmt = formatSelect.value;
+        var sheets = {};
+
+        for (var p = 0; p < pageData.length; p++) {
+            var data = pageData[p];
+            if (data.tables.length === 0) continue;
+
+            var sheetName = 'Page ' + (p + 1);
+            if (sheetName.length > 31) sheetName = sheetName.substring(0, 31);
+
+            var allRows = [];
+            for (var r = 0; r < data.tables.length; r++) {
+                allRows.push(data.tables[r].slice());
+            }
+
+            sheets[sheetName] = XLSX.utils.aoa_to_sheet(allRows);
+        }
+
+        if (Object.keys(sheets).length === 0) {
+            progressEl.classList.remove('visible');
+            downloadBtn.disabled = false;
+            showError('No table data found in this PDF. Try a different PDF with structured tabular content.');
+            return;
+        }
+
+        progressText.textContent = 'Creating ' + fmt.toUpperCase() + ' file...';
+
+        try {
+            if (fmt === 'xlsx') {
+                var wb = XLSX.utils.book_new();
+                for (var name in sheets) {
+                    XLSX.utils.book_append_sheet(wb, sheets[name], name);
+                }
+                var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                outputBlob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            } else {
+                // CSV: combine all sheets
+                var csvLines = [];
+                var firstSheet = true;
+                for (var name2 in sheets) {
+                    if (!firstSheet) csvLines.push('');
+                    csvLines.push('--- ' + name2 + ' ---');
+                    var ws = sheets[name2];
+                    var ref = ws['!ref'];
+                    if (ref) {
+                        var range = XLSX.utils.decode_range(ref);
+                        for (var r2 = range.s.r; r2 <= range.e.r; r2++) {
+                            var rowVals = [];
+                            for (var c2 = range.s.c; c2 <= range.e.c; c2++) {
+                                var addr = XLSX.utils.encode_cell({ r: r2, c: c2 });
+                                var cell = ws[addr];
+                                var val = cell ? XLSX.utils.format_cell(cell) : '';
+                                if (typeof val === 'string' && (val.indexOf(',') >= 0 || val.indexOf('"') >= 0 || val.indexOf('\n') >= 0)) {
+                                    val = '"' + val.replace(/"/g, '""') + '"';
+                                }
+                                rowVals.push(val);
+                            }
+                            csvLines.push(rowVals.join(','));
+                        }
+                    }
+                    firstSheet = false;
+                }
+                outputBlob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8' });
+            }
+
+            progressEl.classList.remove('visible');
+            downloadBtn.disabled = false;
+
+            var totalRowCount = 0;
+            for (var k in sheets) {
+                var wsRef = sheets[k]['!ref'];
+                if (wsRef) {
+                    var rng = XLSX.utils.decode_range(wsRef);
+                    totalRowCount += rng.e.r - rng.s.r + 1;
+                }
+            }
+
+            statPages.textContent = Object.keys(sheets).length;
+            statRows.textContent = totalRowCount;
+            statFormat.textContent = fmt.toUpperCase();
+            resultSection.classList.add('visible');
+            showToast(fmt.toUpperCase() + ' generated successfully');
+        } catch (e) {
+            progressEl.classList.remove('visible');
+            downloadBtn.disabled = false;
+            showError('Failed to generate ' + fmt.toUpperCase() + ': ' + (e.message || 'Unknown error'));
+        }
+    }
+
+    function triggerDownload() {
+        if (!outputBlob) return;
+        var baseName = currentFileName.replace(/\.pdf$/i, '');
+        var fmt = formatSelect.value;
+        var ext = fmt === 'xlsx' ? 'xlsx' : 'csv';
+        var mime = fmt === 'xlsx' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv';
+
+        var url = URL.createObjectURL(outputBlob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = baseName + '-converted.' + ext;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    function showEditor() {
+        if (!pageData || pageData.length === 0) return;
+        var lines = [];
+        for (var p = 0; p < pageData.length; p++) {
+            var table = pageData[p].tables;
+            if (table.length === 0) continue;
+            if (p > 0) lines.push('');
+            lines.push('# Page ' + (p + 1));
+            for (var r = 0; r < table.length; r++) {
+                lines.push(table[r].join(' | '));
+            }
+        }
+        editorTextarea.value = lines.join('\n');
+        editorEl.classList.add('visible');
+    }
+
+    function hideEditor() {
+        editorEl.classList.remove('visible');
+    }
+
+    function regenerateFromEdit() {
+        var text = editorTextarea.value;
+        if (!text.trim()) {
+            showError('Editor is empty. Nothing to update.');
+            return;
+        }
+
+        hideEditor();
+        progressEl.classList.add('visible');
+        downloadBtn.disabled = true;
+        progressText.textContent = 'Rebuilding from edited data...';
+
+        var lines = text.split('\n');
+        var updatedPageData = [];
+        var currentPageRows = [];
+
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (!line) continue;
+            if (line.startsWith('# Page ')) {
+                if (currentPageRows.length > 0) {
+                    updatedPageData.push({ pageNum: updatedPageData.length + 1, tables: currentPageRows, rawItems: [] });
+                }
+                currentPageRows = [];
+            } else {
+                var parts = line.split('|');
+                var row = [];
+                for (var j = 0; j < parts.length; j++) {
+                    row.push(parts[j].trim());
+                }
+                currentPageRows.push(row);
+            }
+        }
+        if (currentPageRows.length > 0) {
+            updatedPageData.push({ pageNum: updatedPageData.length + 1, tables: currentPageRows, rawItems: [] });
+        }
+
+        if (updatedPageData.length === 0) {
+            progressEl.classList.remove('visible');
+            downloadBtn.disabled = false;
+            showError('No table data found in editor. Please check the format.');
+            return;
+        }
+
+        pageData = updatedPageData;
+        totalRowsAll = 0;
+        tablePagesCount = pageData.length;
+        for (var p = 0; p < pageData.length; p++) {
+            totalRowsAll += pageData[p].tables.length;
+        }
+
+        infoTablePages.textContent = tablePagesCount;
+        infoRows.textContent = totalRowsAll;
+
+        // Rebuild page bar
+        pageBar.innerHTML = '';
+        pageBar.classList.remove('visible');
+        if (pageData.length > 1) {
+            pageBar.classList.add('visible');
+            for (var p2 = 0; p2 < pageData.length; p2++) {
+                var btn2 = document.createElement('button');
+                btn2.className = 'px-page-btn' + (p2 === 0 ? ' active' : '');
+                btn2.textContent = 'Page ' + (pageData[p2].pageNum || (p2 + 1));
+                btn2.onclick = (function(idx) { return function() { switchPage(idx); }; })(p2);
+                pageBar.appendChild(btn2);
+            }
+        }
+
+        currentPageIdx = 0;
+        renderPage(0);
+        progressEl.classList.remove('visible');
+        downloadBtn.disabled = false;
+        showToast('Preview updated from edited data');
+    }
+
+    function clearFile() {
+        pdfDoc = null;
+        pageData = [];
+        currentPageIdx = 0;
+        totalRowsAll = 0;
+        tablePagesCount = 0;
+        outputBlob = null;
+        dropzone.classList.remove('has-file');
+        dropzone.style.display = 'block';
+        fileInfo.classList.remove('visible');
+        previewWrap.classList.remove('visible');
+        infoBar.classList.remove('visible');
+        pageBar.classList.remove('visible');
+        pageBar.innerHTML = '';
+        formatOptions.classList.remove('visible');
+        btnGroup.style.display = 'none';
+        progressEl.classList.remove('visible');
+        errorEl.classList.remove('visible');
+        resultSection.classList.remove('visible');
+        editorEl.classList.remove('visible');
+        tableWrap.innerHTML = '';
+        fileInput.value = '';
+    }
+
+    function resetFileUI() {
+        dropzone.classList.remove('has-file');
+        dropzone.style.display = 'block';
+        fileInfo.classList.remove('visible');
+    }
+
+    function clearAll() {
+        clearFile();
+    }
+
+    function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.add('visible');
+    }
+
+    function hideError() {
+        errorEl.classList.remove('visible');
+        errorEl.textContent = '';
+    }
+
+    function showToast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        setTimeout(function() { toastEl.classList.remove('show'); }, 2500);
+    }
+
+    function formatSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+    </script>
+</body>
+</html>

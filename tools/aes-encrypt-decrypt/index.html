@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AES Encrypt Decrypt - Secure Text Online | DevTools Hub</title>
+    <meta name="description" content="Free AES-256-GCM encryption tool. Encrypt text with a password using PBKDF2 and Web Crypto, or decrypt it. Runs in your browser, nothing is uploaded.">
+    <meta name="keywords" content="aes encrypt, aes decrypt, encrypt text online, decrypt text, aes 256, encryption tool, password encrypt, PBKDF2, online encryption">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/aes-encrypt-decrypt/">
+    <meta property="og:title" content="AES Encrypt Decrypt - Secure Text Online | DevTools Hub">
+    <meta property="og:description" content="Free AES-256-GCM encryption tool. Encrypt text with a password using PBKDF2 and Web Crypto, or decrypt it. Runs in your browser, nothing is uploaded.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/aes-encrypt-decrypt/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="AES Encrypt Decrypt - Secure Text Online">
+    <meta name="twitter:description" content="Encrypt text with a password using AES-256-GCM and PBKDF2. Decrypt safely in your browser. Nothing is uploaded.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"AES Encrypt Decrypt - Secure Text Online","description":"Free client-side AES-256-GCM encryption tool. Encrypt text with a password using PBKDF2 key derivation, or decrypt the self-contained payload. Runs entirely in the browser with the Web Crypto API, nothing is uploaded.","url":"https://tools.scoreroute.com/tools/aes-encrypt-decrypt/","applicationCategory":"SecurityApplication","operatingSystem":"Any","browserRequirements":"Modern browser with Web Crypto API (HTTPS)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-08-12","dateModified":"2026-08-12"}
+    </script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is this AES encryption tool safe?","acceptedAnswer":{"@type":"Answer","text":"Yes for its intended use. All encryption and decryption happens in your browser with the Web Crypto API. Your text and password never leave your device, are never uploaded, logged, or stored. It is suitable for protecting short notes, API keys in docs, and test data. For production secrets, use audited library code and proper key management."}},{"@type":"Question","name":"Can someone decrypt my text without the password?","acceptedAnswer":{"@type":"Answer","text":"No practical way exists. AES-256-GCM is the same cipher banks and VPN providers use, and the key is stretched from your password with 100,000 rounds of PBKDF2-SHA256. There is no backdoor, no master key, and no password recovery. If you lose the password, the data is gone."}},{"@type":"Question","name":"Why does encrypting the same text twice give different results?","acceptedAnswer":{"@type":"Answer","text":"Each encryption generates a fresh random salt and random IV. Even identical plaintext produces different ciphertext every time. Both outputs decrypt to the same text with the right password. This randomization stops attackers from comparing ciphertexts to guess content."}},{"@type":"Question","name":"What is a self-contained payload?","acceptedAnswer":{"@type":"Answer","text":"The output string packs the salt, IV, and ciphertext into one Base64 or Hex blob. You only need to share the payload plus the password. The tool reads the salt and IV back from the blob during decryption, so you do not have to store separate parameters."}},{"@type":"Question","name":"What is the difference between AES-GCM and AES-CBC?","acceptedAnswer":{"@type":"Answer","text":"AES-GCM is authenticated encryption: it includes a tag that detects tampering and wrong passwords, so decryption fails cleanly on errors. AES-CBC only hides content and does not detect tampering; with a wrong password it may return garbage. GCM is the recommended default."}},{"@type":"Question","name":"Does the tool work offline or need a server?","acceptedAnswer":{"@type":"Answer","text":"All cryptography runs client-side with the Web Crypto API, so no server processing is involved and no API key is required. The page itself loads over HTTPS, which is required for the browser to expose the Web Crypto API."}},{"@type":"Question","name":"Can an AI chatbot encrypt text for me?","acceptedAnswer":{"@type":"Answer","text":"No. AI models generate text, not ciphertext. They cannot run real AES-256-GCM with a password, and any ciphertext they produce is invented and cannot be decrypted by anyone. This tool runs the actual NIST-standard algorithm deterministically in your browser."}}]}
+    </script>
+    <style>
+        .ae-container { max-width:1000px; margin:0 auto; }
+        .ae-hero { background:linear-gradient(135deg,#1a1a2e 0%,#0f2a3e 50%,#1a1a2e 100%); border-radius:14px; padding:24px; margin:18px 0; text-align:center; border:1px solid #333; }
+        .ae-hero h2 { color:#fff; margin:0 0 6px; font-size:1.55rem; }
+        .ae-hero p { color:#a8a8c0; margin:0; font-size:0.95rem; }
+        .ae-hero-pills { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:12px; }
+        .ae-hero-pill { padding:4px 12px; background:#252540; border:1px solid #3a3a5c; border-radius:20px; font-size:0.78rem; color:#a8a8c0; }
+        .ae-hero-pill strong { color:#7eb3ff; }
+        .ae-card { background:#1a1a2e; border:1px solid #333; border-radius:12px; padding:18px; margin-bottom:16px; }
+        .ae-mode-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+        .ae-mode-btn { flex:1; min-width:160px; padding:12px 14px; background:#252540; border:2px solid #333; color:#a8a8c0; border-radius:10px; cursor:pointer; transition:all 0.2s; text-align:center; font-weight:600; font-size:0.95rem; }
+        .ae-mode-btn:hover { border-color:#667eea; }
+        .ae-mode-btn.active { border-color:#667eea; background:#1a1a3e; box-shadow:0 0 18px rgba(102,126,234,0.25); color:#fff; }
+        .ae-label { display:block; color:#a8a8c0; font-size:0.85rem; margin-bottom:6px; font-weight:500; }
+        .ae-textarea { width:100%; min-height:180px; padding:14px; background:#0f0f23; border:1px solid #333; color:#fff; border-radius:8px; font-size:0.95rem; font-family:'Courier New',monospace; box-sizing:border-box; resize:vertical; line-height:1.6; }
+        .ae-textarea:focus-visible { outline:2px solid #667eea; outline-offset:1px; border-color:#667eea; }
+        .ae-char-row { display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:0.8rem; color:#888; }
+        .ae-pw-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+        .ae-pw-input { flex:1; min-width:220px; padding:12px 14px; background:#0f0f23; border:1px solid #333; color:#fff; border-radius:8px; font-size:0.95rem; font-family:'Courier New',monospace; }
+        .ae-pw-input:focus-visible { outline:2px solid #667eea; outline-offset:1px; border-color:#667eea; }
+        .ae-meter { display:flex; align-items:center; gap:10px; margin-top:10px; }
+        .ae-meter-bar { flex:1; height:8px; background:#252540; border-radius:4px; overflow:hidden; }
+        .ae-meter-fill { height:100%; width:0%; border-radius:4px; transition:width 0.3s, background 0.3s; }
+        .ae-meter-label { font-size:0.78rem; color:#888; min-width:70px; text-align:right; }
+        .ae-btn { padding:11px 22px; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); border:none; color:#fff; border-radius:8px; font-size:0.95rem; cursor:pointer; font-weight:600; transition:filter 0.2s; }
+        .ae-btn:hover { filter:brightness(1.1); }
+        .ae-btn:disabled { opacity:0.6; cursor:not-allowed; }
+        .ae-btn-secondary { background:#252540; border:1px solid #333; color:#a8a8c0; }
+        .ae-btn-secondary:hover { background:#2f2f55; color:#fff; }
+        .ae-action-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+        .ae-status { min-height:24px; margin-top:12px; padding:10px 14px; border-radius:8px; font-size:0.88rem; display:none; }
+        .ae-status.show { display:block; }
+        .ae-status.ok { background:#10251a; border:1px solid #10b981; color:#6ee7b7; }
+        .ae-status.err { background:#2d1a1a; border:1px solid #ef4444; color:#ff8888; }
+        .ae-adv { margin-top:14px; }
+        .ae-adv summary { cursor:pointer; color:#a8a8c0; font-size:0.85rem; }
+        .ae-adv-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-top:12px; }
+        .ae-adv-field label { display:block; color:#888; font-size:0.75rem; margin-bottom:5px; }
+        .ae-adv-field select { width:100%; padding:9px 10px; background:#0f0f23; border:1px solid #333; color:#fff; border-radius:6px; font-size:0.88rem; }
+        .ae-adv-field select:focus-visible { outline:2px solid #667eea; outline-offset:1px; border-color:#667eea; }
+        .ae-info-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:16px 0; }
+        .ae-info-card { background:#1a1a2e; border:1px solid #333; border-left:3px solid #667eea; border-radius:8px; padding:14px; }
+        .ae-info-card b { color:#fff; font-size:0.9rem; display:block; margin-bottom:4px; }
+        .ae-info-card p { color:#a8a8c0; font-size:0.83rem; margin:0; line-height:1.5; }
+        .ae-related { background:#1a1a2e; border:1px solid #333; border-radius:10px; padding:14px; margin-top:16px; }
+        .ae-related h3 { color:#fff; font-size:1rem; margin:0 0 10px; }
+        .ae-related-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+        .ae-related-link { display:block; padding:10px 14px; background:#252540; border:1px solid #3a3a5c; border-radius:8px; color:#a8a8c0; text-decoration:none; font-size:0.88rem; transition:all 0.2s; }
+        .ae-related-link:hover { border-color:#667eea; color:#fff; }
+        .ae-related-link strong { color:#fff; display:block; margin-bottom:2px; font-size:0.9rem; }
+        details.faq-item { background:#1a1a2e; border:1px solid #333; border-radius:8px; padding:12px 14px; margin-bottom:10px; }
+        details.faq-item summary { color:#fff; font-size:0.95rem; font-weight:600; cursor:pointer; }
+        details.faq-item p { color:#a8a8c0; font-size:0.88rem; margin:8px 0 0; line-height:1.6; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>AES Encrypt Decrypt</h1>
+            <p class="subtitle">Encrypt or decrypt text with a password using AES-256-GCM and PBKDF2. Runs in your browser, nothing is uploaded.</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/converters/">Converters</a> &gt; <span>AES Encrypt Decrypt</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main ae-container">
+
+                <div class="ae-hero">
+                    <h2>Encrypt Text with a Password</h2>
+                    <p>Client-side AES-256-GCM encryption. Password is stretched with PBKDF2 (100,000 rounds). The output is one self-contained payload you can share over chat, email, or docs.</p>
+                    <div class="ae-hero-pills">
+                        <span class="ae-hero-pill"><strong>0</strong> uploads</span>
+                        <span class="ae-hero-pill"><strong>0</strong> signup</span>
+                        <span class="ae-hero-pill"><strong>AES-256</strong> GCM</span>
+                        <span class="ae-hero-pill">PBKDF2 100K</span>
+                        <span class="ae-hero-pill">Web Crypto</span>
+                    </div>
+                </div>
+
+                <div class="ae-card">
+                    <label class="ae-label">1. Choose operation</label>
+                    <div class="ae-mode-row">
+                        <button class="ae-mode-btn active" id="ae-mode-encrypt" type="button" onclick="setMode('encrypt')">Encrypt</button>
+                        <button class="ae-mode-btn" id="ae-mode-decrypt" type="button" onclick="setMode('decrypt')">Decrypt</button>
+                    </div>
+                </div>
+
+                <div class="ae-card">
+                    <label class="ae-label" id="ae-input-label" for="ae-input">2. Plaintext to encrypt</label>
+                    <textarea id="ae-input" class="ae-textarea" placeholder="Type or paste the text you want to encrypt..." aria-label="Text to encrypt"></textarea>
+                    <div class="ae-char-row">
+                        <span id="ae-char-count">0 characters</span>
+                        <span id="ae-char-warn"></span>
+                    </div>
+                </div>
+
+                <div class="ae-card">
+                    <label class="ae-label" for="ae-password">3. Password (used to derive the key)</label>
+                    <div class="ae-pw-row">
+                        <input type="password" id="ae-password" class="ae-pw-input" placeholder="Enter a strong password" autocomplete="off" aria-label="Encryption password">
+                        <button class="ae-btn ae-btn-secondary" type="button" onclick="togglePassword()" id="ae-toggle-pw">Show</button>
+                    </div>
+                    <div class="ae-meter">
+                        <span class="ae-meter-label" id="ae-meter-label">Password</span>
+                        <div class="ae-meter-bar"><div class="ae-meter-fill" id="ae-meter-fill"></div></div>
+                    </div>
+                    <details class="ae-adv">
+                        <summary>Advanced options (AES settings)</summary>
+                        <div class="ae-adv-grid">
+                            <div class="ae-adv-field">
+                                <label for="ae-key-size">Key size</label>
+                                <select id="ae-key-size">
+                                    <option value="128">AES-128</option>
+                                    <option value="192">AES-192</option>
+                                    <option value="256" selected>AES-256</option>
+                                </select>
+                            </div>
+                            <div class="ae-adv-field">
+                                <label for="ae-mode">Cipher mode</label>
+                                <select id="ae-mode">
+                                    <option value="AES-GCM" selected>AES-GCM (recommended)</option>
+                                    <option value="AES-CBC">AES-CBC</option>
+                                </select>
+                            </div>
+                            <div class="ae-adv-field">
+                                <label for="ae-encoding">Output encoding</label>
+                                <select id="ae-encoding">
+                                    <option value="base64" selected>Base64</option>
+                                    <option value="hex">Hex</option>
+                                </select>
+                            </div>
+                            <div class="ae-adv-field">
+                                <label for="ae-iterations">PBKDF2 rounds</label>
+                                <select id="ae-iterations">
+                                    <option value="10000">10,000 (fast)</option>
+                                    <option value="100000" selected>100,000 (default)</option>
+                                    <option value="600000">600,000 (slow)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="ae-action-row">
+                    <button class="ae-btn" id="ae-btn-run" type="button" onclick="runOperation()">Encrypt</button>
+                    <button class="ae-btn ae-btn-secondary" type="button" onclick="loadSample()">Sample</button>
+                    <button class="ae-btn ae-btn-secondary" type="button" onclick="clearAll()">Clear</button>
+                </div>
+
+                <div class="ae-status" id="ae-status"></div>
+
+                <div class="ae-card" style="margin-top:16px;">
+                    <label class="ae-label" id="ae-output-label" for="ae-output">Encrypted payload</label>
+                    <textarea id="ae-output" class="ae-textarea" readonly placeholder="Result appears here..." aria-label="Result"></textarea>
+                    <div class="ae-action-row">
+                        <button class="ae-btn ae-btn-secondary" type="button" onclick="copyOutput()">Copy</button>
+                        <button class="ae-btn ae-btn-secondary" type="button" onclick="useOutputAsInput()">Use as Input</button>
+                        <button class="ae-btn ae-btn-secondary" type="button" onclick="downloadOutput()">Download .txt</button>
+                    </div>
+                </div>
+
+                <div class="ae-info-grid" style="margin-top:18px;">
+                    <div class="ae-info-card">
+                        <b>How It Works</b>
+                        <p>To secure your password, we use PBKDF2-SHA256 with 100,000 rounds and a random 16-byte salt. This process generates a full AES-256 key. Each time you encrypt something, a new random IV is created. The encryption itself happens right in your browser, using the Web Crypto API.</p>
+                    </div>
+                    <div class="ae-info-card">
+                        <b>Self-Contained Output</b>
+                        <p>The salt, IV, and ciphertext are packed into one Base64 or Hex string. Share only the payload plus the password. During decryption the tool reads the salt and IV straight back out of that blob.</p>
+                    </div>
+                    <div class="ae-info-card">
+                        <b>What It Solves</b>
+                        <p>You can share a Wi-Fi password, API key, or account detail through chat, email, or a shared document without exposing it in plaintext. Since AI chatbots are not capable of performing actual AES encryption, this tool handles the encryption work in a deterministic manner for you.</p>
+                    </div>
+                    <div class="ae-info-card">
+                        <b>Privacy</b>
+                        <p>Nothing leaves your device. The page uses only the browser Web Crypto API, sends no network requests with your data, logs nothing, and uses no cookies for the tool itself.</p>
+                    </div>
+                </div>
+
+                <h2 style="color:#fff; font-size:1.25rem; margin:24px 0 12px;">How to Encrypt Text Online</h2>
+                <p style="color:#c8c8e0; line-height:1.7; font-size:0.95rem;">Pick Encrypt, paste the plaintext into the text box, and enter a password you can remember. Click Encrypt and copy the resulting payload. To read it back later, switch to Decrypt, paste the payload, enter the same password, and click Decrypt. Because the payload carries its own salt and IV, you never need to track those separately.</p>
+
+                <h2 style="color:#fff; font-size:1.25rem; margin:24px 0 12px;">How the Self-Contained Payload Works</h2>
+                <p style="color:#c8c8e0; line-height:1.7; font-size:0.95rem;">The tool builds the output from three parts joined in order: a 16-byte salt, a 12-byte IV (16 bytes for CBC), and the ciphertext produced by AES-GCM. The whole thing is then encoded as Base64 or Hex. On decryption the same layout is reversed, so the correct salt and IV are always recovered from the blob itself. No separate parameters to store, and nothing to get mixed up.</p>
+
+                <h2 style="color:#fff; font-size:1.25rem; margin:24px 0 12px;">Why AI Chatbots Cannot Encrypt Text for You</h2>
+                <p style="color:#c8c8e0; line-height:1.7; font-size:0.95rem;">An AI model predicts the next token. It does not run the AES algorithm, so any "ciphertext" it prints is invented and cannot be decrypted by anyone, including the chatbot itself. Real encryption is deterministic math: the same key, IV, and plaintext always give the same ciphertext, and the reverse only works with the exact parameters. That is exactly what this tool computes with the NIST-standard AES in your browser.</p>
+
+                <h2 style="color:#fff; font-size:1.25rem; margin:24px 0 12px;">Who Should Use This Encryption Tool</h2>
+                <p style="color:#c8c8e0; line-height:1.7; font-size:0.95rem;">Developers encrypting API keys or tokens before pasting them into shared wikis and setup docs. IT and ops people sharing server credentials through chat without leaving the password in plaintext. Anyone sending personal details through an untrusted channel by sharing the payload over one route and the password over another. Students and QA engineers testing payload formats and encryption flows. For production systems, use audited library code and a real key-management stack.</p>
+
+                <h2 style="color:#fff; font-size:1.25rem; margin:24px 0 12px;">Security Notes</h2>
+                <p style="color:#c8c8e0; line-height:1.7; font-size:0.95rem;">AES-256-GCM is only as strong as the password protecting it. Use at least 12 characters with mixed case, numbers, and symbols, and never reuse a password. There is no password recovery: if you lose the password the data is gone for good. The tool is designed for short text and test scenarios, not as a substitute for a password manager, HSM, or a production key-management service.</p>
+
+                <h2 style="color:#fff; font-size:1.25rem; margin:24px 0 12px;">Frequently Asked Questions</h2>
+                <details class="faq-item">
+                    <summary>Is this AES encryption tool safe?</summary>
+                    <p>Yes for its intended use. All encryption and decryption happens in your browser with the Web Crypto API. Your text and password never leave your device, are never uploaded, logged, or stored. It is suitable for protecting short notes, API keys in docs, and test data. For production secrets, use audited library code and proper key management.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can someone decrypt my text without the password?</summary>
+                    <p>No practical way exists. AES-256-GCM is the same cipher banks and VPN providers use, and the key is stretched from your password with 100,000 rounds of PBKDF2-SHA256. There is no backdoor, no master key, and no password recovery. If you lose the password, the data is gone.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why does encrypting the same text twice give different results?</summary>
+                    <p>Each encryption generates a fresh random salt and random IV. Even identical plaintext produces different ciphertext every time. Both outputs decrypt to the same text with the right password. This randomization stops attackers from comparing ciphertexts to guess content.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is a self-contained payload?</summary>
+                    <p>The output string packs the salt, IV, and ciphertext into one Base64 or Hex blob. You only need to share the payload plus the password. The tool reads the salt and IV back from the blob during decryption, so you do not have to store separate parameters.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is the difference between AES-GCM and AES-CBC?</summary>
+                    <p>AES-GCM is authenticated encryption: it includes a tag that detects tampering and wrong passwords, so decryption fails cleanly on errors. AES-CBC only hides content and does not detect tampering; with a wrong password it may return garbage. GCM is the recommended default.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does the tool work offline or need a server?</summary>
+                    <p>All cryptography runs client-side with the Web Crypto API, so no server processing is involved and no API key is required. The page itself loads over HTTPS, which is required for the browser to expose the Web Crypto API.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can an AI chatbot encrypt text for me?</summary>
+                    <p>No. AI models generate text, not ciphertext. They cannot run real AES-256-GCM with a password, and any ciphertext they produce is invented and cannot be decrypted by anyone. This tool runs the actual NIST-standard algorithm deterministically in your browser.</p>
+                </details>
+
+                <div class="ae-related">
+                    <h3>Related Free Tools</h3>
+                    <div class="ae-related-grid">
+                        <a href="/tools/password-generator/" class="ae-related-link">
+                            <strong>Password Generator</strong>
+                            Create strong, secure passwords with strength analysis
+                        </a>
+                        <a href="/tools/hash-generator/" class="ae-related-link">
+                            <strong>Hash Generator</strong>
+                            MD5, SHA-1, SHA-256, SHA-512 checksums
+                        </a>
+                        <a href="/tools/base64-encoder/" class="ae-related-link">
+                            <strong>Base64 Encoder</strong>
+                            Encode and decode text as Base64
+                        </a>
+                        <a href="/tools/url-encoder/" class="ae-related-link">
+                            <strong>URL Encoder</strong>
+                            Encode special characters for safe URLs
+                        </a>
+                        <a href="/tools/jwt-decoder/" class="ae-related-link">
+                            <strong>JWT Decoder</strong>
+                            Decode and inspect JSON Web Tokens
+                        </a>
+                        <a href="/tools/email-verifier/" class="ae-related-link">
+                            <strong>Email Verifier</strong>
+                            Check if an email address is valid
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#999;">All crypto runs client-side with the Web Crypto API. Your data never leaves your browser.</p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    var aeMode = 'encrypt';
+    var aeSampleBase64 = 'cZJYrJ63MvUts7GEog6AI98XEbCGefoJ+qA5LHwP+H2suScYpzhzoasaarjq7veqz6YgbH2DWog4Q9rcxgaddfNSrbnKBoyGHaLehPg3Pl7iQFzB3SgHprfRpH8kjU/S/K2Vul8XKGJcSIwVk8tiGcj+nz+KU9L+BUW/xxf8MyOvKw==';
+    var aeSampleHex = '719258ac9eb732f52db3b184a20e8023df1711b08679fa09faa0392c7c0ff87dacb92718a73873a1ab1a6ab8eaeef7aacfa6206c7d835a883843dadcc6069d75f352adb9ca068c861da2de84f8373e5ee2405cc1dd2807a6b7d1a47f248d4fd2fcad95ba5f1728625c488c1593cb6219c8fe9f3f8a53d2fe0545bfc717fc3323af2b';
+
+    function $(id) { return document.getElementById(id); }
+
+    function setMode(mode) {
+        aeMode = mode;
+        $('ae-mode-encrypt').className = 'ae-mode-btn' + (mode === 'encrypt' ? ' active' : '');
+        $('ae-mode-decrypt').className = 'ae-mode-btn' + (mode === 'decrypt' ? ' active' : '');
+        $('ae-input-label').textContent = mode === 'encrypt' ? '2. Plaintext to encrypt' : '2. Ciphertext (payload) to decrypt';
+        $('ae-output-label').textContent = mode === 'encrypt' ? 'Encrypted payload' : 'Decrypted plaintext';
+        $('ae-btn-run').textContent = mode === 'encrypt' ? 'Encrypt' : 'Decrypt';
+        $('ae-input').placeholder = mode === 'encrypt' ? 'Type or paste the text you want to encrypt...' : 'Paste the encrypted payload here...';
+        updateCount();
+        hideStatus();
+    }
+
+    function getOpts() {
+        return {
+            keySize: parseInt($('ae-key-size').value, 10) || 256,
+            mode: $('ae-mode').value,
+            encoding: $('ae-encoding').value,
+            iterations: parseInt($('ae-iterations').value, 10) || 100000
+        };
+    }
+
+    function bytesToBase64(bytes) {
+        var binary = '';
+        var chunk = 0x8000;
+        for (var i = 0; i < bytes.length; i += chunk) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+        }
+        return btoa(binary);
+    }
+
+    function base64ToBytes(b64) {
+        var binary = atob(b64);
+        var bytes = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return bytes;
+    }
+
+    function bytesToHex(bytes) {
+        var out = '';
+        for (var i = 0; i < bytes.length; i++) out += bytes[i].toString(16).padStart(2, '0');
+        return out;
+    }
+
+    function hexToBytes(hex) {
+        var clean = hex.replace(/[^0-9a-fA-F]/g, '');
+        if (clean.length === 0 || clean.length % 2 !== 0) throw new Error('bad hex');
+        var bytes = new Uint8Array(clean.length / 2);
+        for (var i = 0; i < bytes.length; i++) bytes[i] = parseInt(clean.substr(i * 2, 2), 16);
+        return bytes;
+    }
+
+    async function deriveKey(password, salt, iterations, keySizeBits, modeName) {
+        var enc = new TextEncoder();
+        var baseKey = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+        return await crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: salt, iterations: iterations, hash: 'SHA-256' },
+            baseKey,
+            { name: modeName, length: keySizeBits },
+            false,
+            ['encrypt', 'decrypt']
+        );
+    }
+
+    function showStatus(msg, type) {
+        var el = $('ae-status');
+        el.textContent = msg;
+        el.className = 'ae-status show ' + (type === 'ok' ? 'ok' : 'err');
+    }
+
+    function hideStatus() {
+        $('ae-status').className = 'ae-status';
+    }
+
+    function updateCount() {
+        var n = $('ae-input').value.length;
+        $('ae-char-count').textContent = n + ' characters';
+    }
+
+    function pwStrength(pw) {
+        var s = 0;
+        if (pw.length >= 8) s++;
+        if (pw.length >= 12) s++;
+        if (pw.length >= 16) s++;
+        if (/[A-Z]/.test(pw)) s++;
+        if (/[a-z]/.test(pw)) s++;
+        if (/[0-9]/.test(pw)) s++;
+        if (/[^A-Za-z0-9]/.test(pw)) s++;
+        if (pw.length >= 20) s++;
+        return s;
+    }
+
+    function updateMeter() {
+        var pw = $('ae-password').value;
+        var s = pwStrength(pw);
+        var fill = $('ae-meter-fill');
+        var label = $('ae-meter-label');
+        var pct = Math.min(s / 8 * 100, 100);
+        fill.style.width = pct + '%';
+        if (s <= 2) { fill.style.background = '#ef4444'; label.textContent = 'Weak'; }
+        else if (s <= 4) { fill.style.background = '#f59e0b'; label.textContent = 'Fair'; }
+        else if (s <= 6) { fill.style.background = '#3b82f6'; label.textContent = 'Good'; }
+        else { fill.style.background = '#10b981'; label.textContent = 'Strong'; }
+        if (pw.length === 0) label.textContent = 'Password';
+    }
+
+    async function runOperation() {
+        hideStatus();
+        var input = $('ae-input').value;
+        var password = $('ae-password').value;
+        var opts = getOpts();
+        if (!input) { showStatus('Enter some text first.', 'err'); return; }
+        if (!password) { showStatus('Enter a password. The password is required to derive the key.', 'err'); return; }
+        if (password.length < 8) { showStatus('Password is shorter than 8 characters. A stronger password is strongly recommended.', 'err'); return; }
+        $('ae-btn-run').disabled = true;
+        try {
+            if (aeMode === 'encrypt') {
+                var salt = crypto.getRandomValues(new Uint8Array(16));
+                var ivLen = opts.mode === 'AES-GCM' ? 12 : 16;
+                var iv = crypto.getRandomValues(new Uint8Array(ivLen));
+                var key = await deriveKey(password, salt, opts.iterations, opts.keySize, opts.mode);
+                var data = new TextEncoder().encode(input);
+                var ct = new Uint8Array(await crypto.subtle.encrypt({ name: opts.mode, iv: iv }, key, data));
+                var payload = new Uint8Array(16 + ivLen + ct.length);
+                payload.set(salt, 0);
+                payload.set(iv, 16);
+                payload.set(ct, 16 + ivLen);
+                $('ae-output').value = opts.encoding === 'hex' ? bytesToHex(payload) : bytesToBase64(payload);
+                showStatus('Encrypted with AES-' + opts.keySize + '-' + (opts.mode === 'AES-GCM' ? 'GCM' : 'CBC') + ' (PBKDF2 x' + opts.iterations + '). Share the payload and the password separately. No password recovery exists.', 'ok');
+            } else {
+                var inputTrim = input.trim();
+                var bytes;
+                try {
+                    bytes = opts.encoding === 'hex' ? hexToBytes(inputTrim) : base64ToBytes(inputTrim);
+                } catch (e) {
+                    showStatus('The input is not valid ' + opts.encoding + '. Check for copy errors or pick the correct encoding.', 'err');
+                    return;
+                }
+                var ivLen2 = opts.mode === 'AES-GCM' ? 12 : 16;
+                if (bytes.length < 16 + ivLen2 + 1) {
+                    showStatus('The payload is too short to be a valid encrypted blob.', 'err');
+                    return;
+                }
+                var salt2 = bytes.slice(0, 16);
+                var iv2 = bytes.slice(16, 16 + ivLen2);
+                var ct2 = bytes.slice(16 + ivLen2);
+                var key2 = await deriveKey(password, salt2, opts.iterations, opts.keySize, opts.mode);
+                try {
+                    var pt = await crypto.subtle.decrypt({ name: opts.mode, iv: iv2 }, key2, ct2);
+                    var text;
+                    try {
+                        text = new TextDecoder('utf-8', { fatal: true }).decode(pt);
+                    } catch (e) {
+                        showStatus('Decrypted output is not valid text. Wrong password, wrong settings, or corrupted payload.', 'err');
+                        return;
+                    }
+                    $('ae-output').value = text;
+                    showStatus('Decrypted successfully. ' + opts.mode + ' was used with the derived key.', 'ok');
+                } catch (e) {
+                    showStatus('Decryption failed. Wrong password, wrong settings (key size, mode, iterations, encoding), or corrupted payload.', 'err');
+                }
+            }
+        } catch (e) {
+            console.error('AE error:', e);
+            showStatus('An unexpected error occurred. Check your browser supports the Web Crypto API over HTTPS.', 'err');
+        } finally {
+            $('ae-btn-run').disabled = false;
+        }
+    }
+
+    function togglePassword() {
+        var pw = $('ae-password');
+        if (pw.type === 'password') { pw.type = 'text'; $('ae-toggle-pw').textContent = 'Hide'; }
+        else { pw.type = 'password'; $('ae-toggle-pw').textContent = 'Show'; }
+    }
+
+    function loadSample() {
+        hideStatus();
+        if (aeMode === 'encrypt') {
+            $('ae-input').value = 'Hello! This is a secret message from DevTools Hub. Decrypt it with the password below.';
+            $('ae-password').value = 'DevTools2026!';
+        } else {
+            var enc = $('ae-encoding').value;
+            $('ae-input').value = enc === 'hex' ? aeSampleHex : aeSampleBase64;
+            $('ae-password').value = 'DevTools2026!';
+        }
+        updateCount();
+        updateMeter();
+    }
+
+    function clearAll() {
+        $('ae-input').value = '';
+        $('ae-output').value = '';
+        $('ae-password').value = '';
+        updateCount();
+        updateMeter();
+        hideStatus();
+    }
+
+    function copyOutput() {
+        var out = $('ae-output').value;
+        if (!out) { showStatus('Nothing to copy yet.', 'err'); return; }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(out).then(function() {
+                var btn = document.querySelector('#ae-output-label');
+                var orig = $('ae-btn-run').textContent;
+                showStatus('Copied to clipboard.', 'ok');
+            }).catch(function() { fallbackCopy(out); });
+        } else {
+            fallbackCopy(out);
+        }
+    }
+
+    function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); showStatus('Copied to clipboard.', 'ok'); } catch (e) {}
+        document.body.removeChild(ta);
+    }
+
+    function useOutputAsInput() {
+        var out = $('ae-output').value;
+        if (!out) { showStatus('Nothing to move yet.', 'err'); return; }
+        $('ae-input').value = out;
+        $('ae-output').value = '';
+        updateCount();
+        hideStatus();
+    }
+
+    function downloadOutput() {
+        var out = $('ae-output').value;
+        if (!out) { showStatus('Nothing to download yet.', 'err'); return; }
+        var blob = new Blob([out], { type: 'text/plain;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'aes-' + aeMode + '-' + Date.now() + '.txt';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+    }
+
+    function init() {
+        $('ae-input').addEventListener('input', updateCount);
+        $('ae-password').addEventListener('input', updateMeter);
+        $('ae-input').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runOperation();
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    </script>
+</body>
+</html>

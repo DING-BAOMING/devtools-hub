@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SemVer Conflict Solver - npm Version Range Checker</title>
+    <meta name="description" content="Check whether npm semver ranges resolve together. Finds the conflicting constraints, shows what each range allows, and names the newest published match.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/semver-solver/">
+    <meta property="og:title" content="SemVer Conflict Solver - npm Version Range Checker">
+    <meta property="og:description" content="Check whether npm semver ranges resolve together. Finds the conflicting constraints, shows what each range allows, and names the newest published match.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/semver-solver/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-10-10","dateModified":"2026-10-10","author":{"@type":"Person","name":"BAOMING"},"name":"SemVer Conflict Solver","description":"Solve and diagnose conflicts between npm semver version ranges","url":"https://tools.scoreroute.com/tools/semver-solver/","applicationCategory":"DeveloperApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Solves N version ranges together and reports the smallest unsatisfiable subset","Expands every range into the primitive comparators npm actually uses","Applies the prerelease rule and the caret zero-major trap exactly as node-semver does","Checks a specific version against every constraint at once","Looks up the newest published npm version that satisfies the combined range"]}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>SemVer Conflict Solver</h1>
+            <p class="subtitle">Find out whether your version constraints can resolve together &mdash; and which ones stop them</p>
+            <nav class="breadcrumb"><a href="/">Home</a> &gt; <a href="/tools/code-testing/">Code Testing</a> &gt; <span>SemVer Conflict Solver</span>  <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Version constraints for one package</h2>
+
+                <label for="ranges" style="display:block;margin-bottom:5px;font-weight:600;">One range per line</label>
+                <textarea id="ranges" rows="7" spellcheck="false" autocomplete="off"
+                          placeholder="^1.2.0&#10;~1.0.0&#10;&gt;=1.5.0"
+                          style="width:100%;padding:12px;background:#0f0f23;border:1px solid #333;color:#fff;border-radius:8px;font-family:monospace;margin-bottom:10px;"
+                          aria-describedby="ranges-hint" data-testid="sv-ranges"></textarea>
+                <p id="ranges-hint" style="font-size:0.85rem;color:#9aa4b2;margin:0 0 10px;">Every line is a constraint on the <strong>same</strong> package: what your app asks for, what your library declares as a peer dependency, what a transitive package requires. Blank lines are ignored. Comments starting with <code>#</code> are ignored.</p>
+
+                <label for="pkg" style="display:block;margin-bottom:5px;font-weight:600;">Package name <span style="font-weight:400;color:#9aa4b2;">(optional)</span></label>
+                <input type="text" id="pkg" value="" spellcheck="false" autocomplete="off"
+                       placeholder="express"
+                       style="width:100%;padding:10px;background:#0f0f23;border:1px solid #333;color:#fff;border-radius:8px;font-family:monospace;margin-bottom:10px;"
+                       aria-describedby="pkg-hint" data-testid="sv-pkg">
+                <p id="pkg-hint" style="font-size:0.85rem;color:#9aa4b2;margin:0 0 10px;">Add a name to look up the newest published version that satisfies the combined range. Leave it empty to stay fully offline.</p>
+
+                <div class="btn-group">
+                    <button onclick="solveAll()" class="btn btn-primary" data-testid="sv-solve">Solve Constraints</button>
+                    <button onclick="clearAll()" class="btn btn-secondary" data-testid="sv-clear">Clear</button>
+                    <button onclick="loadExample()" class="btn" data-testid="sv-example">Load an Example</button>
+                </div>
+
+                <div id="status" class="status" role="status" aria-live="polite" style="margin-top:12px;"></div>
+                <div id="results" style="margin-top:15px;" data-testid="sv-results"></div>
+
+                <div class="info-section" style="margin-top:30px;">
+                    <h3>Why a normal version checker cannot answer this</h3>
+                    <p>Every existing single-package semver tool takes one package name and one range. That answers <em>"does 1.2.3 match <code>^1.0.0</code>?"</em>, which is not the question you have when a build fails with <code>ERESOLVE</code>. The question there is whether <em>several</em> ranges admit a <em>common</em> version at all, and if not, which ones are responsible.</p>
+                    <p>The difference is not cosmetic. Ranges combine as an intersection of unions: each range may list alternatives with <code>||</code>, and the whole set resolves only if some choice from each range overlaps every other choice. On top of that sits the prerelease rule, which quietly excludes prerelease versions unless a comparator names the same <code>major.minor.patch</code> with a prerelease of its own. Working that out by hand, or asking a chatbot, produces confident wrong answers far more often than right ones. This page computes it with the same algorithm npm itself uses.</p>
+
+                    <h3>The rules this implements, and the ones people get wrong</h3>
+                    <table style="width:100%;border-collapse:collapse;">
+<caption class="sr-only">What each version range really allows, and the mistake it invites</caption>
+                        <tr><th style="text-align:left;padding:5px;">Range</th><th style="text-align:left;padding:5px;">Really means</th><th style="text-align:left;padding:5px;">The trap</th></tr>
+                        <tr><td style="padding:5px;"><code>^1.2.3</code></td><td style="padding:5px;"><code>&gt;=1.2.3 &lt;2.0.0-0</code></td><td style="padding:5px;">None, for a 1.x. This is the well-behaved case.</td></tr>
+                        <tr><td style="padding:5px;"><code>^0.2.3</code></td><td style="padding:5px;"><code>&gt;=0.2.3 &lt;0.3.0-0</code></td><td style="padding:5px;">The caret stops at the next <em>minor</em>, not the next major, because 0.x already signals breaking changes.</td></tr>
+                        <tr><td style="padding:5px;"><code>^0.0.3</code></td><td style="padding:5px;"><code>&gt;=0.0.3 &lt;0.0.4-0</code></td><td style="padding:5px;">It admits exactly <strong>one</strong> version. Often read as "any 0.0.x", which is wrong.</td></tr>
+                        <tr><td style="padding:5px;"><code>^0.0</code></td><td style="padding:5px;"><code>&gt;=0.0.0 &lt;0.1.0-0</code></td><td style="padding:5px;">Adding the patch changes the meaning completely.</td></tr>
+                        <tr><td style="padding:5px;"><code>~1.2.3</code></td><td style="padding:5px;"><code>&gt;=1.2.3 &lt;1.3.0-0</code></td><td style="padding:5px;">Tilde allows patch changes only when a minor is written out.</td></tr>
+                        <tr><td style="padding:5px;"><code>~1.2</code></td><td style="padding:5px;"><code>&gt;=1.2.0 &lt;1.3.0-0</code></td><td style="padding:5px;">Same as <code>1.2.x</code>. Tilde and caret differ only above 0.x.</td></tr>
+                        <tr><td style="padding:5px;"><code>&gt;1</code></td><td style="padding:5px;"><code>&gt;=2.0.0</code></td><td style="padding:5px;">An operator on a partial version is absorbed by the expanded range. It does not mean "greater than 1.0.0".</td></tr>
+                        <tr><td style="padding:5px;"><code>1.2.3 - 2</code></td><td style="padding:5px;"><code>&gt;=1.2.3 &lt;3.0.0-0</code></td><td style="padding:5px;">The open end of a hyphen range bumps to the next major, not to 2.x.</td></tr>
+                        <tr><td style="padding:5px;"><code>1.2.3-rc.1</code> vs <code>~1.2.0</code></td><td style="padding:5px;">no overlap</td><td style="padding:5px;">The prerelease rule: <code>~1.2.0</code> names no prerelease, so <code>1.2.3-rc.1</code> is excluded even though it is numerically inside.</td></tr>
+                    </table>
+
+                    <h3>What "smallest conflicting group" means</h3>
+                    <p>When a set does not resolve, the useful answer names the constraints responsible, not just the fact of failure. This page searches for the <em>smallest subset</em> that already fails on its own. That distinction matters because pairwise checking is not enough: three ranges can each pair cleanly with both others and still have no common version. In that case there is no conflicting pair to point at, only a conflicting combination, and the page says so instead of naming an innocent constraint.</p>
+
+                    <h3>What it will not tell you</h3>
+                    <p>A range that resolves still may have no published version behind it, which is why the registry lookup is offered separately and only runs when you supply a package name. This page does not read <code>package.json</code>, does not walk a dependency tree, and does not know about lockfiles, overrides, patch versions or <code>--legacy-peer-deps</code>. Different packages are versioned independently, so two lines for two different packages can never conflict; every line here is a constraint on one package. Version strings in the registry are sorted with semver precedence, not alphabetically, because the registry returns them unordered.</p>
+
+                    <h3>Frequently Asked Questions</h3>
+                    <details class="faq-item"><summary>What is an ERESOLVE error?</summary>It is what npm prints when two packages demand incompatible versions of a shared dependency. It is tedious to diagnose by hand because the two demands usually come from different files, one of them a transitive dependency you did not write yourself.</details>
+                    <details class="faq-item"><summary>Why does my caret range not allow the update I expected?</summary>Most often the package is on 0.x. <code>^0.2.3</code> stops at <code>&lt;0.3.0-0</code> and <code>^0.0.3</code> allows a single version, because a 0.x major already carries breaking changes. The expansion table above shows the exact bound for each of your ranges.</details>
+                    <details class="faq-item"><summary>Does this use the same rules as npm?</summary>It implements node-semver's range grammar and prerelease rule, including the absorption of operators into partial versions and the rejection of operators on either side of a hyphen range. Every rule here was checked against the <code>semver</code> package npm itself depends on.</details>
+                    <details class="faq-item"><summary>Does my data leave the browser?</summary>Only if you enter a package name, in which case that one name is sent to the npm registry to list published versions. Constraint solving, expansion and version checking all run on this page.</details>
+                    <details class="faq-item"><summary>Why does it report no conflict pair?</summary>Because the failing set needs three or more constraints at once, or because the prerelease rule excludes a version that sits numerically inside every bound. The smallest conflicting group is the accurate answer in both cases.</details>
+                    <details class="faq-item"><summary>Can I check a single version instead?</summary>Yes. Put the version in the version field below the results and it is tested against every line at once, which also shows you exactly which line rejects it.</details>
+
+                    <div class="related-section">
+                        <h4>Related Tools</h4>
+                        <ul>
+                            <li><a href="/tools/json-schema-validator/">JSON Schema Validator</a></li>
+                            <li><a href="/tools/regex-tester/">Regex Tester</a></li>
+                            <li><a href="/tools/api-tester/">API Tester</a></li>
+                            <li><a href="/tools/http-status-checker/">HTTP Status Checker</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="last-updated">Created: 2026-10-10</div>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+<script>
+/* =====================================================================
+   SemVer Conflict Solver.
+
+   All constraints below are constraints on ONE package. Solving means
+   intersecting the sets of versions each range admits and reporting the
+   smallest subset that already fails on its own, because a pairwise
+   check is blind to conflicts that only appear in groups of three.
+
+   ponytail: single file, no build step, no dependency. The npm registry
+   lookup is opt-in and degrades to silence on any failure.
+   ===================================================================== */
+
+var NUM = '0|[1-9]\\d*';
+var XR = '[xX*]';
+var PARTIAL_RE = new RegExp(
+  '^v?(' + NUM + '|' + XR + ')' +
+  '(?:\\.(' + NUM + '|' + XR + '))?' +
+  '(?:\\.(' + NUM + '|' + XR + '))?' +
+  '(?:-((?:[0-9A-Za-z-]+)(?:\\.[0-9A-Za-z-]+)*))?' +
+  '(?:\\+([0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*))?$'
+);
+
+function isX(t) { return t === undefined || t === '' || t === 'x' || t === 'X' || t === '*'; }
+function mk(maj, min, pat, pre) { return { maj: maj, min: min, pat: pat, pre: pre || [] }; }
+
+function parseVer(s) {
+  if (typeof s !== 'string') return null;
+  var m = PARTIAL_RE.exec(s.trim());
+  if (!m) return null;
+  if (isX(m[1]) && (m[2] !== undefined || m[3] !== undefined)) return null;
+  if (m[4] !== undefined && (isX(m[1]) || isX(m[2]) || isX(m[3]))) return null;
+  return mk(
+    isX(m[1]) ? 0 : parseInt(m[1], 10),
+    isX(m[2]) ? 0 : parseInt(m[2], 10),
+    isX(m[3]) ? 0 : parseInt(m[3], 10),
+    m[4] === undefined ? [] : m[4].split('.')
+  );
+}
+
+function preCmp(a, b) {
+  if (!a.length && !b.length) return 0;
+  if (!a.length) return 1;
+  if (!b.length) return -1;
+  for (var i = 0; i < Math.max(a.length, b.length); i++) {
+    var x = a[i], y = b[i];
+    if (x === undefined) return -1;
+    if (y === undefined) return 1;
+    var nx = /^\d+$/.test(x), ny = /^\d+$/.test(y);
+    if (nx && ny) { if (+x !== +y) return +x < +y ? -1 : 1; }
+    else if (nx !== ny) return nx ? -1 : 1;
+    else if (x !== y) return x < y ? -1 : 1;
+  }
+  return 0;
+}
+
+function cmp(a, b) {
+  if (a.maj !== b.maj) return a.maj < b.maj ? -1 : 1;
+  if (a.min !== b.min) return a.min < b.min ? -1 : 1;
+  if (a.pat !== b.pat) return a.pat < b.pat ? -1 : 1;
+  return preCmp(a.pre, b.pre);
+}
+
+function C(op, v) { return { op: op, v: v }; }
+function ANY() { return [C('>=', mk(0, 0, 0))]; }
+
+/* Desugar one range token into primitive comparators. An explicit operator on an
+   X-partial is absorbed into the expanded bounds: >1 => >=2.0.0, <=1 => <2.0.0. */
+function desugar(tok) {
+  var t = String(tok).trim();
+  if (t === '') return ANY();
+  var om = /^(<=|>=|<|>|=|\^|~)?\s*(.*)$/.exec(t);
+  var op = om[1] || '', rest = om[2].trim();
+  if (op === '~' && rest.charAt(0) === '>') { op = '~'; rest = rest.slice(1).trim(); }
+  if (rest === '') return op === '' ? ANY() : null;
+  if (isX(rest)) {
+    if (op === '>' || op === '<') return [C('<', mk(0, 0, 0))];
+    return ANY();
+  }
+
+  var p = PARTIAL_RE.exec(rest);
+  if (!p) return null;
+  var M = isX(p[1]) ? null : parseInt(p[1], 10);
+  var m = isX(p[2]) ? null : parseInt(p[2], 10);
+  var q = isX(p[3]) ? null : parseInt(p[3], 10);
+  var pre = p[4] === undefined ? [] : p[4].split('.');
+  if (p[4] !== undefined) {
+    if (M === null || m === null || p[3] === undefined) return null;
+    if (q === null) pre = [];
+  }
+
+  if (op === '^') {
+    if (M === null) return ANY();
+    var clo = mk(M, m === null ? 0 : m, q === null ? 0 : q, pre), chi;
+    if (M > 0 || m === null) chi = mk(M + 1, 0, 0, ['0']);
+    else if (m > 0 || q === null) chi = mk(0, m + 1, 0, ['0']);
+    else chi = mk(0, 0, q + 1, ['0']);
+    return [C('>=', clo), C('<', chi)];
+  }
+  if (op === '~') {
+    if (M === null) return ANY();
+    return [
+      C('>=', mk(M, m === null ? 0 : m, q === null ? 0 : q, pre)),
+      C('<', m === null ? mk(M + 1, 0, 0, ['0']) : mk(M, m + 1, 0, ['0']))
+    ];
+  }
+  if (q !== null) return [C(op === '' ? '=' : op, mk(M, m, q, pre))];
+
+  /* An operator absorbed into an X-partial yields a PLAIN boundary (npm's `>1` is
+   `>=2.0.0`), while a range's own upper bound uses the `-0` sentinel so that the
+   next major's prereleases stay outside. The two are not interchangeable: `>=2.0.0-0`
+   also admits 2.0.0-alpha, because that comparator names tuple 2.0.0 with a prerelease. */
+var xLo, xHi;
+if (M === null) return (op === '>' || op === '<') ? [C('<', mk(0, 0, 0))] : ANY();
+if (m === null) { xLo = mk(M, 0, 0); xHi = mk(M + 1, 0, 0); }
+else { xLo = mk(M, m, 0); xHi = mk(M, m + 1, 0); }
+if (op === '>=') return [C('>=', xLo)];
+if (op === '>') return [C('>=', xHi)];
+if (op === '<') return [C('<', xLo)];
+if (op === '<=') return [C('<', xHi)];
+var hiPre = m === null ? mk(M + 1, 0, 0, ['0']) : mk(M, m + 1, 0, ['0']);
+return [C('>=', xLo), C('<', hiPre)];
+}
+
+function parseRange(str) {
+  var out = [], sets = String(str).split('||');
+  for (var i = 0; i < sets.length; i++) {
+    var s = sets[i].trim();
+    var hy = /^(\S+)\s+-\s+(\S+)$/.exec(s);
+    var set = [], lo, upPartial;
+    if (hy) {
+      if (/^[<>=~^]/.test(hy[1]) || /^[<>=~^]/.test(hy[2])) return null;
+      upPartial = PARTIAL_RE.exec(hy[2].replace(/^[v=]/, ''));
+      if (!upPartial) return null;
+      if (upPartial[4] !== undefined && (isX(upPartial[1]) || isX(upPartial[2]) || isX(upPartial[3]))) return null;
+      lo = desugar(hy[1].replace(/^[v=]/, ''));
+      if (!lo || lo.length === 0) return null;
+      set.push(C('>=', lo[0].v));
+      var hM = isX(upPartial[1]) ? null : parseInt(upPartial[1], 10);
+      var hm = isX(upPartial[2]) ? null : parseInt(upPartial[2], 10);
+      var hq = isX(upPartial[3]) ? null : parseInt(upPartial[3], 10);
+      var hPre = upPartial[4] === undefined ? [] : upPartial[4].split('.');
+      if (hM === null) { /* A - * leaves the range unbounded above */ }
+      else if (hq !== null) set.push(C('<=', mk(hM, hm, hq, hPre)));
+      else if (hm !== null) set.push(C('<', mk(hM, hm + 1, 0, ['0'])));
+      else set.push(C('<', mk(hM + 1, 0, 0, ['0'])));
+    } else if (s === '') {
+      set = ANY();
+    } else {
+      var toks = s.replace(/(^|\s)([<>=~^]+)\s+(?=[v\d*xX])/g, '$1$2').split(/\s+/);
+      for (var t = 0; t < toks.length; t++) {
+        var d = desugar(toks[t]);
+        if (!d) return null;
+        set = set.concat(d);
+      }
+    }
+    out.push(set);
+  }
+  return out;
+}
+
+function testSet(v, set) {
+  if (v.pre.length) {
+    var allowed = false;
+    for (var i = 0; i < set.length; i++) {
+      var c = set[i];
+      if (c.v.pre.length && c.v.maj === v.maj && c.v.min === v.min && c.v.pat === v.pat) { allowed = true; break; }
+    }
+    if (!allowed) return false;
+  }
+  for (var j = 0; j < set.length; j++) {
+    var r = cmp(v, set[j].v);
+    var op = set[j].op;
+    if (op === '>=') { if (r < 0) return false; }
+    else if (op === '>') { if (r <= 0) return false; }
+    else if (op === '<=') { if (r > 0) return false; }
+    else if (op === '<') { if (r >= 0) return false; }
+    else if (op === '=') { if (r !== 0) return false; }
+  }
+  return true;
+}
+
+function satisfies(vStr, rangeStr) {
+  var v = parseVer(vStr);
+  if (!v) return false;
+  var sets = parseRange(rangeStr);
+  if (!sets) return false;
+  for (var i = 0; i < sets.length; i++) if (testSet(v, sets[i])) return true;
+  return false;
+}
+
+function preTupleSet(set) {
+  var out = [];
+  for (var i = 0; i < set.length; i++) {
+    if (set[i].v.pre.length) {
+      var k = set[i].v.maj + '.' + set[i].v.min + '.' + set[i].v.pat;
+      if (out.indexOf(k) < 0) out.push(k);
+    }
+  }
+  return out.sort();
+}
+
+/* Collapse a comparator set to one interval; null when it admits no version.
+   `pre` records which tuples opted into prereleases, which the interval alone
+   cannot express (~1.2.0 admits none). */
+function tighten(set) {
+  var lo = null, loInc = false, hi = null, hiInc = false;
+  for (var i = 0; i < set.length; i++) {
+    var c = set[i];
+    if (c.op === '>=' || c.op === '>' || c.op === '=') {
+      var inc = c.op !== '>';
+      if (lo === null || cmp(c.v, lo) > 0) { lo = c.v; loInc = inc; }
+      else if (cmp(c.v, lo) === 0 && !inc) loInc = false;
+      if (c.op === '=' && (hi === null || cmp(c.v, hi) < 0)) { hi = c.v; hiInc = true; }
+    } else {
+      var inc2 = c.op === '<=';
+      if (hi === null || cmp(c.v, hi) < 0) { hi = c.v; hiInc = inc2; }
+      else if (cmp(c.v, hi) === 0 && !inc2) hiInc = false;
+    }
+  }
+  if (lo === null) { lo = mk(0, 0, 0); loInc = true; }
+  var pre = preTupleSet(set);
+  if (hi === null) return { lo: lo, loInc: loInc, hi: null, hiInc: false, pre: pre };
+  var d = cmp(lo, hi);
+  if (d > 0) return null;
+  if (d === 0 && !(loInc && hiInc)) return null;
+  return { lo: lo, loInc: loInc, hi: hi, hiInc: hiInc, pre: pre };
+}
+
+function cartesian(list) {
+  var out = [[]];
+  for (var i = 0; i < list.length; i++) {
+    var next = [];
+    for (var a = 0; a < out.length; a++) {
+      for (var b = 0; b < list[i].length; b++) next.push(out[a].concat([list[i][b]]));
+    }
+    out = next;
+  }
+  return out;
+}
+
+function intersectWindows(w1, w2) {
+  var lo = w1.lo, loInc = w1.loInc;
+  if (cmp(w2.lo, lo) > 0) { lo = w2.lo; loInc = w2.loInc; }
+  else if (cmp(w2.lo, lo) === 0) loInc = loInc && w2.loInc;
+  var hi, hiInc;
+  if (w1.hi === null) { hi = w2.hi; hiInc = w2.hiInc; }
+  else if (w2.hi === null) { hi = w1.hi; hiInc = w1.hiInc; }
+  else {
+    hi = w1.hi; hiInc = w1.hiInc;
+    if (cmp(w2.hi, hi) < 0) { hi = w2.hi; hiInc = w2.hiInc; }
+    else if (cmp(w2.hi, hi) === 0) hiInc = hiInc && w2.hiInc;
+  }
+  var pre = w1.pre.filter(function (t) { return w2.pre.indexOf(t) >= 0; });
+  if (hi === null) return { lo: lo, loInc: loInc, hi: null, hiInc: false, pre: pre };
+  var d = cmp(lo, hi);
+  if (d > 0 || (d === 0 && !(loInc && hiInc))) return null;
+  return { lo: lo, loInc: loInc, hi: hi, hiInc: hiInc, pre: pre };
+}
+
+function vstr(v) {
+  return v.maj + '.' + v.min + '.' + v.pat + (v.pre.length ? '-' + v.pre.join('.') : '');
+}
+
+function winKey(w) {
+  return [w.lo.maj, w.lo.min, w.lo.pat, w.lo.pre.join('.')].join('|') + '|' +
+    (w.hi ? [w.hi.maj, w.hi.min, w.hi.pat, w.hi.pre.join('.')].join('|') : 'inf') +
+    (w.loInc ? '+' : '-') + (w.hi && w.hiInc ? '+' : '-');
+}
+
+function solveRanges(ranges) {
+  var parsed = [], i, j;
+  for (i = 0; i < ranges.length; i++) {
+    var p = parseRange(ranges[i]);
+    if (!p) return { ok: false, error: ranges[i], windows: [], conflicts: [], parsed: [] };
+    parsed.push(p);
+  }
+  if (!parsed.length) return { ok: true, windows: [], conflicts: [], parsed: parsed };
+
+  var per = parsed.map(function (sets) { return sets.map(tighten); });
+  var combos = cartesian(per);
+  var windows = [], seen = {};
+  for (i = 0; i < combos.length; i++) {
+    var merged = null, bad = false;
+    for (j = 0; j < combos[i].length; j++) {
+      if (combos[i][j] === null) { bad = true; break; }
+      merged = (merged === null) ? combos[i][j] : intersectWindows(merged, combos[i][j]);
+      if (merged === null) { bad = true; break; }
+    }
+    if (bad) continue;
+    var keep = true;
+    if (merged.hi !== null) {
+      var cand = (merged.lo.pre.length || merged.loInc)
+        ? mk(merged.lo.maj, merged.lo.min, merged.lo.pat, [])
+        : mk(merged.lo.maj, merged.lo.min, merged.lo.pat + 1, []);
+      var d2 = cmp(cand, merged.hi);
+      if (d2 > 0 || (d2 === 0 && !merged.hiInc)) {
+        keep = merged.loInc && ranges.every(function (x) { return satisfies(vstr(merged.lo), x); });
+      }
+    }
+    if (!keep) continue;
+    var k = winKey(merged);
+    if (seen[k]) {
+      var ex = seen[k];
+      for (j = 0; j < merged.pre.length; j++) if (ex.pre.indexOf(merged.pre[j]) < 0) ex.pre.push(merged.pre[j]);
+    } else { seen[k] = merged; windows.push(merged); }
+  }
+  windows.sort(function (a, b) { return cmp(a.lo, b.lo); });
+
+  var conflicts = [];
+  for (i = 0; i < parsed.length; i++) {
+    for (j = i + 1; j < parsed.length; j++) {
+      if (!pairIntersects(parsed[i], parsed[j])) conflicts.push([i, j]);
+    }
+  }
+  return { ok: windows.length > 0, windows: windows, conflicts: conflicts, parsed: parsed };
+}
+
+function pairIntersects(a, b) {
+  for (var i = 0; i < a.length; i++) {
+    for (var j = 0; j < b.length; j++) {
+      var t1 = tighten(a[i]), t2 = tighten(b[j]);
+      if (t1 && t2 && intersectWindows(t1, t2)) return true;
+    }
+  }
+  return false;
+}
+
+function subsets(n, k) {
+  var out = [], cur = [];
+  (function rec(start) {
+    if (cur.length === k) { out.push(cur.slice()); return; }
+    for (var i = start; i < n; i++) { cur.push(i); rec(i + 1); cur.pop(); }
+  })(0);
+  return out;
+}
+
+/* Pairwise conflicts can all be clear while the whole set still fails: the classic
+   three-way dependency conflict. Search for the smallest subset that fails alone. */
+function minimalUnsat(ranges) {
+  var full = solveRanges(ranges);
+  if (full.ok || full.error) return null;
+  var maxK = Math.min(ranges.length, 4);
+  for (var k = 1; k <= maxK; k++) {
+    var cands = subsets(ranges.length, k);
+    for (var c = 0; c < cands.length; c++) {
+      var sub = cands[c].map(function (ix) { return ranges[ix]; });
+      var r = solveRanges(sub);
+      if (!r.ok && !r.error) return sub;
+    }
+  }
+  return ranges.slice();
+}
+
+function winToRange(w) {
+  var s = (w.loInc ? '>=' : '>') + vstr(w.lo);
+  if (w.hi !== null) s += ' ' + (w.hiInc ? '<=' : '<') + vstr(w.hi);
+  return s;
+}
+
+function windowsToRange(ws) {
+  return ws.map(winToRange).join(' || ');
+}
+
+function expandRange(str) {
+  var sets = parseRange(str);
+  if (!sets) return null;
+  return sets.map(function (set) {
+    return set.map(function (c) {
+      return (c.op === '=' ? '' : c.op) + vstr(c.v);
+    }).join(' ');
+  }).join(' || ');
+}
+
+/* ---------- UI ----------------------------------------------------- */
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function readInputs() {
+  var raw = document.getElementById('ranges').value.split('\n');
+  var lines = [];
+  for (var i = 0; i < raw.length; i++) {
+    var t = raw[i].trim();
+    if (t === '' || t.charAt(0) === '#') continue;
+    lines.push({ text: t, no: i + 1 });
+  }
+  return lines;
+}
+
+function solveAll() {
+  var lines = readInputs();
+  var status = document.getElementById('status');
+  var out = document.getElementById('results');
+  out.innerHTML = '';
+
+  if (!lines.length) {
+    showStatus('status', 'Enter at least one version range.', 'error');
+    return;
+  }
+
+  var ranges = lines.map(function (l) { return l.text; });
+  var res = solveRanges(ranges);
+
+  var bad = null;
+  for (var i = 0; i < ranges.length; i++) {
+    if (!parseRange(ranges[i])) { bad = i; break; }
+  }
+
+  var html = '';
+  if (bad !== null) {
+    showStatus('status', 'Line ' + lines[bad].no + ' is not a valid semver range: ' + ranges[bad], 'error');
+    html += '<div class="sv-verdict sv-bad"><strong>Not a valid range</strong></div>';
+    html += '<p style="margin:8px 0;">Line ' + lines[bad].no + ' &mdash; <code>' + esc(ranges[bad]) +
+            '</code> &mdash; could not be parsed. A range looks like <code>^1.2.3</code>, <code>~2.0</code>, <code>&gt;=1 &lt;2</code> or <code>1.2.3 - 2.3.4</code>. Operators are not allowed on either side of a hyphen range, and a prerelease needs a complete <code>major.minor.patch</code>.</p>';
+    out.innerHTML = html;
+    return;
+  }
+
+  if (res.ok) {
+    showStatus('status', 'Resolvable: ' + ranges.length + ' constraint' + (ranges.length > 1 ? 's' : '') + ' share at least one version.', 'success');
+    html += '<div class="sv-verdict sv-ok" data-testid="sv-verdict"><strong>Resolvable</strong> &mdash; all ' +
+            ranges.length + ' constraint' + (ranges.length > 1 ? 's' : '') + ' admit a common version.</div>';
+    html += '<div class="sv-block"><h3>Combined range</h3>' +
+            '<div class="sv-out" id="sv-combined" data-testid="sv-combined">' + esc(windowsToRange(res.windows)) + '</div>' +
+            '<button onclick="copyCombined()" class="copy-btn" data-testid="sv-copy">Copy</button></div>';
+  } else {
+    var min = minimalUnsat(ranges);
+    showStatus('status', 'Conflict: these constraints have no version in common.', 'error');
+    html += '<div class="sv-verdict sv-bad" data-testid="sv-verdict"><strong>Conflict</strong> &mdash; no single version satisfies all ' +
+            ranges.length + ' constraints.</div>';
+    html += '<div class="sv-block" data-testid="sv-minimal"><h3>Smallest conflicting group</h3>';
+    if (min && min.length === 2) {
+      html += '<p>These two ranges cannot both be satisfied:</p><ul>';
+      for (var a = 0; a < min.length; a++) {
+        var ia = ranges.indexOf(min[a]);
+        html += '<li>line ' + lines[ia].no + ': <code>' + esc(min[a]) + '</code> &rarr; <code>' + esc(expandRange(min[a])) + '</code></li>';
+      }
+      html += '</ul>';
+    } else if (min && min.length === 1) {
+      var i1 = ranges.indexOf(min[0]);
+      html += '<p>Line ' + lines[i1].no + ' on its own admits no version: <code>' + esc(min[0]) + '</code> &rarr; <code>' + esc(expandRange(min[0])) + '</code></p>';
+    } else if (min) {
+      html += '<p><strong>No single pair conflicts on its own.</strong> These ' + min.length +
+              ' constraints each pair cleanly with the others and still share nothing, so the clash is in the combination:</p><ul>';
+      for (var b = 0; b < min.length; b++) {
+        var ib = ranges.indexOf(min[b]);
+        html += '<li>line ' + lines[ib].no + ': <code>' + esc(min[b]) + '</code> &rarr; <code>' + esc(expandRange(min[b])) + '</code></li>';
+      }
+      html += '</ul>';
+    }
+    html += '</div>';
+  }
+
+  html += '<div class="sv-block"><h3>What each range really allows</h3><table class="sv-table"><thead><tr><th>Line</th><th>Range</th><th>Expands to</th></tr></thead><tbody>';
+  for (var j = 0; j < lines.length; j++) {
+    html += '<tr><td>' + lines[j].no + '</td><td><code>' + esc(lines[j].text) + '</code></td><td><code>' + esc(expandRange(lines[j].text)) + '</code></td></tr>';
+  }
+  html += '</tbody></table></div>';
+
+  html += '<div class="sv-block"><h3>Test a version</h3>' +
+          '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">' +
+          '<div style="flex:1;min-width:180px;"><label for="ver" style="display:block;margin-bottom:5px;font-weight:600;">Version</label>' +
+          '<input type="text" id="ver" placeholder="1.2.3" spellcheck="false" autocomplete="off" ' +
+          'style="width:100%;padding:10px;background:#0f0f23;border:1px solid #333;color:#fff;border-radius:8px;font-family:monospace;" data-testid="sv-version"></div>' +
+          '<button onclick="checkVersion()" class="btn btn-primary" data-testid="sv-check">Check</button></div>' +
+          '<div id="verout" style="margin-top:10px;" data-testid="sv-verout"></div></div>';
+
+  out.innerHTML = html;
+
+  var pkg = document.getElementById('pkg').value.trim();
+  if (pkg) {
+    html += '<div class="sv-block" id="sv-reg"></div>';
+    out.innerHTML = html;
+    lookupRegistry(pkg);
+  }
+}
+
+function copyCombined() { copyToClipboard('sv-combined'); }
+
+function checkVersion() {
+  var el = document.getElementById('ver');
+  var box = document.getElementById('verout');
+  if (!el || !box) return;
+  var v = el.value.trim();
+  if (!v) { box.innerHTML = ''; return; }
+  if (!parseVer(v)) {
+    box.innerHTML = '<div class="sv-verdict sv-bad">Not a valid version. Use <code>major.minor.patch</code>, optionally with <code>-prerelease</code> and <code>+build</code>.</div>';
+    return;
+  }
+  var lines = readInputs();
+  var ok = [], bad = [];
+  for (var i = 0; i < lines.length; i++) {
+    (satisfies(v, lines[i].text) ? ok : bad).push(lines[i]);
+  }
+  var h = '';
+  if (!bad.length) {
+    h = '<div class="sv-verdict sv-ok" data-testid="sv-verdict-result"><strong>' + esc(v) + ' satisfies every constraint.</strong></div>';
+  } else {
+    h = '<div class="sv-verdict sv-bad" data-testid="sv-verdict-result"><strong>' + esc(v) + ' fails ' + bad.length + ' of ' + lines.length + ' constraints:</strong></div><ul>';
+    for (var j = 0; j < bad.length; j++) {
+      h += '<li>line ' + bad[j].no + ': <code>' + esc(bad[j].text) + '</code> &rarr; <code>' + esc(expandRange(bad[j].text)) + '</code></li>';
+    }
+    h += '</ul>';
+    if (ok.length) {
+      h += '<p style="margin-top:8px;">Accepted by ' + ok.length + ' constraint' + (ok.length > 1 ? 's' : '') + '.</p>';
+    }
+  }
+  box.innerHTML = h;
+}
+
+/* Opt-in only: one package name goes to the npm registry. Any failure is silent.
+   A scoped name like @types/node must keep its slash encoded as %2F. */
+function registryPath(pkg) {
+  if (pkg.charAt(0) === '@') {
+    var parts = pkg.split('/');
+    if (parts.length < 2 || !parts[1]) return null;
+    return '@' + encodeURIComponent(parts[0].slice(1)) + '%2F' + encodeURIComponent(parts[1]);
+  }
+  return encodeURIComponent(pkg);
+}
+
+function lookupRegistry(pkg) {
+  var box = document.getElementById('sv-reg');
+  if (!box) return;
+  var path = registryPath(pkg);
+  if (!path) {
+    box.innerHTML = '<h3>Newest published version</h3><p style="color:#9aa4b2;">A scoped package name needs both parts, for example <code>@types/node</code>.</p>';
+    return;
+  }
+  box.innerHTML = '<p style="color:#9aa4b2;">Looking up <code>' + esc(pkg) + '</code> on the npm registry&hellip;</p>';
+  var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var timer = setTimeout(function () { if (controller) controller.abort(); }, 12000);
+
+  fetch('https://registry.npmjs.org/' + path, {
+    headers: { 'Accept': 'application/vnd.npm.install-v1+json' },
+    signal: controller ? controller.signal : undefined
+  }).then(function (r) {
+    clearTimeout(timer);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function (data) {
+    var ranges = readInputs().map(function (l) { return l.text; });
+    var good = [];
+    for (var name in data.versions) {
+      var v = parseVer(name);
+      if (v) good.push(v);
+    }
+    good.sort(function (a, b) { return cmp(a, b); });
+    var hits = good.filter(function (v) {
+      return ranges.every(function (rg) { return satisfies(vstr(v), rg); });
+    });
+    var h = '<h3>Newest published version</h3>';
+    if (!hits.length) {
+      h += '<p>The constraints resolve mathematically, but <strong>' + esc(pkg) + ' has not published any version that satisfies them</strong> across ' +
+           good.length + ' published versions. This is the case a purely offline check cannot catch.</p>';
+    } else {
+      h += '<div class="sv-out" data-testid="sv-registry">' + esc(vstr(hits[hits.length - 1])) + '</div>';
+      h += '<p style="margin-top:8px;">Highest of ' + hits.length + ' published version' + (hits.length === 1 ? '' : 's') +
+           ' that satisfies all ' + ranges.length + ' constraint' + (ranges.length > 1 ? 's' : '') +
+           ', out of ' + good.length + ' published. Newest overall is <code>' + esc(vstr(good[good.length - 1])) + '</code>.</p>';
+    }
+    box.innerHTML = h;
+  }).catch(function () {
+    clearTimeout(timer);
+    box.innerHTML = '<h3>Newest published version</h3><p style="color:#9aa4b2;">The npm registry could not be reached. Everything above was computed locally and is unaffected.</p>';
+  });
+}
+
+function clearAll() {
+  document.getElementById('ranges').value = '';
+  document.getElementById('pkg').value = '';
+  document.getElementById('results').innerHTML = '';
+  showStatus('status', '', '');
+}
+
+function loadExample() {
+  document.getElementById('ranges').value = '^1.2.0\n~1.0.0\n>=2.0.0';
+  document.getElementById('pkg').value = 'express';
+  solveAll();
+}
+</script>
+<style>
+.sv-verdict { padding:12px 14px;border-radius:8px;margin-bottom:14px;font-size:1.02rem; }
+.sv-ok { background:#12331f;border:1px solid #2f7a45;color:#b6f0c8; }
+.sv-bad { background:#3a1620;border:1px solid #8a3348;color:#f6c2ce; }
+.sv-block { margin-top:20px; }
+.sv-block h3 { margin:0 0 8px;font-size:1.05rem; }
+.sv-out { font-family:monospace;background:#0f0f23;border:1px solid #333;border-radius:8px;padding:12px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;color:#cfe3ff; }
+.sv-table { width:100%;border-collapse:collapse;font-size:0.92rem; }
+.sv-table th,.sv-table td { text-align:left;padding:6px 8px;border-bottom:1px solid #2a2a44;vertical-align:top; }
+.sv-table code { word-break:break-all; }
+</style>
+</body>
+</html>

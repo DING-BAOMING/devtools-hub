@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Reader - Decode QR from Images & Camera | DevTools Hub</title>
+    <meta name="description" content="Free online QR Code Reader. Decode QR codes from images or camera. Extract URLs, WiFi passwords, vCards. AI cannot scan real QR codes - we do.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/qr-code-reader/">
+    <meta property="og:title" content="QR Code Reader - Decode QR from Images & Camera | DevTools Hub">
+    <meta property="og:description" content="Free online QR Code Reader. Decode QR codes from images or camera. AI cannot scan real QR codes - we do.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/qr-code-reader/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+<style>
+.qr-reader-layout { display: grid; grid-template-columns: 1fr; gap: 24px; }
+@media (min-width: 768px) { .qr-reader-layout { grid-template-columns: 1fr 1fr; } }
+.qr-tab-bar { display: flex; gap: 0; margin-bottom: 0; border: 1px solid #2a2a4a; border-radius: 10px; overflow: hidden; }
+.qr-tab-btn { flex: 1; padding: 12px 16px; background: #0f0f23; color: #888; border: none; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+.qr-tab-btn.active { background: #667eea; color: #fff; }
+.qr-tab-btn:hover:not(.active) { background: #1a1a3e; color: #aaa; }
+.qr-tab-content { display: none; }
+.qr-tab-content.active { display: block; }
+.qr-drop-zone { border: 2px dashed #2a2a4a; border-radius: 12px; padding: 48px 24px; text-align: center; cursor: pointer; transition: all 0.2s; margin-top: 16px; }
+.qr-drop-zone:hover, .qr-drop-zone.dragover { border-color: #667eea; background: rgba(102,126,234,0.05); }
+.qr-drop-zone p { color: #888; font-size: 0.9rem; margin-bottom: 8px; }
+.qr-drop-zone .icon { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+.qr-drop-zone .hint { color: #555; font-size: 0.8rem; margin-top: 8px; }
+.qr-camera-preview { width: 100%; max-width: 480px; border-radius: 12px; margin: 16px auto; display: block; background: #0f0f23; }
+.qr-result-card { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 12px; padding: 20px; margin-top: 16px; }
+.qr-result-card h3 { color: #667eea; margin-bottom: 12px; font-size: 1rem; }
+.qr-result-type { display: inline-block; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px; }
+.qr-result-text { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 12px; margin-bottom: 12px; word-break: break-all; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: #ddd; max-height: 150px; overflow-y: auto; }
+.qr-result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.qr-history-item { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+.qr-history-item:hover { border-color: #667eea; }
+.qr-history-item .h-time { font-size: 0.75rem; color: #555; }
+.qr-history-item .h-type { font-size: 0.75rem; color: #667eea; }
+.qr-history-item .h-text { font-size: 0.85rem; color: #aaa; margin-top: 4px; word-break: break-all; max-height: 40px; overflow: hidden; }
+.qr-empty { text-align: center; padding: 24px; color: #555; font-size: 0.9rem; }
+.qr-input-proxy { position: fixed !important; width: 1px; height: 1px; min-width: 1px; min-height: 1px; opacity: 0; border: 0; padding: 0; background: transparent; color: transparent; overflow: hidden; pointer-events: auto; }
+.qr-camera-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; justify-content: center; }
+</style>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-06-14",
+        "dateModified": "2026-06-14",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "QR Code Reader",
+        "description": "Free online QR Code Reader. Decode QR codes from uploaded images, screenshots, or live camera. 100% private browser processing. AI cannot scan real QR codes - we do.",
+        "url": "https://tools.scoreroute.com/tools/qr-code-reader/",
+        "applicationCategory": "UtilityApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["Decode QR codes from images", "Live camera scanning", "Clipboard paste support", "Content type detection", "Scan history", "100% private"]
+    }
+    </script>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <h1>QR Code Reader</h1>
+            <p class="subtitle">Decode QR Codes from Images, Screenshots & Camera - AI Cannot, We Do</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>QR Code Reader</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="qr-reader-layout">
+                <div class="tool-main" style="margin-bottom:0;">
+                    <h2>Scan QR Code</h2>
+                    <div class="qr-tab-bar">
+                        <button class="qr-tab-btn active" id="qrr-tab-upload" onclick="switchTab('upload')" aria-label="Upload Image Tab">Upload</button>
+                        <button class="qr-tab-btn" id="qrr-tab-camera" onclick="switchTab('camera')" aria-label="Camera Tab">Camera</button>
+                        <button class="qr-tab-btn" id="qrr-tab-history" onclick="switchTab('history')" aria-label="History Tab">History</button>
+                    </div>
+
+                    <div class="qr-tab-content active" id="qrr-panel-upload">
+                        <div class="qr-drop-zone" id="qrr-dropzone">
+                            <span class="icon">&#128247;</span>
+                            <p><strong>Drop QR code image here</strong></p>
+                            <p>or click to browse &middot; PNG, JPG, WebP, GIF</p>
+                            <p class="hint">You can also paste a screenshot (Ctrl+V / &#8984;+V)</p>
+                        </div>
+                        <input aria-label="QR code image file" type="file" id="qrr-file-input" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none">
+                        <div id="qrr-upload-preview" style="display:none; margin-top:16px; text-align:center;">
+                            <img id="qrr-preview-img" style="max-width:100%; max-height:300px; border-radius:8px;" alt="Uploaded QR code">
+                        </div>
+                    </div>
+
+                    <div class="qr-tab-content" id="qrr-panel-camera">
+                        <video id="qrr-camera-video" class="qr-camera-preview" autoplay muted playsinline></video>
+                        <canvas id="qrr-camera-canvas" style="display:none;"></canvas>
+                        <div class="qr-camera-controls">
+                            <button class="btn btn-primary" id="qrr-start-camera" onclick="startCamera()">Start Camera</button>
+                            <button class="btn" id="qrr-stop-camera" onclick="stopCamera()" disabled>Stop Camera</button>
+                        </div>
+                        <p class="hint" style="text-align:center;color:#555;font-size:0.8rem;margin-top:8px;">Point your camera at a QR code &mdash; it will be detected automatically</p>
+                    </div>
+
+                    <div class="qr-tab-content" id="qrr-panel-history">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="color:#888;font-size:0.9rem;">Recently scanned QR codes</span>
+                            <button class="btn" onclick="clearHistory()" style="font-size:0.8rem;padding:6px 12px;">Clear All</button>
+                        </div>
+                        <div id="qrr-history-list"></div>
+                    </div>
+
+                    <div id="qrr-result-area" style="display:none;">
+                        <div class="qr-result-card">
+                            <div class="qr-result-type" id="qrr-result-type">URL</div>
+                            <div class="qr-result-text" id="qrr-result-text"></div>
+                            <div class="qr-result-actions">
+                                <button class="btn btn-primary" id="qrr-action-open" onclick="openResult()" style="display:none;">Open Link</button>
+                                <button class="btn" id="qrr-action-copy" onclick="copyResult()">Copy</button>
+                                <button class="btn btn-secondary" onclick="clearResult()">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="qrr-status" class="status"></div>
+                </div>
+
+                <div class="info-section">
+                    <h3>What is a QR Code Reader?</h3>
+                    <p>A QR Code Reader (also called QR Code Scanner or Decoder) is a free online tool that extracts information from QR code images. Unlike using your phone camera, this tool lets you decode QR codes from screenshots, downloaded images, photos, or even your computer's webcam.</p>
+
+                    <h3>Why Use an Online QR Code Reader?</h3>
+                    <ul>
+                        <li><strong>Check Before You Scan:</strong> Preview where a QR code leads before opening it on your phone &mdash; avoid phishing and malicious links</li>
+                        <li><strong>Extract from Screenshots:</strong> Decode QR codes from emails, documents, websites, or social media posts</li>
+                        <li><strong>Recover Damaged Codes:</strong> jsQR engine can read partially damaged or low-quality QR codes</li>
+                        <li><strong>WiFi Password Recovery:</strong> Extract WiFi credentials from QR codes on router stickers or shared cards</li>
+                        <li><strong>100% Private:</strong> All decoding happens in your browser &mdash; no images ever leave your device</li>
+                    </ul>
+
+                    <h3>How QR Code Decoding Works</h3>
+                    <ol style="margin:12px 0 20px 24px;color:#aaa;">
+                        <li><strong>Input:</strong> Upload an image, use your camera, or paste from clipboard</li>
+                        <li><strong>Detection:</strong> The jsQR algorithm locates the QR code finder patterns (the three corner squares)</li>
+                        <li><strong>Sampling:</strong> The matrix of black and white modules is sampled from the image</li>
+                        <li><strong>Decoding:</strong> Reed-Solomon error correction recovers the data bits</li>
+                        <li><strong>Output:</strong> The decoded content is displayed with automatic type detection</li>
+                    </ol>
+
+                    <h3>What You Can Decode</h3>
+                    <div class="example-box">
+                        <div class="example-item">
+                            <strong>Website URLs</strong>
+                            <p style="color:#888;font-size:0.9rem;margin-top:4px;">Instantly open links from QR codes. Great for checking QR codes before scanning with your phone.</p>
+                        </div>
+                        <div class="example-item">
+                            <strong>WiFi Credentials</strong>
+                            <p style="color:#888;font-size:0.9rem;margin-top:4px;">Extract network name (SSID) and password from WiFi QR codes. Never lose your WiFi info again.</p>
+                        </div>
+                        <div class="example-item">
+                            <strong>vCard Contacts</strong>
+                            <p style="color:#888;font-size:0.9rem;margin-top:4px;">Read contact information encoded in vCard QR codes found on business cards.</p>
+                        </div>
+                        <div class="example-item">
+                            <strong>Plain Text</strong>
+                            <p style="color:#888;font-size:0.9rem;margin-top:4px;">Any text encoded in a QR code &mdash; from product information to secret messages.</p>
+                        </div>
+                        <div class="example-item">
+                            <strong>Email &amp; SMS</strong>
+                            <p style="color:#888;font-size:0.9rem;margin-top:4px;">Decode mailto: and sms: links to see the recipient and pre-filled content.</p>
+                        </div>
+                    </div>
+
+                    <h3>Frequently Asked Questions</h3>
+                    <details class="faq-item">
+                        <summary>How do I scan a QR code from a screenshot?</summary>
+                        <p>Click the Upload tab, then either drag and drop your screenshot image onto the upload area, click to browse and select the file, or simply press Ctrl+V (Cmd+V on Mac) to paste a screenshot from your clipboard. The QR code will be decoded instantly.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Is my data sent to any server?</summary>
+                        <p>No. All QR code decoding happens entirely in your browser using JavaScript. Your images and the decoded content never leave your device. This makes our QR code reader 100% private and secure.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>What image formats are supported?</summary>
+                        <p>Our QR code reader supports PNG, JPEG/JPG, WebP, and GIF image formats. For best results, use PNG or JPEG images where the QR code is clearly visible and well-lit.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Can it read damaged or blurry QR codes?</summary>
+                        <p>The jsQR engine includes error correction handling that can read QR codes even when partially damaged, rotated, or slightly blurry. For best results, ensure the QR code occupies a reasonable portion of the image and is not excessively blurry.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>How accurate is the QR code reader?</summary>
+                        <p>The decoder uses the jsQR library which implements the full QR code specification. It achieves near 100% accuracy on clear, properly lit QR code images. Success rates may vary with heavily damaged, extremely small, or badly lit codes.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>How do I use the camera scanner?</summary>
+                        <p>Click the Camera tab, then click "Start Camera". Grant camera permission when prompted. Point your device's camera at a QR code. The tool will automatically detect and decode it in real-time, showing the result below the video preview.</p>
+                    </details>
+
+                    <div class="related-section">
+                        <h4>Related Tools</h4>
+                        <ul>
+                            <li><a href="/tools/qr-code-generator/">QR Code Generator</a></li>
+                            <li><a href="/tools/barcode-generator/">Barcode Generator</a></li>
+                            <li><a href="/tools/url-encoder/">URL Encoder</a></li>
+                            <li><a href="/tools/base64-encoder/">Base64 Encoder</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script>
+(function() {
+    var dropzone = document.getElementById('qrr-dropzone');
+    var fileInput = document.getElementById('qrr-file-input');
+    var previewImg = document.getElementById('qrr-preview-img');
+    var uploadPreview = document.getElementById('qrr-upload-preview');
+    var resultArea = document.getElementById('qrr-result-area');
+    var resultText = document.getElementById('qrr-result-text');
+    var resultType = document.getElementById('qrr-result-type');
+    var openBtn = document.getElementById('qrr-action-open');
+    var statusEl = document.getElementById('qrr-status');
+    var cameraVideo = document.getElementById('qrr-camera-video');
+    var cameraCanvas = document.getElementById('qrr-camera-canvas');
+    var startCameraBtn = document.getElementById('qrr-start-camera');
+    var stopCameraBtn = document.getElementById('qrr-stop-camera');
+    var historyList = document.getElementById('qrr-history-list');
+
+    var currentResult = null;
+    var cameraStream = null;
+    var cameraInterval = null;
+    var scanHistory = [];
+
+    try { var saved = localStorage.getItem('qrr-history'); if (saved) scanHistory = JSON.parse(saved); } catch(e) {}
+
+    function showStatus(msg, type) {
+        statusEl.textContent = msg;
+        statusEl.className = 'status ' + (type || '');
+        if (type) setTimeout(function(){ clearStatus(); }, 4000);
+    }
+
+    function clearStatus() {
+        statusEl.textContent = '';
+        statusEl.className = 'status';
+    }
+
+    function setResult(text, type) {
+        currentResult = { text: text, type: type };
+        resultText.textContent = text;
+        resultType.textContent = type;
+        if (type === 'URL') {
+            openBtn.style.display = 'inline-block';
+        } else {
+            openBtn.style.display = 'none';
+        }
+        resultArea.style.display = 'block';
+        addToHistory(text, type);
+    }
+
+    function detectContentType(text) {
+        if (!text) return 'Unknown';
+        text = text.trim();
+        if (text.match(/^https?:\/\//i)) return 'URL';
+        if (text.match(/^WIFI:/i)) return 'WiFi';
+        if (text.match(/^BEGIN:VCARD/i)) return 'vCard';
+        if (text.match(/^mailto:/i)) return 'Email';
+        if (text.match(/^tel:/i)) return 'Phone';
+        if (text.match(/^sms:/i)) return 'SMS';
+        if (text.match(/^geo:/i)) return 'Geo Location';
+        return 'Text';
+    }
+
+    function decodeQR(imageData) {
+        try {
+            var code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'dontInvert'
+            });
+            if (code && code.data) {
+                var type = detectContentType(code.data);
+                setResult(code.data, type);
+                showStatus('QR Code decoded successfully!', 'success');
+                return true;
+            }
+            return false;
+        } catch(e) {
+            return false;
+        }
+    }
+
+    function decodeFromCanvas(canvas) {
+        var ctx = canvas.getContext('2d');
+        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        return decodeQR(imageData);
+    }
+
+    function processFile(file) {
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var img = new Image();
+            img.onload = function() {
+                previewImg.src = e.target.result;
+                uploadPreview.style.display = 'block';
+                var canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                var found = decodeFromCanvas(canvas);
+                if (!found) {
+                    showStatus('No QR code found in this image. Try a clearer image.', 'error');
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function processClipboard() {
+        navigator.clipboard.read().then(function(items) {
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                if (item.types.indexOf('image/png') !== -1 || item.types.indexOf('image/jpeg') !== -1 || item.types.indexOf('image/webp') !== -1) {
+                    item.getType(item.types[0]).then(function(blob) {
+                        var file = new File([blob], 'pasted.png', { type: blob.type });
+                        processFile(file);
+                    });
+                    return;
+                }
+            }
+            showStatus('No image found in clipboard', 'error');
+        }).catch(function() {
+            showStatus('Clipboard access denied or not supported', 'error');
+        });
+    }
+
+    function addToHistory(text, type) {
+        var entry = { text: text, type: type, time: new Date().toISOString() };
+        scanHistory.unshift(entry);
+        if (scanHistory.length > 50) scanHistory = scanHistory.slice(0, 50);
+        try { localStorage.setItem('qrr-history', JSON.stringify(scanHistory)); } catch(e) {}
+        renderHistory();
+    }
+
+    function renderHistory() {
+        if (scanHistory.length === 0) {
+            historyList.innerHTML = '<div class="qr-empty">No scan history yet. Scan a QR code to see it here.</div>';
+            return;
+        }
+        var html = '';
+        for (var i = 0; i < scanHistory.length; i++) {
+            var h = scanHistory[i];
+            var timeStr = new Date(h.time).toLocaleString();
+            var shortText = h.text.length > 80 ? h.text.substring(0, 80) + '...' : h.text;
+            html += '<div class="qr-history-item" onclick="restoreHistory(' + i + ')">' +
+                '<span class="h-time">' + timeStr + '</span> &middot; ' +
+                '<span class="h-type">' + h.type + '</span>' +
+                '<div class="h-text">' + escapeHtml(shortText) + '</div>' +
+                '</div>';
+        }
+        historyList.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    window.restoreHistory = function(idx) {
+        var entry = scanHistory[idx];
+        if (entry) {
+            setResult(entry.text, entry.type);
+            switchTab('upload');
+        }
+    };
+
+    function clearHistory() {
+        if (scanHistory.length > 0 && !confirm('Clear all scan history?')) return;
+        scanHistory = [];
+        try { localStorage.removeItem('qrr-history'); } catch(e) {}
+        renderHistory();
+        showStatus('Scan history cleared', 'success');
+    }
+
+    window.clearHistory = clearHistory;
+
+    function switchTab(tab) {
+        document.querySelectorAll('.qr-tab-content').forEach(function(el) { el.classList.remove('active'); });
+        document.querySelectorAll('.qr-tab-btn').forEach(function(el) { el.classList.remove('active'); });
+        document.getElementById('qrr-panel-' + tab).classList.add('active');
+        document.getElementById('qrr-tab-' + tab).classList.add('active');
+        if (tab !== 'camera') stopCamera();
+        if (tab === 'history') renderHistory();
+    }
+    window.switchTab = switchTab;
+
+    dropzone.addEventListener('click', function() { fileInput.click(); });
+
+    dropzone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('dragover');
+        var files = e.dataTransfer.files;
+        if (files.length > 0) {
+            processFile(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length > 0) {
+            processFile(fileInput.files[0]);
+        }
+    });
+
+    document.addEventListener('paste', function(e) {
+        var activePanel = document.querySelector('.qr-tab-content.active');
+        if (activePanel && activePanel.id === 'qrr-panel-upload') {
+            var items = e.clipboardData.items;
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    var blob = items[i].getAsFile();
+                    processFile(blob);
+                    e.preventDefault();
+                    return;
+                }
+            }
+        }
+    });
+
+    function startCamera() {
+        if (cameraStream) return;
+        var constraints = { video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } } };
+        navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+            cameraStream = stream;
+            cameraVideo.srcObject = stream;
+            cameraVideo.play();
+            startCameraBtn.disabled = true;
+            stopCameraBtn.disabled = false;
+            cameraCanvas.width = 640;
+            cameraCanvas.height = 480;
+            if (cameraInterval) clearInterval(cameraInterval);
+            cameraInterval = setInterval(function() {
+                if (!cameraVideo.videoWidth) return;
+                var ctx = cameraCanvas.getContext('2d');
+                ctx.drawImage(cameraVideo, 0, 0, 640, 480);
+                var imageData = ctx.getImageData(0, 0, 640, 480);
+                var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+                if (code && code.data) {
+                    var type = detectContentType(code.data);
+                    setResult(code.data, type);
+                    showStatus('QR Code detected from camera!', 'success');
+                    stopCamera();
+                }
+            }, 500);
+        }).catch(function(err) {
+            showStatus('Camera access denied or not available: ' + err.message, 'error');
+        });
+    }
+    window.startCamera = startCamera;
+
+    function stopCamera() {
+        if (cameraInterval) { clearInterval(cameraInterval); cameraInterval = null; }
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(function(track) { track.stop(); });
+            cameraStream = null;
+        }
+        cameraVideo.srcObject = null;
+        startCameraBtn.disabled = false;
+        stopCameraBtn.disabled = true;
+    }
+    window.stopCamera = stopCamera;
+
+    window.openResult = function() {
+        if (currentResult && currentResult.type === 'URL') {
+            window.open(currentResult.text, '_blank');
+        }
+    };
+
+    window.copyResult = function() {
+        if (currentResult) {
+            navigator.clipboard.writeText(currentResult.text).then(function() {
+                showStatus('Copied to clipboard!', 'success');
+            }).catch(function() {
+                showStatus('Copy failed', 'error');
+            });
+        }
+    };
+
+    window.clearResult = function() {
+        currentResult = null;
+        resultArea.style.display = 'none';
+        resultText.textContent = '';
+        resultType.textContent = '';
+        previewImg.src = '';
+        uploadPreview.style.display = 'none';
+        fileInput.value = '';
+        clearStatus();
+    };
+
+
+    renderHistory();
+
+    var qrResultType = document.getElementById('qrr-result-type');
+    var qrResultText = document.getElementById('qrr-result-text');
+
+    window.getQRResultType = function() { return qrResultType.textContent; };
+    window.getQRResultText = function() { return qrResultText.textContent; };
+
+    document.querySelector('.qr-drop-zone .icon').innerHTML = '&#x1F4F7;';
+})();
+    </script>
+</body>
+</html>

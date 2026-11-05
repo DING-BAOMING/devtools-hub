@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Summarizer - AI Video Summary Tool | DevTools Hub</title>
+    <meta name="description" content="Free AI YouTube video summarizer. Paste a YouTube video URL and get an AI-generated summary with key points. Private, no signup, no key.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/youtube-video-summarizer/">
+    <meta property="og:title" content="YouTube Video Summarizer - AI Video Summary Tool | DevTools Hub">
+    <meta property="og:description" content="Free AI YouTube video summarizer. Paste a YouTube video URL and get an AI-generated summary with key points. Private, no signup, no key.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/youtube-video-summarizer/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .summarize-container { margin-bottom: 12px; }
+        #yt-url { width: 100%; min-height: 90px; font-family: 'Courier New', monospace; font-size: 0.875rem; }
+        #summarize-output { min-height: 160px; font-size: 0.95rem; }
+        .error-box { background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 6px; padding: 10px 14px; color: #f87171; font-size: 0.875rem; }
+    </style>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-10-28",
+        "dateModified": "2026-10-28",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "YouTube Video Summarizer",
+        "description": "Paste a YouTube video URL and get an AI-generated summary with key points. Private, no signup, no key.",
+        "url": "https://tools.scoreroute.com/tools/youtube-video-summarizer/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["YouTube URL input", "AI-generated summary", "Key points extraction", "Copy summary"]
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>YouTube Video Summarizer</h1>
+            <p class="subtitle">AI Video Summary</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>YouTube Video Summarizer</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Summarize a Video</h2>
+                <div class="summarize-container">
+                    <label for="yt-url">YouTube Video URL</label>
+                    <textarea id="yt-url" placeholder="https://www.youtube.com/watch?v=VIDEO_ID" aria-label="YouTube video URL"></textarea>
+                </div>
+                <div class="diff-actions">
+                    <button onclick="summarize()" onpointerdown="summarize()" type="button" name="summarize" data-action="summarize" data-testid="summarize" aria-label="Summarize Video" id="summarize-btn" class="btn btn-primary">Summarize</button>
+                    <button onclick="clearAll()" onpointerdown="clearAll()" type="button" name="clear" data-action="clear" data-testid="clear" aria-label="Clear All" id="clear-btn" class="btn btn-secondary">Clear</button>
+                </div>
+                <div id="summarize-output" aria-live="polite"></div>
+                <div id="summarize-status" class="status"></div>
+                <button onclick="copySummary(event)" onpointerdown="copySummary(event)" type="button" name="copy-summary" data-action="copy-summary" data-testid="copy-summary" aria-label="Copy Summary" class="copy-btn" id="copy-summary-btn" style="display:none;">Copy Summary</button>
+            </div>
+
+            <div class="info-section">
+                <h3>What is YouTube Video Summarizer?</h3>
+                <p>Free AI YouTube video summarizer. Paste a YouTube video URL and get an AI-generated summary with key points, so you can decide whether to watch the full video.</p>
+
+                <h3>How It Works</h3>
+                <p>Enter the YouTube video URL and the tool calls the summarization pipeline. The generated summary condenses the video into an overview plus key points.</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>What does the summary include?</summary>
+                    <p>The AI-generated summary covers the video content and extracts key points for quick review.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is my data private?</summary>
+                    <p>The tool is designed to run without an account and without an API key from the visitor.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        function summarize() {
+            const url = document.getElementById('yt-url').value.trim();
+            const output = document.getElementById('summarize-output');
+            const status = document.getElementById('summarize-status');
+            const copyBtn = document.getElementById('copy-summary-btn');
+
+            if (!url) {
+                showStatus('summarize-status', 'Please enter a YouTube URL', 'error');
+                output.innerHTML = '';
+                copyBtn.style.display = 'none';
+                return;
+            }
+
+            const apiBase = '';
+            fetch(apiBase + '/api/youtube-video-summarizer?url=' + encodeURIComponent(url))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.error) {
+                        output.innerHTML = '<div class="error-box">' + data.error + '</div>';
+                        copyBtn.style.display = 'none';
+                        showStatus('summarize-status', 'Summarize failed', 'error');
+                        return;
+                    }
+                    output.innerHTML = '<div class="error-box" style="display:none;"></div><div>' + (data.summary || 'No summary returned.') + '</div>';
+                    copyBtn.style.display = 'inline-block';
+                    showStatus('summarize-status', 'Summary generated', 'success');
+                })
+                .catch(function(e) {
+                    output.innerHTML = '<div class="error-box">Failed to reach summarizer: ' + e.message + '</div>';
+                    copyBtn.style.display = 'none';
+                    showStatus('summarize-status', 'Summarize failed', 'error');
+                });
+        }
+
+        function clearAll() {
+            document.getElementById('yt-url').value = '';
+            document.getElementById('summarize-output').innerHTML = '';
+            document.getElementById('summarize-status').textContent = '';
+            document.getElementById('summarize-status').className = 'status';
+            document.getElementById('copy-summary-btn').style.display = 'none';
+        }
+
+        function copySummary(event) {
+            if (event) {
+                if (event.button !== undefined && event.button !== 0) return;
+                if (event.preventDefault) event.preventDefault();
+            }
+            const output = document.getElementById('summarize-output');
+            const text = (output.innerText || output.textContent || '').trim();
+            if (!text) { showStatus('summarize-status', 'Nothing to copy - summarize first', 'error'); return; }
+            showStatus('summarize-status', 'Copying...', 'success');
+            function fallback() {
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.setAttribute('readonly', '');
+                    ta.style.position = 'fixed';
+                    ta.style.top = '0';
+                    ta.style.left = '0';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    ta.setSelectionRange(0, text.length);
+                    const ok = document.execCommand && document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    if (ok) { showStatus('summarize-status', 'Copied to clipboard', 'success'); } else { showStatus('summarize-status', 'Copy failed - select and copy manually', 'error'); }
+                } catch (e) { showStatus('summarize-status', 'Copy failed - select and copy manually', 'error'); }
+            }
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(function() { showStatus('summarize-status', 'Copied to clipboard', 'success'); }).catch(function() { fallback(); }); }
+                else { fallback(); }
+            } catch (e) { fallback(); }
+        }
+
+        function showStatus(id, msg, type) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'status ' + type;
+            setTimeout(function() { el.textContent = ''; el.className = 'status'; }, 3000);
+        }
+    </script>
+</body>
+</html>

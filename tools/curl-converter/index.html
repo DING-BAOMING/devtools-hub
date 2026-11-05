@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cURL to Code Converter - Python, Node, Go, PHP, C# | DevTools Hub</title>
+    <meta name="description" content="Convert curl commands to Python, Node, Go, PHP, C# code. Deterministic parser, 100% in-browser, no upload, no signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/curl-converter/">
+    <meta property="og:title" content="cURL to Code Converter - Python, Node, Go, PHP, C# | DevTools Hub">
+    <meta property="og:description" content="Free cURL to code converter. Convert curl commands to Python requests, Node fetch, Go, PHP, C#, PowerShell. Deterministic parser, 100% in-browser, no upload.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/curl-converter/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="cURL to Code Converter - Python, Node, Go, PHP, C# | DevTools Hub">
+    <meta name="twitter:description" content="Free cURL to code converter. Convert curl commands to Python requests, Node fetch, Go, PHP, C#, PowerShell. Deterministic parser, 100% in-browser, no upload.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/curl-converter/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished": "2026-08-06","dateModified": "2026-08-06","author":{"@type":"Person","name":"BAOMING"},"name":"cURL to Code Converter","description":"Convert curl commands to Python, Node.js, Go, PHP, C# and PowerShell with an exact deterministic parser","url":"https://tools.scoreroute.com/tools/curl-converter/","applicationCategory":"DeveloperApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Parse headers, cookies, JSON bodies, form data and query params from curl","Generate ready-to-run code in Python, Node.js, Go, PHP, C#, PowerShell and browser fetch","100% in-browser processing, no upload, no signup"]}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>cURL to Code Converter</h1>
+            <p class="subtitle">Turn curl commands into runnable code in 7 languages</p>
+            <nav class="breadcrumb"><a href="/">Home</a> &gt; <span>cURL to Code Converter</span>  <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Paste a curl command</h2>
+                <textarea id="curl-input" placeholder="curl -X POST https://api.example.com/login \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer abc123' \
+  --data-raw '{&quot;user&quot;:&quot;demo&quot;,&quot;pass&quot;:&quot;1234&quot;}'" aria-label="curl command input" data-testid="curl-input"></textarea>
+                <div class="btn-group">
+                    <label style="display:flex;align-items:center;gap:8px;color:#aaa;font-size:0.9rem;">Target
+                        <select id="curl-target" data-testid="curl-target">
+                            <option value="python">Python (requests)</option>
+                            <option value="node">Node.js (fetch)</option>
+                            <option value="browser">Browser (fetch)</option>
+                            <option value="php">PHP (cURL)</option>
+                            <option value="go">Go (net/http)</option>
+                            <option value="csharp">C# (HttpClient)</option>
+                            <option value="powershell">PowerShell</option>
+                            <option value="curl">cURL (cleaned reference)</option>
+                        </select>
+                    </label>
+                    <button onclick="convertCurl()" class="btn btn-primary" aria-label="Convert" data-testid="curl-convert-btn">Convert</button>
+                    <button onclick="loadSample()" class="btn" aria-label="Load sample" data-testid="curl-sample-btn">Load sample</button>
+                    <button onclick="clearCurl()" class="btn btn-secondary" aria-label="Clear" data-testid="curl-clear-btn">Clear</button>
+                </div>
+                <textarea id="curl-output" readonly placeholder="Generated code appears here..." aria-label="Generated code output" data-testid="curl-output"></textarea>
+                <div id="curl-status" class="status" aria-live="polite"></div>
+                <button onclick="copyToClipboard('curl-output')" class="copy-btn" data-testid="curl-copy-btn">Copy</button>
+            </div>
+
+            <div class="info-section">
+                <h2>Why convert curl commands?</h2>
+                <p>Browsers and API tools (Chrome DevTools, Postman, Insomnia) give you a ready-made curl command that reproduces a request exactly. To run that same request in your own application you need code in the language your project uses. This converter parses the command and rebuilds it as correct, runnable code so headers, cookies, query strings, JSON bodies and form fields all survive the move.</p>
+
+                <h2>What the parser handles</h2>
+                <ul>
+                    <li><code>-X</code> / <code>--request</code> for the HTTP method, with automatic POST detection from <code>-d</code> and <code>-F</code></li>
+                    <li><code>-H</code> / <code>--header</code>, repeated headers, and the combined <code>--user-agent</code> / <code>--referer</code> forms</li>
+                    <li><code>-b</code> / <code>--cookie</code> cookie strings, plus cookie parsing from a Cookie header</li>
+                    <li><code>-d</code> / <code>--data</code> / <code>--data-raw</code>, <code>--data-urlencode</code>, and <code>-F</code> / <code>--form</code> multipart fields</li>
+                    <li>Basic auth from <code>-u</code> / <code>--user</code>, <code>-k</code> insecure, <code>-L</code> follow redirects, <code>-I</code> HEAD</li>
+                    <li>Shell quoting: single quotes, double quotes, escaped characters, and multi-line backslash continuations</li>
+                </ul>
+
+                <h2>Supported target languages</h2>
+                <ul>
+                    <li><strong>Python</strong> using the <code>requests</code> library</li>
+                    <li><strong>Node.js</strong> using native global <code>fetch</code></li>
+                    <li><strong>Browser</strong> using <code>fetch</code> for front-end work</li>
+                    <li><strong>PHP</strong> using <code>curl</code> via <code>curl_init</code></li>
+                    <li><strong>Go</strong> using <code>net/http</code></li>
+                    <li><strong>C#</strong> using <code>HttpClient</code></li>
+                    <li><strong>PowerShell</strong> using <code>Invoke-RestMethod</code></li>
+                    <li><strong>cURL reference</strong>, a normalized and commented version of the original</li>
+                </ul>
+
+                <h2>Why a parser instead of asking an AI</h2>
+                <p>Language models reword curl commands from memory, so they quietly drop cookies, reorder headers, misplace query parameters, or invent flags that never existed. A tokenizer follows the exact shell grammar: every flag, quote and separator is processed with fixed rules, so the output matches the input command character for character. When you are moving a live authenticated request, deterministic parsing is the safer choice.</p>
+
+                <h2>Privacy</h2>
+                <p>Everything runs in your browser. The command never leaves the page, which matters when a request contains session cookies or API tokens you do not want to paste into a hosted service.</p>
+
+                <h2>Frequently Asked Questions</h2>
+                <details class="faq-item"><summary>What is a cURL command?</summary>cURL is a command-line tool for sending HTTP requests. Browsers and API clients can export any request as a curl command that reproduces it exactly.</details>
+                <details class="faq-item"><summary>Where do I copy a curl command from?</summary>In Chrome DevTools open the Network tab, right click a request, then Copy and choose "Copy as cURL". Postman and Insomnia offer the same export.</details>
+                <details class="faq-item"><summary>How do I convert curl to Python?</summary>Paste the command, keep the Python (requests) target selected, and click Convert. The output uses the requests library with headers, cookies and body preserved.</details>
+                <details class="faq-item"><summary>Why is the generated code missing a header I set?</summary>Headers with empty values, or the default Content-Type that curl invents for a body, are sometimes redundant in the generated code. Inspect the cURL reference output to compare.</details>
+                <details class="faq-item"><summary>Does this tool upload my command?</summary>No. All parsing happens locally in the browser. Nothing is sent to any server.</details>
+                <details class="faq-item"><summary>Can it convert curl to Go or C#?</summary>Yes. The target dropdown includes Go with net/http and C# with HttpClient, plus PHP, PowerShell and browser fetch.</details>
+
+                <div class="related-section">
+                    <h3>Related Tools</h3>
+                    <ul>
+                        <li><a href="/tools/api-tester/">REST API Tester</a></li>
+                        <li><a href="/tools/http-status-checker/">HTTP Status Checker</a></li>
+                        <li><a href="/tools/json-formatter/">JSON Formatter</a></li>
+                        <li><a href="/tools/cors-header-generator/">CORS Header Generator</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="last-updated">Created: 2026-08-06</div>
+    <script src="/tools.js"></script>
+    <script>
+    function tokenizeCurl(cmd) {
+        const tokens = [];
+        let cur = cmd, i = 0, s = '';
+        while (i < cur.length) {
+            const c = cur[i];
+            if (c === ' ' || c === '\t' || c === '\n' || c === '\r') {
+                if (s) { tokens.push(s); s = ''; }
+                i++;
+                continue;
+            }
+            if (c === '\\' && i + 1 < cur.length && (cur[i + 1] === '\n' || cur[i + 1] === '\r')) {
+                i += 2;
+                continue;
+            }
+            if (c === "'") {
+                let j = i + 1, p = '';
+                while (j < cur.length && cur[j] !== "'") { p += cur[j]; j++; }
+                s += p;
+                i = j + 1;
+                continue;
+            }
+            if (c === '"') {
+                let j = i + 1, p = '';
+                while (j < cur.length && cur[j] !== '"') {
+                    if (cur[j] === '\\' && j + 1 < cur.length) { j++; }
+                    p += cur[j];
+                    j++;
+                }
+                s += p;
+                i = j + 1;
+                continue;
+            }
+            if (c === '\\' && i + 1 < cur.length) { s += cur[i + 1]; i += 2; continue; }
+            s += c;
+            i++;
+        }
+        if (s) tokens.push(s);
+        return tokens;
+    }
+
+    function parseCurl(cmd) {
+        const t = tokenizeCurl(cmd);
+        const req = { method: 'GET', url: '', headers: [], cookies: [], data: [], dataUrlencode: [], form: [], auth: null, insecure: false, follow: false, head: false, maxTime: null };
+        let i = 0, haveMethod = false;
+        while (i < t.length) {
+            const tok = t[i];
+            if (tok === 'curl') { i++; continue; }
+            const next = () => t[++i] || '';
+            if (tok === '-X' || tok === '--request') { req.method = next().toUpperCase(); haveMethod = true; }
+            else if (tok === '-H' || tok === '--header') {
+                const h = next();
+                const ci = h.indexOf(':');
+                if (ci > -1) req.headers.push({ name: h.slice(0, ci).trim(), value: h.slice(ci + 1).trim() });
+            }
+            else if (tok === '-u' || tok === '--user') { req.auth = next(); }
+            else if (tok === '-A' || tok === '--user-agent') { req.headers.push({ name: 'User-Agent', value: next() }); }
+            else if (tok === '-e' || tok === '--referer') { req.headers.push({ name: 'Referer', value: next() }); }
+            else if (tok === '-b' || tok === '--cookie') { req.cookies.push(next()); }
+            else if (tok === '-d' || tok === '--data' || tok === '--data-raw' || tok === '--data-ascii') { req.data.push(next()); }
+            else if (tok === '--data-urlencode') { req.dataUrlencode.push(next()); }
+            else if (tok === '-F' || tok === '--form') { req.form.push(next()); }
+            else if (tok === '-m' || tok === '--max-time' || tok === '--connect-timeout') { req.maxTime = next(); }
+            else if (tok === '-L' || tok === '--location') { req.follow = true; }
+            else if (tok === '-k' || tok === '--insecure') { req.insecure = true; }
+            else if (tok === '-I' || tok === '--head') { req.head = true; req.method = 'HEAD'; haveMethod = true; }
+            else if (tok === '-G' || tok === '--get') { req.get = true; }
+            else if (tok === '-o' || tok === '--output') { next(); }
+            else if (tok.indexOf('--') === 0 && t.length > 1 && tok.indexOf('=') === -1) {
+                // tolerate unknown long flags that take a value
+                const knownVal = ['--compressed', '--globoff', '--http1.1', '--http2', '--silent', '--fail', '--verbose', '--no-buffer', '--ssl-no-revoke'];
+                if (knownVal.indexOf(tok) === -1) next();
+            }
+            else if (tok.length > 1 && tok[0] === '-' && tok[1] !== '-') {
+                // combined short flags (e.g. -kL, -IK) and single-letter flags
+                const body = tok.slice(1);
+                for (let k = 0; k < body.length; k++) {
+                    const f = body[k];
+                    if (f === 'L') req.follow = true;
+                    else if (f === 'k') req.insecure = true;
+                    else if (f === 'I') { req.head = true; req.method = 'HEAD'; haveMethod = true; }
+                    else if (f === 'G') req.get = true;
+                    else if (f === 'H') { req.headers.push(splitHeader(next())); }
+                    else if (f === 'X') { req.method = next().toUpperCase(); haveMethod = true; }
+                }
+            }
+            else if (req.url === '' && tok.indexOf('http') === 0) { req.url = tok; }
+            i++;
+        }
+        // default method inference
+        if (!haveMethod) {
+            if (req.form.length) req.method = 'POST';
+            else if (req.data.length || req.dataUrlencode.length) req.method = req.get ? 'GET' : 'POST';
+        }
+        if (req.head) req.method = 'HEAD';
+        return req;
+    }
+
+    function splitHeader(str) {
+        const ci = str.indexOf(':');
+        return { name: str.slice(0, ci).trim(), value: str.slice(ci + 1).trim() };
+    }
+
+    function cookieObject(req) {
+        const map = {};
+        const add = (str) => {
+            if (!str) return;
+            str.split(';').forEach(p => {
+                const eq = p.indexOf('=');
+                if (eq > -1) map[p.slice(0, eq).trim()] = p.slice(eq + 1).trim();
+            });
+        };
+        req.cookies.forEach(add);
+        req.headers.forEach(h => { if (/^cookie$/i.test(h.name)) add(h.value); });
+        return map;
+    }
+
+    function headersObject(req, dropContentType) {
+        const map = {};
+        req.headers.forEach(h => {
+            if (dropContentType && /^content-type$/i.test(h.name)) return;
+            if (/^cookie$/i.test(h.name)) return;
+            if (!map[h.name]) map[h.name] = h.value;
+        });
+        return map;
+    }
+
+    function bodyString(req, includeFields) {
+        const parts = req.data.slice();
+        req.dataUrlencode.forEach(p => {
+            const eq = p.indexOf('=');
+            parts.push(eq > -1 ? p.slice(0, eq) + '=' + encodeURIComponent(p.slice(eq + 1)) : encodeURIComponent(p));
+        });
+        if (includeFields) {
+            formFields(req).fields.forEach(f => parts.push(encodeURIComponent(f.name) + '=' + encodeURIComponent(f.value)));
+        }
+        return parts.join('&');
+    }
+
+    function formFields(req) {
+        const fields = [];
+        const files = [];
+        req.form.forEach(f => {
+            const eq = f.indexOf('=');
+            const name = eq > -1 ? f.slice(0, eq).trim() : f;
+            let value = eq > -1 ? f.slice(eq + 1) : '';
+            if (eq > -1 && value.charAt(0) === '@') { files.push({ name: name, path: value.slice(1) }); }
+            else { fields.push({ name: name, value: value }); }
+        });
+        return { fields: fields, files: files };
+    }
+
+    function basicAuthHeader(req) {
+        if (!req.auth) return null;
+        const c = req.auth.indexOf(':');
+        const user = c > -1 ? req.auth.slice(0, c) : req.auth;
+        const pass = c > -1 ? req.auth.slice(c + 1) : '';
+        return 'Basic ' + btoa(user + ':' + pass);
+    }
+
+    function queryAppend(url, qs) {
+        if (!qs) return url;
+        return url + (url.indexOf('?') > -1 ? '&' : '?') + qs;
+    }
+
+    function quote(str) {
+        return JSON.stringify(str);
+    }
+
+    function genPython(req) {
+        const cookies = cookieObject(req);
+        const dropCT = req.data.length || req.dataUrlencode.length || req.form.length ? false : true;
+        const headers = headersObject(req, dropCT);
+        const useFormBody = req.form.length > 0;
+        const body = bodyString(req, useFormBody);
+        let url = req.url;
+        if (req.get && body) { url = queryAppend(url, body); }
+        let out = 'import requests\n\n';
+        out += 'url = ' + quote(url) + '\n';
+        const files = formFields(req).files;
+        if (files.length) {
+            out += '\n# file uploads (multipart form)\n';
+        }
+        if (Object.keys(headers).length) out += '\nheaders = {\n' + Object.keys(headers).map(k => '    ' + quote(k) + ': ' + quote(headers[k])).join(',\n') + '\n}\n';
+        if (Object.keys(cookies).length) out += '\ncookies = {\n' + Object.keys(cookies).map(k => '    ' + quote(k) + ': ' + quote(cookies[k])).join(',\n') + '\n}\n';
+        const call = ['response = requests.request(' + quote(req.method)];
+        call.push('    url=url');
+        if (Object.keys(headers).length) call.push('    headers=headers');
+        if (Object.keys(cookies).length) call.push('    cookies=cookies');
+        if (!req.get && body) call.push('    data=' + quote(body));
+        if (req.auth) call.push('    auth=' + quote(tupleAuth(req.auth)));
+        if (!req.insecure) call.push('    verify=True');
+        else call.push('    verify=False');
+        if (req.follow) call.push('    allow_redirects=True');
+        out += '\n' + call.join(',\n') + '\n)\n\n';
+        files.forEach(f => out += '# requests handles the body; add the file field from disk or your request:\n');
+        out += 'print(response.status_code)\nprint(response.text)\n';
+        return out;
+    }
+
+    function tupleAuth(a) {
+        const c = a.indexOf(':');
+        return "('" + (c > -1 ? a.slice(0, c) : a) + "', '" + (c > -1 ? a.slice(c + 1) : '') + "')";
+    }
+
+    function usernameOf(a) {
+        const c = a.indexOf(':');
+        return c > -1 ? a.slice(0, c) : a;
+    }
+
+    function passwordOf(a) {
+        const c = a.indexOf(':');
+        return c > -1 ? a.slice(c + 1) : '';
+    }
+
+    function genNode(req) {
+        const headers = headersObject(req, false);
+        const cookies = cookieObject(req);
+        if (Object.keys(cookies).length) headers['Cookie'] = Object.keys(cookies).map(k => k + '=' + cookies[k]).join('; ');
+        const auth = basicAuthHeader(req);
+        if (auth && !headers['Authorization']) headers['Authorization'] = auth;
+        const useFormBody = req.form.length > 0;
+        const body = bodyString(req, useFormBody);
+        let url = req.url;
+        if (req.get && body) url = queryAppend(url, body);
+        let out = '// Node.js 18+ global fetch\nconst url = ' + quote(url) + ';\n\n';
+        out += 'const options = {\n';
+        out += '  method: ' + quote(req.method) + ',\n';
+        out += '  headers: {\n' + Object.keys(headers).map(k => '    ' + quote(k) + ': ' + quote(headers[k])).join(',\n') + '\n  },\n';
+        if (!req.get && body) out += '  body: ' + quote(body) + ',\n';
+        out += '};\n\n';
+        if (formFields(req).files.length) {
+            out += '// The command uploads multipart files. In Node, build a FormData:\n';
+            out += '// const fd = new FormData();\n';
+            formFields(req).files.forEach(f => out += '// fd.append(' + quote(f.name) + ', fs.createReadStream(' + quote(f.path) + '));\n');
+            out += '// options.body = fd;\n\n';
+        }
+        out += 'try {\n  const res = await fetch(url, options);\n  const text = await res.text();\n  console.log(res.status, text);\n} catch (err) {\n  console.error(err);\n}\n';
+        return out;
+    }
+
+    function genBrowser(req) {
+        return genNode(req).replace('// Node.js 18+ global fetch', '// Browser fetch\n// add this inside an async function or module scope');
+    }
+
+    function genPHP(req) {
+        const headers = headersObject(req, false);
+        const cookies = cookieObject(req);
+        const useFormBody = req.form.length > 0;
+        const body = bodyString(req, useFormBody);
+        let url = req.url;
+        if (req.get && body) url = queryAppend(url, body);
+        let out = '<?php\n$ch = curl_init();\n\n';
+        out += 'curl_setopt($ch, CURLOPT_URL, ' + quote(url) + ');\n';
+        out += 'curl_setopt($ch, CURLOPT_CUSTOMREQUEST, ' + quote(req.method) + ');\n';
+        if (!req.get && body) out += 'curl_setopt($ch, CURLOPT_POSTFIELDS, ' + quote(body) + ');\n';
+        formFields(req).files.forEach(f => out += '// multipart file field, use app=' + quote(f.name) + ' with CURLFile:\n' + 'curl_setopt($ch, CURLOPT_POSTFIELDS, array(' + quote(f.name) + ' => curl_file_create(' + quote(f.path) + ')));\n');
+        const arr = [];
+        Object.keys(headers).forEach(k => arr.push(quote(k) + ': ' + quote(headers[k])));
+        if (Object.keys(cookies).length) arr.push('Cookie: ' + Object.keys(cookies).map(k => k + '=' + cookies[k]).join('; '));
+        out += 'curl_setopt($ch, CURLOPT_HTTPHEADER, array(\n  ' + arr.join(',\n  ') + '\n));\n';
+        if (req.auth) out += 'curl_setopt($ch, CURLOPT_USERPWD, ' + quote(req.auth) + ');\n';
+        if (req.follow) out += 'curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);\n';
+        if (req.insecure) out += 'curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);\n';
+        out += 'curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n\n$response = curl_exec($ch);\n$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);\ncurl_close($ch);\n\necho $status;\necho $response;\n';
+        return out;
+    }
+
+    function genGo(req) {
+        const headers = headersObject(req, false);
+        const cookies = cookieObject(req);
+        const useFormBody = req.form.length > 0;
+        const body = bodyString(req, useFormBody);
+        let url = req.url;
+        if (req.get && body) url = queryAppend(url, body);
+        let out = 'package main\n\nimport (\n\t"fmt"\n\t"io"\n\t"net/http"\n\t"strings"\n)\n\nfunc main() {\n';
+        out += '\turl := ' + quote(url) + '\n';
+        let payload = 'nil';
+        if (!req.get && body) payload = 'strings.NewReader(' + quote(body) + ')';
+        out += '\tpayload := ' + payload + '\n\n';
+        out += '\treq, err := http.NewRequest(' + quote(req.method) + ', url, payload)\n';
+        out += '\tif err != nil {\n\t\tpanic(err)\n\t}\n';
+        if (Object.keys(headers).length) {
+            out += '\n';
+            Object.keys(headers).forEach(k => out += '\treq.Header.Set(' + quote(k) + ', ' + quote(headers[k]) + ')\n');
+        }
+        if (Object.keys(cookies).length) {
+            out += '\n';
+            Object.keys(cookies).forEach(k => out += '\treq.AddCookie(&http.Cookie{Name: ' + quote(k) + ', Value: ' + quote(cookies[k]) + '})\n');
+        }
+        if (req.auth) out += '\n\treq.SetBasicAuth(' + quote(usernameOf(req.auth)) + ', ' + quote(passwordOf(req.auth)) + ')\n';
+        if (formFields(req).files.length) {
+            out += '\n\t// multipart upload: use "multipart.NewWriter" and add fields for the file(s), then set body and Content-Type\n';
+        }
+        out += '\n\tclient := &http.Client{}\n';
+        if (req.follow) out += '\t// by default Go follows redirects\n';
+        out += '\tresp, err := client.Do(req)\n';
+        out += '\tif err != nil {\n\t\tpanic(err)\n\t}\n';
+        out += '\tdefer resp.Body.Close()\n\n';
+        out += '\tfmt.Println(resp.StatusCode)\n';
+        out += '\tbody, _ := io.ReadAll(resp.Body)\n';
+        out += '\tfmt.Println(string(body))\n';
+        out += '}\n';
+        return out;
+    }
+
+    function genCSharp(req) {
+        const headers = headersObject(req, false);
+        const cookies = cookieObject(req);
+        const useFormBody = req.form.length > 0;
+        const body = bodyString(req, useFormBody);
+        const auth = basicAuthHeader(req);
+        let url = req.url;
+        if (req.get && body) url = queryAppend(url, body);
+        let out = 'using System.Net.Http;\nusing System.Net.Http.Headers;\nusing System.Text;\n\n';
+        out += 'var client = new HttpClient();\n';
+        if (Object.keys(cookies).length) {
+            out += 'var cookieContainer = new System.Net.CookieContainer();\n';
+            out += 'var handler = new HttpClientHandler { CookieContainer = cookieContainer };\n';
+            out += 'client = new HttpClient(handler);\n';
+            Object.keys(cookies).forEach(k => out += 'cookieContainer.Add(new Uri(' + quote(url) + '), new System.Net.Cookie(' + quote(k) + ', ' + quote(cookies[k]) + '));\n');
+        }
+        if (auth) out += 'client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", ' + quote(auth.replace('Basic ', '')) + ');\n';
+        Object.keys(headers).forEach(k => out += 'client.DefaultRequestHeaders.TryAddWithoutValidation(' + quote(k) + ', ' + quote(headers[k]) + ');\n');
+        out += '\n';
+        if (!req.get && body) {
+            out += 'var content = new StringContent(' + quote(body) + ', Encoding.UTF8);\n';
+            out += 'var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.' + req.method + ', ' + quote(url) + ') { Content = content });\n';
+        } else {
+            out += 'var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.' + req.method + ', ' + quote(url) + '));\n';
+        }
+        out += 'var text = await response.Content.ReadAsStringAsync();\n';
+        out += 'Console.WriteLine((int)response.StatusCode);\n';
+        out += 'Console.WriteLine(text);\n';
+        return out;
+    }
+
+    function genPowerShell(req) {
+        const headers = headersObject(req, false);
+        const useFormBody = req.form.length > 0;
+        const cookies = cookieObject(req);
+        const auth = basicAuthHeader(req);
+        const body = bodyString(req, useFormBody);
+        let url = req.url;
+        if (req.get && body) url = queryAppend(url, body);
+        let out = '$url = ' + quote(url) + '\n';
+        out += '$headers = @{\n';
+        Object.keys(headers).forEach(k => out += '    ' + quote(k) + ' = ' + quote(headers[k]) + '\n');
+        if (auth) out += '    "Authorization" = ' + quote(auth) + '\n';
+        out += '}\n';
+        if (Object.keys(cookies).length) {
+            out += '\n$session = New-Object Microsoft.PowerShell.Commands.WebRequestSession\n';
+            Object.keys(cookies).forEach(k => out += '$cookie = New-Object System.Net.Cookie(' + quote(k) + ', ' + quote(cookies[k]) + ', "/", [Uri]::new($url).Host)\n$session.Cookies.Add($cookie)\n');
+            out += '\n';
+        }
+        if (!req.get && body) {
+            out += '$body = ' + quote(body) + '\n';
+        }
+        out += '\n$response = Invoke-RestMethod -Uri $url -Method ' + req.method + ' -Headers $headers';
+        if (!req.get && body) out += ' -Body $body';
+        if (Object.keys(cookies).length) out += ' -WebSession $session';
+        out += '\n$response | ConvertTo-Json -Depth 5\n';
+        return out;
+    }
+
+    function genCurlRef(req) {
+        const cookies = cookieObject(req);
+        const headers = headersObject(req, false);
+        const useFormBody = req.form.length > 0;
+        const body = bodyString(req, useFormBody);
+        let url = req.url;
+        if (req.get && body) url = queryAppend(url, body);
+        let parts = ['curl'];
+        parts.push(quote(url));
+        if (req.method !== 'GET') parts.push('-X ' + req.method);
+        Object.keys(headers).forEach(k => parts.push('-H ' + quote(k + ': ' + headers[k])));
+        Object.keys(cookies).forEach(k => parts.push('-b ' + quote(k + '=' + cookies[k])));
+        if (!req.get && body) parts.push('--data-raw ' + quote(body));
+        req.form.forEach(f => parts.push('-F ' + quote(f)));
+        if (req.auth) parts.push('-u ' + quote(req.auth));
+        if (req.follow) parts.push('-L');
+        if (req.insecure) parts.push('-k');
+        return parts.join(' \\\n  ') + '\n';
+    }
+
+    function convertCurl() {
+        const input = document.getElementById('curl-input').value.trim();
+        if (!input) { showStatus('curl-status', 'Paste a curl command first.', 'error'); return; }
+        if (input.indexOf('curl') !== 0) { showStatus('curl-status', 'Command must start with "curl".', 'error'); return; }
+        try {
+            const req = parseCurl(input);
+            if (!req.url) { showStatus('curl-status', 'No URL found in the command.', 'error'); return; }
+            const target = document.getElementById('curl-target').value;
+            let out = '';
+            if (target === 'python') out = genPython(req);
+            else if (target === 'node') out = genNode(req);
+            else if (target === 'browser') out = genBrowser(req);
+            else if (target === 'php') out = genPHP(req);
+            else if (target === 'go') out = genGo(req);
+            else if (target === 'csharp') out = genCSharp(req);
+            else if (target === 'powershell') out = genPowerShell(req);
+            else out = genCurlRef(req);
+            document.getElementById('curl-output').value = out;
+            showStatus('curl-status', 'Converted: ' + req.method + ' ' + req.url, 'success');
+        } catch (e) {
+            showStatus('curl-status', 'Parse error: ' + e.message, 'error');
+        }
+    }
+
+    function loadSample() {
+        document.getElementById('curl-input').value = "curl -X POST https://api.example.com/login \\\n  -H 'Content-Type: application/json' \\\n  -H 'Accept: application/json' \\\n  -H 'Authorization: Bearer abc123' \\\n  --data-raw '{\"user\":\"demo\",\"pass\":\"1234\"}'";
+        convertCurl();
+    }
+
+    function clearCurl() {
+        document.getElementById('curl-input').value = '';
+        document.getElementById('curl-output').value = '';
+        document.getElementById('curl-status').textContent = '';
+    }
+    </script>
+<!-- Cloudflare Web Analytics --><!-- End Cloudflare Web Analytics -->
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>Old Photo Restoration - Repair Scratches & Faded Colors</title>
+    <meta name="description" content="Free old photo restoration. Repair scratches, remove noise, sharpen details, recover faded colors. 100% in browser, no upload.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/old-photo-restoration/">
+    <meta property="og:title" content="Old Photo Restoration - Repair Scratches & Faded Colors">
+    <meta property="og:description" content="Restore damaged, faded, scratched old photos. Denoise, sharpen, recover colors. 100% in browser.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/old-photo-restoration/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Old Photo Restoration","description":"Free old photo restoration: scratch repair, noise reduction, detail sharpening, color recovery. Runs entirely in browser, no upload, no signup, 100% private.","url":"https://tools.scoreroute.com/tools/old-photo-restoration/","applicationCategory":"MultimediaApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-06","dateModified":"2026-06-06"}
+    </script>
+    <style>
+        .op-dropzone { border: 3px dashed #555; border-radius: 16px; padding: 50px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; margin-bottom: 20px; }
+        .op-dropzone:hover, .op-dropzone.dragover { border-color: #667eea; background: #222250; }
+        .op-dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+        .op-dropzone-icon { font-size: 3rem; margin-bottom: 10px; }
+        .op-dropzone-text { font-size: 1.1rem; color: #ccc; }
+        .op-dropzone-text strong { color: #667eea; }
+        .op-info-bar { display: none; padding: 14px 18px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 16px; }
+        .op-info-bar.visible { display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; }
+        .op-info-item { color: #ccc; font-size: 0.9rem; }
+        .op-info-item strong { color: #667eea; margin-right: 6px; }
+        .op-mode-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; padding: 16px; background: #1a1a3e; border-radius: 12px; border: 1px solid #333; }
+        .op-mode-tabs-standalone { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+        .op-mode-pill { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; background: #0f0f23; border: 1px solid #333; border-radius: 8px; cursor: pointer; font-size: 0.95rem; color: #ccc; transition: all 0.2s; }
+        .op-mode-pill:hover { border-color: #667eea; }
+        .op-mode-pill.active { background: #667eea; color: #fff; border-color: #667eea; }
+        .op-mode-pill small { opacity: 0.7; font-size: 0.8rem; }
+        .op-controls { display: none; padding: 22px; background: #1a1a3e; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
+        .op-controls.visible { display: block; }
+        .op-control-row { display: flex; gap: 18px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .op-control-row:last-child { margin-bottom: 0; }
+        .op-control-row label { color: #aaa; font-size: 0.9rem; min-width: 130px; }
+        .op-slider-wrap { flex: 1; min-width: 200px; display: flex; gap: 10px; align-items: center; }
+        .op-slider { flex: 1; accent-color: #667eea; }
+        .op-slider-value { color: #667eea; font-weight: 600; min-width: 40px; text-align: right; font-family: monospace; }
+        .op-checkbox-row { display: flex; gap: 18px; flex-wrap: wrap; }
+        .op-checkbox { display: inline-flex; align-items: center; gap: 6px; color: #ccc; font-size: 0.9rem; cursor: pointer; }
+        .op-checkbox input { accent-color: #667eea; }
+        .op-progress { display: none; margin: 18px 0; padding: 16px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+        .op-progress.visible { display: block; }
+        .op-progress-text { color: #667eea; margin-bottom: 8px; font-size: 0.9rem; }
+        .op-progress-bar { height: 8px; background: #0f0f23; border-radius: 4px; overflow: hidden; }
+        .op-progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.3s; }
+        .op-result { display: none; margin-top: 20px; }
+        .op-result.visible { display: block; }
+        .op-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+        .op-result-header h2 { color: #fff; margin: 0; }
+        .op-result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn.is-disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary.is-disabled { background: #ccc; }
+        .op-comparison { position: relative; width: 100%; max-width: 100%; background: #0f0f23; border-radius: 12px; overflow: hidden; border: 1px solid #333; user-select: none; touch-action: none; }
+        .op-comparison img { display: block; width: 100%; height: auto; }
+        .op-comp-wrapper { position: relative; width: 100%; }
+        .op-comp-wrapper .op-comp-img { display: block; width: 100%; }
+        .op-comp-after-wrap { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
+        .op-comp-after-wrap .op-comp-img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+        .op-comp-slider { position: absolute; top: 0; bottom: 0; width: 3px; background: #fff; cursor: ew-resize; z-index: 10; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
+        .op-comp-handle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #667eea; font-weight: 700; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .op-comp-label { position: absolute; top: 10px; padding: 4px 10px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 4px; font-size: 0.8rem; font-weight: 600; pointer-events: none; }
+        .op-comp-label-before { left: 10px; }
+        .op-comp-label-after { right: 10px; }
+        .op-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 16px; }
+        .op-stat-card { background: #1a1a3e; padding: 12px 16px; border-radius: 8px; border-left: 3px solid #667eea; }
+        .op-stat-label { color: #888; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .op-stat-value { color: #fff; font-size: 1.1rem; font-weight: 600; margin-top: 2px; font-family: monospace; }
+        .op-error { display: none; margin: 14px 0; padding: 12px 16px; background: #3e1a1a; color: #ff9999; border-radius: 8px; border: 1px solid #aa3333; font-size: 0.9rem; }
+        .op-error.visible { display: block; }
+        @media (max-width: 700px) {
+            .op-info-bar.visible { flex-direction: column; gap: 6px; }
+            .op-control-row label { min-width: auto; }
+            .op-control-row { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What damage can this tool repair?","acceptedAnswer":{"@type":"Answer","text":"It repairs common issues in old photos: scratches, dust spots, faded colors, low contrast, grain/noise, and loss of detail. It uses 4 specialized algorithms (auto-enhance, scratch reduction, detail sharpening, color recovery) running entirely in your browser."}},
+{"@type":"Question","name":"Is my photo uploaded to any server?","acceptedAnswer":{"@type":"Answer","text":"No. All processing happens in your browser using Canvas API. Your photo never leaves your device. AI assistants cannot do this because they cannot access your private images."}},
+{"@type":"Question","name":"What image formats are supported?","acceptedAnswer":{"@type":"Answer","text":"JPG, PNG, WebP, GIF (first frame). Output can be saved as PNG (lossless), JPG (smaller), or WebP (modern)."}},
+{"@type":"Question","name":"How large can my input image be?","acceptedAnswer":{"@type":"Answer","text":"Up to 20 MB. Output size is limited by your device's available memory. Very large images may be slow to process on low-RAM devices."}},
+{"@type":"Question","name":"Is this the same as MyHeritage or Remini?","acceptedAnswer":{"@text":"","acceptedAnswer":{"@text":"MyHeritage charges $119-259/year and requires uploading to their server. Remini charges $9.99/week. This tool is 100% free, runs in your browser, and your photos never leave your device. Trade-off: it uses classical algorithms (median, unsharp mask, color LUT) rather than server-side AI, so the most extreme cases may need manual touch-up. For typical scratched/faded family photos, results are highly competitive."}}},
+{"@type":"Question","name":"Can I colorize a black and white photo?","acceptedAnswer":{"@text":"","acceptedAnswer":{"@text":"This tool can recover faded color photos (boost saturation, restore contrast) and apply a warm vintage tone to B&W photos. True colorization (assigning realistic colors to B&W) requires a server-side neural network model (like DeOldify) and is not in scope for browser-only processing."}}}
+]}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Old Photo Restoration</h1>
+            <p class="subtitle">Repair Scratches • Remove Noise • Recover Faded Colors • 100% Private</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Old Photo Restoration</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Upload Photo</h2>
+                <div id="dropzone" class="op-dropzone">
+                    <div class="op-dropzone-icon">&#128247;</div>
+                    <div class="op-dropzone-text">
+                        <strong>Click to upload</strong> or drag &amp; drop<br>
+                        JPG, PNG, WebP, GIF &mdash; up to 20 MB
+                    </div>
+                    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif" hidden aria-label="Image file input">
+                </div>
+
+                <div id="errorBox" class="op-error"></div>
+
+                <div id="infoBar" class="op-info-bar">
+                    <span class="op-info-item"><strong>File:</strong> <span id="infoName">-</span></span>
+                    <span class="op-info-item"><strong>Size:</strong> <span id="infoSize">-</span></span>
+                    <span class="op-info-item"><strong>Dimensions:</strong> <span id="infoDims">-</span></span>
+                    <span class="op-info-item"><strong>Format:</strong> <span id="infoFmt">-</span></span>
+                </div>
+
+                <div id="modeTabs" class="op-mode-tabs" role="group" aria-label="Restoration mode">
+                    <button class="op-mode-pill active" data-mode="auto" type="button" data-testid="mode-auto" name="mode-auto" aria-label="Auto Enhance 1-click" aria-pressed="true">Auto Enhance 1-click</button>
+                    <button class="op-mode-pill" data-mode="scratch" type="button" data-testid="mode-scratch" name="mode-scratch" aria-label="Scratch and Noise" aria-pressed="false">Scratch and Noise</button>
+                    <button class="op-mode-pill" data-mode="sharpen" type="button" data-testid="mode-sharpen" name="mode-sharpen" aria-label="Detail Sharpening" aria-pressed="false">Detail Sharpening</button>
+                    <button class="op-mode-pill" data-mode="color" type="button" data-testid="mode-color" name="mode-color" aria-label="Color Recovery" aria-pressed="false">Color Recovery</button>
+                </div>
+
+                <div id="controls" class="op-controls">
+                    <div class="op-control-row" id="scratchRow">
+                        <label for="scratchStrength">Scratch Strength:</label>
+                        <div class="op-slider-wrap">
+                            <input type="range" id="scratchStrength" class="op-slider" min="0" max="100" value="50" aria-label="Scratch reduction strength">
+                            <span class="op-slider-value" id="scratchStrengthVal">50</span>
+                        </div>
+                    </div>
+
+                    <div class="op-control-row" id="sharpenRow" style="display:none">
+                        <label for="sharpenStrength">Sharpen Strength:</label>
+                        <div class="op-slider-wrap">
+                            <input type="range" id="sharpenStrength" class="op-slider" min="0" max="100" value="50" aria-label="Sharpen strength">
+                            <span class="op-slider-value" id="sharpenStrengthVal">50</span>
+                        </div>
+                    </div>
+
+                    <div class="op-control-row" id="sharpenRadiusRow" style="display:none">
+                        <label for="sharpenRadius">Sharpen Radius:</label>
+                        <div class="op-slider-wrap">
+                            <input type="range" id="sharpenRadius" class="op-slider" min="1" max="5" value="2" aria-label="Sharpen radius">
+                            <span class="op-slider-value" id="sharpenRadiusVal">2</span>
+                        </div>
+                    </div>
+
+                    <div class="op-control-row" id="colorRow" style="display:none">
+                        <label for="saturation">Saturation:</label>
+                        <div class="op-slider-wrap">
+                            <input type="range" id="saturation" class="op-slider" min="0" max="200" value="120" aria-label="Saturation boost">
+                            <span class="op-slider-value" id="saturationVal">120</span>
+                        </div>
+                    </div>
+
+                    <div class="op-control-row" id="colorRow2" style="display:none">
+                        <label for="contrast">Contrast:</label>
+                        <div class="op-slider-wrap">
+                            <input type="range" id="contrast" class="op-slider" min="50" max="200" value="110" aria-label="Contrast">
+                            <span class="op-slider-value" id="contrastVal">110</span>
+                        </div>
+                    </div>
+
+                    <div class="op-control-row" id="colorRow3" style="display:none">
+                        <label for="warmth">Warmth (Sepia):</label>
+                        <div class="op-slider-wrap">
+                            <input type="range" id="warmth" class="op-slider" min="-50" max="50" value="0" aria-label="Warmth">
+                            <span class="op-slider-value" id="warmthVal">0</span>
+                        </div>
+                    </div>
+
+                    <div class="op-control-row">
+                        <label>Output:</label>
+                        <div class="op-checkbox-row" role="group" aria-label="Output format">
+                            <label class="op-checkbox"><input type="radio" name="fmt" value="image/png" checked> PNG (Lossless)</label>
+                            <label class="op-checkbox"><input type="radio" name="fmt" value="image/jpeg"> JPG (Smaller)</label>
+                            <label class="op-checkbox"><input type="radio" name="fmt" value="image/webp"> WebP (Modern)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="restoreBtn" class="btn btn-primary is-disabled" data-testid="restore-btn" name="restore-btn" aria-label="Restore Photo">Restore Photo</button>
+                    <button id="clearBtn" class="btn btn-secondary" data-testid="clear-btn" name="clear-btn" aria-label="Clear">Clear</button>
+                </div>
+
+                <div id="progress" class="op-progress">
+                    <div class="op-progress-text" id="progressText">Processing...</div>
+                    <div class="op-progress-bar"><div class="op-progress-fill" id="progressFill"></div></div>
+                </div>
+
+                <div class="op-result-actions op-mode-tabs-standalone">
+                    <button id="downloadBtn" class="btn btn-primary is-disabled" data-testid="download-btn" name="download-btn" aria-label="Download Restored Photo">Download Restored Photo</button>
+                    <button id="copyBtn" class="btn is-disabled" data-testid="copy-btn" name="copy-btn" aria-label="Copy to Clipboard">Copy to Clipboard</button>
+                </div>
+
+                <div id="result" class="op-result">
+                    <div class="op-result-header">
+                        <h2>Result</h2>
+                    </div>
+
+                    <div class="op-comparison" id="comparison">
+                        <div class="op-comp-wrapper" id="compWrapper">
+                            <img class="op-comp-img" id="compBefore" alt="Before (original)">
+                            <div class="op-comp-after-wrap" id="compAfterWrap">
+                                <img class="op-comp-img" id="compAfter" alt="After (restored)">
+                            </div>
+                            <div class="op-comp-slider" id="compSlider" style="left: 50%;">
+                                <div class="op-comp-handle">&#8646;</div>
+                            </div>
+                            <div class="op-comp-label op-comp-label-before">BEFORE</div>
+                            <div class="op-comp-label op-comp-label-after">AFTER</div>
+                        </div>
+                    </div>
+
+                    <div class="op-stats">
+                        <div class="op-stat-card">
+                            <div class="op-stat-label">Original</div>
+                            <div class="op-stat-value" id="statOrig">-</div>
+                        </div>
+                        <div class="op-stat-card">
+                            <div class="op-stat-label">Restored</div>
+                            <div class="op-stat-value" id="statNew">-</div>
+                        </div>
+                        <div class="op-stat-card">
+                            <div class="op-stat-label">File Size</div>
+                            <div class="op-stat-value" id="statSize">-</div>
+                        </div>
+                        <div class="op-stat-card">
+                            <div class="op-stat-label">Mode</div>
+                            <div class="op-stat-value" id="statMode">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What does this tool do?</h2>
+                <p>Old Photo Restoration repairs common issues in damaged, faded, or low-quality photos. It runs <strong>entirely in your browser</strong> using Canvas API &mdash; your photo <strong>never leaves your device</strong>. Unlike AI image generators, this tool performs real pixel-level operations (median filter, unsharp mask, color LUT) that LLMs cannot replicate.</p>
+
+                <h2>4 Restoration Modes</h2>
+                <ul>
+                    <li><strong>Auto Enhance (1-click)</strong> &mdash; intelligently combines scratch reduction + sharpening + color recovery with balanced defaults. Best for most photos.</li>
+                    <li><strong>Scratch &amp; Noise</strong> &mdash; median filter to remove dust spots, hairline scratches, and film grain. Adjustable strength.</li>
+                    <li><strong>Detail Sharpening</strong> &mdash; unsharp mask to recover lost detail. Two sliders: strength and radius.</li>
+                    <li><strong>Color Recovery</strong> &mdash; boost saturation and contrast for faded photos, or apply warm sepia tone to B&amp;W images.</li>
+                </ul>
+
+                <h2>How it works</h2>
+                <ol>
+                    <li><strong>Upload</strong> any JPG, PNG, WebP, or GIF image (up to 20 MB).</li>
+                    <li>Choose a <strong>restoration mode</strong> and adjust the sliders.</li>
+                    <li>Click the main action button &mdash; all processing is 100% in your browser, no upload to any server.</li>
+                    <li>Compare before/after with the interactive slider, then download in PNG/JPG/WebP.</li>
+                </ol>
+
+                <h2>Why use this instead of MyHeritage or Remini?</h2>
+                <ul>
+                    <li><strong>100% free, no subscription</strong> &mdash; MyHeritage charges $119-259/yr, Remini charges $9.99/wk.</li>
+                    <li><strong>100% private</strong> &mdash; your family photos never leave your device. No cloud upload, no account, no tracking.</li>
+                    <li><strong>Works offline</strong> &mdash; once loaded, the page works without internet.</li>
+                    <li><strong>No daily limits</strong> &mdash; restore as many photos as you want.</li>
+                    <li><strong>4 specialized modes</strong> &mdash; not a one-size-fits-all black box. You control the parameters.</li>
+                </ul>
+
+                <h2>Common use cases</h2>
+                <ul>
+                    <li><strong>Family photo archives</strong> &mdash; restore scanned photos of grandparents, ancestors, childhood.</li>
+                    <li><strong>Genealogy research</strong> &mdash; clean up inherited photos before sharing or printing.</li>
+                    <li><strong>Historical documents</strong> &mdash; improve clarity of old newspaper clippings, documents, certificates.</li>
+                    <li><strong>Real estate listings</strong> &mdash; restore old property photos for marketing materials.</li>
+                    <li><strong>Print preparation</strong> &mdash; improve faded photos before sending to print.</li>
+                </ul>
+
+                <h2>Frequently asked questions</h2>
+                <details class="faq-item">
+                    <summary>What damage can this tool repair?</summary>
+                    <p>It repairs common issues in old photos: scratches, dust spots, faded colors, low contrast, grain/noise, and loss of detail. It uses 4 specialized algorithms running entirely in your browser. For severely damaged photos with missing regions, manual touch-up with Photoshop may still be needed.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is my photo uploaded to any server?</summary>
+                    <p>No. All processing happens in your browser using Canvas API. Your photo never leaves your device. AI assistants cannot do this because they cannot access your private images.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What image formats are supported?</summary>
+                    <p>JPG, PNG, WebP, GIF (first frame). Output can be saved as PNG (lossless), JPG (smaller), or WebP (modern).</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How large can my input image be?</summary>
+                    <p>Up to 20 MB. Output size is limited by your device's available memory. Very large images may be slow to process on low-RAM devices.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is this the same as MyHeritage or Remini?</summary>
+                    <p>MyHeritage charges $119-259/year and requires uploading to their server. Remini charges $9.99/week. This tool is 100% free, runs in your browser, and your photos never leave your device. Trade-off: it uses classical algorithms (median, unsharp mask, color LUT) rather than server-side AI, so the most extreme cases may need manual touch-up. For typical scratched/faded family photos, results are highly competitive.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I colorize a black and white photo?</summary>
+                    <p>This tool can recover faded color photos (boost saturation, restore contrast) and apply a warm vintage tone to B&amp;W photos. True colorization (assigning realistic colors to B&amp;W) requires a server-side neural network model (like DeOldify) and is not in scope for browser-only processing.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const errorBox = document.getElementById('errorBox');
+        const infoBar = document.getElementById('infoBar');
+        const infoName = document.getElementById('infoName');
+        const infoSize = document.getElementById('infoSize');
+        const infoDims = document.getElementById('infoDims');
+        const infoFmt = document.getElementById('infoFmt');
+        const modeTabs = document.getElementById('modeTabs');
+        const controls = document.getElementById('controls');
+        const restoreBtn = document.getElementById('restoreBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const progress = document.getElementById('progress');
+        const progressText = document.getElementById('progressText');
+        const progressFill = document.getElementById('progressFill');
+        const result = document.getElementById('result');
+        const compBefore = document.getElementById('compBefore');
+        const compAfter = document.getElementById('compAfter');
+        const compSlider = document.getElementById('compSlider');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const copyBtn = document.getElementById('copyBtn');
+
+        let currentMode = 'auto';
+        let originalImage = null;
+        let originalDataUrl = null;
+        let originalFileName = '';
+        let originalFileType = 'image/png';
+        let processedBlob = null;
+        let processedDataUrl = null;
+
+        // Slider updates
+        function bindSlider(id, valId) {
+            const slider = document.getElementById(id);
+            const val = document.getElementById(valId);
+            slider.addEventListener('input', function() { val.textContent = slider.value; });
+        }
+        bindSlider('scratchStrength', 'scratchStrengthVal');
+        bindSlider('sharpenStrength', 'sharpenStrengthVal');
+        bindSlider('sharpenRadius', 'sharpenRadiusVal');
+        bindSlider('saturation', 'saturationVal');
+        bindSlider('contrast', 'contrastVal');
+        bindSlider('warmth', 'warmthVal');
+
+        // Mode tabs
+        const modeRows = {
+            auto: ['scratchRow'],
+            scratch: ['scratchRow'],
+            sharpen: ['sharpenRow', 'sharpenRadiusRow'],
+            color: ['colorRow', 'colorRow2', 'colorRow3']
+        };
+        function updateModeUI() {
+            const rows = modeRows[currentMode] || [];
+            ['scratchRow', 'sharpenRow', 'sharpenRadiusRow', 'colorRow', 'colorRow2', 'colorRow3'].forEach(id => {
+                document.getElementById(id).style.display = rows.includes(id) ? 'flex' : 'none';
+            });
+        }
+        modeTabs.querySelectorAll('.op-mode-pill').forEach(pill => {
+            const handler = function() {
+                modeTabs.querySelectorAll('.op-mode-pill').forEach(p => { p.classList.remove('active'); p.setAttribute('aria-pressed', 'false'); });
+                pill.classList.add('active');
+                pill.setAttribute('aria-pressed', 'true');
+                currentMode = pill.dataset.mode;
+                updateModeUI();
+            };
+            pill.addEventListener('click', handler);
+            pill.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); }
+            });
+        });
+
+        // Drop zone
+        dropzone.addEventListener('click', function() { fileInput.click(); });
+        dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', function() { dropzone.classList.remove('dragover'); });
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+        });
+
+        function showError(msg) {
+            errorBox.textContent = msg;
+            errorBox.classList.add('visible');
+        }
+        function clearError() {
+            errorBox.textContent = '';
+            errorBox.classList.remove('visible');
+        }
+        function fmtSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+        }
+
+        function handleFile(file) {
+            clearError();
+            if (!file.type.startsWith('image/')) {
+                showError('Please select an image file (JPG, PNG, WebP, GIF).');
+                return;
+            }
+            if (file.size > 20 * 1024 * 1024) {
+                showError('File too large. Maximum size is 20 MB.');
+                return;
+            }
+            originalFileName = file.name;
+            originalFileType = file.type;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                originalDataUrl = e.target.result;
+                const img = new Image();
+                img.onload = function() {
+                    originalImage = img;
+                    infoName.textContent = file.name;
+                    infoSize.textContent = fmtSize(file.size);
+                    infoDims.textContent = img.naturalWidth + ' × ' + img.naturalHeight;
+                    infoFmt.textContent = file.type.replace('image/', '').toUpperCase();
+                    infoBar.classList.add('visible');
+                    modeTabs.classList.add('visible');
+                    controls.classList.add('visible');
+                    restoreBtn.classList.remove('is-disabled');
+                    dropzone.classList.add('has-file');
+                    compBefore.src = originalDataUrl;
+                    result.classList.remove('visible');
+                };
+                img.onerror = function() { showError('Failed to decode image. File may be corrupt.'); };
+                img.src = e.target.result;
+            };
+            reader.onerror = function() { showError('Failed to read file.'); };
+            reader.readAsDataURL(file);
+        }
+
+        clearBtn.addEventListener('click', function() {
+            originalImage = null;
+            originalDataUrl = null;
+            originalFileName = '';
+            processedBlob = null;
+            processedDataUrl = null;
+            fileInput.value = '';
+            infoBar.classList.remove('visible');
+            modeTabs.classList.remove('visible');
+            controls.classList.remove('visible');
+            result.classList.remove('visible');
+            progress.classList.remove('visible');
+            restoreBtn.classList.add('is-disabled');
+            downloadBtn.classList.add('is-disabled');
+            copyBtn.classList.add('is-disabled');
+            dropzone.classList.remove('has-file');
+            clearError();
+        });
+
+        restoreBtn.addEventListener('click', runRestoration);
+
+        function runRestoration() {
+            if (!originalImage) return;
+            clearError();
+            restoreBtn.classList.add('is-disabled');
+            progress.classList.add('visible');
+            result.classList.remove('visible');
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Loading image...';
+
+            // Use setTimeout to let UI update
+            setTimeout(function() {
+                try {
+                    progressText.textContent = 'Analyzing pixels...';
+                    progressFill.style.width = '20%';
+
+                    const w = originalImage.naturalWidth;
+                    const h = originalImage.naturalHeight;
+                    if (w === 0 || h === 0) throw new Error('Invalid image dimensions');
+
+                    // Get params
+                    const scratchStr = parseInt(document.getElementById('scratchStrength').value) / 100;
+                    const sharpenStr = parseInt(document.getElementById('sharpenStrength').value) / 100;
+                    const sharpenRad = parseInt(document.getElementById('sharpenRadius').value);
+                    const satVal = parseInt(document.getElementById('saturation').value) / 100;
+                    const conVal = parseInt(document.getElementById('contrast').value) / 100;
+                    const warmthVal = parseInt(document.getElementById('warmth').value) / 100;
+
+                    progressText.textContent = 'Reading pixel data...';
+                    progressFill.style.width = '40%';
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    ctx.drawImage(originalImage, 0, 0);
+                    const srcImageData = ctx.getImageData(0, 0, w, h);
+                    // Work on a mutable copy of the pixel buffer
+                    const pixels = new Uint8ClampedArray(srcImageData.data);
+
+                    // Run pipeline based on mode (in-place mutation of pixels)
+                    if (currentMode === 'auto') {
+                        applyAutoEnhance(pixels, w, h, function(p) {
+                            progressText.textContent = 'Auto Enhance: ' + p + '%';
+                            progressFill.style.width = 40 + p * 0.5 + '%';
+                        });
+                    } else if (currentMode === 'scratch') {
+                        applyScratchReduction(pixels, w, h, scratchStr, function(p) {
+                            progressText.textContent = 'Scratch Reduction: ' + p + '%';
+                            progressFill.style.width = 40 + p * 0.5 + '%';
+                        });
+                    } else if (currentMode === 'sharpen') {
+                        applySharpen(pixels, w, h, sharpenStr, sharpenRad, function(p) {
+                            progressText.textContent = 'Sharpening: ' + p + '%';
+                            progressFill.style.width = 40 + p * 0.5 + '%';
+                        });
+                    } else if (currentMode === 'color') {
+                        applyColorRecovery(pixels, w, h, satVal, conVal, warmthVal, function(p) {
+                            progressText.textContent = 'Color Recovery: ' + p + '%';
+                            progressFill.style.width = 40 + p * 0.5 + '%';
+                        });
+                    }
+
+                    progressText.textContent = 'Writing output...';
+                    progressFill.style.width = '95%';
+                    // Build a fresh ImageData with the modified pixels
+                    const outImageData = new ImageData(pixels, w, h);
+                    ctx.putImageData(outImageData, 0, 0);
+
+                    // Get output format
+                    const fmtRadio = document.querySelector('input[name="fmt"]:checked');
+                    const outType = fmtRadio ? fmtRadio.value : 'image/png';
+                    const outExt = outType.split('/')[1];
+
+                    canvas.toBlob(function(blob) {
+                        if (!blob) {
+                            showError('Failed to encode output image.');
+                            restoreBtn.classList.remove('is-disabled');
+                            progress.classList.remove('visible');
+                            return;
+                        }
+                        processedBlob = blob;
+                        const reader = new FileReader();
+                        reader.onload = function(ev) {
+                            processedDataUrl = ev.target.result;
+                            compAfter.src = processedDataUrl;
+                            document.getElementById('statOrig').textContent = w + ' × ' + h;
+                            document.getElementById('statNew').textContent = w + ' × ' + h;
+                            document.getElementById('statSize').textContent = fmtSize(blob.size);
+                            const modeNames = { auto: 'Auto Enhance', scratch: 'Scratch', sharpen: 'Sharpen', color: 'Color' };
+                            document.getElementById('statMode').textContent = modeNames[currentMode];
+                            progressFill.style.width = '100%';
+                            progressText.textContent = 'Done!';
+                            setTimeout(function() {
+                                progress.classList.remove('visible');
+                                result.classList.add('visible');
+                                restoreBtn.classList.remove('is-disabled');
+                                downloadBtn.classList.remove('is-disabled');
+                                copyBtn.classList.remove('is-disabled');
+                            }, 400);
+                        };
+                        reader.readAsDataURL(blob);
+                    }, outType, 0.92);
+                } catch (e) {
+                    showError('Processing failed: ' + e.message);
+                    restoreBtn.classList.remove('is-disabled');
+                    progress.classList.remove('visible');
+                }
+            }, 50);
+        }
+
+        // ============ Core algorithms ============
+
+        // Auto Enhance: combine scratch reduction + sharpen + color recovery
+        function applyAutoEnhance(data, w, h, onProgress) {
+            applyScratchReduction(data, w, h, 0.5, function(p) { onProgress(Math.floor(p * 0.4)); });
+            applySharpen(data, w, h, 0.5, 2, function(p) { onProgress(40 + Math.floor(p * 0.4)); });
+            applyColorRecovery(data, w, h, 1.2, 1.1, 0, function(p) { onProgress(80 + Math.floor(p * 0.2)); });
+            onProgress(100);
+        }
+
+        // Median filter: 3x3 window, reduces impulse noise (dust, hairline scratches)
+        function applyScratchReduction(data, w, h, strength, onProgress) {
+            const src = new Uint8ClampedArray(data);
+            const len = data.length;
+            const step = Math.max(1, Math.floor(h / 20));
+            let p = 0;
+            for (let y = 1; y < h - 1; y++) {
+                for (let x = 1; x < w - 1; x++) {
+                    const i = (y * w + x) * 4;
+                    // Sample 3x3 neighborhood
+                    const r = [], g = [], b = [];
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            const ni = ((y + dy) * w + (x + dx)) * 4;
+                            r.push(src[ni]);
+                            g.push(src[ni + 1]);
+                            b.push(src[ni + 2]);
+                        }
+                    }
+                    r.sort(function(a, b) { return a - b; });
+                    g.sort(function(a, b) { return a - b; });
+                    b.sort(function(a, b) { return a - b; });
+                    const medR = r[4], medG = g[4], medB = b[4];
+                    // Blend original with median
+                    data[i] = src[i] * (1 - strength) + medR * strength;
+                    data[i + 1] = src[i + 1] * (1 - strength) + medG * strength;
+                    data[i + 2] = src[i + 2] * (1 - strength) + medB * strength;
+                    data[i + 3] = src[i + 3];
+                }
+                if (y % step === 0) {
+                    p = Math.floor((y / h) * 100);
+                    onProgress(p);
+                }
+            }
+            onProgress(100);
+            return data;
+        }
+
+        // Unsharp mask: original - blurred * strength, then add back
+        function applySharpen(data, w, h, strength, radius, onProgress) {
+            const src = new Uint8ClampedArray(data);
+            const len = data.length;
+            const r = Math.max(1, Math.min(5, Math.round(radius)));
+            const step = Math.max(1, Math.floor(h / 20));
+            let p = 0;
+
+            // 1) Create blurred copy using box filter (approximate Gaussian)
+            const blurred = boxBlur(src, w, h, r);
+            // 2) Subtract: sharpen = original + strength * (original - blurred)
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const i = (y * w + x) * 4;
+                    for (let c = 0; c < 3; c++) {
+                        const orig = src[i + c];
+                        const blr = blurred[i + c];
+                        let sharpened = orig + strength * (orig - blr);
+                        sharpened = Math.max(0, Math.min(255, sharpened));
+                        data[i + c] = sharpened;
+                    }
+                }
+                if (y % step === 0) {
+                    p = Math.floor((y / h) * 100);
+                    onProgress(p);
+                }
+            }
+            onProgress(100);
+            return data;
+        }
+
+        // Box blur for unsharp mask
+        function boxBlur(src, w, h, radius) {
+            const out = new Uint8ClampedArray(src);
+            // horizontal pass
+            const tmp = new Uint8ClampedArray(src);
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let r = 0, g = 0, b = 0, count = 0;
+                    for (let kx = -radius; kx <= radius; kx++) {
+                        const xx = Math.max(0, Math.min(w - 1, x + kx));
+                        const i = (y * w + xx) * 4;
+                        r += src[i];
+                        g += src[i + 1];
+                        b += src[i + 2];
+                        count++;
+                    }
+                    const i = (y * w + x) * 4;
+                    tmp[i] = r / count;
+                    tmp[i + 1] = g / count;
+                    tmp[i + 2] = b / count;
+                }
+            }
+            // vertical pass
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let r = 0, g = 0, b = 0, count = 0;
+                    for (let ky = -radius; ky <= radius; ky++) {
+                        const yy = Math.max(0, Math.min(h - 1, y + ky));
+                        const i = (yy * w + x) * 4;
+                        r += tmp[i];
+                        g += tmp[i + 1];
+                        b += tmp[i + 2];
+                        count++;
+                    }
+                    const i = (y * w + x) * 4;
+                    out[i] = r / count;
+                    out[i + 1] = g / count;
+                    out[i + 2] = b / count;
+                }
+            }
+            return out;
+        }
+
+        // Color recovery: HSL saturation + contrast + warmth
+        function applyColorRecovery(data, w, h, satMul, conMul, warmth, onProgress) {
+            const len = data.length;
+            const step = Math.max(1, Math.floor(h / 20));
+            let p = 0;
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const i = (y * w + x) * 4;
+                    let r = data[i], g = data[i + 1], b = data[i + 2];
+                    // Contrast around 128
+                    r = (r - 128) * conMul + 128;
+                    g = (g - 128) * conMul + 128;
+                    b = (b - 128) * conMul + 128;
+                    // Saturation
+                    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+                    r = gray + (r - gray) * satMul;
+                    g = gray + (g - gray) * satMul;
+                    b = gray + (b - gray) * satMul;
+                    // Warmth (shift R+, B- for warm; R-, B+ for cool)
+                    r += warmth * 30;
+                    b -= warmth * 30;
+                    data[i] = Math.max(0, Math.min(255, r));
+                    data[i + 1] = Math.max(0, Math.min(255, g));
+                    data[i + 2] = Math.max(0, Math.min(255, b));
+                }
+                if (y % step === 0) {
+                    p = Math.floor((y / h) * 100);
+                    onProgress(p);
+                }
+            }
+            onProgress(100);
+            return data;
+        }
+
+        // Compare slider drag
+        function initCompareSlider() {
+            const wrapper = document.getElementById('compWrapper');
+            const slider = document.getElementById('compSlider');
+            const afterWrap = document.getElementById('compAfterWrap');
+            let dragging = false;
+            function move(e) {
+                if (!dragging) return;
+                const rect = wrapper.getBoundingClientRect();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
+                slider.style.left = pct + '%';
+                afterWrap.style.width = pct + '%';
+                e.preventDefault();
+            }
+            function start(e) { dragging = true; move(e); e.preventDefault(); }
+            function end() { dragging = false; }
+            slider.addEventListener('mousedown', start);
+            slider.addEventListener('touchstart', start, { passive: false });
+            document.addEventListener('mousemove', move);
+            document.addEventListener('touchmove', move, { passive: false });
+            document.addEventListener('mouseup', end);
+            document.addEventListener('touchend', end);
+            // Click on image to move slider
+            wrapper.addEventListener('click', function(e) {
+                if (e.target === slider || slider.contains(e.target)) return;
+                const rect = wrapper.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const pct = Math.max(0, Math.min(100, (x / rect.width) * 100));
+                slider.style.left = pct + '%';
+                afterWrap.style.width = pct + '%';
+            });
+        }
+        initCompareSlider();
+
+        // Download
+        downloadBtn.addEventListener('click', function() {
+            if (!processedBlob) return;
+            const ext = (processedBlob.type.split('/')[1] || 'png').replace('jpeg', 'jpg');
+            const baseName = originalFileName.replace(/\.[^.]+$/, '');
+            const a = document.createElement('a');
+            a.href = processedDataUrl;
+            a.download = baseName + '-restored.' + ext;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+
+        // Copy to clipboard
+        copyBtn.addEventListener('click', function() {
+            if (!processedBlob) return;
+            if (navigator.clipboard && window.ClipboardItem) {
+                const item = new ClipboardItem({ [processedBlob.type]: processedBlob });
+                navigator.clipboard.write([item]).then(function() {
+                    const orig = copyBtn.textContent;
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(function() { copyBtn.textContent = orig; }, 1500);
+                }).catch(function() {
+                    showError('Clipboard write failed. Please use Download instead.');
+                });
+            } else {
+                showError('Clipboard API not supported in this browser. Use Download.');
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

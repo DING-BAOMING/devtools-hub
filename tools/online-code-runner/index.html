@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Code Runner - Python, JavaScript & HTML Live Compiler | DevTools Hub</title>
+  <meta name="description" content="Free online code runner. Run Python, JavaScript, and HTML/CSS in your browser. Real Pyodide WASM Python, sandboxed JS Web Worker, live HTML preview. No signup.">
+  <link rel="canonical" href="https://tools.scoreroute.com/tools/online-code-runner/">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta property="og:image" content="/og-image.png">
+  <meta property="og:title" content="Online Code Runner - Python, JavaScript & HTML Live Compiler">
+  <meta property="og:description" content="Run Python, JavaScript, and HTML in your browser for free. Real Pyodide WASM Python, sandboxed JS Web Worker, live HTML preview, syntax highlighting. No signup.">
+  <meta property="og:url" content="https://tools.scoreroute.com/tools/online-code-runner/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Online Code Runner - Run Code in Browser Free">
+  <meta name="twitter:description" content="Free online Python, JavaScript and HTML runner. No signup, no install. Real Python via Pyodide WASM, safe JS via Web Worker, live HTML preview.">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/theme/dracula.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Online Code Runner",
+    "url": "https://tools.scoreroute.com/tools/online-code-runner/",
+    "description": "Free online code runner for Python, JavaScript and HTML/CSS. Real Pyodide WASM Python execution, sandboxed JavaScript Web Worker, live HTML preview. No signup, 100% browser-based.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Any",
+    "browserRequirements": "Modern browser with WebAssembly support",
+    "author": {
+      "@type": "Organization",
+      "name": "DevTools Hub",
+      "url": "https://tools.scoreroute.com"
+    },
+    "datePublished": "2026-09-04",
+    "dateModified": "2026-09-04",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Real Python 3 via Pyodide WebAssembly",
+      "Sandboxed JavaScript via Web Worker",
+      "Live HTML and CSS preview in iframe",
+      "CodeMirror syntax highlighting",
+      "Templates and example code",
+      "Share code via URL",
+      "Download code as file",
+      "Console output with stdout and stderr"
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is the Online Code Runner really free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. No signup, no credit card, no daily limits. Unlike Replit, JDoodle or Programiz, this runner is fully free with no usage caps. Python, JavaScript and HTML all execute locally in your browser."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does Python run in the browser without a server?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Pyodide is the official CPython interpreter compiled to WebAssembly. The runner loads it from jsDelivr CDN on first use (about 5 to 10 seconds, then cached). Pyodide ships the entire Python standard library, so print, math, json, random, datetime, re and most built-in modules work out of the box."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can AI do what this tool does?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. AI chatbots can write code, but they cannot actually run it. When you ask an AI to test a Python snippet it just guesses the output, and that guess is often wrong, especially with edge cases, user input or third-party libraries. This tool executes your code for real so you see the actual stdout, errors and return values."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is my code saved or sent to a server?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Your code stays in your browser. Python runs inside Pyodide WebAssembly. JavaScript runs inside a dedicated Web Worker with no access to your page, cookies or storage. HTML renders in a sandboxed iframe. Close the tab and everything is gone."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which Python libraries are available?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The full Python standard library is bundled with Pyodide. Popular pure-Python packages from PyPI such as requests, numpy, pandas, matplotlib, sympy, beautifulsoup4 and pydantic can be loaded with micropip. Heavy packages with C extensions may be limited."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What can I use this for?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Debugging a code snippet, learning Python or JavaScript, testing a regex, trying out a small algorithm, sharing a code example, teaching a class, prototyping a quick idea, or running a one-off calculation without opening a terminal or installing anything."
+        }
+      }
+    ]
+  }
+  </script>
+  <style>
+    .ocr-wrap { max-width: 1200px; margin: 0 auto; }
+    .ocr-hero { background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 50%, #1a1a2e 100%); border-radius: 14px; padding: 24px; margin: 18px 0; text-align: center; border: 1px solid #333; }
+    .ocr-hero h2 { color: #fff; margin: 0 0 6px; font-size: 1.55rem; }
+    .ocr-hero p { color: #a8a8c0; margin: 0; font-size: 0.95rem; }
+    .ocr-pills { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+    .ocr-pill { padding: 4px 12px; background: #252540; border: 1px solid #3a3a5c; border-radius: 20px; font-size: 0.78rem; color: #a8a8c0; }
+    .ocr-pill strong { color: #7eb3ff; }
+    .ocr-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; min-height: 540px; }
+    @media(max-width: 900px) { .ocr-layout { grid-template-columns: 1fr; } }
+    .ocr-panel { display: flex; flex-direction: column; background: #1a1a2e; border: 1px solid #333; border-radius: 10px; overflow: hidden; }
+    .ocr-tabs { display: flex; background: #252540; border-bottom: 1px solid #333; padding: 0 6px; align-items: center; }
+    .ocr-lang-tab { padding: 10px 16px; background: transparent; border: none; color: #888; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; }
+    .ocr-lang-tab:hover { color: #fff; }
+    .ocr-lang-tab.active { color: #fff; background: #1a1a2e; border-bottom: 2px solid #667eea; }
+    .ocr-status-pill { margin-left: auto; padding: 4px 10px; background: #333; border-radius: 10px; font-size: 0.72rem; color: #a8a8c0; margin-right: 8px; }
+    .ocr-status-pill.ready { color: #10b981; }
+    .ocr-status-pill.loading { color: #f59e0b; }
+    .ocr-status-pill.error { color: #ef4444; }
+    .ocr-editor-host { flex: 1; position: relative; min-height: 280px; }
+    .ocr-editor-host .CodeMirror { height: 100%; min-height: 280px; font-size: 0.88rem; }
+    .ocr-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 10px 14px; background: #252540; border-top: 1px solid #333; }
+    .ocr-btn { padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: #fff; border-radius: 6px; font-size: 0.85rem; cursor: pointer; font-weight: 500; transition: filter 0.2s; }
+    .ocr-btn:hover { filter: brightness(1.1); }
+    .ocr-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
+    .ocr-btn-secondary { background: #333; border: 1px solid #444; color: #a8a8c0; }
+    .ocr-btn-secondary:hover { background: #3a3a5c; color: #fff; }
+    .ocr-tpl-row { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 14px; background: #252540; border-top: 1px solid #333; align-items: center; }
+    .ocr-tpl-row span.lbl { color: #888; font-size: 0.78rem; margin-right: 4px; }
+    .ocr-tpl-btn { padding: 4px 10px; background: #333; border: 1px solid #444; color: #a8a8c0; border-radius: 12px; font-size: 0.74rem; cursor: pointer; transition: all 0.2s; }
+    .ocr-tpl-btn:hover { background: #3a3a5c; color: #fff; border-color: #667eea; }
+    .ocr-console { flex: 1; background: #0a0a14; color: #d0d0e0; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 0.82rem; padding: 12px 14px; overflow: auto; min-height: 200px; white-space: pre-wrap; word-break: break-word; }
+    .ocr-console .line-out { color: #d0d0e0; }
+    .ocr-console .line-err { color: #fca5a5; }
+    .ocr-console .line-info { color: #888; }
+    .ocr-preview-frame { width: 100%; flex: 1; border: none; background: #fff; min-height: 280px; }
+    .ocr-stdin-area { width: 100%; padding: 10px 14px; background: #1a1a2e; border: 1px solid #333; border-radius: 6px; color: #e0e0e0; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 0.82rem; resize: vertical; min-height: 50px; box-sizing: border-box; }
+    .ocr-stdin-label { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #888; margin-bottom: 4px; }
+    .ocr-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 18px 0; }
+    .ocr-info-card { background: #1a1a2e; border: 1px solid #333; border-left: 3px solid #667eea; border-radius: 8px; padding: 14px; }
+    .ocr-info-card b { color: #fff; font-size: 0.9rem; display: block; margin-bottom: 4px; }
+    .ocr-info-card p { color: #a8a8c0; font-size: 0.83rem; margin: 0; line-height: 1.55; }
+    .ocr-hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Online Code Runner</h1>
+      <p class="subtitle">Python, JavaScript &amp; HTML Live Compiler in Your Browser</p>
+      <nav class="breadcrumb">
+        <a href="/">Home</a> &gt; <a href="/tools/code-testing/">Dev Tools</a> &gt; <span>Online Code Runner</span>
+        <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="tool-page">
+      <div class="tool-main ocr-wrap">
+
+        <div class="ocr-hero">
+          <h2>Write Code. See Real Output. No Setup.</h2>
+          <p>AI chatbots can guess what your code does. This tool actually runs it. Real Python via Pyodide WASM, sandboxed JavaScript via Web Worker, live HTML preview, all in your browser. No signup, no upload, 100% private.</p>
+          <div class="ocr-pills">
+            <span class="ocr-pill"><strong>3</strong> languages</span>
+            <span class="ocr-pill">Pyodide Python</span>
+            <span class="ocr-pill">Sandboxed JS</span>
+            <span class="ocr-pill">Live HTML</span>
+            <span class="ocr-pill">Syntax highlight</span>
+            <span class="ocr-pill">Share via URL</span>
+            <span class="ocr-pill">100% private</span>
+          </div>
+        </div>
+
+        <div class="ocr-layout">
+          <div class="ocr-panel">
+            <div class="ocr-tabs" id="ocr-lang-tabs">
+              <button class="ocr-lang-tab active" data-lang="python" type="button">Python</button>
+              <button class="ocr-lang-tab" data-lang="javascript" type="button">JavaScript</button>
+              <button class="ocr-lang-tab" data-lang="html" type="button">HTML</button>
+              <span class="ocr-status-pill" id="ocr-py-status">Python loading...</span>
+            </div>
+
+            <div class="ocr-editor-host">
+              <textarea id="ocr-editor" spellcheck="false" aria-label="Code editor"></textarea>
+            </div>
+
+            <div class="ocr-tpl-row" id="ocr-python-tpls">
+              <span class="lbl">Templates:</span>
+              <button class="ocr-tpl-btn" type="button" data-lang="python" data-tpl="hello">Hello</button>
+              <button class="ocr-tpl-btn" type="button" data-lang="python" data-tpl="math">Math &amp; loops</button>
+              <button class="ocr-tpl-btn" type="button" data-lang="python" data-tpl="regex">Regex</button>
+              <button class="ocr-tpl-btn" type="button" data-lang="python" data-tpl="json">JSON</button>
+              <button class="ocr-tpl-btn" type="button" data-lang="python" data-tpl="algo">Fibonacci</button>
+            </div>
+            <div class="ocr-tpl-row ocr-hidden" id="ocr-javascript-tpls">
+              <span class="lbl">Templates:</span>
+              <button class="ocr-tpl-btn" type="button" data-lang="javascript" data-tpl="hello">Hello</button>
+              <button class="ocr-tpl-btn" type="button" data-lang="javascript" data-tpl="dom">Fetch</button>
+              <button class="ocr-tpl-btn" type="button" data-lang="javascript" data-tpl="regex">Regex</button>
+              <button class="ocr-tpl-btn" type="button" data-lang="javascript" data-tpl="algo">Sort</button>
+            </div>
+            <div class="ocr-tpl-row ocr-hidden" id="ocr-html-tpls">
+              <span class="lbl">Templates:</span>
+              <button class="ocr-tpl-btn" type="button" data-lang="html" data-tpl="hello">Hello</button>
+              <button class="ocr-tpl-btn" type="button" data-lang="html" data-tpl="counter">Counter</button>
+              <button class="ocr-tpl-btn" type="button" data-lang="html" data-tpl="card">Card</button>
+              <button class="ocr-tpl-btn" type="button" data-lang="html" data-tpl="canvas">Canvas</button>
+            </div>
+
+            <div class="ocr-toolbar">
+              <button class="ocr-btn" type="button" id="ocr-run-btn">Run</button>
+              <button class="ocr-btn ocr-btn-secondary" type="button" id="ocr-stop-btn" disabled>Stop</button>
+              <button class="ocr-btn ocr-btn-secondary" type="button" id="ocr-clear-btn">Clear Output</button>
+              <button class="ocr-btn ocr-btn-secondary" type="button" id="ocr-share-btn">Share Link</button>
+              <button class="ocr-btn ocr-btn-secondary" type="button" id="ocr-download-btn">Download</button>
+            </div>
+          </div>
+
+          <div class="ocr-panel">
+            <div class="ocr-tabs">
+              <span class="ocr-lang-tab active" style="cursor:default;" id="ocr-right-tab-label">Output</span>
+              <span class="ocr-status-pill" id="ocr-run-status">Ready</span>
+            </div>
+
+            <div id="ocr-output-pane">
+              <div class="ocr-console" id="ocr-console" aria-live="polite"></div>
+
+              <div class="ocr-toolbar" style="flex-direction:column; align-items:stretch; gap:6px;">
+                <div class="ocr-stdin-label">
+                  <span>Standard Input (Python input()) - one value per line:</span>
+                </div>
+                <textarea class="ocr-stdin-area" id="ocr-stdin" spellcheck="false" aria-label="Standard input for Python input() calls"></textarea>
+              </div>
+            </div>
+
+            <div id="ocr-preview-pane" class="ocr-hidden">
+              <iframe id="ocr-preview-frame" class="ocr-preview-frame" title="HTML preview" sandbox="allow-scripts"></iframe>
+            </div>
+          </div>
+        </div>
+
+        <div class="ocr-info-grid">
+          <div class="ocr-info-card">
+            <b>How It Works</b>
+            <p>Pick a language, write code, click Run. Python executes through Pyodide WebAssembly with the full standard library. JavaScript runs inside a dedicated Web Worker that cannot touch your page. HTML renders in a sandboxed iframe. Output and errors stream into the console.</p>
+          </div>
+          <div class="ocr-info-card">
+            <b>Why AI Cannot Replace This</b>
+            <p>AI chatbots can write code, but they cannot actually run it. When you ask an AI to test a Python snippet it just guesses the output, and that guess is often wrong with edge cases, libraries, or user input. This runner executes your code for real, so you see actual stdout, actual errors and actual return values.</p>
+          </div>
+          <div class="ocr-info-card">
+            <b>What You Can Do</b>
+            <p>Debug a snippet, learn Python or JavaScript, test a regex, prototype a quick idea, teach a class, share a code example via URL, run a one-off calculation without opening a terminal. All without installing Python, Node, or any editor.</p>
+          </div>
+          <div class="ocr-info-card">
+            <b>Privacy &amp; Security</b>
+            <p>Your code never leaves your browser. Python runs in Pyodide WebAssembly. JavaScript runs in a Web Worker with no DOM access. HTML renders in a sandboxed iframe that cannot access cookies or storage. Close the tab and everything is gone.</p>
+          </div>
+        </div>
+
+        <h2 style="color:#fff; font-size:1.2rem; margin:24px 0 12px;">Frequently Asked Questions</h2>
+        <div class="faq-item">
+          <h3>Is the Online Code Runner really free?</h3>
+          <p>Yes. No signup, no credit card, no daily limits. Unlike Replit, JDoodle, Programiz or W3Schools try-it editors, this runner is fully free with no usage caps. Python, JavaScript and HTML all execute locally in your browser.</p>
+        </div>
+        <div class="faq-item">
+          <h3>How does Python run in the browser without a server?</h3>
+          <p>The Online Code Runner loads Pyodide, which is the official CPython interpreter compiled to WebAssembly. WebAssembly is a portable binary format that all major browsers can execute at near-native speed. Pyodide includes the entire Python standard library, so you can use print, input, math, json, random, datetime, collections, itertools, re and most built-in modules. Popular pure-Python packages can be loaded from PyPI via micropip.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Can AI do what this tool does?</h3>
+          <p>No. AI can write code suggestions, but it cannot actually execute them. When you ask an AI assistant to test a Python snippet it just guesses the output, and that guess is often wrong, especially with edge cases, user input or third-party libraries. This tool runs your code for real so you see the actual stdout, errors and return values.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Is my code saved or sent to a server?</h3>
+          <p>No. Your code stays in your browser. Python runs inside Pyodide WebAssembly. JavaScript runs inside a dedicated Web Worker with no access to your page, cookies or storage. HTML renders in a sandboxed iframe. Close the tab and everything is gone. You can optionally share code via a URL hash that encodes the code in the link itself.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Which Python libraries are available?</h3>
+          <p>The full Python standard library is bundled with Pyodide. Popular pure-Python packages from PyPI such as requests, numpy, pandas, matplotlib, sympy, beautifulsoup4 and pydantic can be loaded on demand via micropip. Heavy C-extension packages may not be available or may be slow.</p>
+        </div>
+        <div class="faq-item">
+          <h3>What can I use this for?</h3>
+          <p>Debugging a code snippet, learning Python or JavaScript, testing a regex, trying out a small algorithm, sharing a code example, teaching a class, prototyping a quick idea, or running a one-off calculation without opening a terminal or installing anything.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Why use a Web Worker for JavaScript?</h3>
+          <p>A Web Worker is a JavaScript thread that runs outside the main page. It has no access to the DOM, cookies, localStorage or your other tabs. This means your code cannot accidentally break the page or steal data, and infinite loops only freeze the worker, not your browser.</p>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+  </footer>
+
+  <script src="/tools.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/javascript/javascript.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/htmlmixed/htmlmixed.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/xml/xml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/css/css.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/matchbrackets.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/closebrackets.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/comment/comment.js"></script>
+  <script>
+    var LANG_STORAGE_KEY = 'ocr-lang';
+    var CODE_STORAGE_KEY = 'ocr-code-';
+
+    var TEMPLATES = {
+      python: {
+        hello: '# Online Code Runner - Python\nprint("Hello, World!")\nprint("Welcome to real Python in your browser.")\nprint("No server, no signup, no install.")\n',
+        math: 'import math\nimport statistics\n\nnumbers = [12, 47, 33, 89, 5, 71, 24]\nprint("Numbers:", numbers)\nprint("Count:", len(numbers))\nprint("Mean:", statistics.mean(numbers))\nprint("Median:", statistics.median(numbers))\nprint("Stdev:", round(statistics.stdev(numbers), 2))\nprint("Max:", max(numbers))\nprint("Min:", min(numbers))\nprint("Pi:", round(math.pi, 6))\nprint("Sqrt(144):", math.isqrt(144))\n',
+        regex: 'import re\n\ntext = "Reach me at alex@example.com or 555-123-4567. Backup: jane.doe+filter@dev.io."\n\nemails = re.findall(r"[\\w.+-]+@[\\w-]+\\.[\\w.-]+", text)\nphones = re.findall(r"\\d{3}-\\d{3}-\\d{4}", text)\n\nprint("Original:", text)\nprint("Emails found:", emails)\nprint("Phones found:", phones)\n',
+        json: 'import json\n\ndata = {\n    "name": "DevTools Hub",\n    "tools": 270,\n    "languages": ["Python", "JavaScript", "HTML"],\n    "active": True,\n    "version": None\n}\n\npretty = json.dumps(data, indent=2)\nprint("Pretty JSON:")\nprint(pretty)\n\nparsed = json.loads(pretty)\nprint("\\nRound-trip works:", parsed["name"], "has", parsed["tools"], "tools")\n',
+        algo: 'def fibonacci(n):\n    a, b = 0, 1\n    seq = []\n    for _ in range(n):\n        seq.append(a)\n        a, b = b, a + b\n    return seq\n\nnums = fibonacci(15)\nprint("Fibonacci (15):", nums)\nprint("Sum:", sum(nums))\nprint("Even numbers:", [x for x in nums if x % 2 == 0])\nprint("Last value:", nums[-1])\n'
+      },
+      javascript: {
+        hello: '// Online Code Runner - JavaScript\nconsole.log("Hello, World!");\nconsole.log("Sandboxed Web Worker: no DOM access.");\n\nconst items = ["Python", "JavaScript", "HTML"];\nconsole.log("Languages:", items.length);\n',
+        dom: '// Fetch runs inside the worker (no CORS for arbitrary URLs)\nconst data = { name: "DevTools Hub", tools: 270, version: "1.0" };\nconsole.log("Data:", data);\nconsole.log("JSON:", JSON.stringify(data, null, 2));\n\nconst sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);\nconsole.log("Sorted by value desc:", sorted);\n',
+        regex: 'const text = "Order #12345 placed on 2026-09-04 by alex@example.com.";\nconsole.log("Input:", text);\n\nconst orderMatch = text.match(/#(\\d+)/);\nconst dateMatch = text.match(/(\\d{4}-\\d{2}-\\d{2})/);\nconst emailMatch = text.match(/[\\w.+-]+@[\\w-]+\\.[\\w.-]+/);\n\nconsole.log("Order #:", orderMatch ? orderMatch[1] : null);\nconsole.log("Date:", dateMatch ? dateMatch[1] : null);\nconsole.log("Email:", emailMatch ? emailMatch[0] : null);\n',
+        algo: 'function quicksort(arr) {\n  if (arr.length <= 1) return arr;\n  const pivot = arr[Math.floor(arr.length / 2)];\n  const left = arr.filter(x => x < pivot);\n  const right = arr.filter(x => x > pivot);\n  const equal = arr.filter(x => x === pivot);\n  return [...quicksort(left), ...equal, ...quicksort(right)];\n}\n\nconst original = [33, 10, 55, 71, 29, 3, 18, 42];\nconst sorted = quicksort(original);\nconsole.log("Original:", original);\nconsole.log("Sorted:  ", sorted);\nconsole.log("Matches Array.sort:", JSON.stringify(sorted) === JSON.stringify([...original].sort((a, b) => a - b)));\n'
+      },
+      html: {
+        hello: '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>Hello</title>\n<style>\n  body { font-family: system-ui, sans-serif; padding: 24px; background: #f5f7fa; }\n  h1 { color: #2563eb; }\n  button { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; }\n</style>\n</head>\n<body>\n  <h1>Hello, World!</h1>\n  <p>Edit the HTML, CSS, or JS in the editor. Click Run to preview.</p>\n  <button onclick="alert(\'Hi from the preview iframe!\')">Click me</button>\n</body>\n</html>\n',
+        counter: '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<style>\n  body { font-family: system-ui; padding: 40px; background: #0f0f23; color: white; text-align: center; min-height: 100vh; margin: 0; }\n  .display { font-size: 4rem; font-weight: 700; color: #667eea; margin: 24px 0; }\n  button { width: 60px; height: 60px; border: none; border-radius: 50%; font-size: 1.5rem; cursor: pointer; margin: 0 6px; }\n  .inc { background: #10b981; color: white; }\n  .dec { background: #ef4444; color: white; }\n  .rst { background: #555; color: white; width: auto; padding: 0 24px; border-radius: 30px; }\n</style>\n</head>\n<body>\n  <h1>Counter</h1>\n  <div class="display" id="count">0</div>\n  <button class="dec" onclick="change(-1)">-</button>\n  <button class="rst" onclick="reset()">Reset</button>\n  <button class="inc" onclick="change(1)">+</button>\n  <script>\n    let n = 0;\n    function change(d) { n += d; document.getElementById("count").textContent = n; }\n    function reset() { n = 0; document.getElementById("count").textContent = 0; }\n  <' + '/script>\n</body>\n</html>\n',
+        card: '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<style>\n  body { font-family: system-ui; padding: 40px; background: linear-gradient(135deg, #1a1a2e, #2d1b4e); min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; }\n  .card { max-width: 360px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; overflow: hidden; backdrop-filter: blur(12px); }\n  .card-img { height: 180px; background: linear-gradient(135deg, #667eea, #764ba2); }\n  .card-body { padding: 20px; color: white; }\n  .tag { display: inline-block; padding: 4px 12px; background: rgba(102,126,234,0.2); color: #667eea; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }\n  h2 { margin: 8px 0; font-size: 1.2rem; }\n  p { color: #b3b8c0; font-size: 0.88rem; line-height: 1.6; }\n  button { width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; margin-top: 12px; cursor: pointer; font-weight: 600; }\n</style>\n</head>\n<body>\n  <div class="card">\n    <div class="card-img"></div>\n    <div class="card-body">\n      <span class="tag">Design</span>\n      <h2>Glassmorphism Card</h2>\n      <p>A modern card built with backdrop blur, gradient accent and clean typography. Edit the HTML/CSS to make it yours.</p>\n      <button onclick="this.textContent = this.textContent === \'Click me\' ? \'Clicked!\' : \'Click me\'">Click me</button>\n    </div>\n  </div>\n</body>\n</html>\n',
+        canvas: '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<style>\n  body { margin: 0; background: #0a0a14; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: system-ui; color: white; padding: 20px; }\n  canvas { border: 1px solid #333; border-radius: 8px; background: #000; }\n  button { margin-top: 12px; padding: 8px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; }\n</style>\n</head>\n<body>\n  <h2>Bouncing Ball</h2>\n  <canvas id="cv" width="400" height="300"></canvas>\n  <button id="btn">Reset</button>\n  <script>\n    const c = document.getElementById("cv");\n    const ctx = c.getContext("2d");\n    let x = 50, y = 50, dx = 3, dy = 2, r = 18;\n    let hue = 0;\n    function draw() {\n      ctx.fillStyle = "rgba(0,0,0,0.2)";\n      ctx.fillRect(0, 0, 400, 300);\n      ctx.beginPath();\n      ctx.arc(x, y, r, 0, Math.PI * 2);\n      ctx.fillStyle = "hsl(" + (hue = (hue + 3) % 360) + ", 80%, 60%)";\n      ctx.fill();\n      x += dx; y += dy;\n      if (x + r > 400 || x - r < 0) dx = -dx;\n      if (y + r > 300 || y - r < 0) dy = -dy;\n      requestAnimationFrame(draw);\n    }\n    document.getElementById("btn").onclick = function() { x = 50; y = 50; };\n    draw();\n  <' + '/script>\n</body>\n</html>\n'
+      }
+    };
+
+    var CODEMIRROR_MODES = {
+      python: 'python',
+      javascript: 'javascript',
+      html: 'htmlmixed'
+    };
+
+    var state = {
+      lang: 'python',
+      pyodide: null,
+      pyReady: false,
+      jsWorker: null,
+      running: false,
+      editor: null
+    };
+
+    function $(id) { return document.getElementById(id); }
+
+    function appendConsole(text, kind) {
+      var con = $('ocr-console');
+      var span = document.createElement('div');
+      span.className = 'line-' + (kind || 'out');
+      span.textContent = text;
+      con.appendChild(span);
+      con.scrollTop = con.scrollHeight;
+    }
+
+    function setRunStatus(text, cls) {
+      var el = $('ocr-run-status');
+      el.textContent = text;
+      el.className = 'ocr-status-pill ' + (cls || '');
+    }
+
+    function setPyStatus(text, cls) {
+      var el = $('ocr-py-status');
+      el.textContent = text;
+      el.className = 'ocr-status-pill ' + (cls || '');
+    }
+
+    function getStoredCode(lang) {
+      try { return localStorage.getItem(CODE_STORAGE_KEY + lang) || ''; } catch (e) { return ''; }
+    }
+
+    function setStoredCode(lang, code) {
+      try { localStorage.setItem(CODE_STORAGE_KEY + lang, code); } catch (e) {}
+    }
+
+    function switchLang(lang) {
+      if (state.lang === lang) return;
+      if (state.editor) {
+        setStoredCode(state.lang, state.editor.getValue());
+      }
+      state.lang = lang;
+      try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch (e) {}
+
+      var tabs = document.querySelectorAll('#ocr-lang-tabs .ocr-lang-tab');
+      for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.toggle('active', tabs[i].getAttribute('data-lang') === lang);
+      }
+
+      var tplRows = ['python', 'javascript', 'html'];
+      for (var j = 0; j < tplRows.length; j++) {
+        var row = $('ocr-' + tplRows[j] + '-tpls');
+        if (row) row.classList.toggle('ocr-hidden', tplRows[j] !== lang);
+      }
+
+      if (state.editor) {
+        state.editor.setOption('mode', CODEMIRROR_MODES[lang]);
+        var saved = getStoredCode(lang);
+        state.editor.setValue(saved || TEMPLATES[lang].hello);
+      }
+
+      $('ocr-right-tab-label').textContent = lang === 'html' ? 'Preview' : 'Output';
+      $('ocr-output-pane').classList.toggle('ocr-hidden', lang === 'html');
+      $('ocr-preview-pane').classList.toggle('ocr-hidden', lang !== 'html');
+
+      if (lang === 'html') {
+        runHtml();
+      } else {
+        $('ocr-preview-frame').src = 'about:blank';
+      }
+    }
+
+    function loadTemplate(lang, name) {
+      var code = TEMPLATES[lang][name];
+      if (!code || !state.editor) return;
+      state.editor.setValue(code);
+      setStoredCode(lang, code);
+      if (lang === 'html') runHtml();
+    }
+
+    function clearConsole() {
+      $('ocr-console').innerHTML = '';
+    }
+
+    function runPython() {
+      if (state.running) return;
+      if (!state.pyReady) {
+        appendConsole('Python is still loading. Please wait...', 'info');
+        return;
+      }
+      var code = state.editor.getValue();
+      if (!code.trim()) {
+        appendConsole('No code to run.', 'info');
+        return;
+      }
+      state.running = true;
+      $('ocr-run-btn').disabled = true;
+      $('ocr-stop-btn').disabled = false;
+      setRunStatus('Running...', 'loading');
+      var startTime = Date.now();
+
+      var stdinLines = $('ocr-stdin').value.split('\n');
+      var stdinIdx = 0;
+      var stdinBuffer = [];
+
+      state.pyodide.setStdin({
+        stdin: function() {
+          if (stdinIdx < stdinLines.length) {
+            var line = stdinLines[stdinIdx++];
+            if (line !== undefined) return line;
+          }
+          return null;
+        }
+      });
+      state.pyodide.setStdout({
+        batched: function(text) { appendConsole(text, 'out'); }
+      });
+      state.pyodide.setStderr({
+        batched: function(text) { appendConsole(text, 'err'); }
+      });
+
+      state.pyodide.runPythonAsync(code).then(function() {
+        var ms = Date.now() - startTime;
+        appendConsole('[Finished in ' + ms + ' ms]', 'info');
+      }).catch(function(err) {
+        appendConsole(String(err), 'err');
+      }).finally(function() {
+        state.running = false;
+        $('ocr-run-btn').disabled = false;
+        $('ocr-stop-btn').disabled = true;
+        setRunStatus('Ready', 'ready');
+      });
+    }
+
+    function runJavaScript() {
+      if (state.running) return;
+      var code = state.editor.getValue();
+      if (!code.trim()) {
+        appendConsole('No code to run.', 'info');
+        return;
+      }
+      state.running = true;
+      $('ocr-run-btn').disabled = true;
+      $('ocr-stop-btn').disabled = false;
+      setRunStatus('Running...', 'loading');
+      var startTime = Date.now();
+
+      var workerSource =
+        "self.onmessage = function(e) {" +
+        "  var data = e.data;" +
+        "  var lines = [];" +
+        "  var origLog = self.console.log;" +
+        "  var origErr = self.console.error;" +
+        "  var origWarn = self.console.warn;" +
+        "  var origInfo = self.console.info;" +
+        "  function send(kind, args) {" +
+        "    try {" +
+        "      var parts = [];" +
+        "      for (var i = 0; i < args.length; i++) parts.push(typeof args[i] === 'object' ? JSON.stringify(args[i]) : String(args[i]));" +
+        "      self.postMessage({ type: 'log', kind: kind, text: parts.join(' ') });" +
+        "    } catch (err) { self.postMessage({ type: 'log', kind: 'err', text: String(err) }); }" +
+        "  }" +
+        "  self.console.log = function() { send('out', arguments); origLog.apply(self.console, arguments); };" +
+        "  self.console.error = function() { send('err', arguments); origErr.apply(self.console, arguments); };" +
+        "  self.console.warn = function() { send('info', arguments); origWarn.apply(self.console, arguments); };" +
+        "  self.console.info = function() { send('info', arguments); origInfo.apply(self.console, arguments); };" +
+        "  var ScriptTimeout;" +
+        "  if (data.timeout && data.timeout > 0) {" +
+        "    ScriptTimeout = setTimeout(function() {" +
+        "      self.postMessage({ type: 'timeout' });" +
+        "      self.close();" +
+        "    }, data.timeout);" +
+        "  }" +
+        "  try {" +
+        "    var result = (0, eval)(data.code);" +
+        "    if (typeof result !== 'undefined') {" +
+        "      var displayed = (typeof result === 'object' && result !== null) ? JSON.stringify(result) : String(result);" +
+        "      self.postMessage({ type: 'return', text: displayed });" +
+        "    }" +
+        "    self.postMessage({ type: 'done' });" +
+        "  } catch (err) {" +
+        "    self.postMessage({ type: 'error', text: String(err && err.stack ? err.stack : err) });" +
+        "  } finally {" +
+        "    if (ScriptTimeout) clearTimeout(ScriptTimeout);" +
+        "  }" +
+        "};";
+
+      var blob;
+      try {
+        blob = new Blob([workerSource], { type: 'application/javascript' });
+      } catch (e) {
+        appendConsole('Could not create worker: ' + e.message, 'err');
+        state.running = false;
+        $('ocr-run-btn').disabled = false;
+        $('ocr-stop-btn').disabled = true;
+        setRunStatus('Ready', 'ready');
+        return;
+      }
+      var url = URL.createObjectURL(blob);
+      var worker;
+      try {
+        worker = new Worker(url);
+      } catch (e) {
+        appendConsole('Worker not supported: ' + e.message, 'err');
+        state.running = false;
+        $('ocr-run-btn').disabled = false;
+        $('ocr-stop-btn').disabled = true;
+        setRunStatus('Ready', 'ready');
+        return;
+      }
+      state.jsWorker = worker;
+
+      var timedOut = false;
+      worker.onmessage = function(e) {
+        var d = e.data;
+        if (d.type === 'log') {
+          appendConsole(d.text, d.kind);
+        } else if (d.type === 'return') {
+          appendConsole('=> ' + d.text, 'info');
+        } else if (d.type === 'done') {
+          if (!timedOut) {
+            var ms = Date.now() - startTime;
+            appendConsole('[Finished in ' + ms + ' ms]', 'info');
+          }
+          worker.terminate();
+          URL.revokeObjectURL(url);
+          state.jsWorker = null;
+          state.running = false;
+          $('ocr-run-btn').disabled = false;
+          $('ocr-stop-btn').disabled = true;
+          setRunStatus('Ready', 'ready');
+        } else if (d.type === 'error') {
+          appendConsole(d.text, 'err');
+        } else if (d.type === 'timeout') {
+          timedOut = true;
+          appendConsole('[Script stopped: exceeded 5 second safety timeout]', 'err');
+        }
+      };
+      worker.onerror = function(err) {
+        appendConsole('Worker error: ' + err.message, 'err');
+        try { worker.terminate(); } catch (e) {}
+        URL.revokeObjectURL(url);
+        state.jsWorker = null;
+        state.running = false;
+        $('ocr-run-btn').disabled = false;
+        $('ocr-stop-btn').disabled = true;
+        setRunStatus('Ready', 'ready');
+      };
+      worker.postMessage({ code: code, timeout: 5000 });
+    }
+
+    function runHtml() {
+      var code = state.editor.getValue();
+      if (!code.trim()) {
+        $('ocr-preview-frame').src = 'about:blank';
+        return;
+      }
+      var html = code;
+      if (/<head>/i.test(html) && !/<base\s/i.test(html)) {
+        html = html.replace(/<head>/i, '<head><base href="about:blank">');
+      }
+      var iframe = $('ocr-preview-frame');
+      iframe.src = 'data:text/html;charset=utf-8,' + encodeURIComponent(html);
+      setRunStatus('Preview rendered', 'ready');
+    }
+
+    function runCode() {
+      if (state.lang === 'python') runPython();
+      else if (state.lang === 'javascript') runJavaScript();
+      else if (state.lang === 'html') runHtml();
+    }
+
+    function stopCode() {
+      if (state.lang === 'javascript' && state.jsWorker) {
+        try { state.jsWorker.terminate(); } catch (e) {}
+        state.jsWorker = null;
+        appendConsole('[Stopped]', 'info');
+      }
+      state.running = false;
+      $('ocr-run-btn').disabled = false;
+      $('ocr-stop-btn').disabled = true;
+      setRunStatus('Stopped', '');
+    }
+
+    function shareLink() {
+      var code = state.editor.getValue();
+      var lang = state.lang;
+      var encoded;
+      try {
+        encoded = btoa(unescape(encodeURIComponent(code)));
+      } catch (e) {
+        appendConsole('Could not encode code for sharing.', 'err');
+        return;
+      }
+      var url = window.location.origin + window.location.pathname + '#' + lang + ':' + encoded;
+      try {
+        navigator.clipboard.writeText(url).then(function() {
+          appendConsole('Share link copied to clipboard.', 'info');
+        }).catch(function() {
+          prompt('Copy this link:', url);
+        });
+      } catch (e) {
+        prompt('Copy this link:', url);
+      }
+    }
+
+    function downloadCode() {
+      var code = state.editor.getValue();
+      var ext = { python: 'py', javascript: 'js', html: 'html' }[state.lang] || 'txt';
+      var mime = { python: 'text/x-python', javascript: 'application/javascript', html: 'text/html' }[state.lang] || 'text/plain';
+      var blob = new Blob([code], { type: mime + ';charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'code-' + Date.now() + '.' + ext;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    }
+
+    function tryLoadFromHash() {
+      var hash = window.location.hash || '';
+      if (hash.length < 4) return false;
+      var m = hash.match(/^#(python|javascript|html):(.+)$/);
+      if (!m) return false;
+      var lang = m[1];
+      var encoded = m[2];
+      try {
+        var code = decodeURIComponent(escape(atob(encoded)));
+        switchLang(lang);
+        if (state.editor) {
+          state.editor.setValue(code);
+          setStoredCode(lang, code);
+        }
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function initEditor() {
+      var savedLang = 'python';
+      try {
+        var s = localStorage.getItem(LANG_STORAGE_KEY);
+        if (s && TEMPLATES[s]) savedLang = s;
+      } catch (e) {}
+
+      var savedCode = getStoredCode(savedLang) || TEMPLATES[savedLang].hello;
+      $('ocr-editor').value = savedCode;
+
+      state.editor = CodeMirror.fromTextArea($('ocr-editor'), {
+        mode: CODEMIRROR_MODES[savedLang],
+        theme: 'dracula',
+        lineNumbers: true,
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        indentUnit: 2,
+        tabSize: 2,
+        extraKeys: {
+          'Ctrl-/': function(cm) { cm.toggleComment(); },
+          'Cmd-/': function(cm) { cm.toggleComment(); }
+        }
+      });
+
+      state.editor.on('change', function() {
+        setStoredCode(state.lang, state.editor.getValue());
+      });
+
+      state.lang = savedLang;
+
+      var tabs = document.querySelectorAll('#ocr-lang-tabs .ocr-lang-tab');
+      for (var i = 0; i < tabs.length; i++) {
+        (function(tab) {
+          tab.addEventListener('click', function() { switchLang(tab.getAttribute('data-lang')); });
+        })(tabs[i]);
+      }
+
+      var tplBtns = document.querySelectorAll('.ocr-tpl-btn');
+      for (var j = 0; j < tplBtns.length; j++) {
+        (function(btn) {
+          btn.addEventListener('click', function() {
+            loadTemplate(btn.getAttribute('data-lang'), btn.getAttribute('data-tpl'));
+          });
+        })(tplBtns[j]);
+      }
+
+      $('ocr-run-btn').addEventListener('click', runCode);
+      $('ocr-stop-btn').addEventListener('click', stopCode);
+      $('ocr-clear-btn').addEventListener('click', clearConsole);
+      $('ocr-share-btn').addEventListener('click', shareLink);
+      $('ocr-download-btn').addEventListener('click', downloadCode);
+
+      switchLang(savedLang);
+
+      var loadedFromHash = tryLoadFromHash();
+      if (!loadedFromHash && state.lang === 'html') {
+        runHtml();
+      }
+    }
+
+    function initPyodide() {
+      if (window.loadPyodide) {
+        window.loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/' }).then(function(py) {
+          state.pyodide = py;
+          state.pyReady = true;
+          setPyStatus('Python ready', 'ready');
+          appendConsole('Python ' + py.version + ' loaded. Pyodide WebAssembly is ready.', 'info');
+        }).catch(function(err) {
+          setPyStatus('Python failed', 'error');
+          appendConsole('Failed to load Pyodide: ' + err.message, 'err');
+        });
+        return;
+      }
+      var script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
+      script.onload = function() {
+        if (window.loadPyodide) {
+          window.loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/' }).then(function(py) {
+            state.pyodide = py;
+            state.pyReady = true;
+            setPyStatus('Python ready', 'ready');
+            appendConsole('Python ' + py.version + ' loaded. Pyodide WebAssembly is ready.', 'info');
+          }).catch(function(err) {
+            setPyStatus('Python failed', 'error');
+            appendConsole('Failed to load Pyodide: ' + err.message, 'err');
+          });
+        } else {
+          setPyStatus('Python offline', 'error');
+          appendConsole('Pyodide script loaded but window.loadPyodide missing.', 'err');
+        }
+      };
+      script.onerror = function() {
+        setPyStatus('Python offline', 'error');
+        appendConsole('Could not load Pyodide from CDN. JavaScript and HTML still work.', 'err');
+      };
+      document.head.appendChild(script);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() { initEditor(); initPyodide(); });
+    } else {
+      initEditor();
+      initPyodide();
+    }
+  </script>
+</body>
+</html>

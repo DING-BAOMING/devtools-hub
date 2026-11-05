@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>CSS Grid Generator - Visual Layout Builder | DevTools Hub</title>
+    <meta name="description" content="Free CSS grid generator with drag-and-drop builder. Create responsive grid layouts, columns, rows, gaps. Copy production CSS.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/css-grid-generator/">
+    <meta property="og:title" content="CSS Grid Generator | DevTools Hub">
+    <meta property="og:description" content="Create beautiful CSS grid layouts visually with interactive controls. Define columns, rows, gaps, and alignment. Copy CSS code instantly. Free, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/css-grid-generator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="CSS Grid Generator | DevTools Hub">
+    <meta name="twitter:description" content="Create beautiful CSS grid layouts visually with interactive controls. Define columns, rows, gaps, and alignment. Copy CSS code instantly. Free, no signup.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/css-grid-generator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Free CSS Grid Generator","description":"Create beautiful CSS grid layouts with interactive visual controls. Define columns, rows, gaps, and alignment. Copy production-ready CSS code. No signup required.","url":"https://tools.scoreroute.com/tools/css-grid-generator/","applicationCategory":"DesignApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-21","dateModified":"2026-06-21"}
+    </script>
+    <style>
+        .cgg-controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+        .cgg-controls label { color:#aaa; font-size:0.85rem; margin-right:4px; }
+        .cgg-controls select, .cgg-controls input[type="number"] { background:#1a1a2e; border:1px solid #333; color:#fff; padding:8px 12px; border-radius:6px; font-size:0.9rem; width:80px; }
+        .cgg-controls select:focus, .cgg-controls input:focus { outline: 2px solid transparent; border-color:#667eea; }
+        .cgg-dim-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:16px; }
+        .cgg-dim-group { display:flex; align-items:center; gap:6px; }
+        .cgg-dim-group label { color:#aaa; font-size:0.8rem; }
+        .cgg-dim-group input[type="number"] { width:60px; background:#1a1a2e; border:1px solid #333; color:#fff; padding:6px 8px; border-radius:6px; font-size:0.85rem; text-align:center; }
+        .cgg-dim-group select { width:80px; background:#1a1a2e; border:1px solid #333; color:#fff; padding:6px 8px; border-radius:6px; font-size:0.85rem; }
+        .cgg-dim-group input:focus, .cgg-dim-group select:focus { outline: 2px solid transparent; border-color:#667eea; }
+        .cgg-grid-container { display:grid; background:#0f0f23; border:2px solid #2a2a4a; border-radius:16px; padding:4px; margin-bottom:16px; min-height:200px; transition:all 0.2s; position:relative; }
+        .cgg-grid-cell { background:linear-gradient(135deg, #1e2a4a, #2a3a5a); border:1px solid #3a4a6a; border-radius:6px; min-height:60px; display:flex; align-items:center; justify-content:center; color:#8af; font-size:0.85rem; font-weight:600; cursor:pointer; transition:all 0.2s; padding:8px; text-align:center; position:relative; }
+        .cgg-grid-cell:hover { background:linear-gradient(135deg, #2a3a5a, #3a4a7a); border-color:#667eea; }
+        .cgg-grid-cell.active { background:linear-gradient(135deg, #2a4a7a, #3a5a9a); border-color:#667eea; box-shadow:0 0 12px rgba(102,126,234,0.3); }
+        .cgg-grid-cell .cgg-span-badge { position:absolute; top:-8px; right:-8px; background:#667eea; color:#fff; font-size:0.65rem; padding:2px 6px; border-radius:4px; font-weight:700; }
+        .cgg-cell-selector { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; min-height:40px; background:#0f0f23; border:1px solid #2a2a4a; border-radius:10px; padding:12px; align-items:center; }
+        .cgg-cell-selector span { color:#888; font-size:0.85rem; }
+        .cgg-cell-btn { background:#1a1a2e; border:1px solid #3a3a5a; color:#aaa; padding:4px 12px; border-radius:6px; cursor:pointer; font-size:0.8rem; transition:all 0.2s; }
+        .cgg-cell-btn:hover, .cgg-cell-btn.active { border-color:#667eea; color:#667eea; }
+        .cgg-cell-btn.cgg-add-cell { border-style:dashed; color:#667eea; border-color:#667eea; }
+        .cgg-span-controls { display:flex; gap:8px; align-items:center; }
+        .cgg-span-controls label { color:#aaa; font-size:0.8rem; }
+        .cgg-span-controls input[type="number"] { width:50px; background:#1a1a2e; border:1px solid #333; color:#fff; padding:4px 6px; border-radius:4px; font-size:0.8rem; text-align:center; }
+        .cgg-presets { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+        .cgg-preset-btn { background:#1a1a2e; border:1px solid #3a3a5a; color:#ccc; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.8rem; transition:all 0.2s; }
+        .cgg-preset-btn:hover, .cgg-preset-btn.active { border-color:#667eea; color:#667eea; }
+        .cgg-align-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
+        .cgg-align-group { display:flex; align-items:center; gap:6px; }
+        .cgg-align-group label { color:#aaa; font-size:0.8rem; }
+        .cgg-align-group select { background:#1a1a2e; border:1px solid #333; color:#fff; padding:6px 8px; border-radius:6px; font-size:0.82rem; }
+        .cgg-align-group select:focus { outline: 2px solid transparent; border-color:#667eea; }
+        .cgg-tools { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+        .cgg-css-output { background:#0f0f23; border:1px solid #2a2a4a; border-radius:12px; padding:16px; font-family:monospace; font-size:0.85rem; color:#aef; white-space:pre-wrap; word-break:break-all; max-height:200px; overflow-y:auto; margin-bottom:16px; }
+        .cgg-grid-lines { position:absolute; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:1; }
+        .cgg-grid-lines .cgg-line-h, .cgg-grid-lines .cgg-line-v { position:absolute; background:rgba(102,126,234,0.15); z-index:1; }
+        .cgg-grid-lines .cgg-line-v { width:1px; top:0; bottom:0; }
+        .cgg-grid-lines .cgg-line-h { height:1px; left:0; right:0; }
+        .cgg-label { position:absolute; z-index:2; }
+        .cgg-label { position:absolute; background:rgba(102,126,234,0.8); color:#fff; font-size:0.6rem; padding:1px 4px; border-radius:3px; z-index:2; pointer-events:none; }
+        .cgg-responsive-bar { display:flex; gap:8px; margin-bottom:16px; }
+        .cgg-responsive-btn { background:#1a1a2e; border:1px solid #3a3a5a; color:#888; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.8rem; transition:all 0.2s; }
+        .cgg-responsive-btn:hover, .cgg-responsive-btn.active { border-color:#667eea; color:#667eea; }
+        .cgg-grid-container.resp-mobile { max-width:360px; margin-left:auto; margin-right:auto; }
+        .cgg-grid-container.resp-tablet { max-width:720px; margin-left:auto; margin-right:auto; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>CSS Grid Generator</h1>
+            <p class="subtitle">Create responsive grid layouts with an interactive visual builder</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/generators/">Generators</a> &gt; <span>CSS Grid Generator</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Build Your Grid</h2>
+                <div class="cgg-dim-row">
+                    <div class="cgg-dim-group">
+                        <label>Columns:</label>
+                        <input aria-label="Columns" type="number" id="cggCols" value="3" min="1" max="12" onchange="cggUpdateGrid()">
+                    </div>
+                    <div class="cgg-dim-group">
+                        <label>Rows:</label>
+                        <input aria-label="Rows" type="number" id="cggRows" value="3" min="1" max="12" onchange="cggUpdateGrid()">
+                    </div>
+                    <div class="cgg-dim-group">
+                        <label>Gap:</label>
+                        <input aria-label="Gap" type="number" id="cggGap" value="16" min="0" max="100" onchange="cggUpdateGrid()">
+                        <label class="sr-only" for="cggGapUnit">Gap unit</label>
+                        <select id="cggGapUnit"><option value="px" selected>px</option><option value="em">em</option></select>
+                    </div>
+                </div>
+                <div class="cgg-presets">
+                    <button class="cgg-preset-btn active" onclick="cggLoadPreset('custom')">Custom</button>
+                    <button class="cgg-preset-btn" onclick="cggLoadPreset('holy-grail')">Holy Grail</button>
+                    <button class="cgg-preset-btn" onclick="cggLoadPreset('gallery')">Photo Gallery</button>
+                    <button class="cgg-preset-btn" onclick="cggLoadPreset('dashboard')">Dashboard</button>
+                    <button class="cgg-preset-btn" onclick="cggLoadPreset('card-grid')">Card Grid</button>
+                    <button class="cgg-preset-btn" onclick="cggLoadPreset('magazine')">Magazine</button>
+                    <button class="cgg-preset-btn" onclick="cggLoadPreset('columns-12')">12-Column</button>
+                </div>
+                <div class="cgg-responsive-bar">
+                    <button class="cgg-responsive-btn active" onclick="cggSetResponsive('full',this)">Desktop</button>
+                    <button class="cgg-responsive-btn" onclick="cggSetResponsive('tablet',this)">Tablet</button>
+                    <button class="cgg-responsive-btn" onclick="cggSetResponsive('mobile',this)">Mobile</button>
+                </div>
+                <div id="cggGridWrap" style="position:relative;">
+                    <div id="cggGrid" class="cgg-grid-container"></div>
+                </div>
+                <div class="cgg-align-row">
+                    <div class="cgg-align-group">
+                        <label for="cggJustifyItems">Justify Items:</label>
+                        <select id="cggJustifyItems" onchange="cggUpdateGrid()">
+                            <option value="stretch">stretch</option>
+                            <option value="start">start</option>
+                            <option value="center">center</option>
+                            <option value="end">end</option>
+                        </select>
+                    </div>
+                    <div class="cgg-align-group">
+                        <label for="cggAlignItems">Align Items:</label>
+                        <select id="cggAlignItems" onchange="cggUpdateGrid()">
+                            <option value="stretch">stretch</option>
+                            <option value="start">start</option>
+                            <option value="center">center</option>
+                            <option value="end">end</option>
+                        </select>
+                    </div>
+                    <div class="cgg-align-group">
+                        <label for="cggJustifyContent">Justify Content:</label>
+                        <select id="cggJustifyContent" onchange="cggUpdateGrid()">
+                            <option value="start">start</option>
+                            <option value="center">center</option>
+                            <option value="end">end</option>
+                            <option value="space-around">space-around</option>
+                            <option value="space-between">space-between</option>
+                            <option value="space-evenly">space-evenly</option>
+                        </select>
+                    </div>
+                    <div class="cgg-align-group">
+                        <label for="cggAlignContent">Align Content:</label>
+                        <select id="cggAlignContent" onchange="cggUpdateGrid()">
+                            <option value="start">start</option>
+                            <option value="center">center</option>
+                            <option value="end">end</option>
+                            <option value="space-around">space-around</option>
+                            <option value="space-between">space-between</option>
+                            <option value="space-evenly">space-evenly</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="cgg-tools">
+                    <button onclick="cggResetGrid()" class="btn btn-secondary">Reset Grid</button>
+                </div>
+                <div class="cgg-css-output" id="cggCssOutput">/* CSS Grid code will appear here */</div>
+                <div class="btn-group">
+                    <button onclick="cggCopyCSS()" class="btn btn-primary">Copy CSS</button>
+                    <button onclick="cggCopyHTML()" class="btn">Copy HTML</button>
+                </div>
+            </div>
+            <div class="info-section">
+                <div class="faq-item">
+                    <details>
+                        <summary>How to use the CSS Grid Generator?</summary>
+                        <p>Set the number of columns and rows, adjust the gap size, then click any cell to select it. Use the span controls to make cells span multiple rows or columns. Choose from presets like Holy Grail, Photo Gallery, or Dashboard. Copy the generated CSS and HTML to use in your project.</p>
+                    </details>
+                </div>
+                <div class="faq-item">
+                    <details>
+                        <summary>What does the fr unit mean in CSS Grid?</summary>
+                        <p>The <code>fr</code> unit stands for "fraction" of the available space. After fixed-size tracks (px, em, %) are subtracted, the remaining space is divided proportionally among fr tracks. For example, <code>grid-template-columns: 1fr 2fr 1fr</code> gives the middle column twice as much space as the sides.</p>
+                    </details>
+                </div>
+                <div class="faq-item">
+                    <details>
+                        <summary>How do I make a CSS grid responsive?</summary>
+                        <p>Use media queries to change <code>grid-template-columns</code> at different breakpoints. Alternatively, use <code>auto-fit</code> or <code>auto-fill</code> with <code>minmax()</code> to create grids that automatically adjust based on container width without media queries.</p>
+                    </details>
+                </div>
+                <div class="faq-item">
+                    <details>
+                        <summary>Can I use CSS Grid in all browsers?</summary>
+                        <p>CSS Grid is supported by all modern browsers including Chrome, Firefox, Safari, and Edge. Internet Explorer 11 has partial support using an older syntax. For modern web development, Grid is considered safe and standard.</p>
+                    </details>
+                </div>
+                <div class="faq-item">
+                    <details>
+                        <summary>What's the difference between CSS Grid and Flexbox?</summary>
+                        <p>CSS Grid is two-dimensional (rows and columns simultaneously), making it ideal for page layouts and complex grid structures. Flexbox is one-dimensional (either row or column), best for navigation bars, centering items, or distributing space along a single axis.</p>
+                    </details>
+                </div>
+                <div class="faq-item">
+                    <details>
+                        <summary>What does it mean "AI cannot show you grid layouts"?</summary>
+                        <p>AI chatbots like ChatGPT and Claude generate text-only responses. They can describe CSS grid code but cannot render, display, or let you interact with a visual grid layout. This tool provides a real, interactive visual grid that you can see and manipulate in your browser - something no AI can do.</p>
+                    </details>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+    <script src="/tools.js"></script>
+    <script>
+        var cggSelectedCell = null;
+        var cggCells = [];
+        var cggCellIdCounter = 0;
+        var cggCurrentPreset = 'custom';
+
+        function cggBuildGrid() {
+            var cols = parseInt(document.getElementById('cggCols').value) || 3;
+            var rows = parseInt(document.getElementById('cggRows').value) || 3;
+            var gap = parseInt(document.getElementById('cggGap').value) || 16;
+            var gapUnit = document.getElementById('cggGapUnit').value;
+            var justifyItems = document.getElementById('cggJustifyItems').value;
+            var alignItems = document.getElementById('cggAlignItems').value;
+            var justifyContent = document.getElementById('cggJustifyContent').value;
+            var alignContent = document.getElementById('cggAlignContent').value;
+
+            var grid = document.getElementById('cggGrid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+            grid.style.gridTemplateRows = 'repeat(' + rows + ', 1fr)';
+            grid.style.gap = gap + gapUnit;
+            grid.style.justifyItems = justifyItems;
+            grid.style.alignItems = alignItems;
+            grid.style.justifyContent = justifyContent;
+            grid.style.alignContent = alignContent;
+
+            cggCells = [];
+            var totalCells = cols * rows;
+            for (var i = 0; i < totalCells; i++) {
+                var cell = document.createElement('div');
+                cell.className = 'cgg-grid-cell';
+                cell.id = 'cgg-cell-' + (++cggCellIdCounter);
+                cell.textContent = (i + 1);
+                cell.dataset.index = i;
+                cell.dataset.row = Math.floor(i / cols) + 1;
+                cell.dataset.col = (i % cols) + 1;
+                cell.dataset.rowspan = 1;
+                cell.dataset.colspan = 1;
+                cell.onclick = function() { cggSelectCell(this); };
+                grid.appendChild(cell);
+                cggCells.push(cell);
+            }
+            cggSelectedCell = null;
+            cggUpdateCSS();
+        }
+
+        function cggSelectCell(cell) {
+            if (cggSelectedCell) { cggSelectedCell.classList.remove('active'); }
+            cggSelectedCell = cell;
+            cell.classList.add('active');
+            document.getElementById('cggSpanInfo').textContent = 'Cell ' + cell.textContent + ' (' + cell.dataset.col + ',' + cell.dataset.row + ')';
+            document.getElementById('cggSpanCols').value = cell.dataset.colspan || 1;
+            document.getElementById('cggSpanRows').value = cell.dataset.rowspan || 1;
+        }
+
+        function cggUpdateSpan() {
+            if (!cggSelectedCell) return;
+            var colSpan = parseInt(document.getElementById('cggSpanCols').value) || 1;
+            var rowSpan = parseInt(document.getElementById('cggSpanRows').value) || 1;
+            cggSelectedCell.dataset.colspan = colSpan;
+            cggSelectedCell.dataset.rowspan = rowSpan;
+            cggSelectedCell.style.gridColumn = 'span ' + colSpan;
+            cggSelectedCell.style.gridRow = 'span ' + rowSpan;
+            var badge = cggSelectedCell.querySelector('.cgg-span-badge');
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'cgg-span-badge';
+                cggSelectedCell.appendChild(badge);
+            }
+            badge.textContent = colSpan + 'x' + rowSpan;
+            if (colSpan === 1 && rowSpan === 1) { badge.style.display = 'none'; } else { badge.style.display = 'block'; }
+            cggUpdateCSS();
+        }
+
+        function cggUpdateGrid() {
+            cggBuildGrid();
+            cggUpdateCSS();
+        }
+
+        function cggUpdateCSS() {
+            var cols = parseInt(document.getElementById('cggCols').value) || 3;
+            var rows = parseInt(document.getElementById('cggRows').value) || 3;
+            var gap = parseInt(document.getElementById('cggGap').value) || 16;
+            var gapUnit = document.getElementById('cggGapUnit').value;
+            var justifyItems = document.getElementById('cggJustifyItems').value;
+            var alignItems = document.getElementById('cggAlignItems').value;
+            var justifyContent = document.getElementById('cggJustifyContent').value;
+            var alignContent = document.getElementById('cggAlignContent').value;
+
+            var css = '.grid-container {\n';
+            css += '  display: grid;\n';
+            css += '  grid-template-columns: repeat(' + cols + ', 1fr);\n';
+            css += '  grid-template-rows: repeat(' + rows + ', 1fr);\n';
+            css += '  gap: ' + gap + gapUnit + ';\n';
+            if (justifyItems !== 'stretch') { css += '  justify-items: ' + justifyItems + ';\n'; }
+            if (alignItems !== 'stretch') { css += '  align-items: ' + alignItems + ';\n'; }
+            if (justifyContent !== 'start') { css += '  justify-content: ' + justifyContent + ';\n'; }
+            if (alignContent !== 'start') { css += '  align-content: ' + alignContent + ';\n'; }
+            css += '}';
+
+            var hasSpans = false;
+            for (var i = 0; i < cggCells.length; i++) {
+                if (parseInt(cggCells[i].dataset.colspan) > 1 || parseInt(cggCells[i].dataset.rowspan) > 1) {
+                    hasSpans = true; break;
+                }
+            }
+
+            if (hasSpans) {
+                css += '\n\n/* Cell-specific spans */\n';
+                for (var j = 0; j < cggCells.length; j++) {
+                    var cs = parseInt(cggCells[j].dataset.colspan) || 1;
+                    var rs = parseInt(cggCells[j].dataset.rowspan) || 1;
+                    if (cs > 1 || rs > 1) {
+                        css += '.item-' + (j + 1) + ' { grid-column: span ' + cs + '; grid-row: span ' + rs + '; }\n';
+                    }
+                }
+            }
+
+            document.getElementById('cggCssOutput').textContent = css;
+        }
+
+        function cggCopyCSS() {
+            var css = document.getElementById('cggCssOutput').textContent;
+            navigator.clipboard.writeText(css).then(function() {
+                showStatus('cggOutput', 'CSS copied to clipboard!', 'success');
+            }).catch(function() {
+                fallbackCopy(css);
+                showStatus('cggOutput', 'CSS copied to clipboard!', 'success');
+            });
+        }
+
+        function cggCopyHTML() {
+            var cols = parseInt(document.getElementById('cggCols').value) || 3;
+            var rows = parseInt(document.getElementById('cggRows').value) || 3;
+            var total = cols * rows;
+            var html = '<div class="grid-container">\n';
+            for (var i = 0; i < total; i++) {
+                html += '  <div class="item-' + (i + 1) + '">Item ' + (i + 1) + '</div>\n';
+            }
+            html += '</div>';
+            navigator.clipboard.writeText(html).then(function() {
+                showStatus('cggOutput', 'HTML copied to clipboard!', 'success');
+            }).catch(function() {
+                fallbackCopy(html);
+                showStatus('cggOutput', 'HTML copied to clipboard!', 'success');
+            });
+        }
+
+        function cggResetGrid() {
+            cggCurrentPreset = 'custom';
+            document.querySelectorAll('.cgg-preset-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelector('.cgg-preset-btn').classList.add('active');
+            document.getElementById('cggCols').value = 3;
+            document.getElementById('cggRows').value = 3;
+            document.getElementById('cggGap').value = 16;
+            document.getElementById('cggGapUnit').value = 'px';
+            document.getElementById('cggJustifyItems').value = 'stretch';
+            document.getElementById('cggAlignItems').value = 'stretch';
+            document.getElementById('cggJustifyContent').value = 'start';
+            document.getElementById('cggAlignContent').value = 'start';
+            cggBuildGrid();
+            cggUpdateCSS();
+        }
+
+        function cggLoadPreset(name) {
+            cggCurrentPreset = name;
+            document.querySelectorAll('.cgg-preset-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.querySelector('.cgg-preset-btn[onclick*="' + name + '"]').classList.add('active');
+
+            var presets = {
+                'holy-grail': { cols: 3, rows: 3, gap: 16, cells: [
+                    { c: 1, r: 1, cs: 3, rs: 1, label: 'Header' },
+                    { c: 1, r: 2, cs: 1, rs: 1, label: 'Nav' },
+                    { c: 2, r: 2, cs: 1, rs: 1, label: 'Main' },
+                    { c: 3, r: 2, cs: 1, rs: 1, label: 'Aside' },
+                    { c: 1, r: 3, cs: 3, rs: 1, label: 'Footer' }
+                ]},
+                'gallery': { cols: 4, rows: 3, gap: 12, cells: [
+                    { c: 1, r: 1, cs: 1, rs: 1, label: '1' },
+                    { c: 2, r: 1, cs: 1, rs: 2, label: '2' },
+                    { c: 3, r: 1, cs: 1, rs: 1, label: '3' },
+                    { c: 4, r: 1, cs: 1, rs: 1, label: '4' },
+                    { c: 1, r: 2, cs: 1, rs: 1, label: '5' },
+                    { c: 3, r: 2, cs: 2, rs: 1, label: '6' },
+                    { c: 1, r: 3, cs: 2, rs: 1, label: '7' },
+                    { c: 3, r: 3, cs: 1, rs: 1, label: '8' },
+                    { c: 4, r: 3, cs: 1, rs: 1, label: '9' }
+                ]},
+                'dashboard': { cols: 4, rows: 4, gap: 16, cells: [
+                    { c: 1, r: 1, cs: 4, rs: 1, label: 'Header' },
+                    { c: 1, r: 2, cs: 1, rs: 3, label: 'Sidebar' },
+                    { c: 2, r: 2, cs: 2, rs: 1, label: 'Chart 1' },
+                    { c: 4, r: 2, cs: 1, rs: 1, label: 'Chart 2' },
+                    { c: 2, r: 3, cs: 1, rs: 1, label: 'KPI 1' },
+                    { c: 3, r: 3, cs: 1, rs: 1, label: 'KPI 2' },
+                    { c: 4, r: 3, cs: 1, rs: 1, label: 'KPI 3' },
+                    { c: 2, r: 4, cs: 3, rs: 1, label: 'Table' }
+                ]},
+                'card-grid': { cols: 3, rows: 3, gap: 20, cells: [
+                    { c: 1, r: 1, cs: 1, rs: 1, label: 'Card 1' },
+                    { c: 2, r: 1, cs: 1, rs: 1, label: 'Card 2' },
+                    { c: 3, r: 1, cs: 1, rs: 1, label: 'Card 3' },
+                    { c: 1, r: 2, cs: 1, rs: 1, label: 'Card 4' },
+                    { c: 2, r: 2, cs: 1, rs: 1, label: 'Card 5' },
+                    { c: 3, r: 2, cs: 1, rs: 1, label: 'Card 6' },
+                    { c: 1, r: 3, cs: 1, rs: 1, label: 'Card 7' },
+                    { c: 2, r: 3, cs: 1, rs: 1, label: 'Card 8' },
+                    { c: 3, r: 3, cs: 1, rs: 1, label: 'Card 9' }
+                ]},
+                'magazine': { cols: 4, rows: 5, gap: 16, cells: [
+                    { c: 1, r: 1, cs: 4, rs: 1, label: 'Header' },
+                    { c: 1, r: 2, cs: 2, rs: 2, label: 'Feature' },
+                    { c: 3, r: 2, cs: 1, rs: 1, label: 'Article 1' },
+                    { c: 4, r: 2, cs: 1, rs: 1, label: 'Article 2' },
+                    { c: 3, r: 3, cs: 1, rs: 1, label: 'Article 3' },
+                    { c: 4, r: 3, cs: 1, rs: 1, label: 'Article 4' },
+                    { c: 1, r: 4, cs: 4, rs: 1, label: 'Footer' }
+                ]},
+                'columns-12': { cols: 12, rows: 2, gap: 12, cells: [
+                    { c: 1, r: 1, cs: 3, rs: 1, label: '3 cols' },
+                    { c: 4, r: 1, cs: 6, rs: 1, label: '6 cols' },
+                    { c: 10, r: 1, cs: 3, rs: 1, label: '3 cols' },
+                    { c: 1, r: 2, cs: 4, rs: 1, label: '4 cols' },
+                    { c: 5, r: 2, cs: 4, rs: 1, label: '4 cols' },
+                    { c: 9, r: 2, cs: 4, rs: 1, label: '4 cols' }
+                ]}
+            };
+
+            if (name === 'custom') {
+                cggBuildGrid();
+                cggUpdateCSS();
+                return;
+            }
+
+            var p = presets[name];
+            if (!p) return;
+            document.getElementById('cggCols').value = p.cols;
+            document.getElementById('cggRows').value = p.rows;
+            document.getElementById('cggGap').value = p.gap;
+
+            var grid = document.getElementById('cggGrid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = 'repeat(' + p.cols + ', 1fr)';
+            grid.style.gridTemplateRows = 'repeat(' + p.rows + ', 1fr)';
+            grid.style.gap = p.gap + 'px';
+            grid.style.justifyItems = 'stretch';
+            grid.style.alignItems = 'stretch';
+            grid.style.justifyContent = 'start';
+            grid.style.alignContent = 'start';
+
+            cggCells = [];
+            for (var i = 0; i < p.cells.length; i++) {
+                var cell = document.createElement('div');
+                cell.className = 'cgg-grid-cell';
+                cell.id = 'cgg-cell-' + (++cggCellIdCounter);
+                cell.textContent = p.cells[i].label;
+                cell.dataset.index = i;
+                cell.dataset.col = p.cells[i].c;
+                cell.dataset.row = p.cells[i].r;
+                cell.dataset.colspan = p.cells[i].cs || 1;
+                cell.dataset.rowspan = p.cells[i].rs || 1;
+                cell.style.gridColumn = p.cells[i].c + ' / span ' + (p.cells[i].cs || 1);
+                cell.style.gridRow = p.cells[i].r + ' / span ' + (p.cells[i].rs || 1);
+                cell.onclick = function() { cggSelectCell(this); };
+                if (p.cells[i].cs > 1 || p.cells[i].rs > 1) {
+                    var badge = document.createElement('span');
+                    badge.className = 'cgg-span-badge';
+                    badge.textContent = (p.cells[i].cs || 1) + 'x' + (p.cells[i].rs || 1);
+                    cell.appendChild(badge);
+                }
+                grid.appendChild(cell);
+                cggCells.push(cell);
+            }
+            cggSelectedCell = null;
+            cggUpdateCSS();
+        }
+
+        function cggSetResponsive(mode, btn) {
+            document.querySelectorAll('.cgg-responsive-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            var grid = document.getElementById('cggGrid');
+            grid.classList.remove('resp-mobile', 'resp-tablet');
+            if (mode === 'mobile') { grid.classList.add('resp-mobile'); }
+            else if (mode === 'tablet') { grid.classList.add('resp-tablet'); }
+        }
+
+        function fallbackCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            cggBuildGrid();
+            cggUpdateCSS();
+        });
+    </script>
+</body>
+</html>

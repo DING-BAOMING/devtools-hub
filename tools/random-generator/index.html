@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Generator | DevTools Hub</title>
+    <meta name="description" content="Free online random number generator: pick numbers, roll dice, flip coins, or spin a wheel. True randomness via crypto.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/random-generator/">
+    <meta property="og:title" content="Random Generator | DevTools Hub">
+    <meta property="og:description" content="Free online random number generator: pick numbers, roll dice, flip coins, or spin a wheel. True randomness via crypto.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/random-generator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-06-01","dateModified":"2026-06-01","author":{"@type":"Person","name":"BAOMING"},"name":"Random Generator","description":"Generate random numbers, roll dice, flip coins, spin a wheel, and make decisions online. True randomness in your browser.","url":"https://tools.scoreroute.com/tools/random-generator/","applicationCategory":"UtilityApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        .rg-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+        .rg-tab { padding: 10px 16px; background: #1a1a2e; border: 1px solid #333; color: #888; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; text-align: center; flex: 1; min-width: 90px; }
+        .rg-tab:hover { color: #fff; border-color: #667eea; }
+        .rg-tab.active { background: #667eea; color: #fff; border-color: #667eea; }
+        .rg-tab .tab-icon { font-size: 1.3rem; display: block; margin-bottom: 3px; }
+        .rg-panel { display: none; background: #1a1a2e; border-radius: 12px; padding: 20px; }
+        .rg-panel.active { display: block; }
+        .rg-input { width: 100%; padding: 12px; background: #0f0f23; border: 1px solid #333; color: #fff; border-radius: 8px; font-size: 1rem; margin-bottom: 10px; box-sizing: border-box; }
+        .rg-input:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .rg-input-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+        .rg-input-row label { color: #aaa; font-size: 0.85rem; min-width: 60px; }
+        .rg-input-small { width: 80px; padding: 8px; background: #0f0f23; border: 1px solid #333; color: #fff; border-radius: 6px; font-size: 0.95rem; text-align: center; }
+        .rg-input-small:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .rg-checkbox { display: flex; align-items: center; gap: 6px; color: #aaa; font-size: 0.85rem; }
+        .rg-checkbox input { accent-color: #667eea; }
+        .rg-result { font-size: 2rem; color: #667eea; font-weight: bold; text-align: center; padding: 20px; min-height: 60px; word-break: break-all; }
+        .rg-result-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 10px 0; }
+        .rg-result-item { background: #0f0f23; border: 1px solid #333; border-radius: 8px; padding: 10px 18px; font-size: 1.1rem; color: #667eea; font-weight: bold; }
+        .rg-btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; transition: all 0.15s; }
+        .rg-btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .rg-btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+        .rg-btn-secondary { background: #252540; color: #aaa; border: 1px solid #333; }
+        .rg-btn-secondary:hover { background: #333; color: #fff; }
+        .rg-btn-sm { padding: 6px 14px; font-size: 0.85rem; }
+        .rg-dice-area { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 10px 0; }
+        .rg-dice { width: 64px; height: 64px; background: #0f0f23; border: 2px solid #444; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; color: #fff; transition: all 0.3s; }
+        .rg-dice.rolling { animation: rgShake 0.5s; border-color: #667eea; }
+        .rg-dice-btn { padding: 6px 12px; background: #252540; border: 1px solid #333; color: #ccc; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+        .rg-dice-btn.active { background: #667eea; color: #fff; border-color: #667eea; }
+        .rg-dice-btn:hover { border-color: #667eea; }
+        @keyframes rgShake { 0%{transform:rotate(0)} 25%{transform:rotate(15deg)} 50%{transform:rotate(-15deg)} 75%{transform:rotate(10deg)} 100%{transform:rotate(0)} }
+        .rg-coin { width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(145deg, #ffd700, #b8860b); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; color: #333; margin: 10px auto; cursor: pointer; transition: all 0.1s; user-select: none; }
+        .rg-coin.flipping { animation: rgFlip 0.8s ease-in-out; }
+        @keyframes rgFlip { 0%{transform:rotateY(0)} 50%{transform:rotateY(180deg)} 100%{transform:rotateY(360deg)} }
+        .rg-coin-result { text-align: center; font-size: 1.1rem; color: #aaa; margin: 8px 0; }
+        .rg-stats { display: flex; gap: 20px; justify-content: center; font-size: 0.9rem; color: #aaa; margin: 10px 0; }
+        .rg-stats span { background: #0f0f23; padding: 6px 16px; border-radius: 6px; }
+        .rg-stats .stat-val { color: #667eea; font-weight: bold; }
+        .rg-wheel-container { position: relative; width: 300px; height: 300px; margin: 10px auto; }
+        .rg-wheel-container canvas { width: 100%; height: 100%; border-radius: 50%; }
+        .rg-wheel-pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 24px solid #ff4444; z-index: 10; }
+        .rg-wheel-result { text-align: center; font-size: 1.4rem; color: #667eea; font-weight: bold; margin: 10px 0; min-height: 30px; }
+        .rg-wheel-entries { display: flex; flex-direction: column; gap: 6px; }
+        .rg-wheel-entry { display: flex; gap: 8px; align-items: center; }
+        .rg-wheel-entry input { flex: 1; }
+        .rg-decision-area { text-align: center; padding: 20px 0; }
+        .rg-decision-result { font-size: 3rem; color: #fff; font-weight: bold; padding: 20px; min-height: 80px; }
+        .rg-decision-btn { padding: 16px 40px; font-size: 1.2rem; }
+        @media (max-width: 600px) {
+            .rg-tab { min-width: 60px; font-size: 0.75rem; padding: 8px 10px; }
+            .rg-wheel-container { width: 240px; height: 240px; }
+            .rg-result { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Random Generator</h1>
+            <p class="subtitle">Random Numbers &bull; Dice &bull; Coin Flip &bull; Spin Wheel &bull; Decision Maker</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <span>Random Generator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="rg-tabs" id="rgTabs">
+                    <div class="rg-tab active" onclick="switchRG('number',this)"><span class="tab-icon">🔢</span> Number</div>
+                    <div class="rg-tab" onclick="switchRG('dice',this)"><span class="tab-icon">🎲</span> Dice</div>
+                    <div class="rg-tab" onclick="switchRG('coin',this)"><span class="tab-icon">🪙</span> Coin</div>
+                    <div class="rg-tab" onclick="switchRG('wheel',this)"><span class="tab-icon">🎡</span> Wheel</div>
+                    <div class="rg-tab" onclick="switchRG('decide',this)"><span class="tab-icon">🤔</span> Decide</div>
+                </div>
+
+                <div id="rg-number" class="rg-panel active">
+                    <h2 style="color:#fff;font-size:1.1rem;margin-bottom:12px">Random Number Generator</h2>
+                    <div class="rg-input-row"><label>From</label><input type="number" id="num-min" class="rg-input-small" value="1" aria-label="Num Min"></div>
+                    <div class="rg-input-row"><label>To</label><input type="number" id="num-max" class="rg-input-small" value="100" aria-label="Num Max"></div>
+                    <div class="rg-input-row"><label>Count</label><input type="number" id="num-count" class="rg-input-small" value="1" min="1" max="100" aria-label="Num Count"></div>
+                    <div class="rg-input-row">
+                        <label class="rg-checkbox"><input type="checkbox" id="num-unique" checked aria-label="Num Unique"> Unique numbers</label>
+                        <label class="rg-checkbox"><input type="checkbox" id="num-sort" aria-label="Num Sort"> Sort results</label>
+                    </div>
+                    <div class="rg-btn-group" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
+                        <button onclick="genNumber()" class="rg-btn rg-btn-primary">Generate</button>
+                        <button onclick="clearRG('num')" class="rg-btn rg-btn-secondary">Clear</button>
+                    </div>
+                    <div id="num-result" class="rg-result">Click Generate to pick numbers</div>
+                    <div style="text-align:center;margin-top:8px"><button onclick="copyRG('num-result')" class="rg-btn rg-btn-secondary rg-btn-sm">Copy</button></div>
+                </div>
+
+                <div id="rg-dice" class="rg-panel">
+                    <h2 style="color:#fff;font-size:1.1rem;margin-bottom:12px">Dice Roller</h2>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;justify-content:center" id="dice-types">
+                        <button class="rg-dice-btn active" onclick="setDice(4,this)">d4</button>
+                        <button class="rg-dice-btn" onclick="setDice(6,this)">d6</button>
+                        <button class="rg-dice-btn" onclick="setDice(8,this)">d8</button>
+                        <button class="rg-dice-btn" onclick="setDice(10,this)">d10</button>
+                        <button class="rg-dice-btn" onclick="setDice(12,this)">d12</button>
+                        <button class="rg-dice-btn" onclick="setDice(20,this)">d20</button>
+                        <button class="rg-dice-btn" onclick="setDice(100,this)">d100</button>
+                    </div>
+                    <div class="rg-input-row"><label>Count</label><input type="number" id="dice-count" class="rg-input-small" value="1" min="1" max="20" aria-label="Dice Count"></div>
+                    <div class="rg-dice-area" id="dice-area"><div class="rg-dice">?</div></div>
+                    <div style="text-align:center;color:#aaa;margin-bottom:8px">Sum: <span id="dice-sum" style="color:#667eea;font-weight:bold">0</span></div>
+                    <div class="rg-btn-group" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0">
+                        <button onclick="rollDice()" class="rg-btn rg-btn-primary">Roll</button>
+                        <button onclick="clearRG('dice')" class="rg-btn rg-btn-secondary">Clear</button>
+                    </div>
+                </div>
+
+                <div id="rg-coin" class="rg-panel">
+                    <h2 style="color:#fff;font-size:1.1rem;margin-bottom:12px">Coin Flip</h2>
+                    <div class="rg-coin" id="coin-display" onclick="flipCoin()">?</div>
+                    <div class="rg-coin-result" id="coin-result">Tap the coin to flip</div>
+                    <div class="rg-stats"><span>Heads: <span class="stat-val" id="coin-heads">0</span></span><span>Tails: <span class="stat-val" id="coin-tails">0</span></span><span>Total: <span class="stat-val" id="coin-total">0</span></span></div>
+                    <div class="rg-btn-group" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0">
+                        <button onclick="flipCoin()" class="rg-btn rg-btn-primary">Flip Coin</button>
+                        <button onclick="clearRG('coin')" class="rg-btn rg-btn-secondary">Reset Stats</button>
+                    </div>
+                </div>
+
+                <div id="rg-wheel" class="rg-panel">
+                    <h2 style="color:#fff;font-size:1.1rem;margin-bottom:12px">Spin the Wheel</h2>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+                        <input type="text" id="wheel-new-item" class="rg-input" placeholder="Add an option" style="width:200px;margin:0" aria-label="Add an option">
+                        <button onclick="addWheelItem()" class="rg-btn rg-btn-secondary rg-btn-sm">Add</button>
+                    </div>
+                    <div class="rg-wheel-entries" id="wheel-entries"></div>
+                    <div class="rg-wheel-container" id="wheel-container">
+                        <div class="rg-wheel-pointer"></div>
+                        <canvas id="wheel-canvas" width="300" height="300"></canvas>
+                    </div>
+                    <div class="rg-wheel-result" id="wheel-result">Add entries and spin!</div>
+                    <div class="rg-btn-group" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0">
+                        <button onclick="spinWheel()" class="rg-btn rg-btn-primary">Spin</button>
+                        <button onclick="clearRG('wheel')" class="rg-btn rg-btn-secondary">Clear All</button>
+                    </div>
+                </div>
+
+                <div id="rg-decide" class="rg-panel">
+                    <h2 style="color:#fff;font-size:1.1rem;margin-bottom:12px">Decision Maker</h2>
+                    <div style="text-align:center;margin-bottom:16px">
+                        <button onclick="decide('yesno')" class="rg-dice-btn active" id="decide-yesno" style="padding:8px 16px">Yes / No</button>
+                        <button onclick="decide('truefalse')" class="rg-dice-btn" id="decide-truefalse" style="padding:8px 16px">True / False</button>
+                        <button onclick="decide('maybe')" class="rg-dice-btn" id="decide-maybe" style="padding:8px 16px">Yes / No / Maybe</button>
+                    </div>
+                    <div class="rg-decision-area">
+                        <div style="margin-bottom:12px"><input type="text" id="decide-question" class="rg-input" placeholder="Ask a question... (optional)" style="max-width:400px;margin:0 auto" aria-label="Ask a question"></div>
+                        <div class="rg-decision-result" id="decide-result">?</div>
+                        <button onclick="decide()" class="rg-btn rg-btn-primary rg-decision-btn" id="decide-btn">Decide!</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>What is a Random Generator?</h3>
+                <p>A random generator creates unpredictable outcomes using cryptographic randomness. Unlike pseudo-random math functions, this tool uses your browser's <code>crypto.getRandomValues()</code> API for true randomness — the same technology used in security systems and encryption.</p>
+
+                <h3>How Each Mode Works</h3>
+                <p><strong>Random Number:</strong> Pick one or more random numbers within any range. Toggle uniqueness to avoid repeats and sort for ordered results. Perfect for raffles, lotteries, and sampling.</p>
+                <p><strong>Dice Roller:</strong> Supports polyhedral dice from d4 to d100. Roll multiple dice at once, see each result, and view the total sum. Ideal for board games, RPGs (D&D), and probability experiments.</p>
+                <p><strong>Coin Flip:</strong> Flip a virtual coin with realistic animation. Track heads/tails statistics over multiple flips to observe probability in action.</p>
+                <p><strong>Spin the Wheel:</strong> Add custom options and spin to pick one at random. Great for team selection, giveaway winners, or just deciding where to eat.</p>
+                <p><strong>Decision Maker:</strong> Stuck between choices? Let randomness decide. Yes/No, True/False, or three-way decisions. Type a question for context.</p>
+
+                <h3>Who Needs a Random Generator?</h3>
+                <ul>
+                    <li><strong>Teachers:</strong> Randomly select students, create groups, pick quiz questions</li>
+                    <li><strong>Gamers:</strong> Roll dice for tabletop RPGs, board games, or probability checks</li>
+                    <li><strong>Content Creators:</strong> Pick giveaway winners, randomize video content</li>
+                    <li><strong>Developers:</strong> Generate test data, sample datasets, random IDs</li>
+                    <li><strong>Everyone:</strong> Make fair decisions, settle disputes, add fun to daily life</li>
+                </ul>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item"><summary>Is the randomness truly random?</summary><p>Yes. This tool uses your browser's <code>crypto.getRandomValues()</code> API, which is cryptographically secure. It's the same randomness used for encryption keys and security tokens — far more random than typical <code>Math.random()</code> functions.</p></details>
+                <details class="faq-item"><summary>Can I use this for giveaways?</summary><p>Absolutely! Use the Number generator for numbered tickets or the Wheel mode for named entries. The crypto-grade randomness ensures fair results. Copy results easily for documentation.</p></details>
+                <details class="faq-item"><summary>Is this tool free?</summary><p>Yes, completely free. No signup, no ads, no limits. All processing happens locally in your browser — nothing is sent to any server.</p></details>
+                <details class="faq-item"><summary>Can AI do this?</summary><p>AI language models cannot generate truly random numbers. They produce deterministic outputs based on patterns. For genuine randomness, you need cryptographic tools like this one that access your device's hardware random number generator.</p></details>
+                <details class="faq-item"><summary>Does the wheel support weighted entries?</summary><p>Currently the wheel gives equal probability to each entry. Weighted entries are planned for a future update.</p></details>
+                <details class="faq-item"><summary>What's the maximum range for number generation?</summary><p>You can generate numbers from -1 billion to +1 billion. For very large ranges, results are uniformly distributed across the full range.</p></details>
+
+                <h3>Use Cases</h3>
+                <ul>
+                    <li><strong>Giveaways:</strong> Pick random winners from ticket numbers or participant names</li>
+                    <li><strong>Gaming:</strong> Roll dice for D&D, Warhammer, or any tabletop game</li>
+                    <li><strong>Teaching:</strong> Random student selection, group assignments, quiz question picking</li>
+                    <li><strong>Decision Making:</strong> Break ties, settle debates, choose randomly between options</li>
+                    <li><strong>Testing:</strong> Generate random test data for development and QA</li>
+                </ul>
+
+                <div class="related-section"><h4>Related Tools</h4>
+                <ul>
+                    <li><a href="/tools/lottery-number-generator/">Lottery Number Generator</a></li>
+                    <li><a href="/tools/password-generator/">Password Generator</a></li>
+                    <li><a href="/tools/calculator/">Calculator</a></li>
+                </ul></div>
+            </div>
+        </section>
+    </main>
+
+    <div class="last-updated">Created: 2026-06-01</div>
+    <footer><p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p></footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    var currentMode = 'number';
+    var diceSides = 4, diceCount = 1;
+    var coinHeads = 0, coinTails = 0;
+    var wheelItems = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];
+    var wheelSpinning = false;
+    var wheelColors = ['#667eea','#764ba2','#e74c3c','#2ecc71','#f39c12','#3498db','#e91e63','#00bcd4','#8bc34a','#ff5722','#9c27b0','#03a9f4'];
+
+    function switchRG(mode, el) {
+        currentMode = mode;
+        document.querySelectorAll('.rg-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.rg-panel').forEach(function(p) { p.classList.remove('active'); });
+        if (el) el.classList.add('active');
+        document.getElementById('rg-' + mode).classList.add('active');
+        if (mode === 'wheel') drawWheel();
+    }
+
+    function rand(min, max) {
+        var range = max - min + 1;
+        var arr = new Uint32Array(1);
+        crypto.getRandomValues(arr);
+        return min + (arr[0] % range);
+    }
+
+    function randFloat() {
+        var arr = new Uint32Array(2);
+        crypto.getRandomValues(arr);
+        return arr[0] / 4294967296;
+    }
+
+    function copyRG(id) {
+        var el = document.getElementById(id);
+        var text = el.textContent || el.innerText;
+        if (!text || text === 'Click Generate to pick numbers' || text === '?' || text === 'Add entries and spin!') {
+            showStatus('status-rg', 'Nothing to copy yet', '');
+            return;
+        }
+        if (!navigator.clipboard) { showStatus('status-rg', 'Copy not available', ''); return; }
+        navigator.clipboard.writeText(text).then(function() {
+            showStatus('status-rg', 'Copied!', 'success');
+        }).catch(function() {
+            showStatus('status-rg', 'Copy failed', '');
+        });
+    }
+
+    function showStatus(id, msg, type) {
+        var el = document.getElementById(id) || document.getElementById('status-rg');
+        if (!el) return;
+        el.textContent = msg;
+        el.className = 'status ' + type;
+        setTimeout(function() { if (el) { el.textContent = ''; el.className = 'status'; } }, 2000);
+    }
+
+    function genNumber() {
+        var min = parseInt(document.getElementById('num-min').value) || 1;
+        var max = parseInt(document.getElementById('num-max').value) || 100;
+        var cnt = parseInt(document.getElementById('num-count').value) || 1;
+        var unique = document.getElementById('num-unique').checked;
+        var sort = document.getElementById('num-sort').checked;
+        if (min > max) { var t = min; min = max; max = t; }
+        if (unique && max - min + 1 < cnt) { cnt = max - min + 1; }
+        var results = [];
+        if (unique) {
+            var pool = [];
+            for (var i = min; i <= max; i++) pool.push(i);
+            for (var j = 0; j < cnt && pool.length > 0; j++) {
+                var idx = rand(0, pool.length - 1);
+                results.push(pool[idx]);
+                pool.splice(idx, 1);
+            }
+        } else {
+            for (var k = 0; k < cnt; k++) results.push(rand(min, max));
+        }
+        if (sort) results.sort(function(a,b) { return a - b; });
+        var el = document.getElementById('num-result');
+        if (results.length === 1) {
+            el.textContent = results[0];
+        } else {
+            el.innerHTML = '<div class="rg-result-list">' + results.map(function(r) { return '<span class="rg-result-item">' + r + '</span>'; }).join('') + '</div>';
+        }
+    }
+
+    function setDice(sides, btn) {
+        diceSides = sides;
+        document.querySelectorAll('#dice-types .rg-dice-btn').forEach(function(b) { b.classList.remove('active'); });
+        if (btn) btn.classList.add('active');
+    }
+
+    function rollDice() {
+        var cnt = parseInt(document.getElementById('dice-count').value) || 1;
+        if (cnt < 1) cnt = 1; if (cnt > 20) cnt = 20;
+        var results = [];
+        for (var i = 0; i < cnt; i++) results.push(rand(1, diceSides));
+        var area = document.getElementById('dice-area');
+        area.innerHTML = results.map(function(r) { return '<div class="rg-dice rolling">' + r + '</div>'; }).join('');
+        var sum = results.reduce(function(a,b) { return a + b; }, 0);
+        document.getElementById('dice-sum').textContent = sum;
+        setTimeout(function() {
+            document.querySelectorAll('.rg-dice').forEach(function(d) { d.classList.remove('rolling'); });
+        }, 500);
+    }
+
+    function flipCoin() {
+        var coin = document.getElementById('coin-display');
+        coin.classList.remove('flipping');
+        void coin.offsetWidth;
+        coin.classList.add('flipping');
+        var result = rand(0, 1) === 0 ? 'H' : 'T';
+        setTimeout(function() {
+            coin.textContent = result === 'H' ? 'H' : 'T';
+            coin.style.background = result === 'H' ? 'linear-gradient(145deg,#ffd700,#b8860b)' : 'linear-gradient(145deg,#c0c0c0,#808080)';
+            if (result === 'H') { coinHeads++; document.getElementById('coin-heads').textContent = coinHeads; }
+            else { coinTails++; document.getElementById('coin-tails').textContent = coinTails; }
+            document.getElementById('coin-total').textContent = coinHeads + coinTails;
+            document.getElementById('coin-result').textContent = result === 'H' ? 'Heads!' : 'Tails!';
+            coin.classList.remove('flipping');
+        }, 800);
+    }
+
+    function addWheelItem() {
+        var input = document.getElementById('wheel-new-item');
+        var val = input.value.trim();
+        if (!val) return;
+        wheelItems.push(val);
+        input.value = '';
+        renderWheelEntries();
+        drawWheel();
+    }
+
+    function removeWheelItem(idx) {
+        wheelItems.splice(idx, 1);
+        renderWheelEntries();
+        drawWheel();
+    }
+
+    function renderWheelEntries() {
+        var el = document.getElementById('wheel-entries');
+        el.innerHTML = wheelItems.map(function(item, i) {
+            return '<div class="rg-wheel-entry"><input type="text" class="rg-input" value="' + item.replace(/"/g,'&quot;') + '" onchange="wheelItems[' + i + ']=this.value;drawWheel()" aria-label="Wheel option ' + (i+1) + '" style="margin:0">' +
+                '<button onclick="removeWheelItem(' + i + ')" class="rg-btn rg-btn-secondary rg-btn-sm" style="padding:4px 10px">✕</button></div>';
+        }).join('');
+    }
+
+    function drawWheel() {
+        var canvas = document.getElementById('wheel-canvas');
+        var ctx = canvas.getContext('2d');
+        var w = canvas.width, h = canvas.height, cx = w/2, cy = h/2, r = Math.min(cx, cy) - 5;
+        var n = wheelItems.length;
+        if (n === 0) {
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = '#333'; ctx.font = '16px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('Add entries to spin!', cx, cy);
+            return;
+        }
+        var anglePer = (2 * Math.PI) / n;
+        ctx.clearRect(0, 0, w, h);
+        for (var i = 0; i < n; i++) {
+            var startAngle = i * anglePer - Math.PI/2;
+            var endAngle = startAngle + anglePer;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, r, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fillStyle = wheelColors[i % wheelColors.length];
+            ctx.fill();
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            var textAngle = startAngle + anglePer/2;
+            var tx = cx + r * 0.6 * Math.cos(textAngle);
+            var ty = cy + r * 0.6 * Math.sin(textAngle);
+            ctx.save();
+            ctx.translate(tx, ty);
+            ctx.rotate(textAngle + Math.PI/2);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            var label = wheelItems[i];
+            if (label.length > 10) label = label.substring(0, 8) + '..';
+            ctx.fillText(label, 0, 0);
+            ctx.restore();
+        }
+        ctx.beginPath();
+        ctx.arc(cx, cy, 12, 0, 2 * Math.PI);
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fill();
+        ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    function spinWheel() {
+        if (wheelSpinning) return;
+        if (wheelItems.length < 2) { document.getElementById('wheel-result').textContent = 'Add at least 2 entries!'; return; }
+        wheelSpinning = true;
+        var canvas = document.getElementById('wheel-canvas');
+        var ctx = canvas.getContext('2d');
+        var n = wheelItems.length;
+        var anglePer = (2 * Math.PI) / n;
+        var targetIdx = rand(0, n - 1);
+        var spins = 5 + randFloat() * 5;
+        var finalAngle = spins * 2 * Math.PI - (targetIdx * anglePer + anglePer/2);
+        var startAngle = 0;
+        var duration = 3000;
+        var startTime = null;
+
+        function animate(time) {
+            if (!startTime) startTime = time;
+            var elapsed = time - startTime;
+            var progress = Math.min(elapsed / duration, 1);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            var currentAngle = finalAngle * eased;
+            drawRotatedWheel(currentAngle);
+            if (progress < 1) requestAnimationFrame(animate);
+            else {
+                wheelSpinning = false;
+                document.getElementById('wheel-result').textContent = 'Winner: ' + wheelItems[targetIdx] + '!';
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+
+    function drawRotatedWheel(angle) {
+        var canvas = document.getElementById('wheel-canvas');
+        var ctx = canvas.getContext('2d');
+        var w = canvas.width, h = canvas.height, cx = w/2, cy = h/2, r = Math.min(cx, cy) - 5;
+        var n = wheelItems.length;
+        if (n === 0) return;
+        var anglePer = (2 * Math.PI) / n;
+        ctx.clearRect(0, 0, w, h);
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
+        ctx.translate(-cx, -cy);
+        for (var i = 0; i < n; i++) {
+            var startAngle = i * anglePer - Math.PI/2;
+            var endAngle = startAngle + anglePer;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, r, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fillStyle = wheelColors[i % wheelColors.length];
+            ctx.fill();
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            var textAngle = startAngle + anglePer/2;
+            var tx = cx + r * 0.6 * Math.cos(textAngle);
+            var ty = cy + r * 0.6 * Math.sin(textAngle);
+            ctx.save();
+            ctx.translate(tx, ty);
+            ctx.rotate(textAngle + Math.PI/2);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            var label = wheelItems[i];
+            if (label.length > 10) label = label.substring(0, 8) + '..';
+            ctx.fillText(label, 0, 0);
+            ctx.restore();
+        }
+        ctx.restore();
+        ctx.beginPath();
+        ctx.arc(cx, cy, 12, 0, 2 * Math.PI);
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fill();
+        ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    var decideMode = 'yesno';
+
+    function decide(mode) {
+        if (mode) {
+            decideMode = mode;
+            document.querySelectorAll('#rg-decide .rg-dice-btn').forEach(function(b) { b.classList.remove('active'); });
+            var btn = document.getElementById('decide-' + mode);
+            if (btn) btn.classList.add('active');
+            document.getElementById('decide-result').textContent = '?';
+            return;
+        }
+        var outcomes;
+        if (decideMode === 'yesno') outcomes = ['Yes', 'No'];
+        else if (decideMode === 'truefalse') outcomes = ['True', 'False'];
+        else outcomes = ['Yes', 'No', 'Maybe'];
+        var idx = rand(0, outcomes.length - 1);
+        var result = outcomes[idx];
+        var el = document.getElementById('decide-result');
+        el.textContent = result;
+        el.style.color = result === 'Yes' || result === 'True' ? '#2ecc71' : result === 'No' || result === 'False' ? '#e74c3c' : '#f39c12';
+    }
+
+    function clearRG(mode) {
+        if (mode === 'num') {
+            document.getElementById('num-min').value = 1;
+            document.getElementById('num-max').value = 100;
+            document.getElementById('num-count').value = 1;
+            document.getElementById('num-unique').checked = true;
+            document.getElementById('num-sort').checked = false;
+            document.getElementById('num-result').textContent = 'Click Generate to pick numbers';
+        } else if (mode === 'dice') {
+            document.getElementById('dice-count').value = 1;
+            document.getElementById('dice-area').innerHTML = '<div class="rg-dice">?</div>';
+            document.getElementById('dice-sum').textContent = '0';
+        } else if (mode === 'coin') {
+            coinHeads = 0; coinTails = 0;
+            document.getElementById('coin-heads').textContent = '0';
+            document.getElementById('coin-tails').textContent = '0';
+            document.getElementById('coin-total').textContent = '0';
+            document.getElementById('coin-result').textContent = 'Tap the coin to flip';
+            document.getElementById('coin-display').textContent = '?';
+            document.getElementById('coin-display').style.background = 'linear-gradient(145deg,#ffd700,#b8860b)';
+        } else if (mode === 'wheel') {
+            wheelItems = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];
+            renderWheelEntries();
+            drawWheel();
+            document.getElementById('wheel-result').textContent = 'Add entries and spin!';
+        }
+    }
+
+    var statusEl = document.createElement('div');
+    statusEl.id = 'status-rg';
+    statusEl.className = 'status';
+    document.querySelector('.tool-main').appendChild(statusEl);
+
+    renderWheelEntries();
+    drawWheel();
+    clearRG('coin');
+    document.getElementById('coin-result').textContent = 'Tap the coin to flip';
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

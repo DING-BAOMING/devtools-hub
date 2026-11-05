@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>AI Code Reviewer - Free Online Code Review | DevTools Hub</title>
+    <meta name="description" content="Free AI code reviewer. Paste code, get instant review for bugs, performance, security, and best practices. No login, private, works in browser.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/ai-code-reviewer/">
+    <meta property="og:title" content="AI Code Reviewer - Free Online">
+    <meta property="og:description" content="Free AI code reviewer for bugs, performance, security and best practices. No login required.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/ai-code-reviewer/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-11-03","dateModified":"2026-11-03","author":{"@type":"Person","name":"BAOMING"},"name":"AI Code Reviewer","description":"Free AI code reviewer for bugs, performance, security and best practices. No login, private.","url":"https://tools.scoreroute.com/tools/ai-code-reviewer/","applicationCategory":"UtilityApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>AI Code Reviewer</h1>
+            <p class="subtitle">Free Online Code Review - Bugs, Performance & Security</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/">Tools</a> &gt; <span>AI Code Reviewer</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="tool-section">
+                    <label for="lang-select">Language</label>
+                    <select id="lang-select">
+                        <option>JavaScript</option>
+                        <option>Python</option>
+                        <option>TypeScript</option>
+                        <option>Java</option>
+                        <option>Go</option>
+                        <option>C#</option>
+                        <option>PHP</option>
+                        <option>SQL</option>
+                    </select>
+                    <textarea id="code-input" rows="12" aria-label="Code to review" placeholder="Paste your code here..."># example
+def add(a, b):
+    return a + b</textarea>
+                    <div class="btn-group">
+                        <button onclick="reviewCode()" class="btn btn-primary" id="review-btn">Review Code</button>
+                        <button onclick="clearAll()" class="btn btn-secondary">Clear</button>
+                        <button onclick="copyToClipboard('review-output')" class="btn">Copy</button>
+                    </div>
+                    <div class="status" id="status"></div>
+                    <h2>Review</h2>
+                    <div id="review-output" class="output" aria-live="polite"></div>
+                </div>
+            </div>
+            <div class="info-section">
+                <h2>What does this tool do?</h2>
+                <p>Free AI-powered code review. Paste any code and get suggestions for bugs, performance issues, security risks, and best practices. No login, no data stored.</p>
+                <h2>Features</h2>
+                <ul>
+                    <li>Supports multiple languages</li>
+                    <li>Instant feedback</li>
+                    <li>Privacy first - runs in browser, no code stored</li>
+                </ul>
+                <div class="faq-section">
+                    <h2>FAQ</h2>
+                    <details class="faq-item"><summary>Is my code private?</summary><p>Yes. Code is sent only for review and is not stored.</p></details>
+                    <details class="faq-item"><summary>Is it free?</summary><p>Yes, free to use.</p></details>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 DevTools Hub</p>
+        </div>
+    </footer>
+    <script src="/tools.js"></script>
+    <script>
+    async function reviewCode(){
+        const btn = document.getElementById('review-btn');
+        const status = document.getElementById('status');
+        const out = document.getElementById('review-output');
+        const code = document.getElementById('code-input').value.trim();
+        const lang = document.getElementById('lang-select').value;
+        if(!code){ showStatus('Paste code first', 'error'); return; }
+        btn.disabled = true; showStatus('Reviewing...','success'); out.innerHTML='';
+        const prompt = `Review this ${lang} code for bugs, performance, security and best practices. Be concise and actionable.\n\n\`\`\`${lang}\n${code}\n\`\`\``;
+        try{
+            const res = await fetch('/api/ai-chat', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({messages:[{role:'user',content:prompt}]})
+            });
+            const data = await res.json();
+            if(!res.ok) throw new Error(data.error||'Failed');
+            out.innerHTML = formatText(data.reply||'No reply');
+            showStatus('Done via '+ (data.label||''), 'success');
+        }catch(e){
+            showStatus('Error: '+e.message,'error');
+            out.innerHTML = '<p style="color:#f88">Error: '+e.message+'</p>';
+        }finally{btn.disabled=false;}
+    }
+    function clearAll(){
+        document.getElementById('code-input').value='';
+        document.getElementById('review-output').innerHTML='';
+        document.getElementById('status').textContent='';
+    }
+    function showStatus(msg,type){ document.getElementById('status').textContent=msg; }
+    function formatText(t){
+        return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    }
+    </script>
+</body>
+</html>

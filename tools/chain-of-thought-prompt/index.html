@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chain-of-Thought Prompt Generator | DevTools Hub</title>
+    <meta name="description" content="Free chain-of-thought prompt generator. Build zero-shot, few-shot and structured CoT prompts for any task from cited research. Runs in your browser.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/chain-of-thought-prompt/">
+    <meta property="og:title" content="Chain-of-Thought Prompt Generator | DevTools Hub">
+    <meta property="og:description" content="Free chain-of-thought prompt generator. Build zero-shot, few-shot and structured CoT prompts for any task from cited research.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/chain-of-thought-prompt/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-10-17","dateModified":"2026-10-17","author":{"@type":"Person","name":"BAOMING"},"name":"Chain-of-Thought Prompt Generator","description":"Turn a task description into zero-shot, few-shot and structured chain-of-thought prompts","url":"https://tools.scoreroute.com/tools/chain-of-thought-prompt/","applicationCategory":"DeveloperApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Generate zero-shot, few-shot and structured chain-of-thought prompts","Adapt the scaffold to seven task types","Builds entirely in the browser with no upload"]}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Chain-of-Thought Prompt Generator</h1>
+            <p class="subtitle">Zero-shot, few-shot and structured reasoning prompts for any task</p>
+            <nav class="breadcrumb"><a href="/">Home</a> &gt; <a href="/tools/ai-language/">AI Language</a> &gt; <span>Chain-of-Thought Prompt Generator</span>  <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Build Reasoning Prompts for Your Task</h2>
+                <label for="cot-task" class="sr-only">Task description</label>
+                <textarea id="cot-task" placeholder="Describe the task your model must answer, e.g. A warehouse has 3 pickup routes: 45, 80 and 120 km. Fuel is 0.4 L per km at $1.6 per litre. What does one full day of fuel cost?" style="width: 100%; min-height: 110px; background: #0f0f23; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; font-family: inherit; resize: vertical; margin-bottom: 10px;"></textarea>
+                <div style="display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; align-items: center;">
+                    <label for="cot-type">Task type:
+                        <select id="cot-type" style="background:#0f0f23;color:#fff;border:1px solid #333;border-radius:6px;padding:8px;">
+                            <option value="auto" selected>Auto (general reasoning)</option>
+                            <option value="math">Arithmetic word problem</option>
+                            <option value="logic">Logic &amp; inference</option>
+                            <option value="planning">Planning &amp; scheduling</option>
+                            <option value="decision">Decision comparison</option>
+                            <option value="data">Data calculation</option>
+                            <option value="code">Code debugging</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="btn-group">
+                    <button id="cot-gen" onclick="buildPrompts()" class="btn btn-primary" aria-label="Build prompts">Build prompts</button>
+                    <button id="cot-example" onclick="loadExample()" class="btn" aria-label="Load example task">Load example</button>
+                    <button id="cot-clear" onclick="clearTool()" class="btn btn-secondary" aria-label="Clear">Clear</button>
+                </div>
+                <div id="cot-status" class="status" role="status" style="margin-top:10px;"></div>
+                <div id="cot-out" style="margin-top:18px;"></div>
+            </div>
+
+            <div class="info-section">
+                <h3>What this tool does</h3>
+                <p>Most chain-of-thought prompts you find online are one sentence pasted between paragraphs: think step by step. The sentence did come from a pair of research papers, and it works, but it is not the whole technique. What made the difference in the studies was the shape of the prompt around that sentence: worked examples that demonstrate the reasoning, a decomposition the model has to fill in, and an answer format the result can be graded against. This tool turns your task into three of those shapes, one for each paper that tested them, so you can compare them on your own model instead of trusting a landing page that says the technique always helps. It also tells you when it will probably not help, because on short factual questions a reasoning chain mostly spends tokens.</p>
+
+                <h3>How to use it</h3>
+                <p>The prompt you need depends more on the shape of your task than on your model. Three steps get you a usable one.</p>
+                <ol>
+                    <li>Describe the task the way you would ask a colleague: the question itself, the numbers or constraints it depends on, and what counts as a finished answer.</li>
+                    <li>Pick the closest task type, or leave Auto. The type controls which worked example goes into the few-shot variant and how the decomposition is phrased.</li>
+                    <li>Take one variant to your model. Zero-shot is the cheapest way to try; few-shot suits tasks of a familiar type; structured is the one to rerun when somebody will check the steps, because it forces a second method as its own verification.</li>
+                </ol>
+
+                <h3>Why not just ask a chatbot</h3>
+                <p>Ask a chatbot for a chain-of-thought prompt and you get a paragraph of advice, once, inside a chat you cannot keep. The technique it quotes was tested in papers whose prompts shared a structure: the task, then an explicit reasoning scaffold, then an answer format the output can be checked against. This tool builds that structure for your task in three strengths, with the citations printed next to them, and rebuilds it whenever the task changes. Nothing you type here leaves your browser; the generation is plain JavaScript, so the prompts you build stay on your machine and work offline.</p>
+
+                <h3>When a chain of thought will not help</h3>
+                <p>A reasoning chain is a hypothesis to test, not a default. On short factual questions a chain wastes tokens and can add errors by restating nearby possibilities as if they were steps. If your task can be answered with a calculator, a lookup or a small script, the verification belongs in the tool, not in prose. The other limit is honesty: the reasoning a model prints is not always the reasoning it used, and follow-up studies found the printed chain can be rationalised after the answer was already chosen. Treat the steps as material you check, not proof. If a step cites a number that is not in your task, the answer under it is decoration.</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item"><summary>What is a chain-of-thought prompt?</summary>A prompt that asks the model to write out intermediate reasoning steps before giving the answer. In the original 2022 study, including worked example chains in the prompt lifted accuracy on grade-school arithmetic word problems from 18 percent to 58 percent.</details>
+                <details class="faq-item"><summary>Do I need all three variants?</summary>No. Start with the zero-shot version: one short prompt, the cheapest to run, and often enough for a capable model. Move to few-shot when you have many tasks of the same type, and to the structured version when the steps will be inspected or the answer has to be defended.</details>
+                <details class="faq-item"><summary>Does this work with reasoning models like o1 or DeepSeek-R1?</summary>Reasoning-focused models already carry out this kind of step-by-step computation internally, so a long printed chain in front of the question is mostly redundant; the structured variant is the only one that still adds something, because its verification and answer format survive the model change. For normal chat models all three variants earn their tokens.</details>
+                <details class="faq-item"><summary>Is my task text uploaded anywhere?</summary>No. The page generates the prompts with plain JavaScript in your browser, and no network request is made when you click the button. Your task text never leaves the page.</details>
+                <details class="faq-item"><summary>Why does the structured version demand a second method?</summary>Because recomputing the result through a second, independent method is the cheapest catch available for arithmetic slips and truncation errors, and it is a step most prompt templates leave out.</details>
+                <details class="faq-item"><summary>Where do the claims in the text come from?</summary>The three prompts follow the shapes tested in the 2022 papers cited in the references, and the caution about printed reasoning being unfaithful comes from a later paper on the same technique. Each variant names its source; the numbers in the FAQ come from those papers.</details>
+
+                <div class="related-section">
+                    <h4>Related Tools</h4>
+                    <ul>
+                        <li><a href="/tools/ai-prompt-engineer/">AI Prompt Engineer</a></li>
+                        <li><a href="/tools/ai-detector/">AI Detector</a></li>
+                        <li><a href="/tools/llm-cost-calculator/">LLM API Cost Calculator</a></li>
+                    </ul>
+                </div>
+
+                <section class="ref-section" aria-label="References">
+                    <h2>References</h2>
+                    <ul class="ref-list">
+                        <li><a href="https://arxiv.org/abs/2201.11903" target="_blank" rel="noopener noreferrer">Wei et al., Chain-of-Thought Prompting Elicits Reasoning in Large Language Models (2022)</a></li>
+                        <li><a href="https://arxiv.org/abs/2205.11916" target="_blank" rel="noopener noreferrer">Kojima et al., Large Language Models are Zero-Shot Reasoners (2022)</a></li>
+                        <li><a href="https://arxiv.org/abs/2307.13702" target="_blank" rel="noopener noreferrer">Lanham et al., Measuring Faithfulness in Chain-of-Thought Reasoning (2023)</a></li>
+                    </ul>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <div class="last-updated">Created: 2026-10-17</div>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        TYPES = ['auto','math','logic','planning','decision','data','code'];
+
+        ZS_PUZZLE = {
+            math: 'First, list what the problem gives you and what it asks for. Then solve it one arithmetic step at a time, writing the result of every step.',
+            logic: 'First, restate the given facts in your own words. Then derive one conclusion at a time, saying which fact supports each conclusion.',
+            planning: 'First, list every constraint and resource. Then build a schedule step by step and check each constraint against it before finalising.',
+            decision: 'First, list every option with its cost and benefit. Then compare the options one property at a time, showing the arithmetic.',
+            data: 'First, state what each column or field means. Then compute one quantity at a time, showing the formula before the number.',
+            code: 'First, trace the failing case with real values line by line. Then name the exact line where the behaviour diverges from what is wanted.',
+            auto: 'First, list the steps this problem requires. Then solve it one step at a time, in order, showing the result of every step.'
+        };
+
+        FS_EXAMPLE = {
+            math: { q: 'Roger has 5 tennis balls. He buys 2 more cans of tennis balls. Each can has 3 balls. How many tennis balls does he have now?', w: 'Roger started with 5 balls. 2 cans at 3 balls each = 6 balls. 5 + 6 = 11 balls.', a: '11' },
+            logic: { q: 'Sam is either a skier or an alpinist. Every skier wears goggles. Sam does not wear goggles. What can we conclude about Sam?', w: 'Sam is not a skier, because all skiers wear goggles and Sam does not. There are only two kinds: skier and alpinist. Not being a skier leaves alpinist.', a: 'Sam is an alpinist' },
+            planning: { q: 'A reviewer must do three jobs today: a 2-hour edit, a 3-hour audit and a 4-hour write-up. Only one desk exists and two of the jobs need it. How long does the full day take?', w: 'The edit and the audit both need the desk, so they must run one after the other. Nothing can overlap because there is one reviewer. Total = 2 + 3 + 4.', a: '9 hours' },
+            decision: { q: 'An extra licence costs $8 a month. Hiring a contractor for the same work costs $90 a month. Over a year, which is cheaper?', w: 'Licence: 8 x 12 = $96 a year. Contractor: 90 x 12 = $1080 a year. 96 is smaller than 1080.', a: 'The licence' },
+            data: { q: 'Monthly sales were 4, 6, 9 and 7. What is the mean?', w: 'Sum = 4 + 6 + 9 + 7 = 26. Count = 4. Mean = 26 / 4.', a: '6.5' },
+            code: { q: 'This loop prints one entry too many: for (i = 0; i <= arr.length; i++) print(arr[i]). Why?', w: 'For five entries, arr.length is 5 and valid indices are 0 to 4. On the last pass i is 5, so arr[5] does not exist.', a: 'Change <= to <' },
+            auto: { q: 'A tank holds 60 litres and drains 4 litres a minute. After how many minutes is it half empty?', w: 'Half empty = 30 litres drained. 30 / 4 = 7.5 minutes.', a: '7.5' }
+        };
+
+        ST_DECIDE = {
+            math: 'quote every number and operator you use',
+            logic: 'name the rule you applied in every step',
+            planning: 'show which constraint each step of the plan satisfies',
+            decision: 'show the direction of comparison for every property',
+            data: 'show the formula before each result',
+            code: 'show the line number and the observed value at every step',
+            auto: 'quote the given or rule you use in every step'
+        };
+
+        function escT(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        function t() { return document.getElementById('cot-task').value.trim(); }
+        function ty() { return document.getElementById('cot-type').value; }
+
+        function zsPrompt(task, type) {
+            return task + '\n\n' + ZS_PUZZLE[type] + ' You may make a false start and correct it, but every step you show must carry its own result. End with "Final answer:" followed only by the answer.';
+        }
+
+        function fsPrompt(task, type) {
+            const ex = FS_EXAMPLE[type];
+            return 'Q: ' + ex.q + '\nWorking: ' + ex.w + '\nFinal answer: ' + ex.a + '\n\nQ: ' + task + '\nWorking: (work it out one step at a time, the same way)\nFinal answer:';
+        }
+
+        function stPrompt(task, type) {
+            return '# Task\n' + task + '\n\n# Method\n1. Restate the task: list the given values and the goal in one or two lines.\n2. Break the task into numbered sub-questions, smallest first.\n3. Work each sub-question in a "Step n" block. ' + ST_DECIDE[type] + '. Do not skip a step.\n4. Verify: recompute the final result through a second, different method.\n5. Answer in exactly this shape:\n   Steps:\n   - Step 1: <sub-question> -> <sub-answer>\n   - ... (one line per sub-question)\n   Verification: <the second method and its result>\n   Final answer: <the answer only, no prose>\n\n# Rules\nIf a value the method needs is missing, name the missing value instead of guessing. If the two methods disagree, show both results and stop there.';
+        }
+
+        function panel(title, cite, text) {
+            return '<section style="margin-bottom:18px;">'
+                + '<h3 style="margin-bottom:6px;">' + escT(title) + ' <span style="font-weight:400;font-size:0.85rem;color:#888;">' + escT(cite) + '</span></h3>'
+                + '<textarea readonly class="cot-out" style="width:100%;min-height:170px;background:#0f0f23;border:1px solid #333;color:#e5e7eb;padding:12px;border-radius:8px;font-family:monospace;font-size:0.9rem;resize:vertical;margin-bottom:6px;" aria-label="' + escT(title) + '">' + escT(text) + '</textarea>'
+                + '<button onclick="copyToClipboardFrom(this)" class="copy-btn" aria-label="Copy ' + escT(title) + '">Copy</button>'
+                + '</section>';
+        }
+
+        function copyToClipboardFrom(btn) {
+            copyToClipboardTyped(btn.previousElementSibling);
+        }
+        function copyToClipboardTyped(el) {
+            if (el) navigator.clipboard.writeText(el.value).then(function(){ showStatus('cot-status', 'Copied to clipboard.', 'success'); }, function(){ showStatus('cot-status', 'Copy blocked by the browser. Select the text below and press Ctrl+C.', 'error'); });
+        }
+
+        function buildPrompts() {
+            const task = t();
+            const type = ty();
+            const out = document.getElementById('cot-out');
+            if (!task) { showStatus('cot-status', 'Describe the task first, then press Build prompts.', 'error'); return; }
+            let html = panel('1. Zero-shot chain prompt', 'shape tested by Kojima et al. 2022', zsPrompt(task, type))
+                     + panel('2. Few-shot chains prompt', 'shape tested by Wei et al. 2022', fsPrompt(task, type))
+                     + panel('3. Structured CoT with self-check', 'adds a second-method verification step', stPrompt(task, type))
+                     + '<p style="color:#94a3b8;font-size:0.9rem;">Run the result on your own model and read every step. A chain that quotes a number your task did not contain is a wrong answer, whatever confidence the prose carries.</p>';
+            out.innerHTML = html;
+            showStatus('cot-status', 'Built 3 prompts from your task.', 'success');
+        }
+
+        function loadExample() {
+            document.getElementById('cot-task').value = FS_EXAMPLE.math.q;
+            document.getElementById('cot-type').value = 'math';
+        }
+
+        function clearTool() {
+            document.getElementById('cot-task').value = '';
+            document.getElementById('cot-type').value = 'auto';
+            document.getElementById('cot-out').innerHTML = '';
+            showStatus('cot-status', '', 'success');
+        }
+    </script>
+</body>
+</html>

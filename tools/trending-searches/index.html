@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>Live Trending Searches - What Is Trending in Your Market</title>
+    <meta name="description" content="Live trending searches by country, plus the questions people actually ask about each trend. Pulled from Google and Bing on every page load.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/trending-searches/">
+    <meta property="og:title" content="Live Trending Searches - What Is Trending in Your Market">
+    <meta property="og:description" content="Live trending searches by country, plus the questions people actually ask about each trend. Pulled from Google and Bing on every page load.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/trending-searches/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Live Trending Searches - What Is Trending in Your Market">
+    <meta name="twitter:description" content="Live trending searches by country, plus the questions people actually ask about each trend. Pulled from Google and Bing on every page load.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebApplication",
+                "datePublished": "2026-10-01",
+                "dateModified": "2026-10-01",
+                "author": {"@type": "Person", "name": "BAOMING"},
+                "name": "Live Trending Searches - What Is Trending in Your Market",
+                "description": "Live trending searches by country, plus the questions people actually ask about each trend. Pulled from Google and Bing on every page load.",
+                "url": "https://tools.scoreroute.com/tools/trending-searches/",
+                "applicationCategory": "DeveloperApplication",
+                "operatingSystem": "Any",
+                "isAccessibleForFree": true,
+                "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+            },
+            {
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {"@type": "Question", "name": "What is trending right now?", "acceptedAnswer": {"@text": "The answer changes by the hour and by country, which is why it is fetched live instead of listed on this page. Pick a market above and the list reloads from Google's own live trending feed, with the volume gradient and the time each term spiked. For the United States at the moment you load this page, that list is in the panel above, and the fetch time is printed under it."}},
+                    {"@type": "Question", "name": "Why not just ask an AI chatbot what is trending?", "acceptedAnswer": {"@text": "Because a language model has no clock and no feed. It will give you a confident, well written, entirely fictional answer built from whatever trended inside its training window, and it will give you that same fictional answer tomorrow. Trends move hourly and the model's knowledge does not move at all, so there is no prompt that fixes it. The data has to be fetched at the moment you ask, from the two places on the internet that publish it."}},
+                    {"@type": "Question", "name": "Are the volume numbers exact search volumes?", "acceptedAnswer": {"@text": "No, and anyone claiming otherwise is guessing. Google publishes a gradient, in the form 500+ or 10000+, meaning at least that many searches in the period. The real figure could be ten times higher. Third-party tools that quote an exact monthly volume for a trending term are reporting a modelled estimate from their own index, and it will be wrong for most terms."}},
+                    {"@type": "Question", "name": "Why does the list only have ten items?", "acceptedAnswer": {"@text": "Because Google's public feed publishes ten terms per market. That is the same ten shown on Google's own trending page, and no free source publishes more. This tool does not pad the list to look bigger. The way to get past ten is to switch markets, since each country carries a different set, or to use the topic check to see what people are asking about something specific."}},
+                    {"@type": "Question", "name": "What are the questions under each trend?", "acceptedAnswer": {"@text": "They are live autocomplete suggestions from Google and Bing for that term, pulled at the moment you open the panel. Autocomplete is the only public record of what real people type after they start typing, and it is the part of search demand that volume figures cannot show you. It is also the part that survives a spike, because a question like how to clean a cast iron pan is still being asked long after the video that spiked stopped ranking."}},
+                    {"@type": "Question", "name": "Can I use these trends for my own market?", "acceptedAnswer": {"@text": "Yes, which is the reason the market picker exists. Google Trends quietly picks the country from your IP address, so a reader in another country sees a list that is irrelevant to them. Pick the market you sell in, and treat the trend as the trigger rather than the plan. Spikes caused by one news story collapse within a day, and the questions underneath them are what actually keeps working."}},
+                    {"@type": "Question", "name": "Is anything stored or sent to a third party?", "acceptedAnswer": {"@text": "Nothing is stored. Requests go out from the server to Google and Bing, the answer comes back, and the page is finished. There is no account, no upload and no database, because there is nothing to upload. The feed is held in the page edge cache for five minutes so the tool does not hammer Google, and autocomplete results are held for thirty minutes for the same reason."}}
+                ]
+            }
+        ]
+    }
+    </script>
+    <style>
+        .ts-bar { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; background:#0f0f23; border:1px solid #2a2a4a; border-radius:12px; padding:16px; margin-bottom:14px }
+        .ts-bar > div { flex:1; min-width:140px }
+        .ts-label { display:block; color:#aaa; font-size:0.85rem; margin-bottom:6px; font-weight:500 }
+        .ts-sel { width:100%; background:#0f0f23; border:1px solid #2a2a4a; color:#fff; padding:9px 11px; border-radius:8px; font-family:inherit; font-size:0.9rem }
+        .ts-sel:focus-visible, .ts-chk:focus-visible { outline:3px solid #667eea; outline-offset:1px }
+        .ts-chkrow { display:flex; align-items:center; gap:8px; padding-bottom:9px }
+        .ts-chk { width:18px; height:18px; accent-color:#667eea }
+        .ts-chkrow label { color:#ccc; font-size:0.9rem }
+        .ts-meta { color:#b3b8c0; font-size:0.85rem; margin:0 0 14px }
+        .ts-list { display:flex; flex-direction:column; gap:10px }
+        .ts-item { background:#0f0f23; border:1px solid #2a2a4a; border-radius:12px; padding:14px }
+        .ts-item.hot { border-color:#7eb3ff }
+        .ts-top { display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap }
+        .ts-rank { font-family:monospace; font-size:1.1rem; font-weight:700; color:#7eb3ff; min-width:28px }
+        .ts-name { font-size:1.05rem; font-weight:600; color:#fff; flex:1; min-width:180px; word-break:break-word }
+        .ts-badges { display:flex; gap:8px; flex-wrap:wrap; align-items:center }
+        .ts-badge { font-family:monospace; font-size:0.78rem; padding:3px 9px; border-radius:999px; border:1px solid #2a2a4a; color:#b3b8c0; white-space:nowrap }
+        .ts-badge.vol { color:#5fd08a; border-color:#2f9e5f }
+        .ts-badge.fresh { color:#e6a23c; border-color:#e6a23c }
+        .ts-news { margin:10px 0 0 40px; padding:0; list-style:none; font-size:0.86rem }
+        .ts-news li { margin-bottom:5px }
+        .ts-news a { color:#7eb3ff }
+        .ts-news .ts-src { color:#808080; font-size:0.8rem }
+        .ts-actions { margin:12px 0 0 40px; display:flex; gap:8px; flex-wrap:wrap }
+        .ts-panel { background:#1a1a2e; border:1px solid #667eea; border-radius:10px; padding:14px; margin:12px 0 0 40px }
+        .ts-panel h4 { margin:0 0 8px; color:#7eb3ff; font-size:0.95rem }
+        .ts-qs { margin:0; padding-left:18px; font-size:0.9rem; color:#ddd }
+        .ts-qs li { margin-bottom:4px }
+        .ts-qgroup { margin-bottom:10px }
+        .ts-qgroup > .k { color:#aaa; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px }
+        .ts-err { color:#ff8080; font-size:0.88rem; min-height:20px; margin:10px 0 }
+        .ts-check { background:#0f0f23; border:1px solid #2a2a4a; border-radius:12px; padding:16px; margin-top:16px }
+        .ts-in { width:100%; box-sizing:border-box; background:#0f0f23; border:1px solid #333; color:#fff; padding:10px 12px; border-radius:8px; font-family:inherit; font-size:0.95rem }
+        .ts-in:focus-visible { outline:3px solid #667eea; outline-offset:1px }
+        .ts-note { border-left:3px solid #667eea; background:#1a1a2e; padding:12px 14px; border-radius:0 8px 8px 0; font-size:0.9rem; color:#ccc; margin:14px 0 }
+        .ts-note.warn { border-left-color:#e6a23c }
+        .ts-empty { text-align:center; padding:22px; color:#b3b8c0 }
+        @media (max-width:600px) { .ts-news, .ts-actions, .ts-panel { margin-left:0 } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Live Trending Searches</h1>
+            <p class="subtitle">What is climbing in your market right now, and what people are actually asking about it</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Live Trending Searches</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Today's rising searches, by country</h2>
+
+                <div class="ts-bar">
+                    <div>
+                        <label class="ts-label" for="ts-geo">Market</label>
+                        <select id="ts-geo" class="ts-sel">
+                            <option value="US">United States</option>
+                            <option value="GB">United Kingdom</option>
+                            <option value="CA">Canada</option>
+                            <option value="AU">Australia</option>
+                            <option value="IN">India</option>
+                            <option value="JP">Japan</option>
+                            <option value="DE">Germany</option>
+                            <option value="FR">France</option>
+                            <option value="ES">Spain</option>
+                            <option value="IT">Italy</option>
+                            <option value="BR">Brazil</option>
+                            <option value="MX">Mexico</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="ts-label" for="ts-sort">Order by</label>
+                        <select id="ts-sort" class="ts-sel">
+                            <option value="rank">Google's order</option>
+                            <option value="volume">Search volume</option>
+                            <option value="new">Newest first</option>
+                        </select>
+                    </div>
+                    <div class="ts-chkrow">
+                        <input type="checkbox" id="ts-hot" class="ts-chk">
+                        <label for="ts-hot">Only terms above 500 searches</label>
+                    </div>
+                    <div style="flex:0 0 auto">
+                        <button type="button" id="ts-refresh" class="btn btn-primary">Refresh</button>
+                    </div>
+                </div>
+
+                <p class="ts-meta" id="ts-meta">Loading the live feed...</p>
+                <div class="ts-list" id="ts-list"></div>
+                <div class="ts-err" id="ts-err" role="status" aria-live="polite"></div>
+                <div class="btn-group" style="margin-top:12px">
+                    <button type="button" id="ts-copy-list" class="btn btn-secondary">Copy the list</button>
+                    <button type="button" id="ts-copy-briefs" class="btn btn-secondary">Copy every brief</button>
+                </div>
+
+                <div class="ts-check">
+                    <h2 style="margin-top:0;font-size:1.25rem">Check one of your own topics</h2>
+                    <label class="ts-label" for="ts-topic">A keyword, product, question or news story you care about</label>
+                    <input type="text" id="ts-topic" class="ts-in" placeholder="cast iron pan, hurricane, ai regulation, ..." autocomplete="off">
+                    <div class="btn-group" style="margin-top:10px">
+                        <button type="button" id="ts-check" class="btn btn-primary">Look it up live</button>
+                        <button type="button" id="ts-check-copy" class="btn btn-secondary">Copy the brief</button>
+                    </div>
+                    <div class="ts-err" id="ts-check-err" role="status" aria-live="polite"></div>
+                    <div id="ts-check-out"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What this tool does</h2>
+                <p>Almost every trending searches page on the internet is a screenshot of Google Trends, a static list pasted in January, or a mirror of somebody else's numbers. None of them answer the question a writer, a shop owner or an SEO actually has, which is not what is trending, but what I should do about it in the next two hours.</p>
+                <p>The question has two halves and they need different data. The first half is volume, and that is the part Google publishes: how many people are searching a term right now, in which country, and how fast it climbed. The second half is intent, and Google does not publish it at all. Google Trends will tell you that a term is climbing, and it will not tell you whether the people climbing are looking to buy a costume, settle a bet, or find out if a hurricane is coming. That second half lives in the autocomplete box, because autocomplete is the only public record of what real people type after they start typing, and it updates faster than any volume index.</p>
+                <p>This tool joins the two. Pick a market and you get the live list for that country rather than for whatever country your IP address happens to sit in, which is the single most common way people get this wrong. Every term carries its volume gradient, how recently it spiked, and the news items that pushed it. Open any term and you get the questions people are actually asking about it, pulled live from Google and Bing, which is the raw material for a headline, a subheading and a FAQ section. When you have decided a term is worth your time, one button copies the whole thing as a brief you can paste into a document.</p>
+                <p>The reason a chatbot cannot do this for you is not that it is unwilling, it is that it is structurally unable. A language model has no clock and no feed. Ask one what is trending and it will give you a confident, well written, entirely fictional answer built from whatever trended during its training window. Ask it what people are searching about a hurricane or an election or a drug recall and it has the same problem every time, because the answer changes by the hour and the model's knowledge does not move at all. There is no prompting trick that fixes this. The data is not in the model and never was. It has to be fetched, at the moment you ask, from the only two places on the internet that publish it. That is what happens here, on every page load, and the exact fetch time is printed above the results so you can see it.</p>
+
+                <h2>Where the numbers come from, and what they are worth</h2>
+                <p>Google's feed publishes ten terms per market, and ten is not many. It is the same ten Google shows on its own trending page, which is why this tool will never look busier than Google Trends and is not trying to. The volume figure is a gradient, in the form 500+, not a count. A term marked 1000+ means at least a thousand searches, and the true number could be ten thousand. Anyone selling you exact monthly volumes for trending terms is selling you a modelled guess from a third-party index, and it will be wrong. The news links come from the same feed, so they are the stories Google itself associated with the spike, which is usually more useful than the news any social feed would show you, because it is already filtered to what made people type.</p>
+                <p>There is a fair criticism to make, and it is worth making out loud. A trend list is a snapshot, and a snapshot from a national market is not a forecast of what will work for you. A term climbing in the United States says nothing about a shop in Lisbon, and a spike caused by one news story collapses within a day. What survives the collapse is usually the evergreen question underneath it, so treat the trend as the trigger and the questions as the actual asset. The questions do not expire the way the spike does. A person asking how to clean a cast iron pan is asking it long after the recipe video stopped trending, and the article written from that question will still be found next year. Copy the questions, not the spike.</p>
+                <div class="ts-note">
+                    <strong>Why not just ask a chatbot.</strong> A language model answers questions like this from memory with total confidence, and trending topics are precisely the thing it cannot remember, because they change by the hour. You will get a fluent, plausible and completely fictional list. This page reads the live feed at request time instead of recalling it.
+                </div>
+
+                <h2>How to use it</h2>
+                <ol>
+                    <li>Pick the market you actually sell in, not the one you happen to be sitting in. Google Trends quietly picks the country from your IP address, which is the most common way this research goes wrong.</li>
+                    <li>Order by search volume rather than Google's order if you are hunting for reach. Google's order mixes in relevance and freshness, so the biggest term is often not in first place.</li>
+                    <li>Turn on the 500-search filter when you have one hour, not one week. Below that line the terms are usually noise from a single social post.</li>
+                    <li>Open a term and read the questions before the headlines. If every question is the same question with three spellings, the topic is thinner than the volume suggests.</li>
+                    <li>Use the topic check for your own keywords. It answers a different question from the list: not what everyone is searching, but what is being asked about the thing you already care about.</li>
+                    <li>Copy the brief and keep it. The spike is gone in a day and the questions are still working a year later.</li>
+                </ol>
+
+                <h3>Frequently asked questions</h3>
+                <details class="faq-item"><summary>What is trending right now?</summary><p>The answer changes by the hour and by country, which is why it is fetched live instead of listed on this page. Pick a market above and the list reloads from Google's own live trending feed, with the volume gradient and the time each term spiked. For the United States at the moment you load this page, that list is in the panel above, and the fetch time is printed under it.</p></details>
+                <details class="faq-item"><summary>Why not just ask an AI chatbot what is trending?</summary><p>Because a language model has no clock and no feed. It will give you a confident, well written, entirely fictional answer built from whatever trended inside its training window, and it will give you that same fictional answer tomorrow. Trends move hourly and the model's knowledge does not move at all, so there is no prompt that fixes it. The data has to be fetched at the moment you ask, from the two places on the internet that publish it.</p></details>
+                <details class="faq-item"><summary>Are the volume numbers exact search volumes?</summary><p>No, and anyone claiming otherwise is guessing. Google publishes a gradient, in the form 500+ or 10000+, meaning at least that many searches in the period. The real figure could be ten times higher. Third-party tools that quote an exact monthly volume for a trending term are reporting a modelled estimate from their own index, and it will be wrong for most terms.</p></details>
+                <details class="faq-item"><summary>Why does the list only have ten items?</summary><p>Because Google's public feed publishes ten terms per market. That is the same ten shown on Google's own trending page, and no free source publishes more. This tool does not pad the list to look bigger. The way to get past ten is to switch markets, since each country carries a different set, or to use the topic check to see what people are asking about something specific.</p></details>
+                <details class="faq-item"><summary>What are the questions under each trend?</summary><p>They are live autocomplete suggestions from Google and Bing for that term, pulled at the moment you open the panel. Autocomplete is the only public record of what real people type after they start typing, and it is the part of search demand that volume figures cannot show you. It is also the part that survives a spike, because a question like how to clean a cast iron pan is still being asked long after the video that spiked stopped ranking.</p></details>
+                <details class="faq-item"><summary>Can I use these trends for my own market?</summary><p>Yes, which is the reason the market picker exists. Google Trends quietly picks the country from your IP address, so a reader in another country sees a list that is irrelevant to them. Pick the market you sell in, and treat the trend as the trigger rather than the plan. Spikes caused by one news story collapse within a day, and the questions underneath them are what actually keeps working.</p></details>
+                <details class="faq-item"><summary>Is anything stored or sent to a third party?</summary><p>Nothing is stored. Requests go out from the server to Google and Bing, the answer comes back, and the page is finished. There is no account, no upload and no database, because there is nothing to upload. The feed is held in the page edge cache for five minutes so the tool does not hammer Google, and autocomplete results are held for thirty minutes for the same reason.</p></details>
+
+                <h3>Related tools</h3>
+                <p><a href="/tools/ai-prompt-engineer/">AI Prompt Engineer</a> to turn a chosen trend into a working outline, <a href="/tools/social-media-post-generator/">Social Media Post Generator</a> and <a href="/tools/hashtag-generator/">Hashtag Generator</a> to carry it into social, and <a href="/tools/youtube-tag-generator/">YouTube Tag Generator</a> if the trend belongs in a video rather than an article.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+        </div>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function () {
+        'use strict';
+
+        var els = {
+            geo: document.getElementById('ts-geo'),
+            sort: document.getElementById('ts-sort'),
+            hot: document.getElementById('ts-hot'),
+            refresh: document.getElementById('ts-refresh'),
+            meta: document.getElementById('ts-meta'),
+            list: document.getElementById('ts-list'),
+            err: document.getElementById('ts-err'),
+            copyList: document.getElementById('ts-copy-list'),
+            copyBriefs: document.getElementById('ts-copy-briefs'),
+            topic: document.getElementById('ts-topic'),
+            check: document.getElementById('ts-check'),
+            checkCopy: document.getElementById('ts-check-copy'),
+            checkErr: document.getElementById('ts-check-err'),
+            checkOut: document.getElementById('ts-check-out')
+        };
+
+        var trends = [];
+        var briefs = {};
+        var openTitle = '';
+        var checkData = null;
+
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function freshLabel(h) {
+            if (h == null) return 'time unknown';
+            if (h <= 0) return 'just now';
+            if (h < 1) return Math.max(1, Math.round(h * 60)) + ' min ago';
+            if (h < 48) return h + ' h ago';
+            return Math.round(h / 24) + ' days ago';
+        }
+
+        function volumeNum(s) {
+            var n = parseInt(String(s == null ? '' : s).replace(/[^0-9]/g, ''), 10);
+            return isFinite(n) ? n : 0;
+        }
+
+        function copyText(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(
+                    function () { els.err.textContent = 'Copied to the clipboard.'; },
+                    function () { fallbackCopy(text); });
+            } else { fallbackCopy(text); }
+        }
+
+        function fallbackCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                els.err.textContent = 'Copied to the clipboard.';
+            } catch (e) {
+                els.err.textContent = 'Copy was blocked. Select the text and copy it manually.';
+            }
+            document.body.removeChild(ta);
+        }
+
+        function visibleTrends() {
+            var rows = trends.slice();
+            if (els.hot.checked) rows = rows.filter(function (t) { return volumeNum(t.traffic) >= 500; });
+            var mode = els.sort.value;
+            rows.sort(function (a, b) {
+                if (mode === 'volume') return volumeNum(b.traffic) - volumeNum(a.traffic);
+                if (mode === 'new') return (a.ageHours - b.ageHours);
+                return (a.rank - b.rank);
+            });
+            return rows;
+        }
+
+        function buildBrief(t) {
+            var lines = [
+                'Trending term: ' + t.title,
+                'Market: ' + els.geo.value + ' | Searches: ' + t.traffic + ' | Spiked: ' + freshLabel(t.ageHours),
+                ''
+            ];
+            var q = briefs[t.title];
+            if (q && (q.google.length || q.bing.length)) {
+                lines.push('Questions people are asking (live autocomplete):');
+                if (q.google.length) {
+                    lines.push('Google:');
+                    for (var i = 0; i < q.google.length; i++) lines.push('  - ' + q.google[i]);
+                }
+                if (q.bing.length) {
+                    lines.push('Bing:');
+                    for (var j = 0; j < q.bing.length; j++) lines.push('  - ' + q.bing[j]);
+                }
+            } else {
+                lines.push('Questions: open the term on this page to pull them, or paste "' + t.title + '" into the topic check.');
+            }
+            if (t.news && t.news.length) {
+                lines.push('');
+                lines.push('News behind the spike:');
+                for (var n = 0; n < t.news.length; n++) lines.push('  - ' + t.news[n].title + ' (' + t.news[n].source + ') ' + t.news[n].url);
+            }
+            return lines.join('\n');
+        }
+
+        function render() {
+            var rows = visibleTrends();
+            if (!rows.length) {
+                els.list.innerHTML = '<div class="ts-empty">No term passes that filter. Clear the 500-search filter, or switch market.</div>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < rows.length; i++) {
+                var t = rows[i];
+                var isOpen = openTitle === t.title;
+                html += '<div class="ts-item' + (volumeNum(t.traffic) >= 1000 ? ' hot' : '') + '">' +
+                    '<div class="ts-top">' +
+                        '<span class="ts-rank">' + (t.rank) + '.</span>' +
+                        '<span class="ts-name">' + esc(t.title) + '</span>' +
+                        '<span class="ts-badges">' +
+                            '<span class="ts-badge vol">' + esc(t.traffic) + ' searches</span>' +
+                            '<span class="ts-badge fresh">' + esc(freshLabel(t.ageHours)) + '</span>' +
+                        '</span>' +
+                    '</div>';
+                if (t.news && t.news.length) {
+                    html += '<ul class="ts-news">';
+                    for (var n = 0; n < t.news.length; n++) {
+                        html += '<li><a href="' + esc(t.news[n].url) + '" target="_blank" rel="noopener noreferrer">' + esc(t.news[n].title) + '</a>' +
+                            ' <span class="ts-src">' + esc(t.news[n].source) + '</span></li>';
+                    }
+                    html += '</ul>';
+                }
+                html += '<div class="ts-actions">' +
+                    '<button type="button" class="btn btn-secondary" data-act="questions" data-t="' + esc(t.title) + '">' + (isOpen ? 'Hide questions' : 'Questions people ask') + '</button>' +
+                    '<button type="button" class="btn btn-secondary" data-act="brief" data-t="' + esc(t.title) + '">Copy brief</button>' +
+                '</div>';
+                if (isOpen) {
+                    var q = briefs[t.title];
+                    html += '<div class="ts-panel"><h4>Live questions about &ldquo;' + esc(t.title) + '&rdquo;</h4>';
+                    if (!q) {
+                        html += '<div class="ts-qgroup"><span class="k">Loading</span><div class="ts-qs">Pulling live autocomplete from Google and Bing...</div></div>';
+                    } else if (!q.google.length && !q.bing.length) {
+                        html += '<div class="ts-qgroup"><div class="ts-qs">Neither engine returned a suggestion for this term. Try the topic check, which asks the same question both ways.</div></div>';
+                    } else {
+                        if (q.google.length) {
+                            html += '<div class="ts-qgroup"><span class="k">Google autocomplete' +
+                                (q.googleSource === 'ok' ? '' : ' (partial)') + '</span><ul class="ts-qs">';
+                            for (var g = 0; g < q.google.length; g++) html += '<li>' + esc(q.google[g]) + '</li>';
+                            html += '</ul></div>';
+                        }
+                        if (q.bing.length) {
+                            html += '<div class="ts-qgroup"><span class="k">Bing autocomplete</span><ul class="ts-qs">';
+                            for (var b = 0; b < q.bing.length; b++) html += '<li>' + esc(q.bing[b]) + '</li>';
+                            html += '</ul></div>';
+                        }
+                    }
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+            els.list.innerHTML = html;
+        }
+
+        function loadTrends() {
+            els.err.textContent = '';
+            els.list.innerHTML = '<div class="ts-empty">Loading the live feed...</div>';
+            els.meta.textContent = 'Loading the live feed...';
+            fetch('/api/trending-searches?geo=' + encodeURIComponent(els.geo.value))
+                .then(function (r) {
+                    return r.json().then(function (j) {
+                        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+                        return j;
+                    });
+                })
+                .then(function (payload) {
+                    var d = payload.data;
+                    trends = (d.trends || []).map(function (t, i) {
+                        return {
+                            title: t.title,
+                            traffic: t.traffic,
+                            ageHours: t.ageHours,
+                            news: t.news || [],
+                            rank: i + 1
+                        };
+                    });
+                    openTitle = '';
+                    els.meta.textContent = trends.length + ' live terms for ' + els.geo.value +
+                        ', fetched ' + new Date(d.fetchedAt).toUTCString() +
+                        '. Source: ' + d.source + '. Volume is Google\'s gradient, not an exact count. Nothing is stored.';
+                    render();
+                })
+                .catch(function (e) {
+                    trends = [];
+                    els.list.innerHTML = '<div class="ts-empty">Could not reach the live feed. ' + esc(e.message) + '</div>';
+                    els.meta.textContent = 'Last attempt failed. Retry in a minute, or switch market.';
+                    els.err.textContent = 'Live trend feed unavailable.';
+                });
+        }
+
+        function loadQuestions(title) {
+            briefs[title] = { google: [], bing: [], googleSource: 'pending' };
+            render();
+            fetch('/api/trending-searches?q=' + encodeURIComponent(title))
+                .then(function (r) {
+                    return r.json().then(function (j) {
+                        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+                        return j;
+                    });
+                })
+                .then(function (d) {
+                    briefs[title] = {
+                        google: d.google || [],
+                        bing: d.bing || [],
+                        googleSource: (d.sources && d.sources.google) || 'unavailable'
+                    };
+                    render();
+                })
+                .catch(function (e) {
+                    briefs[title] = { google: [], bing: [], googleSource: 'error', error: e.message };
+                    render();
+                });
+        }
+
+        els.list.addEventListener('click', function (e) {
+            var btn = e.target.closest('button[data-act]');
+            if (!btn) return;
+            var title = btn.getAttribute('data-t');
+            var act = btn.getAttribute('data-act');
+            if (act === 'brief') { copyText(buildBrief(findTrend(title))); return; }
+            if (openTitle === title) { openTitle = ''; render(); return; }
+            openTitle = title;
+            if (!briefs[title]) loadQuestions(title); else render();
+        });
+
+        function findTrend(title) {
+            for (var i = 0; i < trends.length; i++) if (trends[i].title === title) return trends[i];
+            return { title: title, traffic: '', ageHours: 0, news: [] };
+        }
+
+        els.copyList.addEventListener('click', function () {
+            if (!trends.length) { els.err.textContent = 'Nothing loaded yet.'; return; }
+            var rows = visibleTrends();
+            var lines = ['Trending searches, ' + els.geo.value];
+            for (var i = 0; i < rows.length; i++) {
+                lines.push((i + 1) + '. ' + rows[i].title + '  [' + rows[i].traffic + ', ' + freshLabel(rows[i].ageHours) + ']');
+            }
+            copyText(lines.join('\n'));
+        });
+
+        els.copyBriefs.addEventListener('click', function () {
+            if (!trends.length) { els.err.textContent = 'Nothing loaded yet.'; return; }
+            var rows = visibleTrends();
+            var loaded = rows.filter(function (t) { return briefs[t.title]; });
+            if (!loaded.length) {
+                copyText('Open at least one term to pull its questions, then copy the brief.');
+                return;
+            }
+            var out = loaded.map(buildBrief).join('\n\n---\n\n');
+            copyText(out);
+        });
+
+        function runCheck() {
+            var q = (els.topic.value || '').trim();
+            els.checkErr.textContent = '';
+            if (q.length < 2) { els.checkErr.textContent = 'Type at least two characters.'; return; }
+            els.checkOut.innerHTML = '<div class="ts-empty">Pulling live autocomplete for &ldquo;' + esc(q) + '&rdquo;...</div>';
+            fetch('/api/trending-searches?q=' + encodeURIComponent(q))
+                .then(function (r) {
+                    return r.json().then(function (j) {
+                        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+                        return j;
+                    });
+                })
+                .then(function (d) {
+                    checkData = d;
+                    var inList = null;
+                    for (var i = 0; i < trends.length; i++) {
+                        if (trends[i].title.toLowerCase() === d.q.toLowerCase()) { inList = trends[i]; break; }
+                    }
+                    var html = '';
+                    html += '<div class="ts-panel" style="margin:14px 0 0"><h4>Live questions about &ldquo;' + esc(d.q) + '&rdquo;</h4>';
+                    if (inList) {
+                        html += '<p style="margin:0 0 10px;color:#5fd08a">It is in today\'s ' + esc(els.geo.value) + ' trending list at ' + esc(inList.traffic) + ' searches, ' + esc(freshLabel(inList.ageHours)) + '.</p>';
+                    } else {
+                        html += '<p style="margin:0 0 10px;color:#b3b8c0">Not in the current ' + esc(els.geo.value) + ' top ten. That is normal: the list holds ten terms and demand for a long tail topic never reaches it. What follows is the real signal.</p>';
+                    }
+                    var both = (d.google || []).length + (d.bing || []).length;
+                    if (!both) {
+                        html += '<div class="ts-qs">Neither engine returned a suggestion. Try a shorter or more common phrasing of the same idea.</div>';
+                    } else {
+                        if ((d.google || []).length) {
+                            html += '<div class="ts-qgroup"><span class="k">Google autocomplete</span><ul class="ts-qs">';
+                            for (var g = 0; g < d.google.length; g++) html += '<li>' + esc(d.google[g]) + '</li>';
+                            html += '</ul></div>';
+                        }
+                        if ((d.bing || []).length) {
+                            html += '<div class="ts-qgroup"><span class="k">Bing autocomplete</span><ul class="ts-qs">';
+                            for (var b = 0; b < d.bing.length; b++) html += '<li>' + esc(d.bing[b]) + '</li>';
+                            html += '</ul></div>';
+                        }
+                        if ((d.sources && d.sources.google === 'unavailable') || (d.sources && d.sources.bing === 'unavailable')) {
+                            html += '<p class="ts-meta" style="margin:6px 0 0">One engine did not answer this time. The other one is shown alone rather than the whole lookup failing.</p>';
+                        }
+                    }
+                    html += '<p class="ts-meta" style="margin:10px 0 0">Autocomplete is demand, not volume. A term with many distinct questions here is worth a page; a term with none is either too new or too obscure, and the volume gradient above will not tell you which.</p>';
+                    html += '</div>';
+                    els.checkOut.innerHTML = html;
+                })
+                .catch(function (e) {
+                    checkData = null;
+                    els.checkOut.innerHTML = '';
+                    els.checkErr.textContent = 'Live lookup failed: ' + e.message;
+                });
+        }
+
+        els.check.addEventListener('click', runCheck);
+        els.topic.addEventListener('keydown', function (e) { if (e.key === 'Enter') runCheck(); });
+        els.checkCopy.addEventListener('click', function () {
+            if (!checkData) { els.checkErr.textContent = 'Run a lookup first.'; return; }
+            var lines = ['Topic: ' + checkData.q, 'Market checked: ' + els.geo.value, ''];
+            if (checkData.google && checkData.google.length) {
+                lines.push('Questions people ask (Google autocomplete):');
+                for (var g = 0; g < checkData.google.length; g++) lines.push('  - ' + checkData.google[g]);
+            }
+            if (checkData.bing && checkData.bing.length) {
+                lines.push('Questions people ask (Bing autocomplete):');
+                for (var b = 0; b < checkData.bing.length; b++) lines.push('  - ' + checkData.bing[b]);
+            }
+            lines.push('', 'Live lookup at ' + new Date(checkData.fetchedAt).toUTCString());
+            copyText(lines.join('\n'));
+        });
+
+        els.geo.addEventListener('change', loadTrends);
+        els.sort.addEventListener('change', render);
+        els.hot.addEventListener('change', render);
+        els.refresh.addEventListener('click', loadTrends);
+
+        loadTrends();
+    })();
+    </script>
+</body>
+</html>

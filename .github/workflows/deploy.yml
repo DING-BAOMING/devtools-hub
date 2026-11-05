@@ -1,0 +1,39 @@
+name: Deploy to Cloudflare Pages
+
+# Manual trigger on purpose.
+#
+# The production deploys of this site run from the build machine (wrangler +
+# the Cloudflare API token in the local .env), because that is the path that is
+# actually verified. This workflow is the disaster-recovery path: it publishes
+# the same content from GitHub, but it needs
+#
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#   CLOUDFLARE_API_TOKEN = the Cloudflare API token (Pages:Edit)
+#
+# and it stays manual so that a stray push (or a snapshot publish from the
+# build machine) can never replace the live site by accident.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Deploy to Cloudflare Pages
+        run: |
+          npx wrangler pages deploy . --project-name devtools-hub --branch main --commit-dirty
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

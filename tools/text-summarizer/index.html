@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Summarizer - Condense Articles & Papers | DevTools Hub</title>
+    <meta name="description" content="Free online text summarizer. Condense articles, papers, and long text into key points. Extractive mode (private, no upload) or AI abstractive mode. No signup, no limits.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/text-summarizer/">
+    <meta property="og:title" content="Text Summarizer - Condense Articles & Papers | DevTools Hub">
+    <meta property="og:description" content="Free online text summarizer. Condense articles, papers, and long text into key points. Extractive mode (private, no upload) or AI abstractive mode. No signup, no limits.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/text-summarizer/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Text Summarizer - Condense Articles & Papers | DevTools Hub">
+    <meta name="twitter:description" content="Free online text summarizer. Condense articles, papers, and long text into key points. Extractive mode (private, no upload) or AI abstractive mode. No signup, no limits.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/text-summarizer/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-07-02",
+        "dateModified": "2026-07-02",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "Text Summarizer - Condense Articles & Papers",
+        "description": "Free online text summarizer. Condense articles, papers, and long text into key points. Extractive mode (private, no upload) or AI abstractive mode with source highlighting.",
+        "url": "https://tools.scoreroute.com/tools/text-summarizer/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["Extractive summarization", "AI abstractive summarization", "Source sentence highlighting", "Summary length control", "Word count comparison", "Copy results", "100% private extractive mode", "No signup required"]
+    }
+    </script>
+    <style>
+        .summary-modes { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .summary-modes label { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 14px; transition: all 0.2s; }
+        .summary-modes label:hover { border-color: var(--accent); }
+        .summary-modes input[type="radio"] { accent-color: var(--accent); }
+        .summary-modes label:has(input:checked) { border-color: var(--accent); background: rgba(102, 126, 234, 0.1); }
+        .length-control { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .length-control label { font-size: 14px; color: var(--text-secondary); white-space: nowrap; }
+        .length-control input[type="range"] { flex: 1; min-width: 0; accent-color: var(--accent); }
+        .length-control .len-val { font-size: 14px; font-weight: 500; min-width: 44px; text-align: center; }
+        #source-highlight { margin-top: 16px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; line-height: 1.7; font-size: 15px; max-height: 400px; overflow-y: auto; display: none; }
+        #source-highlight .hl-sentence { padding: 2px 4px; border-radius: 3px; transition: background 0.2s; cursor: pointer; }
+        #source-highlight .hl-sentence.selected { background: rgba(102, 126, 234, 0.2); border-bottom: 2px solid var(--accent); }
+        #source-highlight .hl-sentence:hover { background: rgba(102, 126, 234, 0.1); }
+        .stats-bar { display: flex; gap: 20px; flex-wrap: wrap; margin: 12px 0; }
+        .stats-bar .stat { font-size: 13px; color: var(--text-secondary); }
+        .stats-bar .stat strong { color: var(--text); }
+        #loading { display: none; align-items: center; gap: 8px; padding: 12px; color: var(--text-secondary); font-size: 14px; }
+        #loading .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .mode-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; padding: 8px 14px; background: var(--surface); border-radius: 6px; border-left: 3px solid var(--accent); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Text Summarizer</h1>
+            <p class="subtitle">Condense Articles, Papers & Text into Key Points - Free & Instant</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Text Summarizer</span>
+              <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Summarize Your Text</h2>
+
+                <textarea id="text-input" placeholder="Paste the article, paper, or text you want to summarize here..." aria-label="Paste text to summarize" style="min-height:200px"></textarea>
+
+                <div class="summary-modes">
+                    <label><input type="radio" name="mode" value="extractive" checked onchange="updateMode()"> Extractive (Private)</label>
+                    <label><input type="radio" name="mode" value="abstractive" onchange="updateMode()"> AI Abstractive</label>
+                </div>
+
+                <div id="mode-desc" class="mode-desc">Extractive: Picks the most important sentences from your text. 100% private, no data leaves your browser.</div>
+
+                <div class="length-control">
+                    <label for="summary-len">Summary Length:</label>
+                    <input type="range" id="summary-len" min="10" max="70" value="30">
+                    <span class="len-val" id="len-val">30%</span>
+                </div>
+
+                <div class="btn-group">
+                    <button onclick="summarize()" class="btn btn-primary" id="summarize-btn">Summarize</button>
+                    <button onclick="loadSample()" class="btn btn-secondary">Sample Text</button>
+                    <button onclick="clearAll()" class="btn btn-secondary">Clear</button>
+                </div>
+
+                <div id="loading"><div class="spinner"></div> <span id="loading-text">Summarizing...</span></div>
+
+                <div id="results" style="display:none">
+                    <h3>Summary</h3>
+                    <div id="stats-summary" class="stats-bar"></div>
+                    <div id="summary-output" style="padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;line-height:1.7;font-size:15px;white-space:pre-wrap"></div>
+                    <div class="btn-group" style="margin-top:12px">
+                        <button onclick="copySummary()" class="btn btn-secondary">Copy Summary</button>
+                    </div>
+
+                    <div id="source-highlight"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>What Is a Text Summarizer?</h3>
+                <p>A text summarizer condenses long content into its most important points. It saves you from reading entire articles, research papers, or reports when you only need the key information. Unlike skimming or speed reading, a summarizer captures the essential meaning without missing critical details.</p>
+
+                <h3>Two Summarization Modes</h3>
+                <div class="example-box">
+                    <div class="example-item">
+                        <strong>Extractive (Private)</strong>
+                        <p>Selects the most important sentences directly from your text and displays them in order. No data ever leaves your browser - 100% private. Great for sensitive documents, contracts, and personal content.</p>
+                    </div>
+                    <div class="example-item">
+                        <strong>AI Abstractive</strong>
+                        <p>Uses Groq (with NVIDIA and Gemini fallback) to rewrite the key information in fresh, coherent language. Produces a natural-sounding summary that connects ideas smoothly. Your text is sent to our AI provider for processing.</p>
+                    </div>
+                </div>
+
+                <h3>Why Not Just Ask ChatGPT?</h3>
+                <p>AI chatbots hallucinate. They often add facts that don't exist in the original text, miss critical details, or produce inconsistent summaries. Our extractive mode guarantees every sentence in the summary came from your original text - nothing added, nothing invented. Our AI abstractive mode uses a focused system prompt designed for accuracy, not creativity.</p>
+
+                <h3>How the Scoring Works</h3>
+                <p>The extractive mode scores each sentence by analyzing word frequency patterns. Sentences containing words that appear frequently across the text rank higher. A position bonus gives slight preference to introductory sentences. You control how much to keep using the summary length slider.</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>What is the difference between extractive and abstractive summarization?</summary>
+                    <p>Extractive picks existing sentences from the original text - nothing is rewritten, so accuracy is guaranteed. Abstractive generates new sentences that capture the meaning, which reads more naturally but may occasionally miss nuance. Use extractive for precision, abstractive for readability.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is my text stored or shared?</summary>
+                    <p>In extractive mode, your text never leaves your browser - 100% private. In AI abstractive mode, your text is sent to Groq's API for processing only. We do not log, store, or share any text you submit.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How long can the input text be?</summary>
+                    <p>Extractive mode handles any length your browser can process (tested up to 100,000 words). AI abstractive mode works best with texts up to 10,000 words due to the AI model's context window limits.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does the summary preserve meaning?</summary>
+                    <p>Extractive mode preserves exact meaning by using the original sentences. AI abstractive mode preserves the core message but may rephrase details. Always verify important summaries against the original text.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I use this for academic papers?</summary>
+                    <p>Yes. Use extractive mode to get the key sentences from research papers, or abstractive mode for a coherent paragraph summary. Both help you scan multiple papers quickly during literature reviews.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What language does the tool support?</summary>
+                    <p>Extractive mode works with any language that uses sentence punctuation (periods, question marks, exclamation marks). AI abstractive mode works best in English but handles many major languages.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why have an extractive mode if AI is smarter?</summary>
+                    <p>AI is not always smarter for summarization. AI models hallucinate - they add invented facts, especially with longer texts. Extractive mode guarantees 100% factual accuracy because it uses the actual source sentences. For legal, medical, or financial documents, this matters.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How do you determine which sentences are important?</summary>
+                    <p>Our algorithm scores each sentence by the frequency of its words across the full text, giving higher scores to sentences with more common important terms. A slight position bonus favors opening sentences. The result is objective, reproducible, and deterministic.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    function updateMode() {
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        const desc = document.getElementById('mode-desc');
+        if (mode === 'extractive') {
+            desc.textContent = 'Extractive: Picks the most important sentences from your text. 100% private, no data leaves your browser.';
+        } else {
+            desc.textContent = 'AI Abstractive: Uses Groq (with NVIDIA and Gemini fallback) to rewrite the key information in fresh, readable language. Text is sent to our AI provider.';
+        }
+    }
+
+    function summarize() {
+        const text = document.getElementById('text-input').value.trim();
+        if (!text) {
+            showStatus('summarize-btn', 'Please paste some text first.', 'error');
+            return;
+        }
+        if (text.length < 50) {
+            showStatus('summarize-btn', 'Please enter at least 50 characters for a meaningful summary.', 'error');
+            return;
+        }
+
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        const ratio = parseInt(document.getElementById('summary-len').value) / 100;
+        const results = document.getElementById('results');
+        const loading = document.getElementById('loading');
+        const loadingText = document.getElementById('loading-text');
+        const sourceHL = document.getElementById('source-highlight');
+
+        results.style.display = 'none';
+        sourceHL.style.display = 'none';
+
+        if (mode === 'extractive') {
+            loading.style.display = 'flex';
+            loadingText.textContent = 'Analyzing text and scoring sentences...';
+            setTimeout(function() {
+                doExtractive(text, ratio);
+                loading.style.display = 'none';
+            }, 100);
+        } else {
+            loading.style.display = 'flex';
+            loadingText.textContent = 'AI is generating your summary...';
+            doAbstractive(text);
+        }
+    }
+
+    function doExtractive(text, ratio) {
+        const sentences = splitSentences(text);
+        if (sentences.length < 3) {
+            showStatus('summarize-btn', 'Not enough sentences to summarize. Please enter at least 3 sentences.', 'error');
+            return;
+        }
+
+        const scores = scoreSentences(sentences, text);
+        const numToKeep = Math.max(1, Math.min(sentences.length - 1, Math.round(sentences.length * ratio)));
+        const topIndices = selectTopSentences(scores, numToKeep);
+
+        const sSummary = topIndices.sort(function(a,b){return a-b;}).map(function(i){return sentences[i];});
+        const summaryText = sSummary.join(' ');
+
+        const origWords = text.split(/\s+/).length;
+        const summWords = summaryText.split(/\s+/).length;
+        const reduction = Math.round((1 - summWords / origWords) * 100);
+
+        document.getElementById('stats-summary').innerHTML =
+            '<span class="stat">Original: <strong>' + origWords.toLocaleString() + '</strong> words</span>' +
+            '<span class="stat">Summary: <strong>' + summWords.toLocaleString() + '</strong> words</span>' +
+            '<span class="stat">Reduction: <strong>' + reduction + '%</strong></span>' +
+            '<span class="stat">Sentences selected: <strong>' + topIndices.length + '</strong> of <strong>' + sentences.length + '</strong></span>';
+
+        document.getElementById('summary-output').textContent = summaryText;
+
+        const sourceHL = document.getElementById('source-highlight');
+        sourceHL.style.display = 'block';
+        const topSet = {};
+        topIndices.forEach(function(i){topSet[i]=true;});
+        sourceHL.innerHTML = '<h4>Source Text with Selected Sentences Highlighted</h4><p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">Sentences with <span style="border-bottom:2px solid var(--accent);padding:0 2px">underlined highlights</span> were selected for the summary.</p>' +
+            sentences.map(function(s, i){
+                return '<span class="hl-sentence' + (topSet[i] ? ' selected' : '') + '" onclick="highlightClick(' + i + ')" title="Sentence ' + (i+1) + (topSet[i] ? ' (selected)' : '') + '">' + escapeHtml(s) + '</span>';
+            }).join(' ');
+
+        document.getElementById('results').style.display = 'block';
+        sourceHL.scrollIntoView({behavior:'smooth', block:'nearest'});
+        showStatus('summarize-btn', 'Summary ready', 'success');
+    }
+
+    function doAbstractive(text) {
+        const loading = document.getElementById('loading');
+        loading.style.display = 'flex';
+
+        fetch('/api/text-summarizer', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({text: text, length: document.getElementById('summary-len').value})
+        })
+        .then(function(r){return r.json();})
+        .then(function(data){
+            loading.style.display = 'none';
+            if (data.error) {
+                showStatus('summarize-btn', 'Error: ' + data.error, 'error');
+                return;
+            }
+            const summary = data.summary || data.choices?.[0]?.message?.content || '';
+            if (!summary) {
+                showStatus('summarize-btn', 'No summary generated. Try extractive mode.', 'error');
+                return;
+            }
+            const origWords = text.split(/\s+/).length;
+            const summWords = summary.split(/\s+/).length;
+            const reduction = Math.round((1 - summWords / origWords) * 100);
+
+            document.getElementById('stats-summary').innerHTML =
+                '<span class="stat">Original: <strong>' + origWords.toLocaleString() + '</strong> words</span>' +
+                '<span class="stat">Summary: <strong>' + summWords.toLocaleString() + '</strong> words</span>' +
+                '<span class="stat">Reduction: <strong>' + reduction + '%</strong></span>' +
+                '<span class="stat">Mode: <strong>AI Abstractive</strong></span>';
+
+            document.getElementById('summary-output').textContent = summary;
+            document.getElementById('source-highlight').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            showStatus('summarize-btn', 'AI summary ready', 'success');
+        })
+        .catch(function(err){
+            loading.style.display = 'none';
+            showStatus('summarize-btn', 'Network error: ' + err.message, 'error');
+        });
+    }
+
+    function splitSentences(text) {
+        var result = [];
+        var current = '';
+        var chars = text.split('');
+        for (var i = 0; i < chars.length; i++) {
+            current += chars[i];
+            if (chars[i] === '.' || chars[i] === '!' || chars[i] === '?') {
+                if (i + 1 >= chars.length || chars[i+1] === ' ' || chars[i+1] === '\n' || chars[i+1] === '\r') {
+                    var trimmed = current.trim();
+                    if (trimmed.length > 0) {
+                        result.push(trimmed);
+                    }
+                    current = '';
+                }
+            }
+        }
+        var trimmed2 = current.trim();
+        if (trimmed2.length > 0) {
+            result.push(trimmed2);
+        }
+        return result;
+    }
+
+    function scoreSentences(sentences, fullText) {
+        var words = fullText.toLowerCase().split(/\s+/);
+        var freq = {};
+        var stopwords = {'the':1,'a':1,'an':1,'is':1,'are':1,'was':1,'were':1,'be':1,'been':1,'being':1,'have':1,'has':1,'had':1,'do':1,'does':1,'did':1,'will':1,'would':1,'could':1,'should':1,'may':1,'might':1,'can':1,'shall':1,'to':1,'of':1,'in':1,'for':1,'on':1,'with':1,'at':1,'by':1,'from':1,'as':1,'into':1,'through':1,'during':1,'before':1,'after':1,'above':1,'below':1,'between':1,'out':1,'off':1,'over':1,'under':1,'again':1,'further':1,'then':1,'once':1,'and':1,'but':1,'or':1,'nor':1,'not':1,'so':1,'yet':1,'both':1,'either':1,'neither':1,'each':1,'every':1,'all':1,'any':1,'few':1,'more':1,'most':1,'other':1,'some':1,'such':1,'no':1,'only':1,'own':1,'same':1,'than':1,'too':1,'very':1,'just':1,'because':1,'as':1,'until':1,'while':1,'about':1,'between':1};
+        words.forEach(function(w){
+            w = w.replace(/[^a-z0-9]/g, '');
+            if (w.length > 2 && !stopwords[w]) {
+                freq[w] = (freq[w] || 0) + 1;
+            }
+        });
+
+        var maxFreq = 1;
+        for (var f in freq) {
+            if (freq[f] > maxFreq) maxFreq = freq[f];
+        }
+
+        return sentences.map(function(s, idx){
+            var sWords = s.toLowerCase().split(/\s+/);
+            var score = 0;
+            var wordCount = 0;
+            sWords.forEach(function(w){
+                w = w.replace(/[^a-z0-9]/g, '');
+                if (w.length > 2 && !stopwords[w] && freq[w]) {
+                    score += freq[w] / maxFreq;
+                    wordCount++;
+                }
+            });
+            if (sWords.length > 0) {
+                score = score / Math.sqrt(sWords.length + 1);
+            }
+            if (idx === 0) score *= 1.3;
+            else if (idx === 1) score *= 1.15;
+            else if (idx === 2) score *= 1.05;
+            return score;
+        });
+    }
+
+    function selectTopSentences(scores, count) {
+        var indices = scores.map(function(s,i){return i;});
+        indices.sort(function(a,b){return scores[b]-scores[a];});
+        var result = indices.slice(0, count);
+        return result;
+    }
+
+    function highlightClick(idx) {
+        var els = document.querySelectorAll('.hl-sentence');
+        if (els[idx]) {
+            els[idx].classList.toggle('selected');
+            updateSummaryFromHighlights();
+        }
+    }
+
+    function updateSummaryFromHighlights() {
+        var sentences = splitSentences(document.getElementById('text-input').value);
+        var els = document.querySelectorAll('.hl-sentence');
+        var selected = [];
+        els.forEach(function(el, i){
+            if (el.classList.contains('selected')) selected.push(i);
+        });
+        if (selected.length === 0) return;
+        var summary = selected.sort(function(a,b){return a-b;}).map(function(i){return sentences[i];}).join(' ');
+        var origWords = document.getElementById('text-input').value.split(/\s+/).length;
+        var summWords = summary.split(/\s+/).length;
+        document.getElementById('summary-output').textContent = summary;
+        document.getElementById('stats-summary').innerHTML =
+            '<span class="stat">Original: <strong>' + origWords.toLocaleString() + '</strong> words</span>' +
+            '<span class="stat">Summary: <strong>' + summWords.toLocaleString() + '</strong> words</span>' +
+            '<span class="stat">Reduction: <strong>' + Math.round((1-summWords/origWords)*100) + '%</strong></span>' +
+            '<span class="stat">Sentences selected: <strong>' + selected.length + '</strong> (click to toggle)</span>';
+    }
+
+    function copySummary() {
+        var text = document.getElementById('summary-output').textContent;
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(function(){
+            showStatus('summarize-btn', 'Summary copied to clipboard', 'success');
+        }).catch(function(){
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showStatus('summarize-btn', 'Summary copied to clipboard', 'success');
+        });
+    }
+
+    function loadSample() {
+        document.getElementById('text-input').value = 'Artificial intelligence has transformed the way we work, communicate, and solve problems. In recent years, machine learning models have become increasingly capable of handling complex tasks that once required human expertise. From natural language processing to computer vision, AI systems are now deployed across industries including healthcare, finance, education, and transportation.\n\nOne of the most significant breakthroughs has been in natural language processing. Large language models can now generate human-like text, translate between languages, answer questions, and assist with creative writing. These models are trained on massive datasets and can understand context, tone, and nuance in ways that were impossible just a few years ago.\n\nHowever, AI systems also have important limitations. They can produce incorrect information with confidence, a problem known as hallucination. They struggle with tasks requiring genuine understanding or common sense reasoning. They can perpetuate biases present in their training data. And they consume significant computational resources, raising environmental concerns.\n\nDespite these challenges, the trajectory of AI development continues upward. Researchers are working on more efficient architectures, better training methods, and techniques to reduce hallucination and bias. The goal is not to replace human intelligence but to augment it - creating tools that help people make better decisions, work more efficiently, and focus on tasks that require uniquely human skills like creativity, empathy, and ethical judgment.\n\nAs AI becomes more integrated into daily life, understanding both its capabilities and limitations becomes increasingly important. The most effective approach combines the strengths of AI with human oversight and expertise, ensuring that technology serves human needs rather than the other way around.';
+        document.getElementById('summary-len').value = 30;
+        document.getElementById('len-val').textContent = '30%';
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('source-highlight').style.display = 'none';
+    }
+
+    function clearAll() {
+        document.getElementById('text-input').value = '';
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('source-highlight').style.display = 'none';
+        document.getElementById('summary-len').value = 30;
+        document.getElementById('len-val').textContent = '30%';
+    }
+
+    document.getElementById('summary-len').addEventListener('input', function(){
+        document.getElementById('len-val').textContent = this.value + '%';
+    });
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+    </script>
+</body>
+</html>

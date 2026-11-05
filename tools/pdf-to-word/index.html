@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Word Converter - Free DOCX Online</title>
+    <meta name="description" content="Free PDF to Word converter. Extract text from PDF to editable DOCX, RTF, or TXT. 100% private browser processing, no upload, no signup, no daily limit, no watermark.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/pdf-to-word/">
+    <meta property="og:title" content="PDF to Word Converter - Free DOCX Online">
+    <meta property="og:description" content="Free PDF to Word converter with 3 output formats. 100% private, no upload, no daily limit. AI cannot preserve Word's binary structure.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/pdf-to-word/">
+    <meta property="og:type" "website">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/docx@9.0.2/build/index.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-06-06",
+        "dateModified": "2026-06-06",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "PDF to Word Converter - Free DOCX Online",
+        "description": "Convert PDF files to editable Word documents (DOCX), RTF, or TXT directly in your browser. 100% client-side using pdfjs-dist for parsing and docx library for generation. No upload, no signup, no daily limit, no watermark. AI cannot reliably generate valid .docx files with structure, so this solves a real problem.",
+        "url": "https://tools.scoreroute.com/tools/pdf-to-word/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": [
+            "3 output formats: DOCX (Word), RTF, and TXT",
+            "Smart paragraph and heading detection from font size",
+            "Multi-page support with page break preservation",
+            "100% client-side - no server upload, no signup, no daily limit",
+            "Edit extracted text in-browser before downloading",
+            "AI cannot reliably produce valid binary .docx files with formatting"
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+        {"@type":"Question","name":"Will my PDF be uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. The entire conversion pipeline runs in your browser. The PDF is read with the standard File API, parsed by pdf.js to extract text positions, and a Word document is generated client-side using the docx JavaScript library. No bytes leave your device. You can confirm in your browser's DevTools Network tab - you will see zero outbound requests for the file content."}},
+        {"@type":"Question","name":"What's the maximum file size?","acceptedAnswer":{"@type":"Answer","text":"We support PDFs up to 100 MB. The limit is browser memory. For very large files, processing may take longer but will still complete. The file never leaves your device, so there is no upload time."}},
+        {"@type":"Question","name":"What's the difference between DOCX, RTF, and TXT output?","acceptedAnswer":{"@type":"Answer","text":"DOCX is Microsoft Word's native format. It opens in Word, Google Docs, LibreOffice, and Apple Pages. Headings, paragraphs, and text styling are preserved. RTF (Rich Text Format) is a simpler format that opens in any text editor. TXT is plain text only - no formatting. Use DOCX for editable Word documents, RTF for universal compatibility, TXT for fastest conversion."}},
+        {"@type":"Question","name":"Can I edit the text before downloading?","acceptedAnswer":{"@type":"Answer","text":"Yes. After conversion, the extracted text appears in an editable preview. You can modify, add, or delete any text before clicking Download. This is useful for fixing OCR errors or removing unwanted sections."}},
+        {"@type":"Question","name":"Will formatting like tables and images be preserved?","acceptedAnswer":{"@type":"Answer","text":"Paragraphs and heading structure (detected from font size) are preserved in DOCX output. Images and complex tables are not extracted in this version - the focus is on fast, accurate text extraction. For full layout preservation, use a paid desktop application like Adobe Acrobat."}},
+        {"@type":"Question","name":"Why can't AI chatbots convert my PDF to Word?","acceptedAnswer":{"@type":"Answer","text":"AI assistants like ChatGPT, Claude, and Gemini can read text from PDFs but cannot generate valid binary .docx files. The Word format (.docx) is a complex ZIP archive containing XML, styles, relationships, and embedded resources. AI text generation cannot produce this binary structure reliably. This tool runs the actual conversion pipeline in your browser."}}
+    ]}
+    </script>
+    <style>
+        .pw-dropzone { border: 3px dashed #555; border-radius: 16px; padding: 50px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; margin-bottom: 20px; }
+        .pw-dropzone:hover, .pw-dropzone.dragover { border-color: #667eea; background: #222250; }
+        .pw-dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+        .pw-dropzone-icon { font-size: 3rem; margin-bottom: 10px; }
+        .pw-dropzone-text { font-size: 1.1rem; color: #ccc; }
+        .pw-dropzone-text strong { color: #667eea; }
+        .pw-info-bar { display: none; padding: 14px 18px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 16px; }
+        .pw-info-bar.visible { display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; }
+        .pw-info-item { color: #ccc; font-size: 0.9rem; }
+        .pw-info-item strong { color: #667eea; margin-right: 6px; }
+        .pw-options { display: none; padding: 22px; background: #1a1a3e; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
+        .pw-options.visible { display: block; }
+        .pw-format-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .pw-format-card { padding: 14px 16px; background: #0f0f23; border: 2px solid #333; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+        .pw-format-card:hover { border-color: #667eea; transform: translateY(-2px); }
+        .pw-format-card.active { border-color: #667eea; background: #1a1a3e; box-shadow: 0 0 18px rgba(102,126,234,0.3); }
+        .pw-format-name { color: #fff; font-weight: 600; font-size: 1.05rem; margin-bottom: 4px; }
+        .pw-format-desc { color: #888; font-size: 0.82rem; line-height: 1.4; }
+        .pw-format-meta { display: flex; gap: 12px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #2a2a40; }
+        .pw-format-meta span { color: #a8a8c0; font-size: 0.75rem; }
+        .pw-progress { display: none; margin: 18px 0; padding: 16px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+        .pw-progress.visible { display: block; }
+        .pw-progress-text { color: #667eea; margin-bottom: 8px; font-size: 0.9rem; }
+        .pw-progress-bar { height: 8px; background: #0f0f23; border-radius: 4px; overflow: hidden; }
+        .pw-progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.3s; }
+        .pw-result { display: none; margin-top: 20px; }
+        .pw-result.visible { display: block; }
+        .pw-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+        .pw-result-header h2 { color: #fff; margin: 0; }
+        .pw-result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .pw-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 16px; }
+        .pw-stat-card { background: #1a1a3e; padding: 14px 16px; border-radius: 8px; border-left: 3px solid #667eea; }
+        .pw-stat-label { color: #888; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pw-stat-value { color: #fff; font-size: 1.25rem; font-weight: 600; margin-top: 2px; font-family: monospace; }
+        .pw-editor { display: none; margin-top: 18px; }
+        .pw-editor.visible { display: block; }
+        .pw-editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        .pw-editor-header h3 { color: #fff; margin: 0; }
+        .pw-editor-textarea { width: 100%; min-height: 380px; padding: 16px; background: #0f0f23; color: #d4d4d4; border: 1px solid #333; border-radius: 8px; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 0.88rem; line-height: 1.6; resize: vertical; }
+        .pw-editor-textarea:focus { outline: 2px solid transparent; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.2); }
+        .pw-error { display: none; margin: 14px 0; padding: 12px 16px; background: #3e1a1a; color: #ff9999; border-radius: 8px; border: 1px solid #aa3333; font-size: 0.9rem; }
+        .pw-error.visible { display: block; }
+        .pw-info-banner { padding: 14px 18px; background: #1a2e3e; border-left: 3px solid #3b82f6; border-radius: 6px; margin-bottom: 16px; color: #93c5fd; font-size: 0.88rem; line-height: 1.5; }
+        .pw-info-banner strong { color: #dbeafe; }
+        @media (max-width: 700px) {
+            .pw-info-bar.visible { flex-direction: column; gap: 6px; }
+            .pw-format-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>PDF to Word Converter</h1>
+            <p class="subtitle">Convert PDF to Editable DOCX, RTF, or TXT &middot; 100% Private &middot; No Upload &middot; No Signup &middot; No Limit</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/pdf-tools/">PDF Tools</a> &gt; <span>PDF to Word</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Convert Your PDF to Editable Text</h2>
+
+                <div class="pw-info-banner">
+                    <strong>100% Private.</strong> Your PDF never leaves your browser. We use pdf.js to parse the file and the docx JavaScript library to build a Word document entirely on your device. AI chatbots cannot generate valid .docx files - this tool can.
+                </div>
+
+                <div id="dropzone" class="pw-dropzone">
+                    <div class="pw-dropzone-icon">&#128196;</div>
+                    <div class="pw-dropzone-text">
+                        <strong>Click to upload</strong> or drag &amp; drop<br>
+                        PDF files &mdash; up to 100 MB
+                    </div>
+                    <input type="file" id="fileInput" accept="application/pdf" hidden aria-label="PDF file input">
+                </div>
+
+                <div id="errorBox" class="pw-error"></div>
+
+                <div id="infoBar" class="pw-info-bar">
+                    <span class="pw-info-item"><strong>File:</strong> <span id="infoName">-</span></span>
+                    <span class="pw-info-item"><strong>Original Size:</strong> <span id="infoSize">-</span></span>
+                    <span class="pw-info-item"><strong>Pages:</strong> <span id="infoPages">-</span></span>
+                </div>
+
+                <div id="options" class="pw-options">
+                    <h3 style="color:#fff;margin:0 0 14px;">Choose Output Format</h3>
+                    <div class="pw-format-grid">
+                        <div class="pw-format-card active" data-format="docx">
+                            <div class="pw-format-name">DOCX (Word)</div>
+                            <div class="pw-format-desc">Microsoft Word format. Opens in Word, Google Docs, LibreOffice, Pages. Preserves paragraphs and headings.</div>
+                            <div class="pw-format-meta">
+                                <span>.docx</span>
+                                <span>Editable</span>
+                                <span>Best quality</span>
+                            </div>
+                        </div>
+                        <div class="pw-format-card" data-format="rtf">
+                            <div class="pw-format-name">RTF</div>
+                            <div class="pw-format-desc">Rich Text Format. Universal compatibility. Opens in any text editor with formatting.</div>
+                            <div class="pw-format-meta">
+                                <span>.rtf</span>
+                                <span>Universal</span>
+                                <span>Smaller file</span>
+                            </div>
+                        </div>
+                        <div class="pw-format-card" data-format="txt">
+                            <div class="pw-format-name">TXT (Plain Text)</div>
+                            <div class="pw-format-desc">Plain text only. No formatting. Fastest conversion. Best for simple documents.</div>
+                            <div class="pw-format-meta">
+                                <span>.txt</span>
+                                <span>Fastest</span>
+                                <span>No formatting</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="convertBtn" class="btn btn-primary" disabled>Convert to Word</button>
+                    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                </div>
+
+                <div id="progress" class="pw-progress">
+                    <div class="pw-progress-text" id="progressText">Initializing...</div>
+                    <div class="pw-progress-bar"><div class="pw-progress-fill" id="progressFill"></div></div>
+                </div>
+
+                <div id="result" class="pw-result">
+                    <div class="pw-result-header">
+                        <h2>Conversion Complete</h2>
+                        <div class="pw-result-actions">
+                            <button id="downloadBtn" class="btn btn-primary">Download</button>
+                        </div>
+                    </div>
+
+                    <div class="pw-stats">
+                        <div class="pw-stat-card">
+                            <div class="pw-stat-label">Pages Converted</div>
+                            <div class="pw-stat-value" id="statPages">-</div>
+                        </div>
+                        <div class="pw-stat-card">
+                            <div class="pw-stat-label">Words Extracted</div>
+                            <div class="pw-stat-value" id="statWords">-</div>
+                        </div>
+                        <div class="pw-stat-card">
+                            <div class="pw-stat-label">Output Format</div>
+                            <div class="pw-stat-value" id="statFormat">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="editor" class="pw-editor">
+                    <div class="pw-editor-header">
+                        <h3>Preview &amp; Edit Text</h3>
+                        <button id="regenerateBtn" class="btn">Regenerate from Edited Text</button>
+                    </div>
+                    <textarea id="textEditor" class="pw-editor-textarea" aria-label="Extracted text editor"></textarea>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What does this tool do?</h2>
+                <p>PDF to Word Converter extracts text from any PDF document and generates an editable Word file (.docx), RTF, or plain text file. The conversion runs entirely in your browser using <strong>pdf.js</strong> to parse the PDF and the <strong>docx</strong> JavaScript library to build the Word file. The output preserves paragraph structure and detects headings based on font size, so you get a real editable document, not a flat text dump.</p>
+
+                <h2>3 output formats explained</h2>
+                <ul>
+                    <li><strong>DOCX (Word)</strong> &mdash; <em>Best quality.</em> The native Microsoft Word format. Opens in Word, Google Docs, LibreOffice Writer, and Apple Pages. Paragraphs and heading levels (detected from font size) are preserved. Use this when you need to keep editing the document.</li>
+                    <li><strong>RTF (Rich Text Format)</strong> &mdash; <em>Universal compatibility.</em> A simpler format that opens in virtually any text editor on any platform. Smaller than DOCX. Good for sharing when you are not sure what software the recipient has.</li>
+                    <li><strong>TXT (Plain Text)</strong> &mdash; <em>Fastest.</em> Pure text with no formatting. Use this when you only need the words and want the smallest possible file.</li>
+                </ul>
+
+                <h2>How it works</h2>
+                <ol>
+                    <li><strong>Upload</strong> any PDF (up to 100 MB). Your file never leaves the browser.</li>
+                    <li><strong>Choose an output format</strong> &mdash; DOCX, RTF, or TXT.</li>
+                    <li>Click <strong>Convert to Word</strong> &mdash; pdf.js parses every page and extracts text positions.</li>
+                    <li><strong>Preview and edit</strong> the extracted text in the in-browser editor if needed.</li>
+                    <li><strong>Download</strong> your editable Word document, ready to open in Word, Google Docs, or LibreOffice.</li>
+                </ol>
+
+                <h2>Why use this instead of SmallPDF, iLovePDF, or Adobe?</h2>
+                <ul>
+                    <li><strong>Truly free with no daily limit</strong> &mdash; SmallPDF caps you at 2 conversions per day on the free tier. iLovePDF requires a free account and limits file size. Adobe requires a paid subscription. This tool: unlimited, no signup, no file size cap below 100 MB.</li>
+                    <li><strong>100% private</strong> &mdash; your PDF never leaves your browser. The entire pipeline runs locally using open-source JavaScript libraries. Critical for legal documents, medical records, contracts, tax returns, IDs, and any sensitive material.</li>
+                    <li><strong>No watermarks</strong> &mdash; some smaller tools stamp "converted by" footers. We do not.</li>
+                    <li><strong>Works offline</strong> &mdash; once the page loads, you can disconnect from the internet and it still works.</li>
+                    <li><strong>Edit before download</strong> &mdash; the in-browser editor lets you fix OCR errors, remove unwanted sections, or add notes before generating the final file.</li>
+                </ul>
+
+                <h2>What AI cannot do here</h2>
+                <p>Large Language Models like ChatGPT, Claude, and Gemini can read text from PDFs and even rewrite the content, but they <strong>cannot generate a valid .docx file</strong>. The Word format is a complex ZIP archive containing XML, styles, relationships, fonts, and embedded media. AI text generation produces text, not binary documents. This tool runs the actual conversion pipeline in your browser using the same open-source libraries that power many desktop applications.</p>
+
+                <h2>Common use cases</h2>
+                <ul>
+                    <li><strong>Edit a contract</strong> &mdash; you received a PDF contract and need to make changes. Convert to DOCX, edit, resave as PDF.</li>
+                    <li><strong>Reuse content from a PDF</strong> &mdash; extract text from a report, white paper, or e-book for use in your own document.</li>
+                    <li><strong>Translate a PDF</strong> &mdash; convert to DOCX first, then use our Translator tool on the extracted text.</li>
+                    <li><strong>Data entry</strong> &mdash; extract tables and lists for spreadsheet work.</li>
+                    <li><strong>Archive searchable text</strong> &mdash; create a text version of a PDF for full-text search or accessibility.</li>
+                </ul>
+
+                <h2>Frequently asked questions</h2>
+                <details class="faq-item">
+                    <summary>Will my PDF be uploaded to a server?</summary>
+                    <p>No. The entire conversion pipeline runs in your browser. The PDF is read with the standard File API, parsed by pdf.js to extract text and font positions, and a Word document is generated client-side using the docx JavaScript library. No bytes leave your device. You can confirm this in your browser's DevTools Network tab &mdash; you will see zero outbound requests for the file content.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What's the maximum file size?</summary>
+                    <p>We support PDFs up to 100 MB. The limit is browser memory. For very large files, processing may take longer but will still complete. The file never leaves your device, so there is no upload time. If the browser runs out of memory, try splitting the PDF first with our PDF Splitter tool.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What's the difference between DOCX, RTF, and TXT?</summary>
+                    <p>DOCX is Microsoft Word's native format. It opens in Word, Google Docs, LibreOffice, and Apple Pages. Headings, paragraphs, and text styling are preserved. RTF (Rich Text Format) is a simpler format that opens in any text editor. TXT is plain text only &mdash; no formatting. Use DOCX for editable Word documents, RTF for universal compatibility, TXT for fastest conversion.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I edit the text before downloading?</summary>
+                    <p>Yes. After conversion, the extracted text appears in an editable preview area. You can modify, add, or delete any text before clicking Download. This is useful for fixing OCR errors or removing unwanted sections. The Regenerate button rebuilds the DOCX from your edited text.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Will formatting like tables and images be preserved?</summary>
+                    <p>Paragraphs and heading structure (detected from font size) are preserved in DOCX output. Images and complex table layouts are not extracted in this version &mdash; the focus is on fast, accurate text extraction with paragraph structure. For full layout preservation including images, you would need a paid desktop application like Adobe Acrobat.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why can't AI chatbots convert my PDF to Word?</summary>
+                    <p>AI assistants like ChatGPT, Claude, and Gemini can read text from PDFs and even summarize or rewrite the content, but they cannot generate a valid .docx file. The Word format (.docx) is a complex ZIP archive containing XML, styles, relationships, fonts, and embedded resources. AI text generation produces text, not binary documents. This tool runs the actual conversion pipeline in your browser using the docx JavaScript library, the same technology that powers many professional desktop applications.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        var dropzone = document.getElementById('dropzone');
+        var fileInput = document.getElementById('fileInput');
+        var infoBar = document.getElementById('infoBar');
+        var infoName = document.getElementById('infoName');
+        var infoSize = document.getElementById('infoSize');
+        var infoPages = document.getElementById('infoPages');
+        var options = document.getElementById('options');
+        var convertBtn = document.getElementById('convertBtn');
+        var clearBtn = document.getElementById('clearBtn');
+        var progress = document.getElementById('progress');
+        var progressText = document.getElementById('progressText');
+        var progressFill = document.getElementById('progressFill');
+        var result = document.getElementById('result');
+        var statPages = document.getElementById('statPages');
+        var statWords = document.getElementById('statWords');
+        var statFormat = document.getElementById('statFormat');
+        var downloadBtn = document.getElementById('downloadBtn');
+        var editor = document.getElementById('editor');
+        var textEditor = document.getElementById('textEditor');
+        var regenerateBtn = document.getElementById('regenerateBtn');
+        var errorBox = document.getElementById('errorBox');
+
+        var currentFile = null;
+        var currentPdf = null;
+        var currentFormat = 'docx';
+        var currentPdfText = '';
+        var outputBlob = null;
+        var pdfjsLib = null;
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            var k = 1024;
+            var units = ['B', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return (bytes / Math.pow(k, i)).toFixed(i > 0 ? 2 : 0) + ' ' + units[i];
+        }
+
+        function showError(msg) {
+            errorBox.textContent = msg;
+            errorBox.classList.add('visible');
+            setTimeout(function() {
+                errorBox.classList.remove('visible');
+            }, 8000);
+        }
+
+        function clearError() {
+            errorBox.classList.remove('visible');
+            errorBox.textContent = '';
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        async function loadPdfJs() {
+            if (pdfjsLib) return pdfjsLib;
+            try {
+                var module = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');
+                pdfjsLib = module;
+                module.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+                return pdfjsLib;
+            } catch (e) {
+                throw new Error('Failed to load PDF.js: ' + e.message);
+            }
+        }
+
+        async function loadPdfFromFile(file) {
+            var lib = await loadPdfJs();
+            var buffer = await file.arrayBuffer();
+            var loadingTask = lib.getDocument({ data: buffer });
+            return await loadingTask.promise;
+        }
+
+        function selectFormat(fmt) {
+            currentFormat = fmt;
+            var cards = document.querySelectorAll('.pw-format-card');
+            for (var i = 0; i < cards.length; i++) {
+                cards[i].classList.toggle('active', cards[i].dataset.format === fmt);
+            }
+            // Update button label
+            if (fmt === 'docx') convertBtn.textContent = 'Convert to Word';
+            else if (fmt === 'rtf') convertBtn.textContent = 'Convert to RTF';
+            else convertBtn.textContent = 'Convert to Text';
+        }
+
+        async function handleFile(file) {
+            clearError();
+            if (!file) return;
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                showError('Please upload a PDF file.');
+                return;
+            }
+            if (file.size > 100 * 1024 * 1024) {
+                showError('File too large. Maximum 100 MB.');
+                return;
+            }
+            currentFile = file;
+            dropzone.classList.add('has-file');
+            dropzone.querySelector('.pw-dropzone-text').innerHTML = '<strong>' + escapeHtml(file.name) + '</strong><br><span style="color:#10b981;">' + formatBytes(file.size) + ' - click to change</span>';
+            infoName.textContent = file.name;
+            infoSize.textContent = formatBytes(file.size);
+            infoPages.textContent = 'Loading...';
+            infoBar.classList.add('visible');
+            options.classList.add('visible');
+            convertBtn.disabled = true;
+            result.classList.remove('visible');
+            editor.classList.remove('visible');
+
+            try {
+                currentPdf = await loadPdfFromFile(file);
+                infoPages.textContent = currentPdf.numPages;
+                convertBtn.disabled = false;
+            } catch (e) {
+                showError('Failed to read PDF: ' + e.message);
+                resetUI();
+            }
+        }
+
+        function resetUI() {
+            currentFile = null;
+            currentPdf = null;
+            outputBlob = null;
+            currentPdfText = '';
+            fileInput.value = '';
+            dropzone.classList.remove('has-file');
+            dropzone.querySelector('.pw-dropzone-text').innerHTML = '<strong>Click to upload</strong> or drag &amp; drop<br>PDF files &mdash; up to 100 MB';
+            infoBar.classList.remove('visible');
+            options.classList.remove('visible');
+            progress.classList.remove('visible');
+            result.classList.remove('visible');
+            editor.classList.remove('visible');
+            convertBtn.disabled = true;
+        }
+
+        /**
+         * Extract text from a PDF page with font sizes and positions.
+         * Returns array of {text, fontSize, isBold, x, y} items.
+         */
+        async function extractPageItems(page) {
+            var textContent = await page.getTextContent();
+            var items = [];
+            for (var i = 0; i < textContent.items.length; i++) {
+                var it = textContent.items[i];
+                if (!it.str || !it.str.trim()) continue;
+                var transform = it.transform || [1, 0, 0, 1, 0, 0];
+                var fontSize = Math.abs(transform[3]) || 12;
+                var fontName = it.fontName || '';
+                var isBold = /bold|black|heavy/i.test(fontName);
+                items.push({
+                    text: it.str,
+                    fontSize: fontSize,
+                    isBold: isBold,
+                    x: transform[4],
+                    y: transform[5]
+                });
+            }
+            return items;
+        }
+
+        /**
+         * Group text items into paragraphs by detecting line breaks
+         * (large Y position gaps) and indent changes.
+         */
+        function groupIntoBlocks(items) {
+            if (items.length === 0) return [];
+            // Sort by Y (top to bottom, so descending Y), then X
+            var sorted = items.slice().sort(function(a, b) {
+                if (Math.abs(a.y - b.y) > 3) return b.y - a.y;
+                return a.x - b.x;
+            });
+            var blocks = [];
+            var current = { items: [sorted[0]], avgY: sorted[0].y, avgX: sorted[0].x };
+            for (var i = 1; i < sorted.length; i++) {
+                var it = sorted[i];
+                var yGap = Math.abs(current.avgY - it.y);
+                var xGap = it.x - (current.items[current.items.length - 1].x + (current.items[current.items.length - 1].text.length * current.items[current.items.length - 1].fontSize * 0.3));
+                // New block if Y gap > 5 (different line) or X is way back left (new paragraph)
+                if (yGap > 8) {
+                    blocks.push(current);
+                    current = { items: [it], avgY: it.y, avgX: it.x };
+                } else if (xGap > 30) {
+                    // Significant horizontal gap - could be new paragraph
+                    blocks.push(current);
+                    current = { items: [it], avgY: it.y, avgX: it.x };
+                } else {
+                    current.items.push(it);
+                    current.avgY = (current.avgY + it.y) / 2;
+                }
+            }
+            blocks.push(current);
+            return blocks;
+        }
+
+        /**
+         * Extract structured text from a PDF page.
+         * Returns array of {text, type: 'h1'|'h2'|'h3'|'normal'|'list'} blocks.
+         */
+        function blocksToStructured(blocks) {
+            // Find most common font size as "body"
+            var sizeCounts = {};
+            for (var i = 0; i < blocks.length; i++) {
+                var firstItem = blocks[i].items[0];
+                var key = Math.round(firstItem.fontSize);
+                sizeCounts[key] = (sizeCounts[key] || 0) + 1;
+            }
+            var bodySize = 12;
+            var maxCount = 0;
+            for (var k in sizeCounts) {
+                if (sizeCounts[k] > maxCount) {
+                    maxCount = sizeCounts[k];
+                    bodySize = parseInt(k, 10);
+                }
+            }
+
+            var result = [];
+            for (var j = 0; j < blocks.length; j++) {
+                var blk = blocks[j];
+                var firstItm = blk.items[0];
+                var lineText = '';
+                for (var k2 = 0; k2 < blk.items.length; k2++) {
+                    if (k2 > 0) lineText += blk.items[k2].text;
+                    else lineText = blk.items[k2].text;
+                }
+                lineText = lineText.trim();
+                if (!lineText) continue;
+
+                var size = firstItm.fontSize;
+                var type = 'normal';
+                if (size >= bodySize * 1.5) type = 'h1';
+                else if (size >= bodySize * 1.3) type = 'h2';
+                else if (size >= bodySize * 1.15) type = 'h3';
+                else if (firstItm.isBold && size >= bodySize) type = 'h3';
+
+                // List detection: starts with •, -, *, or number+dot
+                if (/^[\u2022\-\*]\s/.test(lineText) || /^\d+[\.\)]\s/.test(lineText)) {
+                    type = 'list';
+                }
+
+                result.push({ text: lineText, type: type });
+            }
+            return result;
+        }
+
+        /**
+         * Generate plain text representation of blocks.
+         */
+        function blocksToText(allBlocks) {
+            var lines = [];
+            for (var p = 0; p < allBlocks.length; p++) {
+                for (var b = 0; b < allBlocks[p].length; b++) {
+                    var blk = allBlocks[p][b];
+                    var prefix = '';
+                    if (blk.type === 'h1' || blk.type === 'h2') prefix = '\n\n';
+                    else if (blk.type === 'h3') prefix = '\n';
+                    else if (blk.type === 'list') prefix = '  • ';
+                    lines.push(prefix + blk.text);
+                }
+                lines.push('\n');
+            }
+            return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+        }
+
+        async function convertPdf() {
+            if (!currentPdf) return;
+            clearError();
+            convertBtn.disabled = true;
+            clearBtn.disabled = true;
+            result.classList.remove('visible');
+            editor.classList.remove('visible');
+            progress.classList.add('visible');
+            progressFill.style.width = '0%';
+            var total = currentPdf.numPages;
+            progressText.textContent = 'Extracting text from page 1 of ' + total + '...';
+
+            try {
+                var allBlocks = [];
+                var totalWords = 0;
+                for (var i = 1; i <= total; i++) {
+                    progressText.textContent = 'Extracting text from page ' + i + ' of ' + total + '...';
+                    progressFill.style.width = ((i - 1) / total * 80).toFixed(1) + '%';
+                    await new Promise(function(r) { setTimeout(r, 0); });
+
+                    var page = await currentPdf.getPage(i);
+                    var items = await extractPageItems(page);
+                    var blocks = groupIntoBlocks(items);
+                    var structured = blocksToStructured(blocks);
+                    allBlocks.push(structured);
+                    for (var b = 0; b < structured.length; b++) {
+                        totalWords += (structured[b].text.match(/\S+/g) || []).length;
+                    }
+                    page.cleanup();
+                }
+
+                progressText.textContent = 'Generating output file...';
+                progressFill.style.width = '85%';
+                currentPdfText = blocksToText(allBlocks);
+                textEditor.value = currentPdfText;
+                editor.classList.add('visible');
+
+                var fileName = currentFile.name.replace(/\.pdf$/i, '');
+
+                if (currentFormat === 'docx') {
+                    outputBlob = await generateDocx(allBlocks, fileName);
+                } else if (currentFormat === 'rtf') {
+                    outputBlob = generateRtf(allBlocks, fileName);
+                } else {
+                    outputBlob = generateTxt(allBlocks, fileName);
+                }
+
+                progressFill.style.width = '100%';
+                showResult(total, totalWords);
+            } catch (e) {
+                showError('Conversion failed: ' + e.message);
+                console.error(e);
+            } finally {
+                convertBtn.disabled = false;
+                clearBtn.disabled = false;
+            }
+        }
+
+        function showResult(pages, words) {
+            progress.classList.remove('visible');
+            statPages.textContent = pages;
+            statWords.textContent = words.toLocaleString();
+            statFormat.textContent = currentFormat.toUpperCase();
+            result.classList.add('visible');
+        }
+
+        /**
+         * Build a .docx file using the docx UMD library.
+         */
+        async function generateDocx(allBlocks, fileName) {
+            if (!window.docx) {
+                throw new Error('docx library failed to load');
+            }
+            var d = window.docx;
+            var Document = d.Document;
+            var Packer = d.Packer;
+            var Paragraph = d.Paragraph;
+            var TextRun = d.TextRun;
+            var HeadingLevel = d.HeadingLevel;
+            var AlignmentType = d.AlignmentType;
+            var PageBreak = d.PageBreak;
+
+            var children = [];
+            for (var p = 0; p < allBlocks.length; p++) {
+                if (p > 0) {
+                    // Add page break between pages
+                    children.push(new Paragraph({
+                        children: [new TextRun({ break: PageBreak ? PageBreak.BREAK : 0 })]
+                    }));
+                }
+                var pageBlocks = allBlocks[p];
+                for (var b = 0; b < pageBlocks.length; b++) {
+                    var blk = pageBlocks[b];
+                    var opts = { children: [new TextRun({ text: blk.text, bold: blk.type === 'h1' || blk.type === 'h2' || blk.type === 'h3' })] };
+                    if (blk.type === 'h1') {
+                        opts.heading = HeadingLevel.HEADING_1;
+                    } else if (blk.type === 'h2') {
+                        opts.heading = HeadingLevel.HEADING_2;
+                    } else if (blk.type === 'h3') {
+                        opts.heading = HeadingLevel.HEADING_3;
+                    } else if (blk.type === 'list') {
+                        opts.bullet = { level: 0 };
+                    }
+                    children.push(new Paragraph(opts));
+                }
+            }
+
+            var doc = new Document({
+                creator: 'DevTools Hub PDF to Word',
+                title: fileName,
+                description: 'Converted from PDF using DevTools Hub',
+                sections: [{
+                    properties: {},
+                    children: children
+                }]
+            });
+
+            var blob = await Packer.toBlob(doc);
+            return blob;
+        }
+
+        /**
+         * Build a simple RTF file. RTF is text-based and well-supported.
+         */
+        function generateRtf(allBlocks, fileName) {
+            var rtfContent = '{\\rtf1\\ansi\\ansicpg1252\\deff0\\nouicompat\deflang1033 ' +
+                '{\\fonttbl{\\f0\\fnil\\fcharset0 Calibri;}} ' +
+                '{\\colortbl;\\red0\\green0\\blue0;\\red0\\green0\\blue255;} ' +
+                '{\\*\\generator DevTools Hub PDF to Word} ' +
+                '{\\*\\title ' + escapeRtf(fileName) + '} ' +
+                '\\viewkind4\\uc1\\pard\\f0\\fs22 ';
+
+            for (var p = 0; p < allBlocks.length; p++) {
+                if (p > 0) rtfContent += '\\page ';
+                var pageBlocks = allBlocks[p];
+                for (var b = 0; b < pageBlocks.length; b++) {
+                    var blk = pageBlocks[b];
+                    if (blk.type === 'h1') rtfContent += '\\par\\par\\b\\fs32 ';
+                    else if (blk.type === 'h2') rtfContent += '\\par\\par\\b\\fs28 ';
+                    else if (blk.type === 'h3') rtfContent += '\\par\\b\\fs24 ';
+                    else if (blk.type === 'list') rtfContent += '\\par\\tab\\bullet ';
+                    else rtfContent += '\\par ';
+                    rtfContent += escapeRtf(blk.text);
+                    if (blk.type === 'h1' || blk.type === 'h2' || blk.type === 'h3') rtfContent += '\\b0';
+                }
+            }
+            rtfContent += '\\par}';
+            return new Blob([rtfContent], { type: 'application/rtf' });
+        }
+
+        function escapeRtf(s) {
+            return String(s)
+                .replace(/\\/g, '\\\\')
+                .replace(/{/g, '\\{')
+                .replace(/}/g, '\\}')
+                .replace(/\n/g, '\\par ');
+        }
+
+        /**
+         * Build a plain text file.
+         */
+        function generateTxt(allBlocks, fileName) {
+            var text = fileName + '\n' + '='.repeat(fileName.length) + '\n\n';
+            text += blocksToText(allBlocks);
+            return new Blob([text], { type: 'text/plain;charset=utf-8' });
+        }
+
+        function triggerDownload() {
+            if (!outputBlob || !currentFile) return;
+            var baseName = currentFile.name.replace(/\.pdf$/i, '');
+            var ext = currentFormat;
+            var url = URL.createObjectURL(outputBlob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = baseName + '-converted.' + ext;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+        }
+
+        async function regenerateFromEditedText() {
+            if (!currentFile || !textEditor.value) {
+                showError('No text to regenerate.');
+                return;
+            }
+            clearError();
+            convertBtn.disabled = true;
+            clearBtn.disabled = true;
+            progress.classList.add('visible');
+            progressText.textContent = 'Regenerating from edited text...';
+            progressFill.style.width = '50%';
+
+            try {
+                var editedText = textEditor.value;
+                // Split into lines and treat each as a normal paragraph
+                var lines = editedText.split(/\n+/);
+                var allBlocks = [[]];
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    if (line) {
+                        var type = 'normal';
+                        if (/^#\s/.test(line)) { type = 'h1'; line = line.replace(/^#\s/, ''); }
+                        else if (/^##\s/.test(line)) { type = 'h2'; line = line.replace(/^##\s/, ''); }
+                        else if (/^###\s/.test(line)) { type = 'h3'; line = line.replace(/^###\s/, ''); }
+                        else if (/^[•\-\*]\s/.test(line)) { type = 'list'; }
+                        allBlocks[0].push({ text: line, type: type });
+                    }
+                }
+                if (allBlocks[0].length === 0) {
+                    showError('Edited text is empty.');
+                    return;
+                }
+
+                var fileName = currentFile.name.replace(/\.pdf$/i, '');
+                if (currentFormat === 'docx') {
+                    outputBlob = await generateDocx(allBlocks, fileName);
+                } else if (currentFormat === 'rtf') {
+                    outputBlob = generateRtf(allBlocks, fileName);
+                } else {
+                    outputBlob = generateTxt(allBlocks, fileName);
+                }
+
+                progressFill.style.width = '100%';
+                var totalWords = (textEditor.value.match(/\S+/g) || []).length;
+                showResult(1, totalWords);
+            } catch (e) {
+                showError('Regeneration failed: ' + e.message);
+                console.error(e);
+            } finally {
+                convertBtn.disabled = false;
+                clearBtn.disabled = false;
+                setTimeout(function() { progress.classList.remove('visible'); }, 500);
+            }
+        }
+
+        dropzone.addEventListener('click', function() { fileInput.click(); });
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        dropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', function() {
+            dropzone.classList.remove('dragover');
+        });
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        var formatCards = document.querySelectorAll('.pw-format-card');
+        for (var i = 0; i < formatCards.length; i++) {
+            (function(card) {
+                card.addEventListener('click', function() { selectFormat(card.dataset.format); });
+            })(formatCards[i]);
+        }
+        convertBtn.addEventListener('click', convertPdf);
+        regenerateBtn.addEventListener('click', regenerateFromEditedText);
+        clearBtn.addEventListener('click', function() {
+            resetUI();
+            clearError();
+        });
+        downloadBtn.addEventListener('click', triggerDownload);
+    })();
+    </script>
+</body>
+</html>

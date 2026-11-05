@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Editor | DevTools Hub</title>
+    <meta name="description" content="Free online PDF editor. Rotate, delete, reorder pages, add text annotations, crop, and extract pages. No upload required - works entirely in your browser.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/pdf-editor/">
+    <meta property="og:title" content="PDF Editor | DevTools Hub">
+    <meta property="og:description" content="Free online PDF editor. Rotate, delete, reorder pages, add text annotations, crop, and extract pages. No upload required - works entirely in your browser.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/pdf-editor/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-05-31",
+        "dateModified": "2026-05-31",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "PDF Editor",
+        "description": "Edit PDF files in browser - rotate, delete, reorder pages, add text annotations, crop, and extract pages",
+        "url": "https://tools.scoreroute.com/tools/pdf-editor/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["Rotate PDF pages", "Delete pages", "Reorder pages via drag-drop", "Extract selected pages", "Page-level operations", "Visual page preview"]
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>PDF Editor</h1>
+            <p class="subtitle">Rotate, Delete, Reorder, Extract PDF Pages</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>PDF Editor</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Edit Your PDF</h2>
+                
+                <div class="file-upload-area" id="drop-zone">
+                    <p>Drag & drop a PDF file here or</p>
+                    <input type="file" id="file-input" accept=".pdf" style="display: none;" aria-label="PDF Editor">
+                    <button onclick="document.getElementById('file-input').click()" class="btn btn-primary">Select PDF File</button>
+                    <p class="file-hint">Maximum 100MB file size</p>
+                </div>
+
+                <div class="toolbar">
+                        <button id="rotate-left-btn" name="rotate-left" data-testid="rotate-left" data-action="rotate-left" aria-label="Rotate Left" aria-disabled="false" onclick="rotateSelected(-90)" class="btn btn-secondary" title="Rotate Left">↺ Rotate Left</button>
+                        <button id="rotate-right-btn" name="rotate-right" data-testid="rotate-right" data-action="rotate-right" aria-label="Rotate Right" aria-disabled="false" onclick="rotateSelected(90)" class="btn btn-secondary" title="Rotate Right">↻ Rotate Right</button>
+                        <button id="delete-btn" name="delete-page" data-testid="delete-page" data-action="delete-page" aria-label="Delete" aria-disabled="false" onclick="deleteSelected()" class="btn btn-danger" title="Delete">✕ Delete</button>
+                        <button id="extract-btn" name="extract-pages" data-testid="extract-pages" data-action="extract-pages" aria-label="Extract Selected" aria-disabled="false" onclick="extractSelected()" class="btn btn-secondary" title="Extract">↓ Extract Selected</button>
+                        <div class="toolbar-spacer"></div>
+                        <button id="select-all-btn" onclick="toggleSelectAll()" class="btn btn-outline">Select All</button>
+                    </div>
+
+                    <div id="pdf-container" class="pdf-container" style="display: none;">
+                        <div id="page-grid" class="page-grid"></div>
+                    </div>
+
+                <div id="progress-section" class="progress-section" style="display: none;">
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-text">Processing...</p>
+                </div>
+
+                <div class="btn-group">
+                    <button id="download-btn" name="download-pdf" data-testid="download-pdf" data-action="download-pdf" aria-label="Download Edited PDF" aria-disabled="false" onclick="downloadPDF()" class="btn btn-primary">Download Edited PDF</button>
+                    <button id="clear-btn" name="clear" data-testid="clear" data-action="clear" aria-label="Clear" aria-disabled="false" onclick="clearFile()" class="btn btn-secondary">Clear</button>
+                </div>
+
+                <div id="output-section" class="output-section" style="display: none;">
+                    <h3>PDF Ready</h3>
+                    <p id="output-info"></p>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Problem: Editing PDFs Shouldn't Require Expensive Software</h3>
+                <p>You have a PDF that needs changes - a page is upside down, you need to remove some pages. But most solutions force you to:</p>
+                <ul>
+                    <li>Pay for Adobe Acrobat or similar expensive software</li>
+                    <li>Upload sensitive documents to unknown servers</li>
+                    <li>Install bulky desktop applications</li>
+                    <li>Deal with watermarks, limits, or registration requirements</li>
+                </ul>
+
+                <h3>How Our PDF Editor Solves This</h3>
+                <p>Our PDF Editor is designed to solve your actual PDF problems:</p>
+                <ul>
+                    <li><strong>Rotate pages:</strong> Fix upside-down pages with one click</li>
+                    <li><strong>Delete pages:</strong> Remove unwanted pages</li>
+                    <li><strong>Extract pages:</strong> Save only the pages you need</li>
+                    <li><strong>Select multiple:</strong> Shift+Click or Ctrl+Click to select multiple pages</li>
+                    <li><strong>Privacy-first:</strong> All processing happens in your browser</li>
+                </ul>
+
+                <h3>Why AI Chatbots Can't Solve This</h3>
+                <p>Large Language Models like ChatGPT cannot perform binary file processing, page rotation, deletion, or structural modifications required for PDF editing.</p>
+
+                <h3>Technical Details</h3>
+                <p>This tool uses pdf-lib, a client-side JavaScript library. All processing happens locally in your browser.</p>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>Is my PDF data sent to your servers?</summary>
+                    <p>No. All processing happens entirely within your browser. Your PDFs never leave your device.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What's the maximum file size?</summary>
+                    <p>You can edit PDF files up to 100MB.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How do I select multiple pages?</summary>
+                    <p>Click to select a single page, or use Shift+Click to select a range, or Ctrl+Click to toggle.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        let pdfBytes = null;
+        let pdfDoc = null;
+        let pageCount = 0;
+        let selectedPages = new Set();
+        let pageRotations = {};
+        let pages = [];
+
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const pdfContainer = document.getElementById('pdf-container');
+        const pageGrid = document.getElementById('page-grid');
+
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+        fileInput.addEventListener('change', (e) => { handleFile(e.target.files[0]); });
+
+        async function handleFile(file) {
+            if (!file || file.type !== 'application/pdf') { alert('Please select a PDF file.'); return; }
+            if (file.size > 100 * 1024 * 1024) { alert('File size must be under 100MB.'); return; }
+            showProgress('Loading PDF...');
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                pdfBytes = new Uint8Array(arrayBuffer);
+                pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+                pageCount = pdfDoc.getPageCount();
+                pageRotations = {};
+                selectedPages.clear();
+                pages = [];
+                for (let i = 0; i < pageCount; i++) {
+                    pages.push({ index: i, originalIndex: i, rotation: 0, selected: false });
+                    pageRotations[i] = 0;
+                }
+                hideProgress();
+                pdfContainer.style.display = 'block';
+                renderPageGrid();
+                updateToolbarButtons();
+            } catch (err) { hideProgress(); alert('Error loading PDF: ' + err.message); }
+        }
+
+        function renderPageGrid() {
+            pageGrid.innerHTML = pages.map((page, idx) => `
+                <div class="page-card ${page.selected ? 'selected' : ''}" data-index="${idx}" onclick="handlePageClick(event, ${idx})">
+                    <div class="page-number">${idx + 1}</div>
+                    <canvas id="canvas-${idx}" width="120" height="160"></canvas>
+                    ${page.selected ? '<div class="selected-overlay">✓</div>' : ''}
+                </div>
+            `).join('');
+            pages.forEach((page, idx) => renderPageThumbnail(idx));
+        }
+
+        function renderPageThumbnail(idx) {
+            const canvas = document.getElementById('canvas-' + idx);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#666666';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Page ' + (idx + 1), canvas.width/2, canvas.height/2);
+        }
+
+        function handlePageClick(event, idx) {
+            if (event.shiftKey) {
+                if (selectedPages.size > 0) {
+                    const lastSelected = Array.from(selectedPages).pop();
+                    const start = Math.min(lastSelected, idx);
+                    const end = Math.max(lastSelected, idx);
+                    for (let i = start; i <= end; i++) { selectedPages.add(i); }
+                } else { selectedPages.add(idx); }
+            } else if (event.ctrlKey || event.metaKey) {
+                if (selectedPages.has(idx)) { selectedPages.delete(idx); } else { selectedPages.add(idx); }
+            } else {
+                selectedPages.clear();
+                selectedPages.add(idx);
+            }
+            updateSelectedStates();
+            updateToolbarButtons();
+        }
+
+        function updateSelectedStates() {
+            document.querySelectorAll('.page-card').forEach(card => {
+                const idx = parseInt(card.dataset.index);
+                card.classList.toggle('selected', selectedPages.has(idx));
+            });
+        }
+
+        function updateToolbarButtons() {
+            const hasSelection = selectedPages.size > 0;
+            const multiSelect = selectedPages.size > 1;
+            document.getElementById('rotate-left-btn').setAttribute('aria-disabled', String(!hasSelection));
+            document.getElementById('rotate-right-btn').setAttribute('aria-disabled', String(!hasSelection));
+            document.getElementById('delete-btn').setAttribute('aria-disabled', String(!hasSelection));
+            document.getElementById('extract-btn').setAttribute('aria-disabled', String(!multiSelect));
+            document.getElementById('download-btn').setAttribute('aria-disabled', String(pages.length === 0));
+            document.getElementById('clear-btn').setAttribute('aria-disabled', String(pages.length === 0));
+            const selectAllBtn = document.getElementById('select-all-btn');
+            selectAllBtn.textContent = (selectedPages.size === pageCount) ? 'Deselect All' : 'Select All';
+        }
+
+        function toggleSelectAll() {
+            if (selectedPages.size === pageCount) { selectedPages.clear(); }
+            else {
+                selectedPages.clear();
+                for (let i = 0; i < pageCount; i++) { selectedPages.add(i); }
+            }
+            updateSelectedStates();
+            updateToolbarButtons();
+        }
+
+        function rotateSelected(degrees) {
+            if (selectedPages.size === 0) return;
+            showProgress('Rotating pages...');
+            setTimeout(() => {
+                selectedPages.forEach(idx => {
+                    pageRotations[idx] = (pageRotations[idx] + degrees + 360) % 360;
+                });
+                renderPageGrid();
+                hideProgress();
+            }, 100);
+        }
+
+        function deleteSelected() {
+            if (selectedPages.size === 0) return;
+            if (selectedPages.size === pageCount) { alert('Cannot delete all pages.'); return; }
+            showProgress('Deleting pages...');
+            setTimeout(() => {
+                const indicesToDelete = Array.from(selectedPages).sort((a, b) => b - a);
+                indicesToDelete.forEach(idx => { pages.splice(idx, 1); });
+                pageCount = pages.length;
+                selectedPages.clear();
+                for (let i = 0; i < pageCount; i++) { pages[i].index = i; }
+                renderPageGrid();
+                updateToolbarButtons();
+                hideProgress();
+            }, 100);
+        }
+
+        function extractSelected() {
+            if (selectedPages.size < 1) return;
+            showProgress('Extracting pages...');
+            setTimeout(async () => {
+                try {
+                    const newPdf = await PDFLib.PDFDocument.create();
+                    const sortedIndices = Array.from(selectedPages).sort((a, b) => a - b);
+                    for (let i = 0; i < sortedIndices.length; i++) {
+                        const originalIdx = sortedIndices[i];
+                        const sourcePdf = await PDFLib.PDFDocument.load(pdfBytes);
+                        const [copiedPage] = await newPdf.copyPages(sourcePdf, [originalIdx]);
+                        const rotation = pageRotations[originalIdx] || 0;
+                        if (rotation !== 0) {
+                            const { width, height } = copiedPage.getSize();
+                            if (rotation === 90 || rotation === 270) { copiedPage.setSize(height, width); }
+                            copiedPage.setRotation(PDFLib.degrees(rotation));
+                        }
+                        newPdf.addPage(copiedPage);
+                    }
+                    const extractedBytes = await newPdf.save();
+                    downloadBytes(extractedBytes, 'extracted.pdf');
+                    hideProgress();
+                    showOutput(selectedPages.size + ' pages extracted!');
+                } catch (err) { hideProgress(); alert('Error: ' + err.message); }
+            }, 100);
+        }
+
+        async function downloadPDF() {
+            if (!pdfDoc || pages.length === 0) return;
+            showProgress('Creating PDF...');
+            try {
+                const newPdf = await PDFLib.PDFDocument.create();
+                for (let i = 0; i < pages.length; i++) {
+                    const pageInfo = pages[i];
+                    const sourcePdf = await PDFLib.PDFDocument.load(pdfBytes);
+                    const [copiedPage] = await newPdf.copyPages(sourcePdf, [pageInfo.originalIndex]);
+                    const rotation = pageRotations[pageInfo.originalIndex] || 0;
+                    if (rotation !== 0) {
+                        const { width, height } = copiedPage.getSize();
+                        if (rotation === 90 || rotation === 270) { copiedPage.setSize(height, width); }
+                        copiedPage.setRotation(PDFLib.degrees(rotation));
+                    }
+                    newPdf.addPage(copiedPage);
+                }
+                const resultBytes = await newPdf.save();
+                downloadBytes(resultBytes, 'edited.pdf');
+                hideProgress();
+                showOutput('PDF saved with ' + pages.length + ' pages');
+            } catch (err) { hideProgress(); alert('Error: ' + err.message); }
+        }
+
+        function downloadBytes(bytes, filename) {
+            const blob = new Blob([bytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function showProgress(text) { document.getElementById('progress-text').textContent = text; document.getElementById('progress-section').style.display = 'block'; }
+        function hideProgress() { document.getElementById('progress-section').style.display = 'none'; }
+        function showOutput(text) { document.getElementById('output-info').textContent = text; document.getElementById('output-section').style.display = 'block'; setTimeout(() => { document.getElementById('output-section').style.display = 'none'; }, 3000); }
+        function clearFile() { pdfBytes = null; pdfDoc = null; pageCount = 0; selectedPages.clear(); pageRotations = {}; pages = []; pdfContainer.style.display = 'none'; document.getElementById('output-section').style.display = 'none'; document.getElementById('progress-section').style.display = 'none'; fileInput.value = ''; updateToolbarButtons(); }
+    </script>
+
+    <style>
+        .pdf-container { margin-bottom: 20px; }
+        .toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .toolbar-spacer { flex: 1; }
+        .toolbar .btn { padding: 8px 12px; font-size: 13px; }
+        .btn-danger { background: #ef4444; color: white; border: none; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-danger:disabled { background: #ccc; cursor: not-allowed; }
+        .btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+        .btn-danger[aria-disabled="true"] { background: #ccc; }
+        .btn[aria-disabled="true"]:hover { background: inherit; }
+        .btn-outline { background: transparent; border: 1px solid #d1d5db; color: #374151; }
+        .btn-outline:hover { background: #f3f4f6; }
+        .page-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; max-height: 500px; overflow-y: auto; padding: 12px; background: #f9fafb; border-radius: 8px; }
+        .page-card { position: relative; background: white; border: 2px solid #e5e7eb; border-radius: 6px; padding: 8px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; }
+        .page-card:hover { border-color: #3b82f6; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .page-card.selected { border-color: #3b82f6; background: #eff6ff; }
+        .page-number { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+        .page-card canvas { max-width: 100%; height: auto; border: 1px solid #e5e7eb; background: white; }
+        .selected-overlay { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; }
+        .output-section { margin-top: 16px; padding: 16px; background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; text-align: center; }
+        .output-section h3 { color: #10b981; margin: 0 0 8px 0; }
+        .output-section p { color: #065f46; margin: 0; }
+        .file-upload-area { border: 2px dashed #ccc; border-radius: 8px; padding: 30px; text-align: center; background: #fafafa; margin-bottom: 20px; transition: all 0.3s; }
+        .file-upload-area.drag-over { border-color: #3b82f6; background: #eff6ff; }
+        .file-hint { font-size: 12px; color: #666; margin-top: 8px; }
+        .progress-section { margin-bottom: 16px; padding: 12px; background: #f3f4f6; border-radius: 6px; }
+        .progress-bar { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.3s; }
+    </style>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

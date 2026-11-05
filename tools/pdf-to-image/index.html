@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Image Converter - Free Online JPG PNG WebP</title>
+    <meta name="description" content="Free PDF to image converter. Convert PDF pages to JPG, PNG, or WebP. Choose DPI, quality, page range. 100% private browser processing, no upload, no signup, no watermark, no limits.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/pdf-to-image/">
+    <meta property="og:title" content="PDF to Image - Convert PDF to JPG PNG WebP Free">
+    <meta property="og:description" content="Free PDF to image converter. 3 formats, adjustable DPI and quality, page range selection, preview thumbnails. 100% private.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/pdf-to-image/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-06-08",
+        "dateModified": "2026-06-08",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "PDF to Image - Convert PDF to JPG, PNG, WebP Free Online",
+        "description": "Convert PDF pages to high-quality images (JPG, PNG, WebP) entirely in your browser. Choose output format, DPI (72-300), quality, and page range. Preview thumbnails before downloading. No upload, no signup, no watermark, no daily limits.",
+        "url": "https://tools.scoreroute.com/tools/pdf-to-image/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": [
+            "3 output formats: JPG, PNG, WebP",
+            "Adjustable DPI: 72, 96, 150, 200, 300",
+            "Quality slider from 1 to 100",
+            "Page range: All pages or custom selection",
+            "Preview thumbnails before download",
+            "100% client-side - no server upload",
+            "No signup, no daily limit, no watermark",
+            "Individual page downloads",
+            "Works offline after first load"
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+        {"@type":"Question","name":"Will my PDF be uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. The entire conversion pipeline runs in your browser. The PDF is read locally via the File API, rendered to canvas by pdf.js, and encoded to JPG/PNG/WebP using native browser APIs. No bytes leave your device. You can verify this in DevTools Network tab - zero upload requests."}},
+        {"@type":"Question","name":"What image formats are supported?","acceptedAnswer":{"@type":"Answer","text":"Three formats: JPG (best for photos, smallest file size), PNG (best for screenshots, text, diagrams with sharp edges), WebP (modern format, 25-35% smaller than JPG at same quality, supported by all major browsers since 2019)."}},
+        {"@type":"Question","name":"What DPI should I use?","acceptedAnswer":{"@type":"Answer","text":"300 DPI for print quality (standard for publishers). 200 DPI for high-quality screen display. 150 DPI for most screen use - looks identical to 300 DPI on a monitor but produces smaller files. 96 DPI for web use and email. 72 DPI for maximum file size reduction."}},
+        {"@type":"Question","name":"Is there a page limit or file size limit?","acceptedAnswer":{"@type":"Answer","text":"No page limit. Convert 1-page documents or 500-page manuals. The practical limit depends on your device memory - PDFs up to 100MB work on most modern devices."}},
+        {"@type":"Question","name":"What is the quality setting?","acceptedAnswer":{"@type":"Answer","text":"For JPG and WebP, quality ranges from 1 (smallest file, most compression artifacts) to 100 (largest file, lossless or near-lossless). Recommended range: 80-92 for an excellent quality-to-size balance. PNG is always lossless and ignores the quality slider."}},
+        {"@type":"Question","name":"How is this different from Adobe Acrobat or SmallPDF?","acceptedAnswer":{"@type":"Answer","text":"This tool is completely free with no signup, no daily limits, no file size caps, and no watermark. Adobe Acrobat requires a subscription. SmallPDF allows 2 conversions per day on free tier. iLovePDF adds watermarks on the free plan. This tool offers WebP output which none of the competitors support."}}
+    ]}
+    </script>
+    <style>
+        .pi-dropzone { border: 3px dashed #555; border-radius: 16px; padding: 50px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; margin-bottom: 20px; }
+        .pi-dropzone:hover, .pi-dropzone.dragover { border-color: #667eea; background: #222250; }
+        .pi-dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+        .pi-dropzone-icon { font-size: 3rem; margin-bottom: 10px; }
+        .pi-dropzone-text { font-size: 1.1rem; color: #ccc; }
+        .pi-dropzone-text strong { color: #667eea; }
+        .pi-info-bar { display: none; padding: 14px 18px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 16px; }
+        .pi-info-bar.visible { display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; }
+        .pi-info-item { color: #ccc; font-size: 0.9rem; }
+        .pi-info-item strong { color: #667eea; margin-right: 6px; }
+        .pi-settings { display: none; padding: 22px; background: #1a1a3e; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
+        .pi-settings.visible { display: block; }
+        .pi-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+        .pi-setting-group { display: flex; flex-direction: column; gap: 6px; }
+        .pi-setting-group label { color: #a8a8c0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pi-setting-group select, .pi-setting-group input[type="text"] { padding: 8px 12px; background: #0f0f23; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 0.9rem; }
+        .pi-setting-group select:focus, .pi-setting-group input[type="text"]:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .pi-quality-row { display: flex; align-items: center; gap: 12px; }
+        .pi-quality-row input[type="range"] { flex: 1; accent-color: #667eea; }
+        .pi-quality-value { color: #667eea; font-weight: 600; font-size: 0.95rem; min-width: 32px; text-align: right; }
+        .pi-progress { display: none; margin: 18px 0; padding: 16px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+        .pi-progress.visible { display: block; }
+        .pi-progress-text { color: #667eea; margin-bottom: 8px; font-size: 0.9rem; }
+        .pi-progress-bar { height: 8px; background: #0f0f23; border-radius: 4px; overflow: hidden; }
+        .pi-progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.3s; }
+        .pi-preview { display: none; margin-top: 20px; }
+        .pi-preview.visible { display: block; }
+        .pi-preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+        .pi-preview-header h2 { color: #fff; margin: 0; }
+        .pi-preview-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .pi-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+        .pi-preview-card { background: #1a1a3e; border-radius: 10px; overflow: hidden; border: 1px solid #333; transition: transform 0.2s; }
+        .pi-preview-card:hover { transform: translateY(-2px); border-color: #667eea; }
+        .pi-preview-card img { width: 100%; height: 160px; object-fit: cover; display: block; background: #0f0f23; }
+        .pi-preview-card-body { padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; }
+        .pi-preview-card-body span { color: #ccc; font-size: 0.82rem; }
+        .pi-preview-card-body .btn { padding: 4px 12px; font-size: 0.8rem; }
+        .pi-page-input { display: flex; align-items: center; gap: 8px; }
+        .pi-page-input label { color: #a8a8c0; font-size: 0.85rem; cursor: pointer; }
+        .pi-page-mode { display: flex; gap: 12px; margin-bottom: 8px; }
+        .pi-page-mode label { color: #ccc; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .pi-error { display: none; margin: 14px 0; padding: 12px 16px; background: #3e1a1a; color: #ff9999; border-radius: 8px; border: 1px solid #aa3333; font-size: 0.9rem; }
+        .pi-error.visible { display: block; }
+        .pi-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 16px; }
+        .pi-stat-card { background: #1a1a3e; padding: 14px 16px; border-radius: 8px; border-left: 3px solid #667eea; }
+        .pi-stat-label { color: #888; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pi-stat-value { color: #fff; font-size: 1.25rem; font-weight: 600; margin-top: 2px; font-family: monospace; }
+        @media (max-width: 700px) {
+            .pi-info-bar.visible { flex-direction: column; gap: 6px; }
+            .pi-settings-grid { grid-template-columns: 1fr; }
+            .pi-preview-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>PDF to Image Converter</h1>
+            <p class="subtitle">Convert PDF Pages to JPG, PNG, or WebP &middot; 100% Private &middot; No Upload &middot; No Limits</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/pdf-tools/">PDF Tools</a> &gt; <span>PDF to Image</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Convert PDF to Image</h2>
+                <div id="dropzone" class="pi-dropzone">
+                    <div class="pi-dropzone-icon">&#128196;</div>
+                    <div class="pi-dropzone-text">
+                        <strong>Click to upload</strong> or drag &amp; drop<br>
+                        PDF files &mdash; unlimited size &amp; pages
+                    </div>
+                    <input type="file" id="fileInput" accept="application/pdf" hidden aria-label="PDF file input">
+                </div>
+
+                <div id="errorBox" class="pi-error"></div>
+
+                <div id="infoBar" class="pi-info-bar">
+                    <span class="pi-info-item"><strong>File:</strong> <span id="infoName">-</span></span>
+                    <span class="pi-info-item"><strong>Size:</strong> <span id="infoSize">-</span></span>
+                    <span class="pi-info-item"><strong>Pages:</strong> <span id="infoPages">-</span></span>
+                </div>
+
+                <div id="settings" class="pi-settings">
+                    <h3 style="color:#fff;margin:0 0 14px;">Conversion Settings</h3>
+                    <div class="pi-settings-grid">
+                        <div class="pi-setting-group">
+                            <label for="formatSelect">Output Format</label>
+                            <select id="formatSelect">
+                                <option value="image/jpeg">JPG</option>
+                                <option value="image/png">PNG</option>
+                                <option value="image/webp">WebP</option>
+                            </select>
+                        </div>
+                        <div class="pi-setting-group">
+                            <label for="dpiSelect">DPI (Resolution)</label>
+                            <select id="dpiSelect">
+                                <option value="72">72 DPI</option>
+                                <option value="96" selected>96 DPI</option>
+                                <option value="150">150 DPI</option>
+                                <option value="200">200 DPI</option>
+                                <option value="300">300 DPI</option>
+                            </select>
+                        </div>
+                        <div class="pi-setting-group">
+                            <label for="qualitySlider">Quality <span id="qualityValue" class="pi-quality-value">92</span></label>
+                            <div class="pi-quality-row">
+                                <input type="range" id="qualitySlider" min="1" max="100" value="92" step="1">
+                            </div>
+                        </div>
+                        <div class="pi-setting-group">
+                            <label>Page Range</label>
+                            <div class="pi-page-mode">
+                                <label><input type="radio" name="pageMode" value="all" checked> All Pages</label>
+                                <label><input type="radio" name="pageMode" value="custom"> Custom</label>
+                            </div>
+                            <div class="pi-page-input">
+                                <input type="text" id="pageRangeInput" aria-label="Custom page range" placeholder="e.g. 1-5, 8, 11-13" disabled style="flex:1;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="convertBtn" class="btn btn-primary" disabled>Convert to Images</button>
+                    <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                </div>
+
+                <div id="progress" class="pi-progress">
+                    <div class="pi-progress-text" id="progressText">Initializing...</div>
+                    <div class="pi-progress-bar"><div class="pi-progress-fill" id="progressFill"></div></div>
+                </div>
+
+                <div id="preview" class="pi-preview">
+                    <div class="pi-preview-header">
+                        <h2>Converted Images</h2>
+                        <div class="pi-preview-actions">
+                            <button id="downloadAllBtn" class="btn btn-primary">Download All</button>
+                        </div>
+                    </div>
+
+                    <div class="pi-stats">
+                        <div class="pi-stat-card">
+                            <div class="pi-stat-label">Converted Pages</div>
+                            <div class="pi-stat-value" id="statPages">-</div>
+                        </div>
+                        <div class="pi-stat-card">
+                            <div class="pi-stat-label">Format</div>
+                            <div class="pi-stat-value" id="statFormat">-</div>
+                        </div>
+                        <div class="pi-stat-card">
+                            <div class="pi-stat-label">Total Size</div>
+                            <div class="pi-stat-value" id="statTotalSize">-</div>
+                        </div>
+                    </div>
+
+                    <div id="previewGrid" class="pi-preview-grid"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What does this tool do?</h2>
+                <p>PDF to Image Converter extracts every page of your PDF document as a separate image file. You choose JPG, PNG, or WebP format, set the DPI (72-300), adjust quality, and pick which pages to convert. A preview grid shows thumbnails of every page so you can inspect results before downloading. The entire pipeline runs in your browser using <strong>pdf.js</strong> to decode pages and the HTML Canvas API to render images. Nothing is uploaded to any server.</p>
+
+                <h2>Why convert PDF to images?</h2>
+                <ul>
+                    <li><strong>Social media sharing</strong> &mdash; most platforms don't support PDF uploads. Convert slides, flyers, or brochures to JPG/PNG for Instagram, Facebook, LinkedIn, Twitter, WeChat.</li>
+                    <li><strong>Website embedding</strong> &mdash; HTML <code>&lt;img&gt;</code> tags don't render PDFs. Convert pages to images for web galleries, product pages, blog posts.</li>
+                    <li><strong>Remove editability</strong> &mdash; convert a PDF to images before sharing so recipients cannot copy, modify, or extract text. Useful for certificates, tickets, receipts that should be read-only.</li>
+                    <li><strong>Print shops</strong> &mdash; some print services only accept JPG or PNG. Convert at 300 DPI for print-ready quality.</li>
+                    <li><strong>Thumbnail generation</strong> &mdash; generate preview images for document management systems, e-book readers, or file browsers.</li>
+                    <li><strong>AI cannot do this</strong> &mdash; Large Language Models are text-based. They cannot render PDF pages to pixel-perfect images. This tool gives you real output, not instructions.</li>
+                </ul>
+
+                <h2>How it works</h2>
+                <ol>
+                    <li><strong>Upload</strong> any PDF document.</li>
+                    <li><strong>Choose settings</strong> &mdash; format (JPG/PNG/WebP), DPI, quality, and page range.</li>
+                    <li>Click <strong>Convert to Images</strong> &mdash; processing happens entirely in your browser.</li>
+                    <li><strong>Preview</strong> thumbnails of every converted page.</li>
+                    <li><strong>Download</strong> individual images or all pages at once.</li>
+                </ol>
+
+                <h2>Format comparison: JPG vs PNG vs WebP</h2>
+                <ul>
+                    <li><strong>JPG</strong> &mdash; best for photos and documents with gradients. Smaller file size. Lossy compression means some quality loss at high compression levels. <em>Use for: photos, scanned documents, presentations with images.</em></li>
+                    <li><strong>PNG</strong> &mdash; lossless compression preserves every pixel. Ideal for screenshots, text, diagrams, and documents with sharp edges. Larger file size than JPG. <em>Use for: screenshots, text-heavy documents, charts, illustrations.</em></li>
+                    <li><strong>WebP</strong> &mdash; modern format created by Google. Lossy WebP is 25-35% smaller than JPG at equivalent quality. Lossless WebP is 20-25% smaller than PNG. Supported by Chrome, Firefox, Safari 14+, Edge. <em>Use for: websites, web apps, anywhere file size matters most.</em></li>
+                </ul>
+
+                <h2>DPI guide: choosing the right resolution</h2>
+                <ul>
+                    <li><strong>72 DPI</strong> &mdash; smallest file size. Good for web thumbnails, previews, chat sharing. A standard letter page at 72 DPI is about 600x800 pixels.</li>
+                    <li><strong>96 DPI</strong> &mdash; standard screen resolution. Good balance of quality and size for most web use. 800x1050 pixels for letter size. <em>Recommended default.</em></li>
+                    <li><strong>150 DPI</strong> &mdash; high-quality screen display. Visually indistinguishable from 300 DPI on most monitors. 1250x1650 pixels. Good for presentations.</li>
+                    <li><strong>200 DPI</strong> &mdash; very high quality. Suitable for half-page or full-screen display. 1650x2200 pixels.</li>
+                    <li><strong>300 DPI</strong> &mdash; print quality. Standard for publishing and print shops. 2500x3300 pixels for letter. Files are 4-16x larger than 96 DPI.</li>
+                </ul>
+
+                <h2>Why use this instead of Adobe, SmallPDF, or iLovePDF?</h2>
+                <ul>
+                    <li><strong>100% free with no limits</strong> &mdash; Adobe Acrobat requires $12.99/month. SmallPDF caps at 2/day. iLovePDF adds watermarks on free tier. This tool: unlimited conversions, no signup, no watermark.</li>
+                    <li><strong>100% private</strong> &mdash; your PDF never leaves your browser. Essential for sensitive documents like IDs, contracts, financial statements, and medical records.</li>
+                    <li><strong>WebP output</strong> &mdash; Adobe, SmallPDF, and iLovePDF only support JPG. This tool also outputs WebP (25-35% smaller) and lossless PNG.</li>
+                    <li><strong>Preview before download</strong> &mdash; see all pages as thumbnails before deciding what to download. Competitors require download to inspect results.</li>
+                    <li><strong>No watermarks</strong> &mdash; free tiers of iLovePDF, PDF24, and other competitors stamp watermarks. We do not.</li>
+                </ul>
+
+                <h2>Frequently asked questions</h2>
+                <details class="faq-item">
+                    <summary>Will my PDF be uploaded to a server?</summary>
+                    <p>No. The entire conversion pipeline runs in your browser using JavaScript. The PDF is read locally via the File API, rendered to canvas by pdf.js, and encoded to JPG/PNG/WebP using native browser APIs. No bytes leave your device. You can confirm this in your browser's DevTools Network tab — filter for the filename and see zero outbound requests.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What image formats are supported?</summary>
+                    <p>Three formats: <strong>JPG</strong> (best for photos, smallest file size), <strong>PNG</strong> (lossless, best for screenshots and text), and <strong>WebP</strong> (modern format, 25-35% smaller than JPG at same quality, supported by all major browsers).</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What DPI should I use?</summary>
+                    <p>300 DPI for print quality (standard for publishers). 200 DPI for high-quality screen display. 150 DPI for most screen use — looks identical to 300 DPI on a monitor. 96 DPI for web use and email. 72 DPI for maximum file size reduction and chat sharing.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is there a page limit or file size limit?</summary>
+                    <p>No page limit. Convert 1-page documents or 500-page manuals. The practical limit depends on your device memory — PDFs up to 100 MB work on most modern devices. Unlike SmallPDF (25 MB cap) or Adobe (100 MB cap on free tier), there is no arbitrary limit.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What does the quality setting do?</summary>
+                    <p>For JPG and WebP, quality ranges from 1 (smallest file, most compression artifacts) to 100 (largest file, near-lossless). Recommended range: 80-92 for excellent quality with reasonable file size. The default of 92 is a safe starting point. PNG is always lossless and ignores the quality slider.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How is this different from Adobe Acrobat or SmallPDF?</summary>
+                    <p>This tool is completely free with no signup, no daily limits, no file size caps, and no watermark. Adobe requires a subscription ($12.99/month). SmallPDF allows 2 conversions per day. iLovePDF adds watermarks. Additionally, we offer WebP output (none of the competitors support this) and preview thumbnails before download.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why can't AI chatbots convert my PDF to images?</summary>
+                    <p>Large Language Models (ChatGPT, Claude, Gemini) are text-based systems. They cannot render a PDF to a pixel-perfect image because they don't have access to a PDF rendering engine or a canvas API. They can only describe how to use a tool. This tool runs the actual pdf.js rendering pipeline in your browser — it produces real images, not instructions.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        var dropzone = document.getElementById('dropzone');
+        var fileInput = document.getElementById('fileInput');
+        var infoBar = document.getElementById('infoBar');
+        var infoName = document.getElementById('infoName');
+        var infoSize = document.getElementById('infoSize');
+        var infoPages = document.getElementById('infoPages');
+        var settings = document.getElementById('settings');
+        var convertBtn = document.getElementById('convertBtn');
+        var clearBtn = document.getElementById('clearBtn');
+        var progress = document.getElementById('progress');
+        var progressText = document.getElementById('progressText');
+        var progressFill = document.getElementById('progressFill');
+        var preview = document.getElementById('preview');
+        var previewGrid = document.getElementById('previewGrid');
+        var downloadAllBtn = document.getElementById('downloadAllBtn');
+        var errorBox = document.getElementById('errorBox');
+        var formatSelect = document.getElementById('formatSelect');
+        var dpiSelect = document.getElementById('dpiSelect');
+        var qualitySlider = document.getElementById('qualitySlider');
+        var qualityValue = document.getElementById('qualityValue');
+        var statPages = document.getElementById('statPages');
+        var statFormat = document.getElementById('statFormat');
+        var statTotalSize = document.getElementById('statTotalSize');
+        var pageRangeInput = document.getElementById('pageRangeInput');
+
+        var currentFile = null;
+        var currentPdf = null;
+        var pdfjsLib = null;
+        var convertedPages = [];
+        var formatLabels = { 'image/jpeg': 'JPG', 'image/png': 'PNG', 'image/webp': 'WebP' };
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            var k = 1024;
+            var units = ['B', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return (bytes / Math.pow(k, i)).toFixed(i > 0 ? 2 : 0) + ' ' + units[i];
+        }
+
+        function showError(msg) {
+            errorBox.textContent = msg;
+            errorBox.classList.add('visible');
+            setTimeout(function() { errorBox.classList.remove('visible'); }, 6000);
+        }
+
+        function clearError() {
+            errorBox.classList.remove('visible');
+            errorBox.textContent = '';
+        }
+
+        async function loadPdfJs() {
+            if (pdfjsLib) return pdfjsLib;
+            try {
+                var module = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');
+                pdfjsLib = module;
+                module.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+                return pdfjsLib;
+            } catch (e) {
+                throw new Error('Failed to load PDF.js: ' + e.message);
+            }
+        }
+
+        async function loadPdfFromFile(file) {
+            var lib = await loadPdfJs();
+            var buffer = await file.arrayBuffer();
+            var loadingTask = lib.getDocument({ data: buffer });
+            return await loadingTask.promise;
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function parsePageRange(totalPages) {
+            var mode = document.querySelector('input[name="pageMode"]:checked').value;
+            if (mode === 'all') {
+                var pages = [];
+                for (var i = 1; i <= totalPages; i++) pages.push(i);
+                return pages;
+            }
+            var input = pageRangeInput.value.trim();
+            if (!input) return [];
+            var pages = [];
+            var parts = input.split(',');
+            for (var p = 0; p < parts.length; p++) {
+                var part = parts[p].trim();
+                if (/^\d+$/.test(part)) {
+                    var n = parseInt(part, 10);
+                    if (n >= 1 && n <= totalPages) pages.push(n);
+                } else if (/^(\d+)-(\d+)$/.test(part)) {
+                    var m = part.match(/^(\d+)-(\d+)$/);
+                    var start = parseInt(m[1], 10);
+                    var end = parseInt(m[2], 10);
+                    if (start >= 1 && end <= totalPages && start <= end) {
+                        for (var j = start; j <= end; j++) pages.push(j);
+                    }
+                }
+            }
+            return pages.sort(function(a, b) { return a - b; });
+        }
+
+        function resetUI() {
+            currentFile = null;
+            currentPdf = null;
+            convertedPages = [];
+            fileInput.value = '';
+            dropzone.classList.remove('has-file');
+            dropzone.querySelector('.pi-dropzone-text').innerHTML = '<strong>Click to upload</strong> or drag &amp; drop<br>PDF files &mdash; unlimited size &amp; pages';
+            infoBar.classList.remove('visible');
+            settings.classList.remove('visible');
+            progress.classList.remove('visible');
+            preview.classList.remove('visible');
+            convertBtn.disabled = true;
+            previewGrid.innerHTML = '';
+        }
+
+        async function handleFile(file) {
+            clearError();
+            if (!file) return;
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                showError('Please upload a PDF file.');
+                return;
+            }
+            currentFile = file;
+            dropzone.classList.add('has-file');
+            dropzone.querySelector('.pi-dropzone-text').innerHTML = '<strong>' + escapeHtml(file.name) + '</strong><br><span style="color:#10b981;">' + formatBytes(file.size) + ' - click to change</span>';
+            infoName.textContent = file.name;
+            infoSize.textContent = formatBytes(file.size);
+            infoPages.textContent = 'Loading...';
+            infoBar.classList.add('visible');
+            settings.classList.add('visible');
+            convertBtn.disabled = true;
+            preview.classList.remove('visible');
+
+            try {
+                currentPdf = await loadPdfFromFile(file);
+                infoPages.textContent = currentPdf.numPages;
+                convertBtn.disabled = false;
+            } catch (e) {
+                showError('Failed to read PDF: ' + e.message);
+                resetUI();
+            }
+        }
+
+        async function convertToImages() {
+            if (!currentPdf) return;
+            clearError();
+            convertBtn.disabled = true;
+            clearBtn.disabled = true;
+            preview.classList.remove('visible');
+            previewGrid.innerHTML = '';
+            convertedPages = [];
+            progress.classList.add('visible');
+            progressFill.style.width = '0%';
+
+            var total = currentPdf.numPages;
+            var format = formatSelect.value;
+            var dpi = parseInt(dpiSelect.value, 10);
+            var quality = parseInt(qualitySlider.value, 10) / 100;
+            var pages = parsePageRange(total);
+
+            if (pages.length === 0) {
+                showError('No valid pages selected. Check your page range.');
+                progress.classList.remove('visible');
+                convertBtn.disabled = false;
+                clearBtn.disabled = false;
+                return;
+            }
+
+            var formatExt = format === 'image/jpeg' ? 'jpg' : (format === 'image/png' ? 'png' : 'webp');
+            var mimeType = format;
+            var totalSize = 0;
+
+            for (var idx = 0; idx < pages.length; idx++) {
+                var pageNum = pages[idx];
+                progressText.textContent = 'Converting page ' + pageNum + ' of ' + total + '...';
+                progressFill.style.width = ((idx / pages.length) * 100).toFixed(1) + '%';
+                await new Promise(function(r) { setTimeout(r, 0); });
+
+                try {
+                    var page = await currentPdf.getPage(pageNum);
+                    var scale = dpi / 72;
+                    var viewport = page.getViewport({ scale: scale });
+                    var canvas = document.createElement('canvas');
+                    var ctx = canvas.getContext('2d');
+                    canvas.width = Math.ceil(viewport.width);
+                    canvas.height = Math.ceil(viewport.height);
+
+                    var renderContext = {
+                        canvasContext: ctx,
+                        viewport: viewport,
+                        canvas: canvas
+                    };
+                    await page.render(renderContext).promise;
+
+                    var blob = await new Promise(function(resolve) {
+                        var q = (format === 'image/png') ? undefined : quality;
+                        canvas.toBlob(function(b) { resolve(b); }, mimeType, q);
+                    });
+
+                    totalSize += blob.size;
+                    var url = URL.createObjectURL(blob);
+                    var fileName = currentFile.name.replace(/\.pdf$/i, '') + '-page-' + pageNum + '.' + formatExt;
+
+                    convertedPages.push({ blob: blob, url: url, pageNum: pageNum, fileName: fileName, size: blob.size });
+
+                    var card = document.createElement('div');
+                    card.className = 'pi-preview-card';
+                    card.innerHTML = '<img src="' + url + '" alt="Page ' + pageNum + '" loading="lazy">' +
+                        '<div class="pi-preview-card-body">' +
+                        '<span>Page ' + pageNum + ' — ' + formatBytes(blob.size) + '</span>' +
+                        '<button class="btn btn-primary" data-page="' + (idx) + '" onclick="window._piDownload(' + idx + ')">Download</button>' +
+                        '</div>';
+                    previewGrid.appendChild(card);
+
+                    page.cleanup();
+                } catch (e) {
+                    showError('Failed to convert page ' + pageNum + ': ' + e.message);
+                    progress.classList.remove('visible');
+                    convertBtn.disabled = false;
+                    clearBtn.disabled = false;
+                    return;
+                }
+            }
+
+            progressFill.style.width = '100%';
+            progressText.textContent = 'Done!';
+            statPages.textContent = pages.length;
+            statFormat.textContent = formatLabels[format] || format;
+            statTotalSize.textContent = formatBytes(totalSize);
+            preview.classList.add('visible');
+            progress.classList.remove('visible');
+            convertBtn.disabled = false;
+            clearBtn.disabled = false;
+        }
+
+        window._piDownload = function(idx) {
+            if (!convertedPages[idx]) return;
+            var item = convertedPages[idx];
+            var a = document.createElement('a');
+            a.href = item.url;
+            a.download = item.fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        function downloadAll() {
+            for (var i = 0; i < convertedPages.length; i++) {
+                setTimeout(function(idx) {
+                    return function() {
+                        window._piDownload(idx);
+                    };
+                }(i), i * 500);
+            }
+        }
+
+        qualitySlider.addEventListener('input', function() {
+            qualityValue.textContent = this.value;
+        });
+
+        var pageRadios = document.querySelectorAll('input[name="pageMode"]');
+        for (var r = 0; r < pageRadios.length; r++) {
+            pageRadios[r].addEventListener('change', function() {
+                pageRangeInput.disabled = this.value !== 'custom';
+                if (this.value === 'custom') pageRangeInput.focus();
+            });
+        }
+
+        dropzone.addEventListener('click', function() { fileInput.click(); });
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        dropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', function() {
+            dropzone.classList.remove('dragover');
+        });
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        convertBtn.addEventListener('click', convertToImages);
+        downloadAllBtn.addEventListener('click', downloadAll);
+        clearBtn.addEventListener('click', function() {
+            resetUI();
+            clearError();
+        });
+    })();
+    </script>
+</body>
+</html>

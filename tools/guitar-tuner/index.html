@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Guitar Tuner - Free Mic Guitar Tuner | DevTools Hub</title>
+    <meta name="description" content="Free online guitar tuner. Tune by microphone with real-time pitch detection, cent-precision needle, 8 tunings plus Bass, Ukulele, Violin. 100% private.">
+    <meta name="keywords" content="guitar tuner, online guitar tuner, guitar tuner online free, tuner, chromatic tuner, bass tuner, ukulele tuner, violin tuner, tune guitar, pitch detection, microphone tuner, eadgbe, drop d, tuner online">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/guitar-tuner/">
+    <meta property="og:title" content="Online Guitar Tuner - Free Mic Guitar Tuner | DevTools Hub">
+    <meta property="og:description" content="Free online guitar tuner. Tune by microphone with real-time pitch detection, cent-precision needle, 8 guitar tunings plus Bass, Ukulele and Violin modes. No upload, 100% private.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/guitar-tuner/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Online Guitar Tuner - Free Mic Guitar Tuner | DevTools Hub">
+    <meta name="twitter:description" content="Tune your guitar by microphone in your browser. An AI chatbot cannot hear your guitar - real pitch detection can.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Online Guitar Tuner","description":"Free online guitar tuner. Real-time microphone pitch detection with automatic string recognition, cent-precision needle, 8 guitar tunings (Standard EADGBE, Drop D, Drop C, Half-Step, Full-Step, Open G, Open D, DADGAD) plus Bass, Ukulele, Violin and Viola modes and adjustable A4 reference. All audio stays local in the browser.","url":"https://tools.scoreroute.com/tools/guitar-tuner/","applicationCategory":"MultimediaApplication","operatingSystem":"Any","browserRequirement":"Modern browser with Web Audio API and microphone access (HTTPS).","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-08-12","dateModified":"2026-08-12","featureList":["Real-time microphone pitch detection","Automatic string recognition","Cent-precision needle gauge","8 guitar tunings","Bass, Ukulele, Violin and Viola modes","Adjustable A4 reference (430-450 Hz)","Reference tone playback for tuning by ear","100% private, no upload, no signup"]}
+    </script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is this online guitar tuner free?","acceptedAnswer":{"@type":"Answer","text":"Yes. The tuner is 100% free, needs no signup and runs entirely in your browser. There is no server processing, no daily limit and nothing is ever uploaded."}},{"@type":"Question","name":"How does the guitar tuner detect my strings?","acceptedAnswer":{"@type":"Answer","text":"It uses the Web Audio API to capture a few milliseconds of audio from your microphone, then runs an autocorrelation algorithm on the waveform to find the fundamental frequency. That frequency is compared against the twelve notes of the equal-tempered scale (A4 = 440 Hz) to show the note and how many cents sharp or flat you are."}},{"@type":"Question","name":"What guitar tunings does this tool support?","acceptedAnswer":{"@type":"Answer","text":"Standard EADGBE, Drop D, Drop C, Half-Step Down (E-flat), Full-Step Down (D), Open G, Open D and DADGAD. It also supports Bass (Standard and Drop D), Ukulele, Violin and Viola modes and a pure chromatic mode for any other note."}},{"@type":"Question","name":"Why does the tuner read a different note than the string I play?","acceptedAnswer":{"@type":"Answer","text":"Most likely two strings are ringing together or there is background noise. Play one string at a time and mute the others, or move closer to the microphone. If the reading is one octave lower or higher, the pitch detector is picking a harmonic; gently restrike the string with less force."}},{"@type":"Question","name":"Can I tune without a microphone?","acceptedAnswer":{"@type":"Answer","text":"Yes. Click any string on the display to play the target pitch through your speakers, then turn the tuning peg until the note you hear matches the one you pluck. Mic-free ear tuning is fully supported."}},{"@type":"Question","name":"What should the needle show when a string is in tune?","acceptedAnswer":{"@type":"Answer","text":"The needle should sit at the center (0 cents) and the string chip turns green. Anything within about +-5 cents sounds essentially perfectly in tune; +-10 cents is acceptable for most playing, and beyond that the note starts to sound noticeably off."}},{"@type":"Question","name":"Why is the tuner not picking up sound?","acceptedAnswer":{"@type":"Answer","text":"Check that you pressed Start, that the browser shows a microphone permission prompt and you allowed it, and that no other app is holding the mic. This page must be served over HTTPS, which it is. If you denied permission once, reset it in your browser settings and reload the page."}},{"@type":"Question","name":"Is my audio sent anywhere?","acceptedAnswer":{"@type":"Answer","text":"No. Pitch detection runs in your browser using a few samples of the live microphone waveform. Nothing is recorded, transmitted or stored. Audio data never leaves your device."}}]}
+    </script>
+    <style>
+        :root {
+            --gt-bg: #0f0f23;
+            --gt-surface: #1a1a2e;
+            --gt-surface2: #252540;
+            --gt-border: #2a2a4a;
+            --gt-text: #e6e6f0;
+            --gt-muted: #9a9ab0;
+            --gt-accent: #667eea;
+            --gt-green: #22c55e;
+            --gt-yellow: #f59e0b;
+            --gt-red: #ef4444;
+        }
+        * { box-sizing: border-box; }
+        body { background: var(--gt-bg); color: var(--gt-text); }
+        .gt-wrap { max-width: 720px; margin: 0 auto; }
+        .gt-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
+        .gt-toolbar label { color: var(--gt-muted); font-size: 0.85rem; }
+        .gt-select, .gt-btn {
+            padding: 9px 13px;
+            background: var(--gt-surface2);
+            border: 1px solid var(--gt-border);
+            color: var(--gt-text);
+            border-radius: 9px;
+            font-size: 0.88rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .gt-select:focus, .gt-btn:focus-visible { outline: 3px solid var(--gt-accent); }
+        .gt-btn:hover { border-color: var(--gt-accent); }
+        .gt-btn.active { border-color: var(--gt-accent); background: #2a2a55; }
+        .gt-start { background: var(--gt-accent); border-color: var(--gt-accent); color: #fff; font-weight: 600; }
+        .gt-start.running { background: var(--gt-red); border-color: var(--gt-red); }
+        .gt-spacer { flex: 1; }
+        .gt-panel { background: var(--gt-surface); border: 1px solid var(--gt-border); border-radius: 12px; padding: 20px 18px; margin-bottom: 14px; }
+        .gt-note-display { text-align: center; padding: 6px 0 2px; }
+        .gt-note-box {
+            display: inline-block;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid var(--gt-border);
+            background: var(--gt-surface2);
+            line-height: 150px;
+            font-size: 3.2rem;
+            font-weight: 800;
+            color: #fff;
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .gt-note-box.in-tune { border-color: var(--gt-green); color: var(--gt-green); box-shadow: 0 0 22px rgba(34,197,94,0.35); }
+        .gt-note-meta { margin-top: 10px; color: var(--gt-muted); font-size: 0.9rem; min-height: 1.4em; }
+        .gt-cents-row { display: flex; align-items: center; gap: 10px; margin: 14px 0 2px; }
+        .gt-cents-label { font-size: 0.8rem; color: var(--gt-muted); min-width: 30px; text-align: center; }
+        .gt-cents-track { flex: 1; height: 10px; background: var(--gt-surface2); border: 1px solid var(--gt-border); border-radius: 6px; position: relative; }
+        .gt-cents-needle { position: absolute; top: -5px; width: 3px; height: 18px; background: var(--gt-accent); left: 50%; border-radius: 2px; transition: left 0.06s linear; }
+        .gt-cents-needle.in-tune { background: var(--gt-green); }
+        .gt-level-track { height: 6px; background: var(--gt-surface2); border: 1px solid var(--gt-border); border-radius: 4px; overflow: hidden; margin-top: 10px; }
+        .gt-level-fill { height: 100%; width: 0%; background: var(--gt-accent); transition: width 0.08s linear; }
+        .gt-level-label { font-size: 0.75rem; color: var(--gt-muted); text-align: right; margin-top: 4px; }
+        .gt-strings { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
+        .gt-string {
+            padding: 10px 14px;
+            background: var(--gt-surface2);
+            border: 1px solid var(--gt-border);
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            min-width: 84px;
+            color: var(--gt-text);
+        }
+        .gt-string:hover { border-color: var(--gt-accent); }
+        .gt-string:focus-visible { outline: 3px solid var(--gt-accent); }
+        .gt-string .gt-s-name { font-size: 1.1rem; font-weight: 700; display: block; }
+        .gt-string .gt-s-hz { font-size: 0.7rem; color: var(--gt-muted); }
+        .gt-string.active { border-color: var(--gt-accent); background: #2a2a55; }
+        .gt-string.detected { border-color: var(--gt-yellow); }
+        .gt-string.in-tune { border-color: var(--gt-green); background: #1d3b25; }
+        .gt-status { min-height: 1.4em; color: var(--gt-muted); font-size: 0.85rem; margin-top: 10px; text-align: center; }
+        .gt-status.error { color: var(--gt-red); }
+        .gt-ref-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
+        .gt-prompt { margin-top: 10px; padding: 12px 14px; background: #1d2138; border: 1px solid var(--gt-border); border-left: 3px solid var(--gt-yellow); border-radius: 8px; font-size: 0.86rem; color: var(--gt-muted); }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+<header>
+    <div class="container">
+        <h1>Online Guitar Tuner</h1>
+        <p class="subtitle">Tune your guitar by microphone with real-time, cent-precision pitch detection</p>
+        <nav class="breadcrumb">
+            <a href="/">Home</a> &gt; <a href="/tools/">Tools</a> &gt; <a href="/tools/media/">Media</a> &gt; <span>Guitar Tuner</span>
+            <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    <section class="tool-page">
+        <div class="tool-main">
+            <div class="gt-wrap">
+                <div class="gt-toolbar">
+                    <label for="gt-instrument">Instrument</label>
+                    <select id="gt-instrument" class="gt-select">
+                        <option value="guitar">Guitar (6-string)</option>
+                        <option value="bass">Bass (4-string)</option>
+                        <option value="ukulele">Ukulele</option>
+                        <option value="violin">Violin</option>
+                        <option value="viola">Viola</option>
+                        <option value="chromatic">Chromatic (all notes)</option>
+                    </select>
+                    <label for="gt-tuning">Tuning</label>
+                    <select id="gt-tuning" class="gt-select"></select>
+                    <label for="gt-ref">A4</label>
+                    <select id="gt-ref" class="gt-select">
+                        <option value="430">430 Hz</option>
+                        <option value="435">435 Hz</option>
+                        <option value="440" selected>440 Hz</option>
+                        <option value="442">442 Hz</option>
+                        <option value="445">445 Hz</option>
+                        <option value="448">448 Hz</option>
+                    </select>
+                    <div class="gt-spacer"></div>
+                    <button id="gt-start" class="gt-btn gt-start" onclick="toggleTuner()">Start Tuner</button>
+                </div>
+
+                <div class="gt-panel">
+                    <div class="gt-note-display">
+                        <div id="gt-note-box" class="gt-note-box" aria-live="polite">&mdash;</div>
+                        <div id="gt-note-meta" class="gt-note-meta">Allow microphone access and pluck a string to begin</div>
+                    </div>
+                    <div class="gt-cents-row">
+                        <span class="gt-cents-label" id="gt-cents-flat">-50</span>
+                        <div class="gt-cents-track" aria-hidden="true">
+                            <div id="gt-needle" class="gt-cents-needle"></div>
+                        </div>
+                        <span class="gt-cents-label" id="gt-cents-sharp">+50</span>
+                    </div>
+                    <div class="gt-level-track" aria-hidden="true"><div id="gt-level-fill" class="gt-level-fill"></div></div>
+                    <div class="gt-level-label" id="gt-level-label">Input level: --</div>
+                </div>
+
+                <div class="gt-panel">
+                    <h2 style="margin:0 0 4px;color:var(--gt-muted);font-size:.8rem;text-transform:uppercase;letter-spacing:1px;">Strings — click to play the reference tone for tuning by ear</h2>
+                    <div id="gt-strings" class="gt-strings"></div>
+                    <div class="gt-ref-actions">
+                        <button id="gt-stop-ref" class="gt-btn" onclick="stopRefTone()" aria-label="Stop reference tone">Stop Reference Tone</button>
+                    </div>
+                    <div id="gt-status" class="gt-status"></div>
+                    <div id="gt-prompt" class="gt-prompt">Tip: place your device near the soundhole, pluck one string at a time and let it ring. The needle moves to center (0 cents) when a string is in tune.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="features-grid">
+                <div class="feature-item">
+                    <h3>Real-Time Pitch Detection</h3>
+                    <p>Autocorrelation frequency analysis on your live microphone for instant, stable readings</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Automatic String Recognition</h4>
+                    <p>The tuner highlights which string you are playing and tracks tuning progress</p>
+                </div>
+                <div class="feature-item">
+                    <h4>8 Guitar Tunings + 4 Instruments</h4>
+                    <p>Standard, Drop D, Drop C, Half-Step, Full-Step, Open G, Open D, DADGAD plus Bass, Ukulele, Violin, Viola</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Tuning by Ear</h4>
+                    <p>Play any string's reference tone through your speakers when no microphone is available</p>
+                </div>
+            </div>
+            <h2>Why AI Cannot Tune Your Guitar</h2>
+            <p>An AI chatbot has no microphone, no audio input and no access to the waveform your guitar produces, so it can never hear whether your low E is 8 cents flat or your B string is 15 cents sharp. Tuning is a physical measurement: the fundamental frequency of a real string must be captured and compared against the equal-tempered scale, which requires living DSP running on the device that holds the microphone. This tool does exactly that with an autocorrelation pitch-detection algorithm in your browser. A chatbot can quote EADGBE all day, but only a real tuner can tell you the needle moved to center because your string actually reached the right frequency.</p>
+            <div class="how-it-works">
+                <h3>How the Guitar Tuner Works</h3>
+                <ol>
+                    <li><strong>Pick your instrument and tuning.</strong> Select Guitar, Bass, Ukulele, Violin, Viola or chromatic mode, then choose a tuning preset such as Standard EADGBE, Drop D or DADGAD.</li>
+                    <li><strong>Start the tuner and allow the microphone.</strong> Your browser will ask for permission; audio is analyzed locally and never leaves your device.</li>
+                    <li><strong>Pluck one string and let it ring.</strong> The big note display shows the detected note, the needle shows how sharp or flat you are in cents (1/100 of a semitone), and the matching string chip lights up.</li>
+                    <li><strong>Turn the tuning peg until the needle reaches center.</strong> When the string is in tune, the note turns green and the string chip goes green.</li>
+                    <li><strong>Repeat for each string.</strong> Re-check the first strings after tuning the rest, because changing tension on one string shifts the others slightly.</li>
+                </ol>
+            </div>
+            <div class="faq-extra">
+                <details class="faq-item">
+                    <summary>How accurate is a browser-based guitar tuner?</summary>
+                    <p>Good online tuners using the Web Audio API and autocorrelation reach within a few cents of a dedicated clip-on or pedal tuner in a quiet room. For practical playing, +-5 cents is in tune. Accuracy depends mainly on your environment: a clearly plucked string close to the mic beats a noisy room every time.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does this tuner work on my phone?</summary>
+                    <p>Yes. Any modern smartphone browser (Safari on iPhone, Chrome on Android) supports the Web Audio API and microphone access over HTTPS. Hold the phone near the soundhole of an acoustic or the pickups of an electric for the strongest signal.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Do I have to pay or sign up?</summary>
+                    <p>No. The tuner is completely free, has no account, no watermark and no daily limit. All signal processing happens in your browser, so there is no server cost to pass on to you.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can it tune a 12-string or 7-string guitar?</summary>
+                    <p>Switch to chromatic mode to tune any note of any instrument by ear or by microphone. The presets cover the standard 6-string sets; chromatic mode simply shows the nearest note and cents for whatever you pluck.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is a cent in guitar tuning?</summary>
+                    <p>A cent is 1/100 of a semitone. Twelve notes per octave are each 100 cents apart. Most players consider a string within +-5 cents of the target to be in tune; beyond about +-15 cents most people can hear the string is off.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why does the needle jump around?</summary>
+                    <p>Jumpy readings come from background noise, two strings ringing together, heavy effects pedals, or reading too soon after a hard pluck. Mute other strings, play the note again after it settles and tune in a quiet room. The built-in 60 Hz hum filter on the electrical strings is a common cause: tune electric guitars on a clean signal.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Do I need to keep this page open while tuning?</summary>
+                    <p>Yes. The tuner only works while this page is open and the Start Tuner button is running, because it needs the live microphone stream. Bookmark the page so it is one click away whenever you pick up the guitar.</p>
+                </details>
+            </div>
+            <div class="related-tools">
+                <h2>Related Tools</h2>
+                <ul>
+                    <li><a href="/tools/metronome/">Metronome</a> - Precision BPM, tap tempo and rhythm practice</li>
+                    <li><a href="/tools/speaker-test/">Speaker Test</a> - Check channels, frequency sweep and stereo</li>
+                    <li><a href="/tools/microphone-test/">Microphone Test</a> - Test mic input levels and quality</li>
+                    <li><a href="/tools/webcam-test/">Webcam &amp; Mic Test</a> - Check camera, microphone and speakers</li>
+                    <li><a href="/tools/voice-recorder/">Voice Recorder</a> - Record and save audio as MP3 or WAV</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+    <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+    <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var NOTE_MIDI = { 'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3, 'E': 4, 'F': 5, 'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8, 'Ab': 8, 'A': 9, 'A#': 10, 'Bb': 10, 'B': 11 };
+    var SHARP_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+    var TUNINGS = {
+        guitar: {
+            'Standard (EADGBE)': ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'],
+            'Drop D': ['D2', 'A2', 'D3', 'G3', 'B3', 'E4'],
+            'Drop C': ['C2', 'G2', 'C3', 'F3', 'A3', 'D4'],
+            'Half-Step Down (Eb)': ['Eb2', 'Ab2', 'Db3', 'Gb3', 'Bb3', 'Eb4'],
+            'Full-Step Down (D)': ['D2', 'G2', 'C3', 'F3', 'A3', 'D4'],
+            'Open G': ['D2', 'G2', 'D3', 'G3', 'B3', 'D4'],
+            'Open D': ['D2', 'A2', 'D3', 'F#3', 'A3', 'D4'],
+            'DADGAD': ['D2', 'A2', 'D3', 'G3', 'A3', 'D4']
+        },
+        bass: {
+            'Standard (EADG)': ['E1', 'A1', 'D2', 'G2'],
+            'Drop D': ['D1', 'A1', 'D2', 'G2']
+        },
+        ukulele: {
+            'Standard (GCEA)': ['G4', 'C4', 'E4', 'A4']
+        },
+        violin: {
+            'Standard (GDAE)': ['G3', 'D4', 'A4', 'E5']
+        },
+        viola: {
+            'Standard (CGDA)': ['C3', 'G3', 'D4', 'A4']
+        },
+        chromatic: {
+            'All Notes': []
+        }
+    };
+
+    function noteToMidi(name) {
+        var m = /^([A-G][#b]?)([0-8])$/.exec(name);
+        if (!m) return null;
+        return (parseInt(m[2], 10) + 1) * 12 + NOTE_MIDI[m[1]];
+    }
+
+    function midiToFreq(midi, refA4) {
+        return refA4 * Math.pow(2, (midi - 69) / 12);
+    }
+
+    function freqToMidi(freq, refA4) {
+        return 12 * (Math.log(freq / refA4) / Math.LN2) + 69;
+    }
+
+    var el = {
+        instrument: null, tuning: null, ref: null, start: null,
+        noteBox: null, noteMeta: null, needle: null, levelFill: null, levelLabel: null,
+        strings: null, status: null, prompt: null, centsFlat: null, centsSharp: null
+    };
+    var state = {
+        running: false,
+        stream: null,
+        audioCtx: null,
+        analyser: null,
+        buf: null,
+        raf: null,
+        refOsc: null,
+        lastFreq: 0,
+        stableFreq: 0,
+        stableCount: 0,
+        activeStringIdx: -1,
+        currentTuning: []
+    };
+
+    function $(id) { return document.getElementById(id); }
+
+    function setStatus(msg, type) {
+        el.status.textContent = msg || '';
+        el.status.className = 'gt-status' + (type === 'error' ? ' error' : '');
+    }
+
+    function resetReading() {
+        state.lastFreq = 0;
+        state.stableFreq = 0;
+        state.stableCount = 0;
+        state.activeStringIdx = -1;
+        el.noteBox.textContent = '\u2014';
+        el.noteBox.classList.remove('in-tune');
+        el.noteMeta.textContent = 'Pluck a string to begin';
+        setNeedle(0, false);
+        clearStringHighlights();
+        if (el.levelFill && el.levelFill.parentElement) {
+            el.levelFill.style.width = '0%';
+            el.levelFill.parentElement.style.display = 'none';
+        }
+        if (el.levelLabel) el.levelLabel.textContent = 'Input level: --';
+    }
+
+    function buildStringChips() {
+        var instr = el.instrument.value;
+        var tuningName = el.tuning.value;
+        state.currentTuning = (TUNINGS[instr] && TUNINGS[instr][tuningName]) ? TUNINGS[instr][tuningName].slice() : [];
+        var ref = parseInt(el.ref.value, 10) || 440;
+        el.strings.innerHTML = '';
+        state.currentTuning.forEach(function (note, i) {
+            var midi = noteToMidi(note);
+            var freq = Math.round(midiToFreq(midi, ref) * 100) / 100;
+            var chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'gt-string';
+            // WCAG 2.5.3: the name must contain the visible label. Name-from-content would
+            // concatenate the two block-level spans with no separator ("E282.41 Hz"), so build
+            // the name from the same two variables the visible text is built from.
+            chip.setAttribute('aria-label', note + ' ' + freq + ' Hz');
+            chip.innerHTML = '<span class="gt-s-name">' + note + '</span><span class="gt-s-hz">' + freq + ' Hz</span>';
+            chip.addEventListener('click', function () { playRefTone(midi, freq); });
+            el.strings.appendChild(chip);
+        });
+        if (state.currentTuning.length === 0) {
+            var c = document.createElement('div');
+            c.className = 'gt-status';
+            c.textContent = 'Chromatic mode: any note works. Play a single note and watch the display.';
+            el.strings.appendChild(c);
+        }
+    }
+
+    function setNeedle(cents, inTune) {
+        var clamped = Math.max(-50, Math.min(50, cents));
+        var pct = (clamped + 50) / 100 * 100;
+        el.needle.style.left = 'calc(' + pct + '% - 1.5px)';
+        el.needle.classList.toggle('in-tune', !!inTune);
+    }
+
+    function clearStringHighlights() {
+        Array.prototype.forEach.call(el.strings.querySelectorAll('.gt-string'), function (s) {
+            s.classList.remove('active', 'detected', 'in-tune');
+        });
+    }
+
+    function applyPitch(freq) {
+        if (!isFinite(freq) || freq < 28 || freq > 1400) return;
+        var ref = parseInt(el.ref.value, 10) || 440;
+        var midi = freqToMidi(freq, ref);
+        var rounded = Math.round(midi);
+        var idx = ((rounded % 12) + 12) % 12;
+        var noteName = SHARP_NAMES[idx];
+        var cents = Math.round((midi - rounded) * 100);
+        el.noteBox.textContent = noteName;
+        el.noteMeta.textContent = freq.toFixed(1) + ' Hz  \u00B7  ' + (cents >= 0 ? '+' : '') + cents + ' cents';
+
+        var inTune = false;
+        if (state.currentTuning.length > 0) {
+            var bestIdx = -1, bestDiff = 1e9;
+            state.currentTuning.forEach(function (note, i) {
+                var tm = noteToMidi(note);
+                var diff = Math.abs(rounded - tm);
+                if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+            });
+            var targetMidi = noteToMidi(state.currentTuning[bestIdx]);
+            var isTarget = (rounded === targetMidi);
+            el.noteBox.classList.toggle('in-tune', isTarget && Math.abs(cents) <= 5);
+            inTune = isTarget && Math.abs(cents) <= 5;
+            clearStringHighlights();
+            if (bestIdx >= 0) {
+                var chips = el.strings.querySelectorAll('.gt-string');
+                if (chips[bestIdx]) {
+                    chips[bestIdx].classList.add(isTarget ? 'detected' : 'active');
+                    if (inTune) chips[bestIdx].classList.add('in-tune');
+                }
+            }
+            state.activeStringIdx = bestIdx;
+        } else {
+            el.noteBox.classList.toggle('in-tune', Math.abs(cents) <= 5);
+            inTune = Math.abs(cents) <= 5;
+        }
+        setNeedle(cents, inTune);
+    }
+
+    function detectPitch(buf, sampleRate) {
+        var n = buf.length;
+        var sum = 0;
+        for (var i = 0; i < n; i++) sum += buf[i] * buf[i];
+        var rms = Math.sqrt(sum / n);
+        if (rms < 0.004) return null;
+
+        var minLag = Math.floor(sampleRate / 1400);
+        var maxLag = Math.floor(sampleRate / 28);
+        if (maxLag > n / 2) maxLag = Math.floor(n / 2);
+        var bestLag = -1, bestScore = Infinity;
+        var prevScore = Infinity;
+        for (var lag = minLag; lag <= maxLag; lag++) {
+            var corr = 0, norm = 0;
+            for (var i2 = 0; i2 < n - lag; i2++) {
+                corr += buf[i2] * buf[i2 + lag];
+                norm += buf[i2] * buf[i2];
+            }
+            var score = corr / (norm || 1);
+            if (score < 0) { prevScore = Infinity; continue; }
+            if (score > bestScore || isNaN(score)) continue;
+            bestScore = score;
+            bestLag = lag;
+        }
+        if (bestLag <= 0 || bestScore > 0.65) return null;
+        var freq = sampleRate / bestLag;
+        if (freq < 28 || freq > 1400) return null;
+        return freq;
+    }
+
+    function readLoop() {
+        if (!state.running || !state.analyser) return;
+        state.analyser.getFloatTimeDomainData(state.buf);
+        var level = 0;
+        for (var i = 0; i < state.buf.length; i++) level += state.buf[i] * state.buf[i];
+        level = Math.sqrt(level / state.buf.length);
+        var amp = Math.min(1, level * 4);
+        el.levelFill.style.width = (amp * 100).toFixed(1) + '%';
+        el.levelLabel.textContent = 'Input level: ' + (amp > 0.02 ? 'good' : 'low');
+
+        var f = detectPitch(state.buf, state.audioCtx.sampleRate);
+        state.lastFreq = f || 0;
+        if (f) {
+            if (Math.abs(f - state.stableFreq) < 3.5) state.stableCount++; else { state.stableCount = 1; state.stableFreq = f; }
+            if (state.stableCount >= 3) applyPitch(state.stableFreq);
+        }
+        state.raf = requestAnimationFrame(readLoop);
+    }
+
+    function stopTuner() {
+        state.running = false;
+        if (state.raf) cancelAnimationFrame(state.raf);
+        if (state.stream) { state.stream.getTracks().forEach(function (t) { t.stop(); }); state.stream = null; }
+        if (state.audioCtx && state.audioCtx.state !== 'closed') { try { state.audioCtx.close(); } catch (e) {} }
+        state.audioCtx = null; state.analyser = null;
+        el.start.textContent = 'Start Tuner';
+        el.start.classList.remove('running');
+        setStatus('Tuner stopped', '');
+        resetReading();
+    }
+
+    function toggleTuner() {
+        if (state.running) { stopTuner(); return; }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            setStatus('Your browser does not support microphone access. Use a modern browser on HTTPS.', 'error');
+            return;
+        }
+        navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } }).then(function (stream) {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            var ctx = new AC();
+            var src = ctx.createMediaStreamSource(stream);
+            var an = ctx.createAnalyser();
+            an.fftSize = 4096;
+            src.connect(an);
+            state.stream = stream;
+            state.audioCtx = ctx;
+            state.analyser = an;
+            state.buf = new Float32Array(an.fftSize);
+            state.running = true;
+            el.start.textContent = 'Stop';
+            el.start.classList.add('running');
+            setStatus('Listening... pluck a string', '');
+            readLoop();
+        }).catch(function (err) {
+            setStatus('Microphone access denied or unavailable (' + err.name + '). Use the reference tones to tune by ear instead.', 'error');
+        });
+    }
+
+    function playRefTone(midi, freq) {
+        try {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (!state.audioCtx || state.audioCtx.state === 'closed') {
+                state.audioCtx = new AC();
+            } else if (state.audioCtx.state === 'suspended') {
+                state.audioCtx.resume();
+            }
+            stopRefTone();
+            var ctx = state.audioCtx;
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            gain.gain.value = 0.22;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            state.refOsc = osc;
+            setStatus('Playing ' + (state.currentTuning[0] ? 'reference tone ' : '') + freq.toFixed(1) + ' Hz ' + (state.currentTuning[0] ? '(' + state.currentTuning[Math.min(state.activeStringIdx >= 0 ? state.activeStringIdx : 0, state.currentTuning.length - 1)] + ') ' : '') + '- turn your peg until the note matches', '');
+            setTimeout(function () { stopRefTone(); }, 4000);
+        } catch (e) {
+            setStatus('Cannot play reference tone: ' + e.message, 'error');
+        }
+    }
+
+    function stopRefTone() {
+        if (state.refOsc) {
+            try { state.refOsc.stop(); } catch (e) {}
+            state.refOsc.disconnect();
+            state.refOsc = null;
+        }
+    }
+
+    function rebuild() {
+        buildStringChips();
+        el.status.textContent = '';
+    }
+
+    function init() {
+        el.instrument = $('gt-instrument');
+        el.tuning = $('gt-tuning');
+        el.ref = $('gt-ref');
+        el.start = $('gt-start');
+        el.noteBox = $('gt-note-box');
+        el.noteMeta = $('gt-note-meta');
+        el.needle = $('gt-needle');
+        el.levelFill = $('gt-level-fill');
+        el.levelLabel = $('gt-level-label');
+        el.strings = $('gt-strings');
+        el.status = $('gt-status');
+        el.prompt = $('gt-prompt');
+
+        function fillTuningOptions() {
+            var instr = el.instrument.value;
+            var cur = el.tuning.value;
+            var tunings = TUNINGS[instr] || {};
+            var keys = Object.keys(tunings);
+            el.tuning.innerHTML = '';
+            keys.forEach(function (k) {
+                var o = document.createElement('option');
+                o.value = k;
+                o.textContent = k;
+                el.tuning.appendChild(o);
+            });
+            if (keys.indexOf(cur) !== -1) el.tuning.value = cur;
+        }
+
+        el.instrument.addEventListener('change', function () { fillTuningOptions(); rebuild(); });
+        el.tuning.addEventListener('change', rebuild);
+        el.ref.addEventListener('change', rebuild);
+
+        fillTuningOptions();
+        buildStringChips();
+        setNeedle(0, false);
+
+        // Test hook: __testsuitePitch(freq) simulates a detected pitch (used by automated tests).
+        window.__testsuitePitch = function (freq) { applyPitch(freq || 440); };
+        window.__testsuiteReset = function () { resetReading(); };
+        window.__testsuiteTunings = TUNINGS;
+        window.toggleTuner = toggleTuner;
+        window.stopRefTone = stopRefTone;
+        window.addEventListener('pagehide', stopTuner);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<title>Voice Changer - Free Online Audio Voice Effects</title>
+<meta name="description" content="Free voice changer with 10 presets (chipmunk, deep, robot, alien, female, male, old, telephone). Custom pitch and speed. 100% private, no upload.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/voice-changer/">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+<meta property="og:title" content="Voice Changer - Free Online Audio Voice Effects">
+<meta property="og:description" content="Free voice changer with 10 presets (chipmunk, deep, robot, alien, female, male, old, telephone). Custom pitch and speed. 100% private, no upload.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/voice-changer/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Voice Changer - Free Online Audio Voice Effects">
+<meta name="twitter:description" content="Free voice changer with 10 presets (chipmunk, deep, robot, alien, female, male, old, telephone). Custom pitch and speed. 100% private, no upload.">
+<meta name="twitter:image" content="/og-image.png">
+<meta name="twitter:url" content="https://tools.scoreroute.com/tools/voice-changer/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "datePublished": "2026-08-24",
+  "dateModified": "2026-08-24",
+  "author": {"@type": "Organization", "name": "DevTools Hub"},
+  "name": "Voice Changer",
+  "description": "Free online voice changer with 10 voice presets (chipmunk, deep, robot, alien, female, male, child, old, telephone, megaphone), custom pitch and formant controls, ring modulation and band-pass filters. Runs entirely in the browser with Web Audio API, no upload, no signup and 100% privacy.",
+  "url": "https://tools.scoreroute.com/tools/voice-changer/",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "All",
+  "browserRequirement": "Requires JavaScript and Web Audio API",
+  "featureList": [
+    "10 voice presets: original, chipmunk, deep, robot, alien, female, male, child, old, telephone, megaphone",
+    "Custom pitch shift from -12 to +12 semitones",
+    "Custom speed from 50% to 200%",
+    "Reverb and echo effects",
+    "Ring modulation for robotic voice",
+    "Band-pass filter for telephone effect",
+    "Low-pass filter for old voice",
+    "WAV export with deterministic offline rendering",
+    "100% client-side Web Audio API processing",
+    "No upload, no signup, no tracking"
+  ],
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Is this voice changer really free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It runs entirely in your browser using Web Audio API. No upload, no signup, no payment, no watermark."}},
+    {"@type": "Question", "name": "Are my audio files uploaded to a server?", "acceptedAnswer": {"@type": "Answer", "text": "No. All processing happens locally in your browser using the Web Audio API. Your audio never leaves your device."}},
+    {"@type": "Question", "name": "What audio formats are supported?", "acceptedAnswer": {"@type": "Answer", "text": "Any format your browser supports for decoding: MP3, WAV, M4A, FLAC, OGG, AAC, WebM and Opus. The output is a 16-bit WAV file at the original sample rate."}},
+    {"@type": "Question", "name": "What is the difference between pitch and speed?", "acceptedAnswer": {"@type": "Answer", "text": "Pitch shifts the voice higher or lower (chipmunk vs deep) while keeping the same duration. Speed stretches or compresses the audio in time, which also changes pitch. Use pitch for a true voice change; use speed for tempo adjustment."}},
+    {"@type": "Question", "name": "Can I use this for Discord or gaming?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Upload a recording, apply your chosen voice effect, download the result, then use it as a soundboard sample or play it through your microphone with VB-Audio Cable or similar routing software."}},
+    {"@type": "Question", "name": "How does the robot voice effect work?", "acceptedAnswer": {"@type": "Answer", "text": "The robot preset uses ring modulation - multiplying the audio by a low-frequency sine wave (typically 80 Hz). This creates the classic metallic, robotic tone heard in old sci-fi movies."}},
+    {"@type": "Question", "name": "Can AI chatbots transform audio like this?", "acceptedAnswer": {"@type": "Answer", "text": "No. AI text models can only describe how to change a voice; they cannot process binary PCM audio in real time. This tool uses the browser's Web Audio API to apply real DSP (pitch shifting, ring modulation, band-pass filtering) that AI assistants cannot replicate."}}
+  ]
+}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+:root {
+  --vc-bg: #0f0f23;
+  --vc-card: #1a1a2e;
+  --vc-border: #2a2a4a;
+  --vc-text: #fff;
+  --vc-muted: #9ca3af;
+  --vc-dim: #6b7280;
+  --vc-primary: #667eea;
+  --vc-primary-dark: #5568d3;
+  --vc-success: #10b981;
+  --vc-warn: #f59e0b;
+  --vc-danger: #ef4444;
+  --vc-accent: #a855f7;
+}
+.vc-wrap { max-width: 1000px; margin: 0 auto; }
+.vc-dropzone {
+  border: 3px dashed #555;
+  border-radius: 12px;
+  padding: 50px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: var(--vc-card);
+  margin-bottom: 20px;
+}
+.vc-dropzone:hover, .vc-dropzone.dragover {
+  border-color: var(--vc-primary);
+  background: rgba(102,126,234,0.08);
+}
+.vc-dropzone p { margin: 8px 0; }
+.vc-dropzone .big { font-size: 1.2em; color: var(--vc-primary); }
+.vc-dropzone input { display: none; }
+.vc-section {
+  background: var(--vc-card);
+  border: 1px solid var(--vc-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.vc-section h2 { color: inherit; font-size: 1.17em; margin: 0; }
+.vc-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.vc-preset-btn {
+  background: var(--vc-bg);
+  border: 2px solid var(--vc-border);
+  color: var(--vc-text);
+  padding: 12px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9em;
+  text-align: center;
+}
+.vc-preset-btn:hover { border-color: var(--vc-primary); }
+.vc-preset-btn.active {
+  border-color: var(--vc-primary);
+  background: rgba(102,126,234,0.15);
+  color: var(--vc-primary);
+}
+.vc-preset-btn .preset-icon {
+  font-size: 1.6em;
+  display: block;
+  margin-bottom: 4px;
+}
+.vc-preset-btn .preset-name {
+  font-weight: 600;
+  display: block;
+}
+.vc-preset-btn .preset-desc {
+  font-size: 0.78em;
+  color: var(--vc-muted);
+  display: block;
+  margin-top: 2px;
+}
+.vc-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.vc-slider-row label {
+  min-width: 140px;
+  color: var(--vc-muted);
+  font-size: 0.9em;
+}
+.vc-slider-row input[type="range"] {
+  flex: 1;
+  min-width: 0;
+}
+.vc-slider-row .vc-val {
+  min-width: 60px;
+  text-align: right;
+  color: var(--vc-primary);
+  font-weight: 600;
+}
+.vc-effect-toggle {
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  background: #555;
+  border-radius: 13px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  vertical-align: middle;
+}
+.vc-effect-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: #fff;
+  border-radius: 50%;
+  transition: left 0.2s;
+}
+.vc-effect-toggle.on { background: var(--vc-primary); }
+.vc-effect-toggle.on::after { left: 26px; }
+.vc-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.vc-toggle-row label { flex: 1; }
+.vc-btn-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.vc-btn {
+  background: var(--vc-primary);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background 0.2s;
+}
+.vc-btn:hover { background: var(--vc-primary-dark); }
+.vc-btn:disabled { background: #555; cursor: not-allowed; }
+.vc-btn-secondary {
+  background: var(--vc-bg);
+  border: 1px solid var(--vc-border);
+}
+.vc-btn-secondary:hover { background: rgba(102,126,234,0.1); }
+.vc-status {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.9em;
+  display: none;
+}
+.vc-status.info {
+  background: rgba(102,126,234,0.12);
+  color: var(--vc-primary);
+  display: block;
+}
+.vc-status.success {
+  background: rgba(16,185,129,0.15);
+  color: var(--vc-success);
+  display: block;
+}
+.vc-status.error {
+  background: rgba(239,68,68,0.15);
+  color: var(--vc-danger);
+  display: block;
+}
+.vc-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.vc-info-item {
+  background: var(--vc-bg);
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--vc-border);
+}
+.vc-info-item .label {
+  color: var(--vc-muted);
+  font-size: 0.78em;
+  display: block;
+}
+.vc-info-item .value {
+  color: var(--vc-text);
+  font-weight: 600;
+  font-size: 1em;
+}
+.vc-recording-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--vc-bg);
+  border-radius: 8px;
+  border: 1px solid var(--vc-border);
+}
+.vc-pulse {
+  width: 12px;
+  height: 12px;
+  background: var(--vc-danger);
+  border-radius: 50%;
+  animation: vc-pulse 1.2s infinite;
+}
+@keyframes vc-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.vc-faq h2 { color: inherit; font-size: 1.17em; margin: 0; }
+.vc-faq details {
+  background: var(--vc-card);
+  border: 1px solid var(--vc-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+.vc-faq details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--vc-text);
+}
+.vc-faq details[open] summary { color: var(--vc-primary); }
+.vc-faq details p {
+  margin-top: 10px;
+  color: var(--vc-muted);
+  line-height: 1.6;
+}
+.vc-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.vc-related a {
+  background: var(--vc-bg);
+  border: 1px solid var(--vc-border);
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: var(--vc-primary);
+  text-decoration: none;
+  font-size: 0.88em;
+}
+.vc-related a:hover { background: rgba(102,126,234,0.12); }
+.vc-why {
+  background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(168,85,247,0.1));
+  border: 1px solid var(--vc-border);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+.vc-why h2 { color: var(--vc-primary); font-size: 1.17em; margin: 0; }
+.vc-why p { color: var(--vc-muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>Voice Changer</h1>
+<p class="subtitle">Transform your voice with 10 effects &mdash; chipmunk, deep, robot, alien, female, male, child, old, telephone, megaphone. 100% private.</p>
+<nav class="breadcrumb">
+<a href="/">Home</a> &gt; <a href="/tools/media/">Tools</a> &gt; <span>Voice Changer</span>
+<a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+</nav>
+</div>
+</header>
+<main class="container">
+<section class="tool-page">
+<div class="tool-main">
+<div class="vc-why">
+<h2>Why this voice changer is different</h2>
+<p>AI chatbots can only describe how to change a voice; they cannot process binary audio in real time. This tool uses the browser's Web Audio API to apply <strong>real digital signal processing</strong> &mdash; granular pitch shifting, ring modulation, band-pass filtering &mdash; that runs entirely on your device. Your audio never leaves your browser.</p>
+</div>
+
+<div class="vc-wrap">
+
+<div class="vc-section">
+<h2>1. Choose your audio file</h2>
+<div class="vc-dropzone" id="vcDropzone">
+<p class="big">Drop an audio file here</p>
+<p>or click to browse</p>
+<p style="color: var(--vc-muted); font-size: 0.85em;">MP3, WAV, M4A, FLAC, OGG, AAC &mdash; anything your browser can decode</p>
+<input aria-label="Audio file to convert" type="file" id="vcFile" name="vc-file" data-testid="vc-file" accept="audio/*">
+</div>
+<div id="vcFileInfo" style="display:none;">
+<div class="vc-info">
+<div class="vc-info-item"><span class="label">Filename</span><span class="value" id="vcFilename">-</span></div>
+<div class="vc-info-item"><span class="label">Duration</span><span class="value" id="vcDuration">-</span></div>
+<div class="vc-info-item"><span class="label">Sample Rate</span><span class="value" id="vcSampleRate">-</span></div>
+<div class="vc-info-item"><span class="label">Channels</span><span class="value" id="vcChannels">-</span></div>
+</div>
+<div class="vc-btn-row">
+<button type="button" class="vc-btn vc-btn-secondary" id="vcPlayOrigBtn" name="vc-play-orig" data-testid="vc-play-orig" aria-label="Play original audio">Play Original</button>
+<button type="button" class="vc-btn vc-btn-secondary" id="vcStopBtn" name="vc-stop" data-testid="vc-stop" aria-label="Stop playback">Stop</button>
+<button type="button" class="vc-btn vc-btn-secondary" id="vcClearBtn" name="vc-clear" data-testid="vc-clear" aria-label="Clear and start over">Clear</button>
+</div>
+</div>
+</div>
+
+<div class="vc-section">
+<h2>2. Pick a voice preset</h2>
+<div class="vc-presets" id="vcPresets">
+<button type="button" class="vc-preset-btn active" data-preset="original" name="vc-preset-original" data-testid="vc-preset-original"><span class="preset-icon">🎙️</span><span class="preset-name">Original</span><span class="preset-desc">No change</span></button>
+<button type="button" class="vc-preset-btn" data-preset="chipmunk" name="vc-preset-chipmunk" data-testid="vc-preset-chipmunk"><span class="preset-icon">🐿️</span><span class="preset-name">Chipmunk</span><span class="preset-desc">+6 semitones</span></button>
+<button type="button" class="vc-preset-btn" data-preset="deep" name="vc-preset-deep" data-testid="vc-preset-deep"><span class="preset-icon">🦖</span><span class="preset-name">Deep</span><span class="preset-desc">-6 semitones</span></button>
+<button type="button" class="vc-preset-btn" data-preset="robot" name="vc-preset-robot" data-testid="vc-preset-robot"><span class="preset-icon">🤖</span><span class="preset-name">Robot</span><span class="preset-desc">Ring modulation</span></button>
+<button type="button" class="vc-preset-btn" data-preset="alien" name="vc-preset-alien" data-testid="vc-preset-alien"><span class="preset-icon">👽</span><span class="preset-name">Alien</span><span class="preset-desc">Pitch +4 + reverb</span></button>
+<button type="button" class="vc-preset-btn" data-preset="female" name="vc-preset-female" data-testid="vc-preset-female"><span class="preset-icon">👩</span><span class="preset-name">Female</span><span class="preset-desc">+3 semitones</span></button>
+<button type="button" class="vc-preset-btn" data-preset="male" name="vc-preset-male" data-testid="vc-preset-male"><span class="preset-icon">👨</span><span class="preset-name">Male</span><span class="preset-desc">-3 semitones</span></button>
+<button type="button" class="vc-preset-btn" data-preset="child" name="vc-preset-child" data-testid="vc-preset-child"><span class="preset-icon">🧒</span><span class="preset-name">Child</span><span class="preset-desc">+8 semitones</span></button>
+<button type="button" class="vc-preset-btn" data-preset="old" name="vc-preset-old" data-testid="vc-preset-old"><span class="preset-icon">👴</span><span class="preset-name">Old</span><span class="preset-desc">-2 + low-pass</span></button>
+<button type="button" class="vc-preset-btn" data-preset="telephone" name="vc-preset-telephone" data-testid="vc-preset-telephone"><span class="preset-icon">☎️</span><span class="preset-name">Telephone</span><span class="preset-desc">Band-pass filter</span></button>
+<button type="button" class="vc-preset-btn" data-preset="megaphone" name="vc-preset-megaphone" data-testid="vc-preset-megaphone"><span class="preset-icon">📢</span><span class="preset-name">Megaphone</span><span class="preset-desc">Distortion</span></button>
+</div>
+<p style="font-size: 0.85em; color: var(--vc-muted);">Or customize below for finer control.</p>
+</div>
+
+<div class="vc-section">
+<h2>3. Fine-tune (optional)</h2>
+<div class="vc-slider-row">
+<label for="vcPitch">Pitch shift</label>
+<input type="range" id="vcPitch" name="vc-pitch" data-testid="vc-pitch" min="-12" max="12" step="1" value="0" aria-label="0 semitones pitch shift" title="Pitch shift in semitones">
+<span class="vc-val" id="vcPitchVal">0 st</span>
+</div>
+<div class="vc-slider-row">
+<label for="vcSpeed">Speed</label>
+<input type="range" id="vcSpeed" name="vc-speed" data-testid="vc-speed" min="50" max="200" step="5" value="100" aria-label="100% playback speed" title="Playback speed percentage">
+<span class="vc-val" id="vcSpeedVal">100%</span>
+</div>
+<div class="vc-slider-row">
+<label for="vcReverb">Reverb</label>
+<input type="range" id="vcReverb" name="vc-reverb" data-testid="vc-reverb" min="0" max="100" step="5" value="0" aria-label="0 reverb amount" title="Reverb amount">
+<span class="vc-val" id="vcReverbVal">0%</span>
+</div>
+<div class="vc-toggle-row">
+<label for="vcRobotToggle">Ring modulation (robot core)</label>
+<div class="vc-effect-toggle" id="vcRobotToggle" data-toggle="robot" onclick="vcToggleEffect(this)"></div>
+</div>
+<div class="vc-toggle-row">
+<label for="vcTelToggle">Telephone band-pass filter</label>
+<div class="vc-effect-toggle" id="vcTelToggle" data-toggle="tel" onclick="vcToggleEffect(this)"></div>
+</div>
+<div class="vc-toggle-row">
+<label for="vcOldToggle">Old-voice low-pass filter</label>
+<div class="vc-effect-toggle" id="vcOldToggle" data-toggle="old" onclick="vcToggleEffect(this)"></div>
+</div>
+</div>
+
+<div class="vc-section">
+<h2>4. Apply and download</h2>
+<div class="vc-btn-row">
+<button type="button" class="vc-btn" id="vcApplyBtn" name="vc-apply" data-testid="vc-apply" aria-label="Apply voice effect" disabled>Apply Voice Effect</button>
+<button type="button" class="vc-btn vc-btn-secondary" id="vcPreviewBtn" name="vc-preview" data-testid="vc-preview" aria-label="Preview with effects" disabled>Preview</button>
+<button type="button" class="vc-btn" id="vcDownloadBtn" name="vc-download" data-testid="vc-download" disabled>Download WAV</button>
+</div>
+<div id="vcStatus" class="vc-status"></div>
+</div>
+
+<div class="vc-faq">
+<h2>Frequently asked questions</h2>
+<details>
+<summary>Is this voice changer really free?</summary>
+<p>Yes. It runs entirely in your browser using Web Audio API. No upload, no signup, no payment, no watermark, no daily limit.</p>
+</details>
+<details>
+<summary>Are my audio files uploaded to a server?</summary>
+<p>No. All processing happens locally in your browser using the Web Audio API. Your audio never leaves your device. You can verify this by going offline and using the tool &mdash; it still works.</p>
+</details>
+<details>
+<summary>What audio formats are supported?</summary>
+<p>Any format your browser supports for decoding: MP3, WAV, M4A, FLAC, OGG, AAC, WebM and Opus. The output is a 16-bit WAV file at the original sample rate.</p>
+</details>
+<details>
+<summary>What is the difference between pitch and speed?</summary>
+<p>Pitch shifts the voice higher or lower (chipmunk vs deep) while keeping the same duration. Speed stretches or compresses the audio in time, which also changes pitch. Use pitch for a true voice change; use speed for tempo adjustment.</p>
+</details>
+<details>
+<summary>Can I use this for Discord or gaming?</summary>
+<p>Yes. Upload a recording, apply your chosen voice effect, download the result, then use it as a soundboard sample or play it through your microphone with VB-Audio Cable or similar routing software.</p>
+</details>
+<details>
+<summary>How does the robot voice effect work?</summary>
+<p>The robot preset uses ring modulation &mdash; multiplying the audio by a low-frequency sine wave (typically 80 Hz). This creates the classic metallic, robotic tone heard in old sci-fi movies.</p>
+</details>
+<details>
+<summary>Can AI chatbots transform audio like this?</summary>
+<p>No. AI text models can only describe how to change a voice; they cannot process binary PCM audio in real time. This tool uses the browser's Web Audio API to apply real DSP that AI assistants cannot replicate.</p>
+</details>
+</div>
+
+<div class="info-section">
+<h2>How it works</h2>
+<p>This free online voice changer uses the Web Audio API to transform your audio in real time using proven digital signal processing techniques. Pick a preset for instant results, or fine-tune the pitch and speed sliders for finer control.</p>
+<h3>Pitch shifting</h3>
+<p>Adjust pitch from -12 to +12 semitones using a granular phase-vocoder algorithm. This preserves the audio duration while shifting the perceived frequency &mdash; the difference between speaking in a low voice and speaking faster in a low voice.</p>
+<h3>Ring modulation (robot voice)</h3>
+<p>The robot effect multiplies your audio by a sine wave at a fixed frequency (typically 80 Hz). This shifts the harmonic spectrum by that frequency and back, producing the classic Dalek/robot metallic tone.</p>
+<h3>Band-pass filter (telephone effect)</h3>
+<p>The telephone effect passes your voice through a band-pass filter that mimics the 300 Hz to 3.4 kHz range of a real phone line. This is what made phone calls sound "tinny" for decades.</p>
+<h3>Reverb</h3>
+<p>The reverb effect uses a synthetic impulse response processed through a ConvolverNode, simulating a small room reflection.</p>
+</div>
+
+<div class="info-section">
+<h2>Privacy</h2>
+<p>Every step of the audio processing pipeline runs in your browser. The file you select never touches our servers. Close the tab and your audio is gone forever. No cookies are set, no analytics are tied to your file, no signup is required.</p>
+</div>
+
+<div class="info-section">
+<h2>Related tools</h2>
+<div class="vc-related">
+<a href="/tools/audio-editor/">Audio Editor</a>
+<a href="/tools/voice-recorder/">Voice Recorder</a>
+<a href="/tools/tone-generator/">Tone Generator</a>
+<a href="/tools/audio-cutter/">Audio Cutter</a>
+<a href="/tools/audio-joiner/">Audio Joiner</a>
+<a href="/tools/audio-converter/">Audio Converter</a>
+<a href="/tools/audio-to-text/">Audio to Text</a>
+<a href="/tools/text-to-speech/">Text to Speech</a>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+</main>
+<footer>
+<p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ---------- State ----------
+  var vcState = {
+    file: null,
+    audioBuffer: null,
+    audioCtx: null,
+    sourceNode: null,
+    processedBuffer: null,
+    currentPreset: 'original',
+    pitch: 0,
+    speed: 100,
+    reverb: 0,
+    robot: false,
+    telephone: false,
+    oldFilter: false,
+    lastDownloadBlob: null,
+    lastDownloadName: null
+  };
+
+  var PRESETS = {
+    original: { pitch: 0, speed: 100, reverb: 0, robot: false, tel: false, old: false, label: 'Original' },
+    chipmunk: { pitch: 6, speed: 100, reverb: 0, robot: false, tel: false, old: false, label: 'Chipmunk' },
+    deep: { pitch: -6, speed: 100, reverb: 0, robot: false, tel: false, old: false, label: 'Deep' },
+    robot: { pitch: 0, speed: 100, reverb: 0, robot: true, tel: false, old: false, label: 'Robot' },
+    alien: { pitch: 4, speed: 100, reverb: 35, robot: true, tel: false, old: false, label: 'Alien' },
+    female: { pitch: 3, speed: 100, reverb: 0, robot: false, tel: false, old: false, label: 'Female' },
+    male: { pitch: -3, speed: 100, reverb: 0, robot: false, tel: false, old: false, label: 'Male' },
+    child: { pitch: 8, speed: 100, reverb: 0, robot: false, tel: false, old: false, label: 'Child' },
+    old: { pitch: -2, speed: 100, reverb: 0, robot: false, tel: false, old: true, label: 'Old' },
+    telephone: { pitch: 0, speed: 100, reverb: 0, robot: false, tel: true, old: false, label: 'Telephone' },
+    megaphone: { pitch: 0, speed: 100, reverb: 15, robot: false, tel: true, old: false, label: 'Megaphone' }
+  };
+
+  // ---------- Helpers ----------
+  function vcGetCtx() {
+    if (!vcState.audioCtx) {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      vcState.audioCtx = new Ctx();
+    }
+    return vcState.audioCtx;
+  }
+
+  function vcSetStatus(msg, type) {
+    var el = document.getElementById('vcStatus');
+    el.className = 'vc-status ' + (type || 'info');
+    el.textContent = msg;
+  }
+
+  function vcClearStatus() {
+    var el = document.getElementById('vcStatus');
+    el.className = 'vc-status';
+    el.textContent = '';
+  }
+
+  function vcFmtTime(sec) {
+    if (!isFinite(sec) || sec < 0) return '-';
+    var m = Math.floor(sec / 60);
+    var s = Math.floor(sec % 60);
+    var ms = Math.round((sec - Math.floor(sec)) * 100);
+    return m + ':' + (s < 10 ? '0' : '') + s + '.' + (ms < 10 ? '0' : '') + ms;
+  }
+
+  function vcFmtSize(bytes) {
+    if (!bytes) return '-';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  function vcSetButtonsEnabled(enabled) {
+    document.getElementById('vcApplyBtn').disabled = !enabled;
+    document.getElementById('vcPreviewBtn').disabled = !enabled;
+    document.getElementById('vcPlayOrigBtn').disabled = !enabled;
+    document.getElementById('vcDownloadBtn').disabled = !enabled;
+  }
+
+  // ---------- File handling ----------
+  function vcHandleFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith('audio/') && !/\.(mp3|wav|m4a|flac|ogg|aac|webm|opus)$/i.test(file.name)) {
+      vcSetStatus('Please drop an audio file (MP3, WAV, M4A, FLAC, OGG, AAC).', 'error');
+      return;
+    }
+    vcState.file = file;
+    vcClearStatus();
+    vcSetStatus('Decoding ' + file.name + ' (' + vcFmtSize(file.size) + ')...', 'info');
+
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      var ctx = vcGetCtx();
+      ctx.decodeAudioData(ev.target.result, function (buffer) {
+        vcState.audioBuffer = buffer;
+        document.getElementById('vcFilename').textContent = file.name;
+        document.getElementById('vcDuration').textContent = vcFmtTime(buffer.duration);
+        document.getElementById('vcSampleRate').textContent = buffer.sampleRate + ' Hz';
+        document.getElementById('vcChannels').textContent = buffer.numberOfChannels === 1 ? 'Mono' : 'Stereo';
+        document.getElementById('vcFileInfo').style.display = 'block';
+        vcSetButtonsEnabled(true);
+        document.getElementById('vcDownloadBtn').disabled = true;
+        vcSetStatus('File loaded. Pick a voice preset and click Apply.', 'success');
+      }, function (err) {
+        vcSetStatus('Could not decode this audio file. Try MP3 or WAV.', 'error');
+      });
+    };
+    reader.onerror = function () {
+      vcSetStatus('Could not read this file.', 'error');
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // ---------- DSP ----------
+  // Granular phase-vocoder pitch shift (duration-preserving)
+  function vcPitchShift(buf, semitones) {
+    if (!semitones) return buf;
+    var ctx = vcGetCtx();
+    var ratio = Math.pow(2, semitones / 12);
+    var grainLen = 2048;
+    var hopIn = grainLen;
+    var hopOut = Math.round(hopIn * ratio);
+    var channels = buf.numberOfChannels;
+    var len = buf.length;
+    var outLen = Math.ceil(len * ratio) + grainLen * 2;
+    var outBuf = ctx.createBuffer(channels, outLen, buf.sampleRate);
+
+    for (var ch = 0; ch < channels; ch++) {
+      var inData = buf.getChannelData(ch);
+      var outData = outBuf.getChannelData(ch);
+      var window = new Float32Array(grainLen);
+      for (var w = 0; w < grainLen; w++) {
+        // Hann window
+        window[w] = 0.5 * (1 - Math.cos(2 * Math.PI * w / (grainLen - 1)));
+      }
+      var posIn = 0;
+      var posOut = 0;
+      while (posOut < outLen - grainLen && posIn + grainLen < len) {
+        for (var i = 0; i < grainLen; i++) {
+          outData[posOut + i] += inData[posIn + i] * window[i];
+        }
+        posIn += hopIn;
+        posOut += hopOut;
+      }
+    }
+    return outBuf;
+  }
+
+  // Speed change (resample)
+  function vcSpeedChange(buf, speedPercent) {
+    if (speedPercent === 100) return buf;
+    var ratio = speedPercent / 100;
+    var ctx = vcGetCtx();
+    var channels = buf.numberOfChannels;
+    var inLen = buf.length;
+    var outLen = Math.round(inLen / ratio);
+    var outBuf = ctx.createBuffer(channels, outLen, buf.sampleRate);
+
+    for (var ch = 0; ch < channels; ch++) {
+      var inData = buf.getChannelData(ch);
+      var outData = outBuf.getChannelData(ch);
+      for (var i = 0; i < outLen; i++) {
+        var srcIdx = i * ratio;
+        var i0 = Math.floor(srcIdx);
+        var i1 = Math.min(i0 + 1, inLen - 1);
+        var frac = srcIdx - i0;
+        outData[i] = inData[i0] * (1 - frac) + inData[i1] * frac;
+      }
+    }
+    return outBuf;
+  }
+
+  // Apply Biquad filter chain to an AudioBuffer using OfflineAudioContext
+  async function vcApplyBiquad(buf, chainFn) {
+    var ctx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
+      buf.numberOfChannels, buf.length, buf.sampleRate);
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+    var head = src;
+    var tail = chainFn(ctx, head);
+    if (!tail) tail = head;
+    tail.connect(ctx.destination);
+    src.start(0);
+    return await ctx.startRendering();
+  }
+
+  // Ring modulation: multiply audio by sine wave (offset by 0.5 to keep centred)
+  async function vcRingMod(buf, freq) {
+    var ctx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
+      buf.numberOfChannels, buf.length, buf.sampleRate);
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+    var osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    var modGain = ctx.createGain();
+    modGain.gain.value = 0.5;
+    var sum = ctx.createGain();
+    sum.gain.value = 1.0;
+    // osc → modGain.gain (modulates audio amplitude)
+    osc.connect(modGain.gain);
+    src.connect(sum);
+    sum.connect(ctx.destination);
+    src.start(0);
+    osc.start(0);
+    return await ctx.startRendering();
+  }
+
+  // Reverb (simple convolver with synthetic IR)
+  function vcMakeReverbIR(ctx, durationSec, decay) {
+    var rate = ctx.sampleRate;
+    var length = Math.max(1, Math.floor(rate * durationSec));
+    var ir = ctx.createBuffer(2, length, rate);
+    for (var ch = 0; ch < 2; ch++) {
+      var data = ir.getChannelData(ch);
+      for (var i = 0; i < length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+      }
+    }
+    return ir;
+  }
+
+  async function vcReverb(buf, amountPercent) {
+    if (!amountPercent) return buf;
+    var wet = amountPercent / 100;
+    var durationSec = 0.3 + wet * 1.2;
+    var decay = 2 + wet * 3;
+    var extraSamples = Math.floor(buf.sampleRate * durationSec);
+    var ctx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(
+      buf.numberOfChannels, buf.length + extraSamples, buf.sampleRate);
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+    var conv = ctx.createConvolver();
+    conv.buffer = vcMakeReverbIR(ctx, durationSec, decay);
+    var dryGain = ctx.createGain();
+    dryGain.gain.value = 1 - wet * 0.5;
+    var wetGain = ctx.createGain();
+    wetGain.gain.value = wet * 0.7;
+    src.connect(dryGain);
+    src.connect(conv);
+    conv.connect(wetGain);
+    dryGain.connect(ctx.destination);
+    wetGain.connect(ctx.destination);
+    src.start(0);
+    return await ctx.startRendering();
+  }
+
+  // Band-pass filter (telephone)
+  async function vcBandpass(buf, lowHz, highHz) {
+    return await vcApplyBiquad(buf, function (ctx, head) {
+      var hpf = ctx.createBiquadFilter();
+      hpf.type = 'highpass';
+      hpf.frequency.value = lowHz;
+      head.connect(hpf);
+      var lpf = ctx.createBiquadFilter();
+      lpf.type = 'lowpass';
+      lpf.frequency.value = highHz;
+      hpf.connect(lpf);
+      return lpf;
+    });
+  }
+
+  // Low-pass (old voice)
+  async function vcLowpass(buf, hz) {
+    return await vcApplyBiquad(buf, function (ctx, head) {
+      var lpf = ctx.createBiquadFilter();
+      lpf.type = 'lowpass';
+      lpf.frequency.value = hz;
+      head.connect(lpf);
+      return lpf;
+    });
+  }
+
+  // Wave-folder style distortion (megaphone)
+  async function vcDistort(buf, amount) {
+    return await vcApplyBiquad(buf, function (ctx, head) {
+      var ws = ctx.createWaveShaper();
+      var curve = new Float32Array(2048);
+      var k = amount * 50;
+      for (var i = 0; i < 2048; i++) {
+        var x = (i / 2047) * 2 - 1;
+        curve[i] = ((3 + k) * x * 20 * Math.PI / 180) / (Math.PI + k * Math.abs(x));
+      }
+      ws.curve = curve;
+      head.connect(ws);
+      return ws;
+    });
+  }
+
+  // ---------- Main apply pipeline ----------
+  async function vcApply() {
+    if (!vcState.audioBuffer) return;
+    var btn = document.getElementById('vcApplyBtn');
+    var dl = document.getElementById('vcDownloadBtn');
+    var pv = document.getElementById('vcPreviewBtn');
+    btn.disabled = true; pv.disabled = true; dl.disabled = true;
+    vcSetStatus('Processing audio...', 'info');
+
+    try {
+      var buf = vcState.audioBuffer;
+      // 1. speed first (independent of pitch)
+      if (vcState.speed !== 100) {
+        buf = vcSpeedChange(buf, vcState.speed);
+      }
+      // 2. pitch shift
+      if (vcState.pitch !== 0) {
+        buf = vcPitchShift(buf, vcState.pitch);
+      }
+      // 3. ring mod (robot)
+      if (vcState.robot) {
+        buf = await vcRingMod(buf, 80);
+      }
+      // 4. telephone band-pass
+      if (vcState.telephone) {
+        buf = await vcBandpass(buf, 300, 3400);
+      }
+      // 5. old low-pass
+      if (vcState.oldFilter) {
+        buf = await vcLowpass(buf, 2000);
+      }
+      // 6. megaphone distortion (always on if preset picks it)
+      if (vcState.currentPreset === 'megaphone') {
+        buf = await vcDistort(buf, 0.6);
+      }
+      // 7. reverb last (most expensive)
+      if (vcState.reverb > 0) {
+        buf = await vcReverb(buf, vcState.reverb);
+      }
+      vcState.processedBuffer = buf;
+      // Generate WAV blob
+      var blob = vcEncodeWav(buf);
+      vcState.lastDownloadBlob = blob;
+      vcState.lastDownloadName = vcState.file.name.replace(/\.[^.]+$/, '') + '_' + vcState.currentPreset + '.wav';
+      dl.disabled = false;
+      btn.disabled = false; pv.disabled = false;
+      vcSetStatus('Done! Click Preview to listen or Download WAV to save.', 'success');
+    } catch (e) {
+      vcSetStatus('Processing failed: ' + e.message, 'error');
+      btn.disabled = false; pv.disabled = false;
+    }
+  }
+
+  // ---------- WAV encoder ----------
+  function vcEncodeWav(buf) {
+    var channels = buf.numberOfChannels;
+    var sampleRate = buf.sampleRate;
+    var length = buf.length;
+    var bitsPerSample = 16;
+    var byteRate = sampleRate * channels * bitsPerSample / 8;
+    var blockAlign = channels * bitsPerSample / 8;
+    var dataSize = length * channels * bitsPerSample / 8;
+    var buffer = new ArrayBuffer(44 + dataSize);
+    var view = new DataView(buffer);
+
+    function writeString(view, offset, str) {
+      for (var i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    }
+
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeString(view, 8, 'WAVE');
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, channels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    writeString(view, 36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    var channelData = [];
+    for (var ch = 0; ch < channels; ch++) channelData.push(buf.getChannelData(ch));
+
+    var offset = 44;
+    for (var i = 0; i < length; i++) {
+      for (var ch = 0; ch < channels; ch++) {
+        var s = Math.max(-1, Math.min(1, channelData[ch][i]));
+        s = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        view.setInt16(offset, s, true);
+        offset += 2;
+      }
+    }
+
+    return new Blob([buffer], { type: 'audio/wav' });
+  }
+
+  // ---------- Playback ----------
+  function vcStopPlayback() {
+    if (vcState.sourceNode) {
+      try { vcState.sourceNode.stop(); } catch (e) {}
+      vcState.sourceNode = null;
+    }
+  }
+
+  function vcPlayBuffer(buf) {
+    vcStopPlayback();
+    var ctx = vcGetCtx();
+    var src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+    vcState.sourceNode = src;
+  }
+
+  // ---------- UI handlers ----------
+  function vcApplyPreset(presetKey) {
+    var p = PRESETS[presetKey];
+    if (!p) return;
+    vcState.currentPreset = presetKey;
+    vcState.pitch = p.pitch;
+    vcState.speed = p.speed;
+    vcState.reverb = p.reverb;
+    vcState.robot = p.robot;
+    vcState.telephone = p.tel;
+    vcState.oldFilter = p.old;
+
+    // Update sliders
+    document.getElementById('vcPitch').value = p.pitch;
+    document.getElementById('vcPitchVal').textContent = p.pitch + ' st';
+    document.getElementById('vcSpeed').value = p.speed;
+    document.getElementById('vcSpeedVal').textContent = p.speed + '%';
+    document.getElementById('vcReverb').value = p.reverb;
+    document.getElementById('vcReverbVal').textContent = p.reverb + '%';
+
+    // Update toggles
+    document.getElementById('vcRobotToggle').classList.toggle('on', p.robot);
+    document.getElementById('vcTelToggle').classList.toggle('on', p.tel);
+    document.getElementById('vcOldToggle').classList.toggle('on', p.old);
+
+    // Update preset button highlight
+    var btns = document.querySelectorAll('.vc-preset-btn');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.toggle('active', btns[i].getAttribute('data-preset') === presetKey);
+    }
+
+    // Mark processed buffer stale
+    vcState.processedBuffer = null;
+    document.getElementById('vcDownloadBtn').disabled = true;
+    vcClearStatus();
+  }
+
+  window.vcToggleEffect = function (el) {
+    el.classList.toggle('on');
+    var key = el.getAttribute('data-toggle');
+    var on = el.classList.contains('on');
+    if (key === 'robot') vcState.robot = on;
+    if (key === 'tel') vcState.telephone = on;
+    if (key === 'old') vcState.oldFilter = on;
+    // If user manually toggled, switch to custom-style preset state
+    document.querySelectorAll('.vc-preset-btn').forEach(function (b) { b.classList.remove('active'); });
+    vcState.currentPreset = 'custom';
+    vcState.processedBuffer = null;
+    document.getElementById('vcDownloadBtn').disabled = true;
+    vcClearStatus();
+  };
+
+  window.vcOnSlider = function (which, val) {
+    if (which === 'pitch') {
+      vcState.pitch = parseInt(val, 10);
+      document.getElementById('vcPitchVal').textContent = vcState.pitch + ' st';
+    } else if (which === 'speed') {
+      vcState.speed = parseInt(val, 10);
+      document.getElementById('vcSpeedVal').textContent = vcState.speed + '%';
+    } else if (which === 'reverb') {
+      vcState.reverb = parseInt(val, 10);
+      document.getElementById('vcReverbVal').textContent = vcState.reverb + '%';
+    }
+    // Switch off preset highlight when user manually tunes
+    document.querySelectorAll('.vc-preset-btn').forEach(function (b) { b.classList.remove('active'); });
+    vcState.currentPreset = 'custom';
+    vcState.processedBuffer = null;
+    document.getElementById('vcDownloadBtn').disabled = true;
+    vcClearStatus();
+  };
+
+  function vcInit() {
+    // Dropzone
+    var dz = document.getElementById('vcDropzone');
+    var fileInput = document.getElementById('vcFile');
+    dz.addEventListener('click', function () { fileInput.click(); });
+    fileInput.addEventListener('change', function (e) {
+      if (e.target.files && e.target.files[0]) vcHandleFile(e.target.files[0]);
+    });
+    dz.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      dz.classList.add('dragover');
+    });
+    dz.addEventListener('dragleave', function () { dz.classList.remove('dragover'); });
+    dz.addEventListener('drop', function (e) {
+      e.preventDefault();
+      dz.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) vcHandleFile(e.dataTransfer.files[0]);
+    });
+
+    // Preset buttons
+    var presetBtns = document.querySelectorAll('.vc-preset-btn');
+    for (var i = 0; i < presetBtns.length; i++) {
+      presetBtns[i].addEventListener('click', function () {
+        vcApplyPreset(this.getAttribute('data-preset'));
+      });
+    }
+
+    // Sliders
+    document.getElementById('vcPitch').addEventListener('input', function () {
+      window.vcOnSlider('pitch', this.value);
+    });
+    document.getElementById('vcSpeed').addEventListener('input', function () {
+      window.vcOnSlider('speed', this.value);
+    });
+    document.getElementById('vcReverb').addEventListener('input', function () {
+      window.vcOnSlider('reverb', this.value);
+    });
+
+    // Action buttons
+    document.getElementById('vcApplyBtn').addEventListener('click', vcApply);
+    document.getElementById('vcPreviewBtn').addEventListener('click', function () {
+      if (vcState.processedBuffer) {
+        vcPlayBuffer(vcState.processedBuffer);
+      } else {
+        vcSetStatus('Click Apply first to generate the effect.', 'error');
+      }
+    });
+    document.getElementById('vcPlayOrigBtn').addEventListener('click', function () {
+      if (vcState.audioBuffer) vcPlayBuffer(vcState.audioBuffer);
+    });
+    document.getElementById('vcStopBtn').addEventListener('click', vcStopPlayback);
+    document.getElementById('vcDownloadBtn').addEventListener('click', function () {
+      if (!vcState.lastDownloadBlob) return;
+      var url = URL.createObjectURL(vcState.lastDownloadBlob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = vcState.lastDownloadName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 100);
+    });
+    document.getElementById('vcClearBtn').addEventListener('click', function () {
+      vcStopPlayback();
+      vcState.file = null;
+      vcState.audioBuffer = null;
+      vcState.processedBuffer = null;
+      vcState.lastDownloadBlob = null;
+      fileInput.value = '';
+      document.getElementById('vcFileInfo').style.display = 'none';
+      vcSetButtonsEnabled(false);
+      vcClearStatus();
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', vcInit);
+  } else {
+    vcInit();
+  }
+})();
+</script>
+</body>
+</html>

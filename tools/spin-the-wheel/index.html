@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spin the Wheel - Random Picker & Name Wheel | DevTools Hub</title>
+<meta name="description" content="Free spin the wheel random picker. Add names, decisions or prizes, spin for a fair random winner with weighted odds, sound and CSV export. No signup.">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/spin-the-wheel/">
+<meta property="og:title" content="Spin the Wheel - Random Picker & Wheel of Names">
+<meta property="og:description" content="Free spin the wheel random picker. Add names, decisions or prizes, spin for a fair random winner with weighted odds, sound and CSV export. No signup.">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/spin-the-wheel/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Spin the Wheel",
+  "url": "https://tools.scoreroute.com/tools/spin-the-wheel/",
+  "description": "Free online spin the wheel random picker and wheel of names. Add options or names, spin for a fair random winner, set weights, remove winners, export results as CSV. Runs 100% in the browser.",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "All",
+  "browserRequirement": "Requires JavaScript and HTML5 Canvas",
+  "featureList": [
+    "Type or paste options and spin for a random winner",
+    "Weighted segments for adjusted win probability",
+    "Remove winner after each spin to avoid repeats",
+    "Spin history with CSV export",
+    "Custom color palettes and sound effects",
+    "Share wheels via URL"
+  ],
+  "author": {
+    "@type": "Organization",
+    "name": "DevTools Hub"
+  },
+  "datePublished": "2026-08-18",
+  "dateModified": "2026-08-18",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.sw-wrap { max-width: 820px; }
+.sw-layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: 22px; align-items: start; }
+.sw-stage { text-align: center; }
+.sw-wheel-box { position: relative; width: 100%; max-width: 430px; margin: 0 auto; }
+.sw-canvas { width: 100%; height: auto; display: block; touch-action: none; }
+.sw-pointer {
+  position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent;
+  border-top: 30px solid #667eea; z-index: 2; filter: drop-shadow(0 2px 3px rgba(0,0,0,.5));
+}
+.sw-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 64px; height: 64px; border-radius: 50%; background: #fff; color: #0f0f23;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.45); cursor: pointer; user-select: none; text-align: center; line-height: 1.1;
+  border: 3px solid #fff; z-index: 2;
+}
+.sw-center span { pointer-events: none; }
+.sw-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.sw-result {
+  margin-top: 14px; min-height: 30px; font-size: 1.15rem; font-weight: 700; color: #7b93ff;
+  padding: 10px; border: 1px solid #2a2a4a; border-radius: 10px; background: #13132b;
+}
+.sw-panel { background: #141430; border: 1px solid #26264a; border-radius: 14px; padding: 16px; }
+.sw-panel h2 { margin: 0 0 10px; font-size: 1rem; color: #fff; }
+.sw-textarea {
+  width: 100%; min-height: 150px; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff;
+  padding: 10px 12px; border-radius: 10px; font-size: 0.9rem; font-family: inherit; resize: vertical; box-sizing: border-box;
+}
+.sw-textarea:focus { outline: 2px solid transparent; border-color: #667eea; }
+.sw-hint { font-size: 0.75rem; color: #777; margin: 6px 0 10px; }
+.sw-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; font-size: 0.85rem; color: #ccc; flex-wrap: wrap; }
+.sw-row label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.sw-row input[type="checkbox"], .sw-row input[type="radio"] { accent-color: #667eea; }
+.sw-row select, .sw-row input[type="number"] {
+  background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 0.85rem;
+}
+.sw-row input[type="number"] { width: 72px; }
+.sw-palette-btn { padding: 6px 10px; border-radius: 8px; border: 1px solid #2a2a4a; background: #1c1c3a; color: #ddd; font-size: 0.78rem; cursor: pointer; }
+.sw-palette-btn:hover, .sw-palette-btn.active { border-color: #667eea; color: #fff; }
+.sw-history { margin-top: 10px; max-height: 150px; overflow-y: auto; font-size: 0.82rem; }
+.sw-history div { padding: 4px 8px; border-bottom: 1px solid #222244; color: #bbb; }
+.sw-history .sw-hist-no { color: #555; }
+.sw-btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.sw-actions button, .sw-btn-group button { font-size: 0.85rem; }
+@media (max-width: 720px) {
+  .sw-layout { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Spin the Wheel</h1>
+    <p class="subtitle">Free Random Picker &amp; Wheel of Names</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/tools/generators/">Generators</a> &gt; <span>Spin the Wheel</span>
+      <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+    </nav>
+  </div>
+</header>
+<main class="container sw-wrap">
+  <section class="tool-page">
+    <div class="tool-main">
+      <div class="sw-layout">
+        <div class="sw-stage">
+          <div class="sw-wheel-box">
+            <div class="sw-pointer"></div>
+            <canvas id="wheelCanvas" class="sw-canvas" width="860" height="860" aria-label="Spin the wheel to pick a random winner"></canvas>
+            <div class="sw-center" id="wheelCenter" role="button" tabindex="0" aria-label="Spin the wheel">
+              <span id="centerLabel">Spin</span>
+            </div>
+          </div>
+          <div class="sw-actions">
+            <button class="btn btn-primary" id="spinBtn" data-testid="spin-btn" name="spin" onclick="swSpin()">Spin</button>
+            <button class="btn" id="removeBtn" data-testid="remove-btn" name="remove" onclick="swRemoveWinner()">Remove Winner</button>
+            <button class="btn btn-secondary" id="resetBtn" data-testid="reset-btn" name="reset" onclick="swReset()">Reset</button>
+          </div>
+          <div class="sw-result" id="resultDisplay" aria-live="polite">Add options below, then spin to pick a random winner.</div>
+        </div>
+        <div class="sw-panel">
+          <h2>Options</h2>
+          <label for="entriesInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Options list</label>
+          <textarea id="entriesInput" class="sw-textarea" placeholder="One option per line.&#10;To add a weight, use: Name, 2&#10;&#10;Alice&#10;Bob, 3&#10;Charlie&#10;Dinner&#10;Movie"></textarea>
+          <p class="sw-hint">One option per line. Add a weight with a comma, e.g. <code>Bob, 3</code> makes Bob 3x more likely.</p>
+          <div class="sw-row">
+            <label class="sr-only" for="examplesSelect">Load an example wheel</label><select id="examplesSelect" name="examples" onchange="swLoadExample()">
+              <option value="">Load example...</option>
+              <option value="names">Names (classroom)</option>
+              <option value="prizes">Prizes / Raffle</option>
+              <option value="decisions">Yes / No / Maybe</option>
+              <option value="dinner">What's for dinner?</option>
+              <option value="chores">Chores</option>
+            </select>
+            <button class="sw-palette-btn" data-testid="apply-btn" id="applyBtn" onclick="swApply()">Update Wheel</button>
+          </div>
+          <div class="sw-row">
+            <label><input type="checkbox" id="removeCheck" data-testid="remove-check" checked> Remove winners</label>
+            <label><input type="checkbox" id="soundCheck" data-testid="sound-check" checked> Sound</label>
+          </div>
+          <div class="sw-row">
+            <label for="paletteSelect">Colors</label>
+            <select id="paletteSelect" data-testid="palette-select" onchange="swApply()">
+              <option value="classic">Classic rainbow</option>
+              <option value="ocean">Ocean blues</option>
+              <option value="candy">Candy pastel</option>
+              <option value="mono">Dark mono</option>
+            </select>
+          </div>
+          <div class="sw-row">
+            <label for="spinTimeInput">Spin time</label>
+            <input type="number" id="spinTimeInput" data-testid="spin-time" value="5" min="2" max="12" step="1" aria-label="Spin duration in seconds">
+            <span>s</span>
+          </div>
+          <h2 style="margin-top:14px;">History</h2>
+          <div class="sw-history" id="historyList"><div class="sw-hist-no">No spins yet.</div></div>
+          <div class="sw-btn-group">
+            <button class="btn btn-secondary" data-testid="export-btn" id="exportBtn" onclick="swExportCsv()">Export CSV</button>
+            <button class="btn btn-secondary" data-testid="share-btn" id="shareBtn" onclick="swShareUrl()">Copy Share Link</button>
+            <button class="btn" data-testid="clear-hist-btn" id="clearHistBtn" onclick="swClearHistory()">Clear History</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="info-section">
+      <h2>Free Online Spin the Wheel Random Picker</h2>
+      <p>This free spin the wheel tool is a random picker that works fully in your browser. Type or paste a list of names, prizes, tasks, or any options, then spin. The wheel picks one entry at random, and you can keep going until everyone or every prize has been chosen. There is nothing to install, no account to create, and your list never leaves your device.</p>
+
+      <h3>Why AI Cannot Replace This Tool</h3>
+      <p>A chatbot can suggest options or roll a mental coin, but it cannot produce a real spinning wheel with animation, sound, and a visible pointer. When you need a selection that a classroom, a giveaway audience, or a team can actually watch and trust, you need a working wheel. This tool gives you the full experience with fair odds, weights, and a history log, all in the browser.</p>
+
+      <h3>How to Use</h3>
+      <p>Type one option per line in the box, or pick an example from the dropdown, then click Update Wheel. The wheel redraws automatically. Click Spin (or the wheel itself, or press the Spacebar) to spin. When the wheel stops, the winner lights up in the result box. If Remove winners is on, the winner is taken off the wheel so nobody can win twice. Use Reset to bring all options back, and Export CSV to save the whole history.</p>
+      <p>You can give some entries a higher chance by adding a weight. Write a comma then a number, for example <code>Alice, 3</code> makes Alice three times as likely to win. Weights let a raffle holder give repeat buyers more tickets, or let a teacher give a struggling student an extra chance. The wheel reads the weights and builds segments with the right proportions.</p>
+
+      <h3>Why It Is Fair</h3>
+      <p>The winner is chosen with <code>crypto.getRandomValues()</code>, the same cryptographically secure random source browsers use for security. Every full rotation, every segment size, and every weight is taken into account before the wheel animates to its stop position. The spin is visual, but the result is decided fairly by the browser's random number generator, not by how hard you click.</p>
+
+      <h3>Use Cases</h3>
+      <p>Teachers use it to pick students for questions or presentations without leaving anyone out. Event organizers use it for prize draws and giveaways, with the winner removal feature so every prize goes to a different person. Teams use it to choose who presents first or who goes next, and friends use it for dinner, movie night, or chores. Streamers and quiz hosts use the on-screen wheel to keep viewers engaged because the result is visible and easy to trust.</p>
+      <p>The tool also works as a decision maker. Put Yes, No, and Maybe on the wheel, add weight to whatever answer you secretly want, and let the wheel take the blame. For bigger decisions, put the actual options on the wheel and see which one your gut agrees with when it lands.</p>
+
+      <h3>Frequently Asked Questions</h3>
+      <details class="faq-item">
+        <summary>Is spin the wheel free?</summary>
+        <p>Yes. The tool is completely free with no signup, no watermarks, and no limits on how many times you spin or how many options you add.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How many options can I put on the wheel?</summary>
+        <p>There is no hard limit. For very long lists the wheel draws segments as clearly as it can and still gives every entry an equal chance. For the clearest view, keep lists under about 30 options.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How do I stop someone winning twice?</summary>
+        <p>Turn on Remove winners. After a spin, the winning entry is removed from the wheel, so each spin picks from the people or prizes that have not won yet.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I make some options more likely to win?</summary>
+        <p>Yes. Write the option, a comma, then a number, like <code>Bob, 3</code>. The number is the weight, so Bob is three times as likely to win as an option with weight 1.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is my list shared with anyone?</summary>
+        <p>No. Everything runs in your browser. Nothing is uploaded, stored on a server, or shared. Your list is private unless you choose to save a share link in your own browser history.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I save or share a wheel?</summary>
+        <p>Yes. Click Copy Share Link and the current list is packed into the URL. Send the link to someone and the wheel opens ready to spin with the same options.</p>
+      </details>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <ul>
+          <li><a href="/tools/random-generator/">Random Generator</a></li>
+          <li><a href="/tools/lottery-number-generator/">Lottery Number Generator</a></li>
+          <li><a href="/tools/bingo-card-generator/">Bingo Card Generator</a></li>
+          <li><a href="/tools/word-search-maker/">Word Search Maker</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>
+  <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function(){
+  var entries = [];
+  var weights = [];
+  var rotation = 0;
+  var spinning = false;
+  var history = [];
+  var raf = null;
+
+  var PALETTES = {
+    classic: ['#e74c3c','#e67e22','#f1c40f','#2ecc71','#1abc9c','#3498db','#9b59b6','#e84393','#fd79a8','#00b894','#fdcb6e','#6c5ce7'],
+    ocean: ['#0984e3','#74b9ff','#00cec9','#55efc4','#636e72','#2d3436','#0984e3','#74b9ff','#00cec9','#55efc4','#636e72','#2d3436'],
+    candy: ['#ff9ff3','#feca57','#ff6b6b','#48dbfb','#1dd1a1','#f368e0','#ff9ff3','#feca57','#ff6b6b','#48dbfb','#1dd1a1','#f368e0'],
+    mono: ['#2d3436','#636e72','#b2bec3','#dfe6e9','#2d3436','#636e72','#b2bec3','#dfe6e9','#2d3436','#636e72','#b2bec3','#dfe6e9']
+  };
+  var EXAMPLES = {
+    names: 'Alice\nBob\nCharlie\nDana\nEve\nFrank\nGrace\nHenry\nIvy\nJack',
+    prizes: 'Gift Card, 2\nT-Shirt\nMug\nSticker Pack\nHeadphones\nWater Bottle\nNotebook\nMousepad',
+    decisions: 'Yes\nNo\nMaybe\nAsk again later\nYes but do it tomorrow\nNo but do a smaller one',
+    dinner: 'Pizza\nSushi\nBurger\nSalad\nTacos\nPasta\nThai\nBarbecue',
+    chores: 'Dishes\nVacuum\nLaundry\nTrash\nBathroom\nDusting\nKitchen\nWindows'
+  };
+
+  function getEl(id){ return document.getElementById(id); }
+
+  function parseEntries(text){
+    var out = [];
+    var lines = text.split(/\r?\n/);
+    for (var i=0;i<lines.length;i++){
+      var line = lines[i].trim();
+      if (!line) continue;
+      var parts = line.split(',');
+      var name = parts[0].trim();
+      if (!name) continue;
+      var weight = 1;
+      if (parts.length > 1){
+        var w = parseInt(parts[parts.length-1].trim(), 10);
+        if (!isNaN(w) && w > 0 && w < 1000) weight = w;
+      }
+      out.push({ name: name, weight: weight });
+    }
+    return out;
+  }
+
+  function currentPalette(){
+    var sel = getEl('paletteSelect').value;
+    return PALETTES[sel] || PALETTES.classic;
+  }
+
+  function drawWheel(){
+    var canvas = getEl('wheelCanvas');
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height;
+    var cx = W/2, cy = H/2;
+    var radius = Math.min(W,H)/2 - 14;
+    ctx.clearRect(0,0,W,H);
+    if (entries.length === 0){
+      ctx.strokeStyle = '#2a2a4a';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.fillStyle = '#4a4a7a';
+      ctx.font = '700 30px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Add options to start', cx, cy);
+      return;
+    }
+    var totalWeight = 0;
+    for (var i=0;i<entries.length;i++) totalWeight += entries[i].weight;
+    var palette = currentPalette();
+    var start = -Math.PI/2;
+    var angle = 0;
+    for (var i=0;i<entries.length;i++){
+      var sweep = (entries[i].weight / totalWeight) * Math.PI * 2;
+      var a0 = start + angle;
+      var a1 = a0 + sweep;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, radius, a0, a1);
+      ctx.closePath();
+      ctx.fillStyle = palette[i % palette.length];
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      angle += sweep;
+    }
+    // labels
+    angle = 0;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (var i=0;i<entries.length;i++){
+      var sweep = (entries[i].weight / totalWeight) * Math.PI * 2;
+      var mid = start + angle + sweep/2;
+      var textRadius = radius * 0.62;
+      var tx = cx + Math.cos(mid) * textRadius;
+      var ty = cy + Math.sin(mid) * textRadius;
+      ctx.save();
+      ctx.translate(tx, ty);
+      ctx.rotate(mid + Math.PI/2);
+      ctx.font = '700 ' + Math.min(20, Math.max(12, Math.floor(180/entries.length))) + 'px sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(0,0,0,0.6)';
+      ctx.shadowBlur = 4;
+      var label = entries[i].name;
+      if (label.length > 12) label = label.slice(0,12) + '...';
+      ctx.fillText(label, 0, 0);
+      ctx.restore();
+      angle += sweep;
+    }
+    // outer ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+  }
+
+  function swSpin(){
+    if (spinning) return;
+    if (entries.length === 0){
+      getEl('resultDisplay').textContent = 'Add options below, then spin to pick a random winner.';
+      return;
+    }
+    // pick weighted winner using crypto
+    var totalWeight = 0;
+    for (var i=0;i<entries.length;i++) totalWeight += entries[i].weight;
+    var r = crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295;
+    var acc = 0, winnerIndex = 0;
+    for (var i=0;i<entries.length;i++){
+      acc += entries[i].weight / totalWeight;
+      if (r < acc){ winnerIndex = i; break; }
+    }
+    // compute target rotation so winner segment centers at top pointer (-PI/2)
+    var segStart = -Math.PI/2;
+    for (var i=0;i<winnerIndex;i++) segStart += (entries[i].weight / totalWeight) * Math.PI * 2;
+    var segMid = segStart + (entries[winnerIndex].weight / totalWeight) * Math.PI;
+    var targetAngle = -(segMid - (-Math.PI/2)); // rotation to bring segMid to -PI/2
+    // normalize rotation target: current rotation + full turns + delta
+    var current = rotation % (Math.PI*2);
+    var delta = (targetAngle - current) % (Math.PI*2);
+    if (delta < 0) delta += Math.PI*2;
+    var extraTurns = 3 + Math.floor(crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295 * 3);
+    var targetRotation = rotation + delta + extraTurns * Math.PI * 2;
+
+    var duration = parseInt(getEl('spinTimeInput').value, 10) || 5;
+    var startRotation = rotation;
+    var startTime = performance.now();
+    var lastTick = Math.floor(rotation / (Math.PI*2) * totalWeight / (entries[0] ? entries[0].weight : 1));
+    spinning = true;
+    getEl('spinBtn').textContent = 'Spinning...';
+    getEl('centerLabel').textContent = '...';
+
+    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+    function frame(now){
+      var t = Math.min(1, (now - startTime) / (duration * 1000));
+      var eased = easeOutCubic(t);
+      rotation = startRotation + (targetRotation - startRotation) * eased;
+      drawWheel();
+      // tick sound per segment crossing
+      var tickSeg = Math.floor((rotation % (Math.PI*2) + Math.PI*2) % (Math.PI*2) / ((Math.PI*2)/Math.max(entries.length,1)));
+      if (tickSeg !== lastTick && getEl('soundCheck').checked){
+        playTick();
+        lastTick = tickSeg;
+      }
+      if (t < 1){
+        raf = requestAnimationFrame(frame);
+      } else {
+        spinning = false;
+        rotation = targetRotation;
+        drawWheel();
+        var winner = entries[winnerIndex];
+        getEl('resultDisplay').textContent = 'Winner: ' + winner.name + '!';
+        getEl('spinBtn').textContent = 'Spin';
+        getEl('centerLabel').textContent = 'Spin';
+        if (getEl('soundCheck').checked) playWin();
+        recordWinner(winner, winnerIndex);
+      }
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function playTick(){
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var o = ctx.createOscillator();
+      var g = ctx.createGain();
+      o.type = 'square';
+      o.frequency.value = 700;
+      g.gain.value = 0.05;
+      o.connect(g); g.connect(ctx.destination);
+      o.start();
+      o.stop(ctx.currentTime + 0.03);
+      setTimeout(function(){ try{ ctx.close(); }catch(e){} }, 60);
+    } catch(e){}
+  }
+
+  function playWin(){
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var notes = [523.25, 659.25, 783.99];
+      for (var i=0;i<notes.length;i++){
+        var o = ctx.createOscillator();
+        var g = ctx.createGain();
+        o.type = 'sine';
+        o.frequency.value = notes[i];
+        g.gain.setValueAtTime(0.12, ctx.currentTime + i*0.12);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.12 + 0.2);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(ctx.currentTime + i*0.12);
+        o.stop(ctx.currentTime + i*0.12 + 0.25);
+      }
+      setTimeout(function(){ try{ ctx.close(); }catch(e){} }, 800);
+    } catch(e){}
+  }
+
+  function recordWinner(winner, index){
+    history.push({ name: winner.name, time: new Date().toISOString() });
+    if (getEl('removeCheck').checked){
+      entries.splice(index, 1);
+    }
+    renderHistory();
+    if (getEl('removeCheck').checked){
+      drawWheel();
+    }
+  }
+
+  function renderHistory(){
+    var el = getEl('historyList');
+    if (history.length === 0){
+      el.innerHTML = '<div class="sw-hist-no">No spins yet.</div>';
+      return;
+    }
+    el.innerHTML = history.map(function(h, i){
+      var d = new Date(h.time);
+      return '<div>' + (i+1) + '. ' + escHtml(h.name) + ' - ' + d.toLocaleTimeString() + '</div>';
+    }).join('');
+  }
+
+  function escHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function swApply(){
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    spinning = false;
+    getEl('spinBtn').textContent = 'Spin';
+    getEl('centerLabel').textContent = 'Spin';
+    var text = getEl('entriesInput').value;
+    var parsed = parseEntries(text);
+    entries = parsed;
+    rotation = 0;
+    history = [];
+    renderHistory();
+    drawWheel();
+    if (entries.length > 0){
+      getEl('resultDisplay').textContent = entries.length + ' options ready. Click Spin!';
+    } else {
+      getEl('resultDisplay').textContent = 'Add options below, then spin to pick a random winner.';
+    }
+  }
+
+  function swLoadExample(){
+    var sel = getEl('examplesSelect');
+    var key = sel.value;
+    if (!key) return;
+    getEl('entriesInput').value = EXAMPLES[key];
+    swApply();
+    sel.value = '';
+  }
+
+  function swRemoveWinner(){
+    if (spinning) return;
+    if (history.length === 0){
+      getEl('resultDisplay').textContent = 'No winner to remove yet. Spin first.';
+      return;
+    }
+    var last = history[history.length-1];
+    var idx = -1;
+    for (var i=0;i<entries.length;i++){
+      if (entries[i].name === last.name){ idx = i; break; }
+    }
+    if (idx === -1){
+      // winner already removed or option edited
+      getEl('resultDisplay').textContent = last.name + ' is already off the wheel or no longer in the list.';
+      return;
+    }
+    entries.splice(idx, 1);
+    drawWheel();
+    getEl('resultDisplay').textContent = last.name + ' removed from the wheel.';
+  }
+
+  function swReset(){
+    if (spinning && raf) { cancelAnimationFrame(raf); raf = null; spinning = false; }
+    swApply();
+    getEl('resultDisplay').textContent = 'Wheel reset. Click Spin!';
+  }
+
+  function swExportCsv(){
+    if (history.length === 0){
+      getEl('resultDisplay').textContent = 'Nothing to export yet. Spin first.';
+      return;
+    }
+    var rows = [['#','Option','Time']];
+    history.forEach(function(h,i){
+      rows.push([i+1, h.name, h.time]);
+    });
+    var csv = rows.map(function(r){
+      return r.map(function(c){ return '"' + String(c).replace(/"/g,'""') + '"'; }).join(',');
+    }).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'wheel-history.csv';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 3000);
+    getEl('resultDisplay').textContent = 'History exported to wheel-history.csv';
+  }
+
+  function swClearHistory(){
+    history = [];
+    renderHistory();
+    getEl('resultDisplay').textContent = 'History cleared.';
+  }
+
+  function swShareUrl(){
+    var text = getEl('entriesInput').value;
+    var url = new URL(window.location.href);
+    url.search = '';
+    url.searchParams.set('w', text);
+    var done = false;
+    var setStatus = function(msg){ if (!done){ done = true; getEl('resultDisplay').textContent = msg; } };
+    setStatus('Copying share link...');
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = url.toString();
+      ta.setAttribute('readonly','');
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch(e){}
+      ta.remove();
+      if (ok){ setStatus('Share link copied to clipboard.'); }
+      else if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url.toString()).then(function(){
+          setStatus('Share link copied to clipboard.');
+        }).catch(function(){
+          setStatus('Share link: ' + url.toString());
+        });
+      } else {
+        setStatus('Share link: ' + url.toString());
+      }
+    } catch(e){
+      try {
+        navigator.clipboard.writeText(url.toString()).then(function(){
+          setStatus('Share link copied to clipboard.');
+        }).catch(function(){
+          setStatus('Share link: ' + url.toString());
+        });
+      } catch(e2){ setStatus('Share link: ' + url.toString()); }
+    }
+  }
+
+  function loadFromUrl(){
+    var params = new URLSearchParams(window.location.search);
+    var w = params.get('w');
+    if (w && w.trim()){
+      getEl('entriesInput').value = w;
+      swApply();
+    } else {
+      swApply();
+    }
+  }
+
+  // events
+  getEl('spinBtn').addEventListener('click', swSpin);
+  getEl('wheelCenter').addEventListener('click', swSpin);
+  getEl('wheelCenter').addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); swSpin(); }
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT')) return;
+    if (e.code === 'Space'){ e.preventDefault(); swSpin(); }
+    else if (e.key === 'r' || e.key === 'R'){ swRemoveWinner(); }
+    else if (e.key === 'Escape'){ if (spinning) { /* let it finish */ } else swReset(); }
+  });
+
+  // test hooks
+  window.swGetState = function(){
+    return {
+      entries: entries,
+      rotation: rotation,
+      spinning: spinning,
+      history: history,
+      entriesText: getEl('entriesInput').value,
+      entryCount: entries.length
+    };
+  };
+  window.swSetEntries = function(text){
+    getEl('entriesInput').value = text;
+    swApply();
+    return entries.length;
+  };
+  window.swSpin = swSpin;
+  window.swApply = swApply;
+  window.swRemoveWinner = swRemoveWinner;
+  window.swReset = swReset;
+  window.swExportCsv = swExportCsv;
+  window.swClearHistory = swClearHistory;
+  // BUG-332: `onchange="swLoadExample()"` / `onclick="swShareUrl()"` resolve
+  // against the global scope; both are declared inside this IIFE.
+  window.swLoadExample = swLoadExample;
+  window.swShareUrl = swShareUrl;
+
+  loadFromUrl();
+})();
+</script>
+</body>
+</html>

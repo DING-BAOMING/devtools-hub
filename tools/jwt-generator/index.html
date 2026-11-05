@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Generator - Create Signed Tokens Online | DevTools Hub</title>
+    <meta name="description" content="Free JWT generator. Create signed JSON Web Tokens with HS256, HS384, HS512 algorithms. No signup, no upload, 100% private browser processing.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/jwt-generator/">
+    <meta property="og:title" content="JWT Generator - Create Signed Tokens Online | DevTools Hub">
+    <meta property="og:description" content="Free JWT generator. Create signed JSON Web Tokens with HS256, HS384, HS512 algorithms.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/jwt-generator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-08-26",
+        "dateModified": "2026-08-26",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "JWT Generator",
+        "description": "Create signed JSON Web Tokens instantly in your browser",
+        "url": "https://tools.scoreroute.com/tools/jwt-generator/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["Generate JWT tokens", "HS256/HS384/HS512 signing", "Custom header and payload", "Base64URL encoding", "Copy token to clipboard"]
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>JWT Generator</h1>
+            <p class="subtitle">Create Signed JSON Web Tokens Online</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>JWT Generator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Create Your Token</h2>
+                
+                <div class="form-group">
+                    <label for="jwt-algorithm">Algorithm</label>
+                    <select id="jwt-algorithm" onchange="updateAlgorithm()">
+                        <option value="HS256">HS256 (HMAC SHA-256)</option>
+                        <option value="HS384">HS384 (HMAC SHA-384)</option>
+                        <option value="HS512">HS512 (HMAC SHA-512)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="jwt-secret">Secret Key</label>
+                    <input type="text" id="jwt-secret" placeholder="Enter your secret key (min 16 characters for HS256)" aria-label="Secret key for signing">
+                </div>
+
+                <div class="form-group">
+                    <label for="jwt-header-json">Header (JSON)</label>
+                    <textarea id="jwt-header-json" placeholder='{"alg":"HS256","typ":"JWT"}' aria-label="JWT Header JSON"></textarea>
+                    <button onclick="formatHeaderJSON()" class="btn btn-secondary">Format JSON</button>
+                </div>
+
+                <div class="form-group">
+                    <label for="jwt-payload-json">Payload (JSON)</label>
+                    <textarea id="jwt-payload-json" placeholder='{"sub":"1234567890","name":"John Doe","iat":1516239022}' aria-label="JWT Payload JSON"></textarea>
+                    <button onclick="formatPayloadJSON()" class="btn btn-secondary">Format JSON</button>
+                </div>
+
+                <div class="btn-group">
+                    <button onclick="generateJWT()" class="btn btn-primary">Generate Token</button>
+                    <button onclick="clearJWT()" class="btn btn-secondary">Clear</button>
+                </div>
+
+                <div id="jwt-output" style="display: none;">
+                    <h3 style="color: #667eea; margin: 20px 0 12px;">Generated Token</h3>
+                    <textarea id="jwt-token" readonly placeholder="Your JWT token will appear here..." aria-label="Generated JWT token"></textarea>
+                    <button onclick="copyToken()" class="copy-btn">Copy Token</button>
+                    
+                    <div id="jwt-token-parts" style="margin-top: 20px;"></div>
+                </div>
+
+                <div id="jwt-status" class="status"></div>
+            </div>
+
+            <div class="info-section">
+                <h3>What is JWT Generator?</h3>
+                <p>A JWT (JSON Web Token) generator creates signed tokens used for authentication and secure information exchange. Unlike JWT decoders that only read tokens, a generator creates new signed tokens for testing your applications.</p>
+                <p>This online JWT generator runs entirely in your browser using the Web Crypto API. Your secret keys and token data never leave your device, ensuring complete privacy.</p>
+
+                <h3>Supported Algorithms</h3>
+                <div class="example-box">
+                    <div class="example-item">
+                        <strong>HS256 (HMAC SHA-256)</strong> - 256-bit key, fastest, most common
+                    </div>
+                    <div class="example-item">
+                        <strong>HS384 (HMAC SHA-384)</strong> - 384-bit key, medium speed
+                    </div>
+                    <div class="example-item">
+                        <strong>HS512 (HMAC SHA-512)</strong> - 512-bit key, strongest but slowest
+                    </div>
+                </div>
+
+                <h3>JWT Structure</h3>
+                <p>A JWT has three parts separated by dots:</p>
+                <ul>
+                    <li><strong>Header</strong> - Algorithm and token type</li>
+                    <li><strong>Payload</strong> - Claims and data (not encrypted, just Base64URL encoded)</li>
+                    <li><strong>Signature</strong> - Verifies the token hasn't been tampered with</li>
+                </ul>
+
+                <h3>Common JWT Claims</h3>
+                <div class="example-box">
+                    <div class="example-item">
+                        <strong>iss</strong> - Issuer (who created the token)
+                    </div>
+                    <div class="example-item">
+                        <strong>sub</strong> - Subject (who the token is about)
+                    </div>
+                    <div class="example-item">
+                        <strong>aud</strong> - Audience (who the token is for)
+                    </div>
+                    <div class="example-item">
+                        <strong>exp</strong> - Expiration time (Unix timestamp)
+                    </div>
+                    <div class="example-item">
+                        <strong>iat</strong> - Issued at (Unix timestamp)
+                    </div>
+                    <div class="example-item">
+                        <strong>nbf</strong> - Not before (Unix timestamp)
+                    </div>
+                </div>
+
+                <h3>Use Cases</h3>
+                <ul>
+                    <li>Generate test tokens for API development</li>
+                    <li>Create tokens for authentication testing</li>
+                    <li>Prototype JWT-based auth systems</li>
+                    <li>Debug JWT issues by creating known tokens</li>
+                </ul>
+
+                <details class="faq-item">
+                    <summary>Is my secret key sent to a server?</summary>
+                    <p>No. All JWT signing is done locally in your browser using the Web Crypto API. Your secret key never leaves your device.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What's the difference between HS256, HS384, and HS512?</summary>
+                    <p>These are HMAC algorithms using different SHA hash functions. HS256 is fastest and most common, HS512 is strongest but slowest. For most applications, HS256 is sufficient.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a> | <a href="/tools/jwt-decoder/">JWT Decoder</a> | <a href="/sitemap.xml">Sitemap</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    function updateAlgorithm() {
+        const alg = document.getElementById('jwt-algorithm').value;
+        const header = document.getElementById('jwt-header-json');
+        try {
+            const headerObj = JSON.parse(header.value);
+            headerObj.alg = alg;
+            header.value = JSON.stringify(headerObj, null, 2);
+        } catch (e) {
+            // Invalid JSON, don't update
+        }
+    }
+
+    function formatHeaderJSON() {
+        const input = document.getElementById('jwt-header-json');
+        try {
+            const obj = JSON.parse(input.value);
+            input.value = JSON.stringify(obj, null, 2);
+            showStatus('jwt-status', 'Header formatted', 'success');
+        } catch (e) {
+            showStatus('jwt-status', 'Invalid JSON in header', 'error');
+        }
+    }
+
+    function formatPayloadJSON() {
+        const input = document.getElementById('jwt-payload-json');
+        try {
+            const obj = JSON.parse(input.value);
+            input.value = JSON.stringify(obj, null, 2);
+            showStatus('jwt-status', 'Payload formatted', 'success');
+        } catch (e) {
+            showStatus('jwt-status', 'Invalid JSON in payload', 'error');
+        }
+    }
+
+    function base64UrlEncode(str) {
+        const base64 = btoa(unescape(encodeURIComponent(str)));
+        return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    }
+
+    async function generateJWT() {
+        const secret = document.getElementById('jwt-secret').value;
+        const alg = document.getElementById('jwt-algorithm').value;
+        const headerInput = document.getElementById('jwt-header-json').value.trim();
+        const payloadInput = document.getElementById('jwt-payload-json').value.trim();
+
+        if (!secret) {
+            showStatus('jwt-status', 'Please enter a secret key', 'error');
+            return;
+        }
+
+        if (secret.length < 16) {
+            showStatus('jwt-status', 'Secret key should be at least 16 characters', 'error');
+            return;
+        }
+
+        if (!headerInput || !payloadInput) {
+            showStatus('jwt-status', 'Please enter both header and payload JSON', 'error');
+            return;
+        }
+
+        let headerObj, payloadObj;
+        try {
+            headerObj = JSON.parse(headerInput);
+        } catch (e) {
+            showStatus('jwt-status', 'Invalid JSON in header', 'error');
+            return;
+        }
+
+        try {
+            payloadObj = JSON.parse(payloadInput);
+        } catch (e) {
+            showStatus('jwt-status', 'Invalid JSON in payload', 'error');
+            return;
+        }
+
+        const encodedHeader = base64UrlEncode(JSON.stringify(headerObj));
+        const encodedPayload = base64UrlEncode(JSON.stringify(payloadObj));
+
+        const signingInput = encodedHeader + '.' + encodedPayload;
+
+        let signature;
+        try {
+            const encoder = new TextEncoder();
+            const key = await crypto.subtle.importKey(
+                'raw',
+                encoder.encode(secret),
+                { name: 'HMAC', hash: { name: 'SHA-256' } },
+                false,
+                ['sign']
+            );
+
+            let hashName;
+            if (alg === 'HS256') hashName = 'SHA-256';
+            else if (alg === 'HS384') hashName = 'SHA-384';
+            else hashName = 'SHA-512';
+
+            const hmacKey = await crypto.subtle.importKey(
+                'raw',
+                encoder.encode(secret),
+                { name: 'HMAC', hash: { name: hashName } },
+                false,
+                ['sign']
+            );
+
+            const signatureBuffer = await crypto.subtle.sign('HMAC', hmacKey, encoder.encode(signingInput));
+            const signatureArray = new Uint8Array(signatureBuffer);
+            signature = base64UrlEncode(String.fromCharCode.apply(null, signatureArray));
+        } catch (e) {
+            showStatus('jwt-status', 'Error signing token: ' + e.message, 'error');
+            return;
+        }
+
+        const token = signingInput + '.' + signature;
+
+        document.getElementById('jwt-token').value = token;
+        document.getElementById('jwt-output').style.display = 'block';
+
+        const partsHtml = '<div class="jwt-section"><h4>Token Parts</h4>' +
+            '<div style="margin: 10px 0;"><strong>Header:</strong> <code style="word-break: break-all;">' + encodedHeader + '</code></div>' +
+            '<div style="margin: 10px 0;"><strong>Payload:</strong> <code style="word-break: break-all;">' + encodedPayload + '</code></div>' +
+            '<div style="margin: 10px 0;"><strong>Signature:</strong> <code style="word-break: break-all;">' + signature + '</code></div></div>';
+        document.getElementById('jwt-token-parts').innerHTML = partsHtml;
+
+        showStatus('jwt-status', 'Token generated successfully', 'success');
+    }
+
+    function copyToken() {
+        const token = document.getElementById('jwt-token').value;
+        if (token) {
+            navigator.clipboard.writeText(token).then(function() {
+                showStatus('jwt-status', 'Token copied to clipboard', 'success');
+            }, function() {
+                showStatus('jwt-status', 'Failed to copy token', 'error');
+            });
+        }
+    }
+
+    function clearJWT() {
+        document.getElementById('jwt-secret').value = '';
+        document.getElementById('jwt-header-json').value = '';
+        document.getElementById('jwt-payload-json').value = '';
+        document.getElementById('jwt-token').value = '';
+        document.getElementById('jwt-output').style.display = 'none';
+        document.getElementById('jwt-token-parts').innerHTML = '';
+        document.getElementById('jwt-status').textContent = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const defaultHeader = JSON.stringify({ alg: 'HS256', typ: 'JWT' }, null, 2);
+        const defaultPayload = JSON.stringify({ sub: '1234567890', name: 'John Doe', iat: Math.floor(Date.now() / 1000) }, null, 2);
+        document.getElementById('jwt-header-json').value = defaultHeader;
+        document.getElementById('jwt-payload-json').value = defaultPayload;
+    });
+    </script>
+</body>
+</html>

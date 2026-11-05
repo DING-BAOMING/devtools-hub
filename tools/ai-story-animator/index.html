@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Story Animator - Novel to Video with Agnes AI | DevTools Hub</title>
+<meta name="description" content="Free AI story animator. Input a novel chapter, get a full storyboard with images, videos, and narration. Powered by Agnes AI multi-modal API.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/ai-story-animator/">
+<meta property="og:title" content="AI Story Animator - Novel to Video with Agnes AI">
+<meta property="og:description" content="Input a novel chapter, get a full storyboard with images, videos, and narration. Powered by Agnes AI.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/ai-story-animator/">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- BUG-323 (perf/font-delivery): media="print" + the onload swap keeps this third-party
+         font stylesheet out of the render-blocking path; both preconnects above stay. -->
+    <link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/styles.css">
+<style>
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; color: #e0e0e0; line-height: 1.6; padding: 1rem; }
+.container { max-width: 1100px; margin: 0 auto; }
+header h1 { font-size: 1.8rem; margin-bottom: 0.3rem; }
+header p.subtitle { color: #a0a0c0; margin-bottom: 1.5rem; }
+.card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; }
+textarea, input[type="text"], select { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 0.6rem 0.8rem; border-radius: 8px; font-family: inherit; font-size: 0.95rem; }
+textarea { min-height: 200px; resize: vertical; }
+label { display: block; font-weight: 500; margin-bottom: 0.3rem; color: #d0d0e0; font-size: 0.9rem; }
+.row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+button { background: linear-gradient(135deg, #5b6fff, #7c4dff); color: #fff; border: 0; padding: 0.7rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; }
+button:hover { filter: brightness(1.1); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button.secondary { background: rgba(255,255,255,0.1); }
+.shot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.8rem; margin-top: 1rem; }
+.shot-card { background: rgba(0,0,0,0.25); border-radius: 10px; padding: 0.6rem; border: 1px solid rgba(255,255,255,0.08); }
+.shot-card img { width: 100%; border-radius: 6px; display: block; }
+.shot-card .shot-meta { font-size: 0.78rem; color: #a0a0c0; margin-top: 0.4rem; }
+.shot-card video { width: 100%; border-radius: 6px; }
+.shot-state { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; }
+.s-pending { background: #555; color: #fff; }
+.s-image_done, .s-video_pending, .s-video_queued, .s-qa_failed { background: #f0a020; color: #000; }
+.s-video_done { background: #4caf50; color: #fff; }
+.s-qa_done, .s-narr_done { background: #2196f3; color: #fff; }
+.s-error, .s-rate_limited { background: #f44336; color: #fff; }
+.progress { background: rgba(0,0,0,0.4); border-radius: 8px; height: 22px; position: relative; overflow: hidden; margin: 0.6rem 0; }
+.progress-bar { background: linear-gradient(90deg, #5b6fff, #7c4dff); height: 100%; transition: width 0.5s; }
+.progress-text { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 600; }
+.status-line { font-size: 0.9rem; padding: 0.6rem 0.8rem; background: rgba(0,0,0,0.3); border-radius: 6px; margin: 0.5rem 0; }
+.audio-player { width: 100%; height: 32px; margin-top: 0.4rem; }
+.hidden { display: none; }
+.warn { background: rgba(255,180,0,0.15); border-left: 3px solid #f0a020; padding: 0.7rem 0.9rem; border-radius: 6px; margin: 0.7rem 0; font-size: 0.88rem; }
+.err { background: rgba(255,80,80,0.15); border-left: 3px solid #f44336; padding: 0.7rem 0.9rem; border-radius: 6px; margin: 0.7rem 0; font-size: 0.88rem; }
+.ok { background: rgba(80,200,120,0.15); border-left: 3px solid #4caf50; padding: 0.7rem 0.9rem; border-radius: 6px; margin: 0.7rem 0; font-size: 0.88rem; }
+pre { background: rgba(0,0,0,0.4); padding: 0.7rem; border-radius: 6px; overflow-x: auto; font-size: 0.82rem; max-height: 200px; }
+.kbd { background: rgba(255,255,255,0.1); padding: 0.1rem 0.4rem; border-radius: 4px; font-family: monospace; font-size: 0.85em; }
+.eta { color: #f0a020; font-weight: 600; }
+.copyright { text-align: center; color: #707088; font-size: 0.78rem; padding: 2rem 0 1rem; }
+.copyright a { color: #a0a0c0; }
+.faq { margin-top: 1rem; }
+.faq details { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 0.7rem 0.9rem; margin-bottom: 0.5rem; }
+.faq summary { cursor: pointer; font-weight: 600; color: #d0d0e0; }
+.faq p, .faq ul { margin-top: 0.5rem; color: #b0b0c0; font-size: 0.88rem; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "AI Story Animator",
+  "description": "Free AI story animator. Input a novel chapter, get a full storyboard with images, videos, and narration. Powered by Agnes AI multi-modal API.",
+  "url": "https://tools.scoreroute.com/tools/ai-story-animator/",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+</head>
+<body>
+<main class="container">
+<header>
+  <h1>AI Story Animator</h1>
+  <p class="subtitle">Novel chapter → storyboard → AI images → AI videos → narration. Powered by Agnes AI multi-modal API.</p>
+</header>
+
+<div id="phase-input" class="card">
+  <div class="warn">
+    <strong>⏱ Expect long wait:</strong> Video generation is rate-limited to 1 video per minute (Agnes API). A 6-shot story takes ~30-50 minutes total. Your job persists in browser storage — you can close this tab and come back.
+  </div>
+  <label for="text-input">Story chapter (50-12,000 characters)</label>
+  <textarea id="text-input" data-testid="text-input" placeholder="Paste a chapter of a novel here. The LLM will analyze characters, scenes, and visual style, then plan a storyboard..."></textarea>
+  <div class="row" style="margin-top: 0.7rem;">
+    <div style="flex: 1; min-width: 140px;">
+      <label for="lang-input">Narration language</label>
+      <select id="lang-input" data-testid="lang-input">
+        <option value="English">English</option>
+        <option value="Chinese (Simplified)">Chinese (Simplified)</option>
+        <option value="Chinese (Traditional)">Chinese (Traditional)</option>
+        <option value="Japanese">Japanese</option>
+        <option value="Korean">Korean</option>
+        <option value="Spanish">Spanish</option>
+        <option value="French">French</option>
+        <option value="German">German</option>
+      </select>
+    </div>
+    <button id="start-btn" data-testid="start-btn" aria-label="Plan Storyboard">Plan Storyboard</button>
+  </div>
+</div>
+
+<div id="phase-progress" class="card hidden">
+  <h2 id="job-title">Storyboard</h2>
+  <p id="job-status" class="status-line">Initializing…</p>
+  <div class="progress"><div id="progress-bar" class="progress-bar" style="width: 0%"></div><div id="progress-text" class="progress-text">0%</div></div>
+  <p class="shot-meta">Style: <span id="plan-style"></span></p>
+  <p class="shot-meta">Characters: <span id="plan-chars"></span></p>
+  <div id="eta-line" class="shot-meta"></div>
+  <div id="shot-list" class="shot-grid"></div>
+  <div class="row" style="margin-top: 1rem;">
+    <button id="resume-btn" class="secondary" data-testid="resume-btn" aria-label="Resume job">Resume</button>
+    <button id="stop-btn" class="secondary" data-testid="stop-btn" aria-label="Stop job">Stop</button>
+    <button id="delete-btn" class="secondary" data-testid="delete-btn" aria-label="Delete job">Delete Job</button>
+  </div>
+</div>
+
+<div id="phase-result" class="card hidden">
+  <h2>Done!</h2>
+  <p class="ok">All shots generated. Download individual videos or use a tool like FFmpeg to merge them into one MP4.</p>
+  <div id="final-shots" class="shot-grid"></div>
+  <h3 style="margin-top: 1rem;">Manifest (JSON)</h3>
+  <pre id="manifest-json"></pre>
+  <div class="row">
+    <button id="copy-manifest-btn" data-testid="copy-manifest-btn" aria-label="Copy manifest JSON">Copy Manifest</button>
+    <button id="start-over-btn" class="secondary" data-testid="start-over-btn" aria-label="Start over">Start Over</button>
+  </div>
+</div>
+
+<div class="card faq">
+  <h3>How it works</h3>
+  <details><summary>Pipeline overview</summary>
+    <ul>
+      <li><strong>Analyze</strong>: LLM reads your text, extracts characters + scenes + visual style, plans 4-6 shots.</li>
+      <li><strong>Per shot</strong>: (a) t2i for first appearance, i2i with character ref for repeats, (b) i2v creates ~3-4s video, (c) vision QA checks for clipping, character identity and style drift, (d) CF Workers AI TTS for narration.</li>
+      <li><strong>Pipeline is resumable</strong>: Job state stored in Cloudflare KV (7-day TTL). Close tab → re-open with same jobId → resume.</li>
+    </ul>
+  </details>
+  <details><summary>Why so slow?</summary>
+    <p>Agnes free tier limits video generation to <strong>1 video per minute</strong> (server-enforced). A 6-shot story is 6 minutes of queuing + 5 min/shot generation ≈ 35 minutes. The orchestrator waits 60s between video calls automatically.</p>
+  </details>
+  <details><summary>What's missing vs. my full request?</summary>
+    <ul>
+      <li>❌ Character dialogue lip-sync (we use voiceover instead)</li>
+      <li>❌ Frame-by-frame consistency check across shots (only first-frame QA per shot)</li>
+      <li>✅ Video native audio (SFX/ambient/music auto-generated by Agnes)</li>
+      <li>✅ Visual QA (anatomy, prompt adherence) via vision LLM</li>
+      <li>✅ Character consistency via i2i reference image</li>
+    </ul>
+  </details>
+  <details><summary>Privacy & limits</summary>
+    <p>Agnes free tier may use submitted text/images for model improvement. Don't submit sensitive material. The job state (text, plan, URLs) is stored in Cloudflare KV for 7 days. Videos are stored on Agnes's CDN with short TTL — download promptly after generation.</p>
+  </details>
+</div>
+
+<div class="copyright">
+  <p>Powered by <a href="https://platform.agnes-ai.com" target="_blank" rel="noopener">Agnes AI</a> · hundreds of free tools at <a href="/">DevTools Hub</a></p>
+</div>
+</main>
+
+<script>
+const STORAGE_KEY = 'ai-story-animator-jobId';
+const $ = (id) => document.getElementById(id);
+let pollTimer = null;
+let currentJob = null;
+let pollAborted = false;
+
+function showPhase(p) {
+  ['input', 'progress', 'result'].forEach(x => {
+    $('phase-' + x).classList.toggle('hidden', x !== p);
+  });
+}
+
+function setStatus(msg) { $('job-status').textContent = msg; }
+function setProgress(pct) {
+  $('progress-bar').style.width = pct + '%';
+  $('progress-text').textContent = Math.round(pct) + '%';
+}
+
+function renderShots() {
+  const list = $('shot-list');
+  list.innerHTML = '';
+  if (!currentJob || !currentJob.shots) return;
+  currentJob.shots.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'shot-card';
+    let stateClass = 's-' + (s.state || 'pending');
+    let media = '';
+    const safeImg = safeUrl(s.imageUrl);
+    if (safeImg) {
+      media += `<img src="${escHtml(safeImg)}" alt="shot ${i+1}" loading="lazy" onerror="this.style.display='none'">`;
+    }
+    const safeVid = safeUrl(s.videoUrl);
+    if (safeVid) {
+      media += `<video src="${escHtml(safeVid)}" controls preload="none" style="margin-top:0.4rem" crossorigin="anonymous"></video>`;
+    }
+    if (s.narrationAudioB64 && typeof s.narrationAudioB64 === 'string' && s.narrationAudioB64.length > 100) {
+      try {
+        const mime = detectAudioMime(s.narrationAudioB64);
+        if (mime) {
+          const audioBlob = b64ToBlob(s.narrationAudioB64, mime);
+          const audioUrl = URL.createObjectURL(audioBlob);
+          media += `<audio class="audio-player" controls src="${audioUrl}"></audio>`;
+        }
+      } catch (e) {}
+    }
+    const qaReason = s.qaResult && s.qaResult.reason ? s.qaResult.reason.slice(0, 40) : '';
+    const qaTxt = s.qaResult ? (s.qaResult.pass ? '✓ QA' : '✗ ' + qaReason) : '';
+    // FIX C10: ALL user-controllable content escaped
+    div.innerHTML = `
+      <div class="row" style="justify-content: space-between; align-items: center;">
+        <strong>#${i+1}</strong><span class="shot-state ${escHtml(stateClass)}">${escHtml(s.state || 'pending')}</span>
+      </div>
+      <div class="shot-meta">${escHtml(s.scene || '')}</div>
+      <div class="shot-meta">${escHtml(qaTxt)}</div>
+      ${media}
+      <div class="shot-meta" style="margin-top: 0.4rem; font-style: italic;">${escHtml((s.narration || '').slice(0, 80))}${s.narration && s.narration.length > 80 ? '…' : ''}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function b64ToBlob(b64, mime) {
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
+function detectAudioMime(b64) {
+  if (typeof b64 !== 'string' || b64.length < 20) return null; // not enough data
+  try {
+    const peek = atob(b64.slice(0, 24));
+    if (peek.startsWith('RIFF')) return 'audio/wav';
+    if (peek.startsWith('ID3') || peek.charCodeAt(0) === 0xFF) return 'audio/mpeg';
+    if (peek.startsWith('OggS')) return 'audio/ogg';
+    if (peek.startsWith('fLaC')) return 'audio/flac';
+  } catch (e) {}
+  return null;
+}
+
+// FIX C10/C11: HTML-escape any user/LLM-generated content before innerHTML.
+function escHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+// Sanitize URL — only allow http(s) and data: schemes (for blob/blob URLs).
+// Critical to prevent XSS via imageUrl/videoUrl/characterRefUrl from KV (user-controllable).
+function safeUrl(u) {
+  if (typeof u !== 'string' || !u) return '';
+  // Block javascript:, vbscript:, and any non-http(s)/data scheme
+  const trimmed = u.trim().toLowerCase();
+  if (trimmed.startsWith('javascript:') || trimmed.startsWith('vbscript:')) return '';
+  // Only allow http(s) and the special blob: for object URLs we create ourselves
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') ||
+      trimmed.startsWith('blob:') || trimmed.startsWith('data:')) return u;
+  return '';
+}
+
+function updateProgress() {
+  if (!currentJob || !currentJob.shots) { setProgress(0); return; }
+  const total = currentJob.shots.length * 4; // image, video, qa, narrate
+  let done = 0;
+  currentJob.shots.forEach(s => {
+    if (s.imageUrl) done++;
+    if (s.videoUrl) done++;
+    if (s.qaResult) done++;
+    if (s.state === 'narr_done' || s.narrationAudioB64 || s.narrationError) done++;
+  });
+  setProgress(Math.min(100, (done / total) * 100));
+}
+
+function updateETA() {
+  if (!currentJob || !currentJob.shots) return;
+  // For video RPM 1: remaining pending videos × 60s + buffer
+  const pendingVideos = currentJob.shots.filter(s => s.state === 'image_done' || s.state === 'video_queued').length;
+  if (pendingVideos > 0) {
+    const eta = pendingVideos * 65;
+    $('eta-line').innerHTML = `ETA: <span class="eta">~${eta}s</span> for remaining video slots (Agnes video RPM 1)`;
+  } else {
+    $('eta-line').innerHTML = '';
+  }
+}
+
+async function callApi(action, payload = {}, timeoutMs = 30000) {
+  // C20 fix: cap each API call at 30s to avoid hanging the frontend
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), timeoutMs);
+  let r;
+  try {
+    r = await fetch('/api/story-job', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...payload }),
+      signal: ctl.signal
+    });
+  } catch (e) {
+    clearTimeout(timer);
+    throw new Error(`network: ${e.message || e}`);
+  }
+  clearTimeout(timer);
+  if (!r.ok) {
+    const t = await r.text();
+    throw new Error(`API ${r.status}: ${t.slice(0, 200)}`);
+  }
+  return r.json();
+}
+
+async function startJob() {
+  const text = $('text-input').value.trim();
+  const language = $('lang-input').value;
+  if (text.length < 50) { alert('Please enter at least 50 characters.'); return; }
+  if (text.length > 12000) { alert('Story too long (max 12,000 characters).'); return; }
+  $('start-btn').disabled = true;
+  setStatus('Analyzing text and planning storyboard…');
+  try {
+    const r = await callApi('create', { text, language });
+    if (r.error) throw new Error(r.error);
+    currentJob = r.job;
+    localStorage.setItem(STORAGE_KEY, currentJob.id);
+    showPhase('progress');
+    // FIX C12: handle analyze failure (no plan / no shots)
+    if (currentJob.error || !currentJob.plan || !currentJob.shots || currentJob.shots.length === 0) {
+      setStatus('Analysis failed: ' + (currentJob.error || 'no storyboard generated'));
+      localStorage.removeItem(STORAGE_KEY); // clear stale jobId so auto-resume doesn't re-show error
+      $('start-btn').disabled = false;
+      $('text-input').focus();
+      return;
+    }
+    $('job-title').textContent = currentJob.plan.title || 'Storyboard';
+    $('plan-style').textContent = currentJob.plan.style || '—';
+    $('plan-chars').textContent = (currentJob.plan.characters || []).map(c => c.name).join(', ') || '—';
+    renderShots();
+    setStatus('Storyboard planned. Starting image generation…');
+    pollAborted = false;
+    pollLoop();
+  } catch (e) {
+    setStatus('Error: ' + e.message);
+    $('start-btn').disabled = false;
+  }
+}
+
+async function pollLoop() {
+  if (pollAborted) return;
+  if (!currentJob || currentJob.step === 'done' || currentJob.step === 'error') {
+    if (currentJob?.step === 'done') finishJob();
+    return;
+  }
+  try {
+    const r = await callApi('step', { jobId: currentJob.id, shotIndex: currentJob.currentShot || 0 }, 35000);
+    if (r.error) {
+      setStatus('Error: ' + r.error);
+      return;
+    }
+    currentJob = r.job;
+    renderShots();
+    updateProgress();
+    updateETA();
+    if (r.message) setStatus(r.message + (r.progress != null ? ' (' + r.progress + '%)' : ''));
+    if (r.job.step === 'done') { finishJob(); return; }
+    if (r.job.step === 'error') { setStatus('Job error: ' + (r.job.error || 'unknown')); return; }
+    let wait = 2000;
+    if (r.retry_after) wait = r.retry_after * 1000;
+    pollTimer = setTimeout(pollLoop, wait);
+  } catch (e) {
+    setStatus('Poll error: ' + e.message);
+    // C20 fix: longer backoff on errors to avoid hammering
+    pollTimer = setTimeout(pollLoop, 10000);
+  }
+}
+
+function finishJob() {
+  if (pollTimer) clearTimeout(pollTimer);
+  setStatus('All done.');
+  setProgress(100);
+  // Render final
+  const list = $('final-shots');
+  list.innerHTML = '';
+  currentJob.shots.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'shot-card';
+    let media = '';
+    const safeImg = safeUrl(s.imageUrl);
+    if (safeImg) media += `<img src="${escHtml(safeImg)}" alt="shot ${i+1}">`;
+    const safeVid = safeUrl(s.videoUrl);
+    if (safeVid) media += `<video src="${escHtml(safeVid)}" controls preload="metadata" style="margin-top:0.4rem" crossorigin="anonymous"></video>`;
+    if (s.narrationAudioB64 && typeof s.narrationAudioB64 === 'string' && s.narrationAudioB64.length > 100) {
+      try {
+        const mime = detectAudioMime(s.narrationAudioB64);
+        if (mime) {
+          const audioBlob = b64ToBlob(s.narrationAudioB64, mime);
+          const audioUrl = URL.createObjectURL(audioBlob);
+          media += `<audio class="audio-player" controls src="${audioUrl}"></audio>`;
+        }
+      } catch (e) {}
+    }
+    const downloadLinks = [];
+    if (safeVid) downloadLinks.push(`<a href="${escHtml(safeVid)}" target="_blank" rel="noopener noreferrer" download="shot_${i+1}.mp4">⬇ video</a>`);
+    if (safeImg) downloadLinks.push(`<a href="${escHtml(safeImg)}" target="_blank" rel="noopener noreferrer" download="shot_${i+1}.png">⬇ image</a>`);
+    div.innerHTML = `
+      <div class="row" style="justify-content: space-between;"><strong>#${i+1}</strong><span>${downloadLinks.join(' · ')}</span></div>
+      <div class="shot-meta">${escHtml(s.scene || '')}</div>
+      ${media}
+      <div class="shot-meta" style="margin-top: 0.4rem; font-style: italic;">${escHtml((s.narration || '').slice(0, 80))}${s.narration && s.narration.length > 80 ? '…' : ''}</div>
+    `;
+    list.appendChild(div);
+  });
+  const manifest = {
+    jobId: currentJob.id,
+    title: currentJob.plan?.title,
+    style: currentJob.plan?.style,
+    characters: currentJob.plan?.characters,
+    shots: currentJob.shots.map((s, i) => ({
+      index: i + 1,
+      scene: s.scene,
+      narration: s.narration,
+      imageUrl: s.imageUrl,
+      videoUrl: s.videoUrl,
+      qa: s.qaResult
+    }))
+  };
+  $('manifest-json').textContent = JSON.stringify(manifest, null, 2);
+  showPhase('result');
+}
+
+async function resumeJob() {
+  const jobId = localStorage.getItem(STORAGE_KEY);
+  if (!jobId) { alert('No job to resume.'); return; }
+  setStatus('Loading job…');
+  try {
+    const r = await callApi('get', { jobId });
+    if (r.error) throw new Error(r.error);
+    currentJob = r.job;
+    // FIX C21: terminal state means no polling needed
+    if (currentJob.step === 'done') {
+      showPhase('progress');
+      $('job-title').textContent = currentJob.plan?.title || 'Storyboard';
+      $('plan-style').textContent = currentJob.plan?.style || '—';
+      $('plan-chars').textContent = (currentJob.plan?.characters || []).map(c => c.name).join(', ') || '—';
+      renderShots(); updateProgress();
+      finishJob();
+      return;
+    }
+    if (currentJob.step === 'error') {
+      showPhase('progress');
+      $('job-title').textContent = currentJob.plan?.title || 'Storyboard';
+      $('plan-style').textContent = currentJob.plan?.style || '—';
+      renderShots(); updateProgress();
+      setStatus('Job previously errored: ' + (currentJob.error || 'unknown') + '. Use Delete Job to clear.');
+      return;
+    }
+    showPhase('progress');
+    $('job-title').textContent = currentJob.plan?.title || 'Storyboard';
+    $('plan-style').textContent = currentJob.plan?.style || '—';
+    $('plan-chars').textContent = (currentJob.plan?.characters || []).map(c => c.name).join(', ') || '—';
+    renderShots();
+    updateProgress();
+    setStatus('Resuming…');
+    pollAborted = false;
+    pollLoop();
+  } catch (e) {
+    setStatus('Resume error: ' + e.message);
+  }
+}
+
+async function deleteJob() {
+  const jobId = localStorage.getItem(STORAGE_KEY);
+  if (!jobId) { showPhase('input'); return; }
+  if (!confirm('Delete this job permanently?')) return;
+  try {
+    await callApi('delete', { jobId });
+  } catch (e) {}
+  localStorage.removeItem(STORAGE_KEY);
+  currentJob = null;
+  pollAborted = true;
+  if (pollTimer) clearTimeout(pollTimer);
+  $('text-input').value = '';
+  showPhase('input');
+  $('start-btn').disabled = false;
+}
+
+function startOver() {
+  localStorage.removeItem(STORAGE_KEY);
+  currentJob = null;
+  pollAborted = true;
+  if (pollTimer) clearTimeout(pollTimer);
+  $('text-input').value = '';
+  showPhase('input');
+  $('start-btn').disabled = false;
+}
+
+$('start-btn').addEventListener('click', startJob);
+$('resume-btn').addEventListener('click', resumeJob);
+$('stop-btn').addEventListener('click', () => {
+  pollAborted = true;
+  if (pollTimer) clearTimeout(pollTimer);
+  setStatus('Stopped. Click Resume to continue.');
+});
+$('delete-btn').addEventListener('click', deleteJob);
+$('start-over-btn').addEventListener('click', startOver);
+$('copy-manifest-btn').addEventListener('click', () => {
+  const text = $('manifest-json').textContent;
+  navigator.clipboard.writeText(text).then(() => alert('Copied!'));
+});
+
+// Auto-resume if job exists
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem(STORAGE_KEY)) {
+    resumeJob();
+  }
+});
+</script>
+</body>
+</html>

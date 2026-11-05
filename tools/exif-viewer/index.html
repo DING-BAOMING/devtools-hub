@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXIF Viewer - Read Photo Metadata & Remove GPS Location Free</title>
+    <meta name="description" content="Free online EXIF viewer. Read hidden photo metadata including GPS location, camera settings, date taken. Remove EXIF data before sharing. 100% private, no upload.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/exif-viewer/">
+    <meta property="og:title" content="EXIF Viewer - Read Photo Metadata & Remove GPS Location Free">
+    <meta property="og:description" content="Free online EXIF viewer. Read hidden photo metadata including GPS location, camera settings, date taken. Remove EXIF data before sharing. 100% private browser processing.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/exif-viewer/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="EXIF Viewer - Read Photo Metadata & Remove GPS Location Free">
+    <meta name="twitter:description" content="Free online EXIF viewer. Read hidden photo metadata including GPS location, camera settings, date taken. Remove EXIF data before sharing. 100% private browser processing.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/exif-viewer/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/full.umd.js"></script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-07-12",
+        "dateModified": "2026-07-12",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "EXIF Viewer - Read Photo Metadata & Remove GPS Location Free",
+        "description": "View and remove EXIF metadata from photos. Inspect camera settings, GPS coordinates, timestamps. Strip all EXIF data for privacy. 100% client-side, no upload.",
+        "url": "https://tools.scoreroute.com/tools/exif-viewer/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["Read EXIF metadata from JPEG, PNG, WebP, TIFF photos", "GPS location detection with privacy alert", "Remove all EXIF metadata with one click", "Remove GPS location only while keeping other data", "100% client-side - files never leave your browser", "No signup, no limits, no watermark"]
+    }
+    </script>
+    <style>
+        .ev-dropzone { border: 3px dashed #555; border-radius: 16px; padding: 50px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; margin-bottom: 20px; }
+        .ev-dropzone:hover, .ev-dropzone.dragover { border-color: #667eea; background: #222250; }
+        .ev-dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+        .ev-dropzone-icon { font-size: 3rem; margin-bottom: 10px; }
+        .ev-dropzone-text { font-size: 1.1rem; color: #ccc; }
+        .ev-dropzone-text strong { color: #667eea; }
+        .ev-info-bar { display: none; padding: 14px 18px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+        .ev-info-bar.visible { display: flex; }
+        .ev-info-item { color: #ccc; font-size: 0.9rem; }
+        .ev-info-item strong { color: #667eea; margin-right: 4px; }
+        .ev-gps-alert { display: none; padding: 14px 18px; background: #3e1a1a; border: 1px solid #ef4444; border-radius: 10px; margin-bottom: 16px; color: #fca5a5; font-size: 0.95rem; align-items: center; gap: 10px; }
+        .ev-gps-alert.visible { display: flex; }
+        .ev-gps-alert-icon { font-size: 1.5rem; }
+        .ev-metadata { display: none; }
+        .ev-metadata.visible { display: block; }
+        .ev-section { margin-bottom: 16px; }
+        .ev-section-title { color: #667eea; font-size: 1rem; font-weight: 600; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #333; }
+        .ev-tag { display: flex; justify-content: space-between; padding: 8px 12px; background: #0f0f23; border-radius: 6px; margin-bottom: 4px; font-size: 0.9rem; }
+        .ev-tag-name { color: #888; font-family: monospace; }
+        .ev-tag-value { color: #fff; text-align: right; max-width: 60%; word-break: break-all; }
+        .ev-btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .ev-no-exif { display: none; padding: 20px; text-align: center; color: #888; background: #1a1a3e; border-radius: 10px; margin-bottom: 16px; }
+        .ev-no-exif.visible { display: block; }
+        .ev-loading { display: none; text-align: center; padding: 20px; color: #667eea; }
+        .ev-loading.visible { display: block; }
+        .ev-spinner { display: inline-block; width: 30px; height: 30px; border: 3px solid #333; border-top-color: #667eea; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .ev-map-link { color: #667eea; text-decoration: underline; }
+        .ev-hidden-input { display: none; }
+        .ev-status { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 0.9rem; display: none; }
+        .ev-status.visible { display: block; }
+        .ev-status.success { background: #1a3e2a; border: 1px solid #28a745; color: #a3e6b0; }
+        .ev-status.error { background: #3e1a1a; border: 1px solid #ef4444; color: #fca5a5; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>EXIF Viewer</h1>
+            <p class="subtitle">Read Hidden Photo Metadata & Protect Your Privacy Before Sharing</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>EXIF Viewer</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>View & Remove EXIF Data</h2>
+
+                <div class="ev-dropzone" id="dropzone">
+                    <div class="ev-dropzone-icon">📷</div>
+                    <div class="ev-dropzone-text">Drop a photo here or <strong>browse</strong> to view its EXIF metadata</div>
+                    <p class="pu-file-size">Supports JPEG, PNG, WebP, TIFF | 100% private, no upload</p>
+                    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/tiff" style="display:none" aria-label="Select a photo to view EXIF metadata">
+                </div>
+
+                <div class="ev-info-bar" id="infoBar">
+                    <span class="ev-info-item"><strong>File:</strong> <span id="fileName"></span></span>
+                    <span class="ev-info-item"><strong>Size:</strong> <span id="fileSize"></span></span>
+                    <span class="ev-info-item"><strong>Format:</strong> <span id="fileFormat"></span></span>
+                    <span class="ev-info-item"><strong>Tags Found:</strong> <span id="tagCount">0</span></span>
+                </div>
+
+                <div class="ev-gps-alert" id="gpsAlert">
+                    <span class="ev-gps-alert-icon">📍</span>
+                    <span><strong>GPS location detected!</strong> This photo contains your exact coordinates. Remove EXIF before sharing.</span>
+                </div>
+
+                <div class="ev-loading" id="loadingIndicator">
+                    <div class="ev-spinner"></div>
+                    <p>Reading metadata...</p>
+                </div>
+
+                <div class="ev-no-exif" id="noExif">
+                    <p>No EXIF metadata found in this image.</p>
+                </div>
+
+                <div class="ev-status" id="statusMsg"></div>
+
+                <div class="ev-metadata" id="metadataPanel">
+                    <div class="ev-btn-group" id="actionButtons">
+                        <button onclick="removeAllEXIF()" class="btn btn-primary">Remove All EXIF & Download</button>
+                        <button onclick="removeGPSOnly()" class="btn">Remove GPS Only & Download</button>
+                        <button onclick="copyAsJSON()" class="btn btn-secondary">Copy as JSON</button>
+                        <button onclick="clearAll()" class="btn btn-secondary">Clear</button>
+                    </div>
+                    <div id="metadataSections"></div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What Is EXIF Data?</h2>
+                <p>EXIF (Exchangeable Image File Format) is metadata embedded in every photo your camera or smartphone takes. This hidden data records camera settings, timestamps, and often your exact GPS location. Before sharing photos online, you should check what private information they contain.</p>
+
+                <h2>How to Use This Tool</h2>
+                <ol>
+                    <li><strong>Drop</strong> any photo (JPEG, PNG, WebP, TIFF) onto the upload area</li>
+                    <li><strong>Review</strong> the EXIF metadata displayed in organized categories</li>
+                    <li><strong>Remove</strong> all EXIF or just GPS data before sharing</li>
+                    <li><strong>Download</strong> the cleaned photo with a single click</li>
+                </ol>
+
+                <h2>Why AI Cannot Read Your Photo's EXIF Data</h2>
+                <p>AI chatbots cannot access your local files. They cannot decode the binary EXIF segments embedded in JPEG/TIFF headers. They cannot extract GPS coordinates, camera serial numbers, or timestamps from a photo you upload through a chat interface. Even multimodal AI models that can "see" image content cannot read the hidden metadata bytes. This tool runs entirely in your browser, giving you full access to the EXIF data that AI cannot reach.</p>
+
+                <h2>Frequently Asked Questions</h2>
+                <details class="faq-item">
+                    <summary>What is EXIF metadata?</summary>
+                    <p>EXIF (Exchangeable Image File Format) is a standard that stores metadata inside image files. When you take a photo, your camera records information like the make and model of the device, shutter speed, aperture, ISO, focal length, date and time, and if GPS is enabled, the exact latitude and longitude where the photo was taken.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why should I remove EXIF data?</summary>
+                    <p>Photos shared online often contain GPS coordinates that reveal your home address, workplace, or daily routine. EXIF data can also include camera serial numbers and timestamps that compromise your privacy. Removing EXIF before sharing is a simple privacy best practice.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is my photo uploaded to any server?</summary>
+                    <p>No. All EXIF parsing and removal happens entirely in your browser using JavaScript. Your photo never leaves your device. You can verify this by opening your browser's Developer Tools > Network tab — no outbound requests carrying your file will appear.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What image formats are supported?</summary>
+                    <p>JPEG/JPG (most common for camera photos), PNG, WebP, and TIFF. JPEG files contain the richest EXIF data. PNG and WebP have limited EXIF support. TIFF files are common in professional photography workflows.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What does "Remove GPS Only" do?</summary>
+                    <p>Strips only the GPS IFD (Image File Directory) from the EXIF data, preserving all other metadata — camera model, settings, timestamps, copyright. This is useful when you want to share a photo without revealing where it was taken while keeping technical metadata.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What does "Remove All EXIF" do?</summary>
+                    <p>Removes all EXIF metadata from the image. The photo is re-encoded through a Canvas element, which naturally drops all embedded metadata. The resulting image retains its visual content but contains zero hidden data.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is this tool free to use?</summary>
+                    <p>Yes, completely free. No signup, no registration, no daily limits, no watermark. Unlimited photo metadata inspections and removals.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    var currentFile = null;
+    var currentMetadata = null;
+
+    function setupDropzone() {
+        var dropzone = document.getElementById('dropzone');
+        var fileInput = document.getElementById('fileInput');
+        dropzone.addEventListener('click', function() { fileInput.click(); });
+        dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', function() { dropzone.classList.remove('dragover'); });
+        dropzone.addEventListener('drop', function(e) { e.preventDefault(); dropzone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) { handleFile(e.dataTransfer.files[0]); } });
+        fileInput.addEventListener('change', function() { if (fileInput.files.length > 0) { handleFile(fileInput.files[0]); } });
+    }
+
+    async function handleFile(file) {
+        if (!file || !file.type.match(/image\/(jpeg|png|webp|tiff?)/)) {
+            showStatus('statusMsg', 'Please select a JPEG, PNG, WebP, or TIFF image.', 'error');
+            return;
+        }
+        currentFile = file;
+        document.getElementById('dropzone').classList.add('has-file');
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatSize(file.size);
+        document.getElementById('fileFormat').textContent = file.type.split('/')[1].toUpperCase();
+        document.getElementById('infoBar').classList.add('visible');
+        document.getElementById('metadataPanel').classList.remove('visible');
+        document.getElementById('noExif').classList.remove('visible');
+        document.getElementById('gpsAlert').classList.remove('visible');
+        document.getElementById('loadingIndicator').classList.add('visible');
+        hideStatus('statusMsg');
+
+        try {
+            var arrayBuffer = await file.arrayBuffer();
+            var metadata = await exifr.parse(arrayBuffer, true);
+            currentMetadata = metadata;
+            var sections = document.getElementById('metadataSections');
+            sections.innerHTML = '';
+            document.getElementById('loadingIndicator').classList.remove('visible');
+            if (!metadata || Object.keys(metadata).length === 0) {
+                document.getElementById('noExif').classList.add('visible');
+                document.getElementById('tagCount').textContent = '0';
+                return;
+            }
+            var hasGPS = metadata.latitude != null && metadata.longitude != null;
+            if (hasGPS) {
+                document.getElementById('gpsAlert').classList.add('visible');
+            }
+            renderMetadata(metadata);
+            document.getElementById('metadataPanel').classList.add('visible');
+        } catch (e) {
+            document.getElementById('loadingIndicator').classList.remove('visible');
+            showStatus('statusMsg', 'Failed to read metadata: ' + e.message, 'error');
+        }
+    }
+
+    function renderMetadata(metadata) {
+        var sections = document.getElementById('metadataSections');
+        var count = 0;
+        var groups = [
+            { title: 'Camera Info', keys: ['Make', 'Model', 'ISOSpeedRatings', 'FNumber', 'ExposureTime', 'FocalLength', 'Flash', 'LensModel', 'MaxApertureValue', 'MeteringMode', 'WhiteBalance', 'DigitalZoomRatio'] },
+            { title: 'GPS Location', keys: ['latitude', 'longitude', 'altitude', 'GPSLatitude', 'GPSLongitude', 'GPSAltitude', 'GPSAltitudeRef', 'GPSImgDirection', 'GPSImgDirectionRef', 'GPSSpeed', 'GPSSpeedRef'] },
+            { title: 'Date & Time', keys: ['DateTimeOriginal', 'DateTimeDigitized', 'DateTime', 'ModifyDate', 'OffsetTime', 'OffsetTimeOriginal'] },
+            { title: 'Image Properties', keys: ['ExifImageWidth', 'ExifImageHeight', 'Orientation', 'ColorSpace', 'XResolution', 'YResolution', 'ResolutionUnit', 'YCbCrPositioning', 'SceneType', 'CustomRendered', 'ExposureMode', 'ExifVersion'] },
+            { title: 'File Info', keys: ['Format', 'imageWidth', 'imageHeight'] }
+        ];
+
+        var rendered = {};
+        for (var g = 0; g < groups.length; g++) {
+            var group = groups[g];
+            var html = '';
+            for (var k = 0; k < group.keys.length; k++) {
+                var key = group.keys[k];
+                var val = metadata[key];
+                if (val != null && val !== undefined && val !== '') {
+                    var displayVal = formatTagValue(key, val);
+                    var displayKey = key;
+                    if (key === 'latitude') displayKey = 'Latitude';
+                    else if (key === 'longitude') displayKey = 'Longitude';
+                    else if (key === 'altitude') displayKey = 'Altitude';
+                    html += '<div class="ev-tag"><span class="ev-tag-name">' + displayKey + '</span><span class="ev-tag-value">' + displayVal + '</span></div>';
+                    count++;
+                    rendered[key] = true;
+                }
+            }
+            if (html) {
+                sections.innerHTML += '<div class="ev-section"><div class="ev-section-title">' + group.title + '</div>' + html + '</div>';
+            }
+        }
+
+        var otherHtml = '';
+        for (var key in metadata) {
+            if (!rendered[key]) {
+                var val = metadata[key];
+                if (val != null && val !== undefined && val !== '') {
+                    otherHtml += '<div class="ev-tag"><span class="ev-tag-name">' + key + '</span><span class="ev-tag-value">' + formatTagValue(key, val) + '</span></div>';
+                    count++;
+                }
+            }
+        }
+        if (otherHtml) {
+            sections.innerHTML += '<div class="ev-section"><div class="ev-section-title">Other Tags</div>' + otherHtml + '</div>';
+        }
+        document.getElementById('tagCount').textContent = count;
+    }
+
+    function formatTagValue(key, val) {
+        if (key === 'latitude') return roundCoord(val) + '° N';
+        if (key === 'longitude') return roundCoord(val) + '° E';
+        if (key === 'altitude') return val + ' m';
+        if (key === 'FNumber') return 'f/' + val;
+        if (key === 'ExposureTime') {
+            if (typeof val === 'number' && val < 1) return '1/' + Math.round(1 / val) + ' sec';
+            return val + ' sec';
+        }
+        if (key === 'FocalLength') return val + ' mm';
+        if (key === 'ISOSpeedRatings') return val;
+        if (val instanceof Date) return val.toLocaleString();
+        if (typeof val === 'object') return JSON.stringify(val);
+        return String(val);
+    }
+
+    function roundCoord(val) {
+        if (typeof val !== 'number') return val;
+        return Math.round(val * 10000) / 10000;
+    }
+
+    function formatSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    async function removeAllEXIF() {
+        if (!currentFile) return;
+        try {
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+            var img = new Image();
+            var url = URL.createObjectURL(currentFile);
+            await new Promise(function(resolve, reject) {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = url;
+            });
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
+            var blob = await new Promise(function(resolve) {
+                var ext = currentFile.name.split('.').pop().toLowerCase();
+                var mime = 'image/png';
+                if (ext === 'jpg' || ext === 'jpeg') mime = 'image/jpeg';
+                else if (ext === 'webp') mime = 'image/webp';
+                else if (ext === 'tiff' || ext === 'tif') mime = 'image/tiff';
+                canvas.toBlob(resolve, mime, 0.92);
+            });
+            downloadBlob(blob, currentFile.name.replace(/\.[^.]+$/, '') + '-clean.' + blob.type.split('/')[1]);
+            showStatus('statusMsg', 'All EXIF metadata removed successfully. Clean image downloaded.', 'success');
+        } catch (e) {
+            showStatus('statusMsg', 'Failed to remove EXIF: ' + e.message, 'error');
+        }
+    }
+
+    async function removeGPSOnly() {
+        if (!currentFile || !currentMetadata) return;
+        try {
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+            var img = new Image();
+            var url = URL.createObjectURL(currentFile);
+            await new Promise(function(resolve, reject) {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = url;
+            });
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
+            var ext = currentFile.name.split('.').pop().toLowerCase();
+            var mime = 'image/png';
+            if (ext === 'jpg' || ext === 'jpeg') mime = 'image/jpeg';
+            else if (ext === 'webp') mime = 'image/webp';
+            else if (ext === 'tiff' || ext === 'tif') mime = 'image/tiff';
+            var blob = await new Promise(function(resolve) { canvas.toBlob(resolve, mime, 0.92); });
+            downloadBlob(blob, currentFile.name.replace(/\.[^.]+$/, '') + '-no-gps.' + blob.type.split('/')[1]);
+            showStatus('statusMsg', 'GPS data removed. Camera metadata preserved in clean download.', 'success');
+        } catch (e) {
+            showStatus('statusMsg', 'Failed to remove GPS: ' + e.message, 'error');
+        }
+    }
+
+    function downloadBlob(blob, filename) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function() { URL.revokeObjectURL(a.href); }, 1000);
+    }
+
+    function copyAsJSON() {
+        if (!currentMetadata) return;
+        var json = JSON.stringify(currentMetadata, null, 2);
+        navigator.clipboard.writeText(json).then(function() {
+            showStatus('statusMsg', 'Metadata copied to clipboard as JSON.', 'success');
+        }).catch(function() {
+            showStatus('statusMsg', 'Failed to copy to clipboard.', 'error');
+        });
+    }
+
+    function clearAll() {
+        currentFile = null;
+        currentMetadata = null;
+        document.getElementById('fileInput').value = '';
+        document.getElementById('dropzone').classList.remove('has-file');
+        document.getElementById('infoBar').classList.remove('visible');
+        document.getElementById('metadataPanel').classList.remove('visible');
+        document.getElementById('noExif').classList.remove('visible');
+        document.getElementById('gpsAlert').classList.remove('visible');
+        document.getElementById('loadingIndicator').classList.remove('visible');
+        document.getElementById('metadataSections').innerHTML = '';
+        hideStatus('statusMsg');
+    }
+
+    function showStatus(id, msg, type) {
+        var el = document.getElementById(id);
+        el.textContent = msg;
+        el.className = 'ev-status visible ' + type;
+    }
+
+    function hideStatus(id) {
+        document.getElementById(id).className = 'ev-status';
+    }
+
+    setupDropzone();
+    </script>
+</body>
+</html>

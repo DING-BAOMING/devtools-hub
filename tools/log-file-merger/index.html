@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log File Merger - Merge Logs by Timestamp Online</title>
+    <meta name="description" content="Merge several log files into one timeline ordered by real timestamp. Per-source format and timezone override, correlation window, silence gaps.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/log-file-merger/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Log File Merger - Merge Logs by Timestamp Online">
+    <meta property="og:description" content="Merge several log files into one timeline ordered by real timestamp. Per-source format and timezone override, correlation window, silence gaps.">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-10-14",
+        "dateModified": "2026-10-14",
+        "author": {"@id": "https://tools.scoreroute.com/#author"},
+        "name": "Log File Merger - Merge Logs by Timestamp Online",
+        "description": "Merges many log files into one timeline sorted by the real time of each entry, with a per-source timezone override for logs whose text carries no offset, a correlation window that highlights every line other machines wrote around a chosen instant, automatic detection of silence gaps, and export as text, CSV or JSON lines.",
+        "url": "https://tools.scoreroute.com/tools/log-file-merger/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": [
+            "Timestamp detection for ISO 8601, Apache and nginx combined logs, Apache error logs, syslog RFC 3164, Unix epoch seconds and milliseconds, and JSON lines",
+            "Per source format override and per source timezone override",
+            "Single chronological timeline interleaved across all sources",
+            "Correlation window that highlights every entry written around a chosen instant",
+            "Silence gap detection per source",
+            "Log level extraction and filtering",
+            "Export as plain text, CSV or JSON lines",
+            "Runs entirely in the browser with no upload"
+        ]
+    }
+    </script>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .lm-drop { border: 2px dashed #2a2a4a; border-radius: 10px; padding: 26px; text-align: center; color: #b3b8c0; cursor: pointer; background: #0f0f23; display: block; }
+        .lm-drop:hover, .lm-drop.over { border-color: #667eea; color: #fff; }
+        .lm-srcs { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+        /* flex-wrap + min-width:0 — the source row holds a name, a count, a 108px
+           input, a 108px select and a button; on a 375px phone it was 410px wide
+           and pushed the page sideways. */
+        .lm-src { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #0f0f23; border: 1px solid #2a2a4a; border-left-width: 4px; border-radius: 8px; padding: 6px 10px; font-size: 0.82rem; max-width: 100%; }
+        .lm-src .n { font-weight: 600; }
+        .lm-src .m { color: #8b90a0; }
+        .lm-src input, .lm-src select { background: #0f0f23; border: 1px solid #2a2a4a; color: #e5e7eb; border-radius: 6px; padding: 4px 6px; font-size: 0.8rem; width: 108px; min-width: 0; }
+        .lm-src button { background: transparent; border: 1px solid #2a2a4a; color: #fca5a5; border-radius: 6px; cursor: pointer; padding: 3px 8px; }
+        .lm-grid { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin: 16px 0; }
+        .lm-f { display: flex; flex-direction: column; gap: 5px; }
+        .lm-f label { color: #b3b8c0; font-size: 0.8rem; }
+        .lm-f input, .lm-f select { padding: 8px 10px; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; border-radius: 8px; font-size: 0.9rem; }
+        .lm-f input[type=number] { width: 110px; }
+        .lm-cards { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+        .lm-card { flex: 1 1 130px; background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 10px; padding: 12px 14px; }
+        .lm-card b { display: block; font-size: 1.25rem; color: #7eb3ff; }
+        .lm-card span { font-size: 0.78rem; color: #8b90a0; }
+        .lm-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .lm-table th, .lm-table td { text-align: left; padding: 7px 10px; border-bottom: 1px solid #1f2638; font-size: 0.82rem; }
+        .lm-table th { color: #8b90a0; font-weight: 600; }
+        .lm-h2 { color: #7eb3ff; font-size: 1.02rem; margin: 24px 0 8px; }
+        .lm-note { background: #0f0f23; border: 1px solid #2a2a4a; border-left: 3px solid #eab308; border-radius: 8px; padding: 12px 14px; margin: 12px 0; color: #d1d5db; font-size: 0.88rem; }
+        .lm-note.err { border-left-color: #ef4444; color: #fca5a5; }
+        #lm-rows { border: 1px solid #1f2638; border-radius: 10px; overflow: hidden; font-family: 'Fira Code', ui-monospace, monospace; font-size: 0.8rem; max-height: 620px; overflow-y: auto; }
+        .lm-row { display: grid; grid-template-columns: 116px 92px 58px 1fr; gap: 8px; padding: 5px 10px; border-bottom: 1px solid #161b28; cursor: pointer; }
+        .lm-row:hover { background: #14192a; }
+        .lm-row.win { background: rgba(102,126,234,0.16); }
+        .lm-row.sel { background: rgba(126,179,255,0.22); }
+        .lm-row .t { color: #7eb3ff; white-space: nowrap; }
+        .lm-row .s { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lm-row .m { color: #cbd5e1; word-break: break-word; }
+        .lm-lv { font-weight: 700; }
+        .lm-lv.ERROR, .lm-lv.CRIT, .lm-lv.FATAL { color: #f87171; }
+        .lm-lv.WARN { color: #fcd34d; }
+        .lm-lv.INFO, .lm-lv.NOTICE { color: #6ee7b7; }
+        .lm-lv.DEBUG, .lm-lv.TRACE { color: #94a3b8; }
+        .lm-gap { display: block; padding: 4px 10px; background: rgba(234,179,8,0.1); color: #fde68a; border-bottom: 1px solid #161b28; }
+        .lm-status { margin: 10px 0; font-size: 0.88rem; min-height: 1.2em; }
+        .lm-status.ok { color: #6ee7b7; }
+        .lm-status.err { color: #fca5a5; }
+        .lm-more { display: block; width: 100%; padding: 10px; background: #14192a; border: 0; border-top: 1px solid #1f2638; color: #7eb3ff; cursor: pointer; font-size: 0.85rem; }
+        textarea#lm-paste { width: 100%; min-height: 110px; padding: 12px; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; border-radius: 8px; font-family: 'Fira Code', ui-monospace, monospace; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Log File Merger</h1>
+            <p class="subtitle">Interleave several log files into one timeline &middot; per source timezone override &middot; correlation window &middot; silence gaps</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/">Tools</a> &gt; <span>Log File Merger</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Drop the log files</h2>
+                <label for="lm-files" class="lm-drop" id="lm-drop">Drop log files here, or click to choose. Nothing leaves your browser.</label>
+                <input type="file" id="lm-files" class="sr-only" multiple>
+
+                <h3 class="lm-h2">Or paste one</h3>
+                <label class="sr-only" for="lm-paste">Log text to add as a source</label>
+                <textarea id="lm-paste" spellcheck="false" placeholder="Paste raw log lines here, then give them a name and add them as a source."></textarea>
+                <div class="btn-group" style="margin-top:10px">
+                    <button type="button" id="lm-add-paste" class="btn">Add pasted text as source</button>
+                    <button type="button" id="lm-sample" class="btn btn-secondary">Load a worked example</button>
+                    <button type="button" id="lm-clear" class="btn btn-secondary">Clear all</button>
+                </div>
+
+                <div class="lm-srcs" id="lm-srcs" aria-live="polite"></div>
+
+                <h3 class="lm-h2">Merge</h3>
+                <div class="lm-grid">
+                    <div class="lm-f">
+                        <label for="lm-window">Correlation window (seconds)</label>
+                        <input type="number" id="lm-window" value="5" min="0" max="3600" step="1">
+                    </div>
+                    <div class="lm-f">
+                        <label for="lm-gap">Flag silence longer than (seconds)</label>
+                        <input type="number" id="lm-gap" value="30" min="0" max="86400" step="1">
+                    </div>
+                    <div class="lm-f">
+                        <label for="lm-level">Show</label>
+                        <select id="lm-level">
+                            <option value="all">Every line</option>
+                            <option value="warn">Warning and worse</option>
+                            <option value="error">Errors only</option>
+                        </select>
+                    </div>
+                    <div class="lm-f">
+                        <label for="lm-zone">Display timestamps in</label>
+                        <select id="lm-zone">
+                            <option value="utc">UTC</option>
+                            <option value="local">My local time</option>
+                        </select>
+                    </div>
+                    <div class="lm-f">
+                        <span class="btn-group">
+                            <button type="button" id="lm-run" class="btn btn-primary">Merge logs</button>
+                            <button type="button" id="lm-txt" class="btn">Download .txt</button>
+                            <button type="button" id="lm-csv" class="btn">Download .csv</button>
+                            <button type="button" id="lm-json" class="btn">Download .jsonl</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="lm-status" id="lm-status" role="status"></div>
+
+                <div id="lm-out"></div>
+            </div>
+
+            <div class="info-section">
+                <h2>What This Tool Answers That a Chatbot Cannot</h2>
+                <p>Ask a chatbot to merge three log files and it will give you a shell one liner, sort the lines, and move on. That answer is wrong in a specific way that is easy to miss, because the output still looks like a timeline. Shell sort compares the beginning of each line as text, so the order it produces depends on the first character of the timestamp and on nothing else. It cannot see a zone offset written halfway through an Apache line, and it has no idea what clock the machine that wrote the file believed it was on. When the files come from different services, different containers and different time zones, the merged file comes out sorted and still tells you the wrong story, which is worse than no file at all because it looks authoritative.</p>
+                <p>This tool parses the timestamp out of every line, converts each one to a real instant, and only then sorts. If a line carries its own offset, that offset wins. If it does not, the offset you set for that source is applied and the tool says so in the summary, so a guess never passes itself off as a reading. The result is a timeline you can check against something you already know, such as the moment a customer complained.</p>
+
+                <h3>Why Sorting Text Is Not Sorting Time</h3>
+                <p>Three separate problems hide behind the word merge. The first is that timestamps are written in several shapes. ISO 8601 with a trailing Z is unambiguous. An Apache combined line hides its time inside square brackets, followed by a numeric offset with no colon. A syslog line carries a month name, a day of month and a time with no year and no offset at all. A Unix epoch is a bare integer. A JSON log line may put the time under any of a handful of key names. Any tool that assumes one shape silently loses the rest, usually by dropping the lines it cannot read or by parking them all at the start of the file.</p>
+                <p>The second problem is the missing year. RFC 3164 syslog carries a month name and a day but no year, which is why every syslog file that spans New Year has a line that looks eleven months out of place. This tool assumes the current year for those lines and states the assumption in the source table, so you can correct it before trusting the order.</p>
+                <p>The third problem is the clock the writer thought it was on. An application that logs a naive local time with no offset writes something a reader cannot place on a timeline without help. Two containers, one configured for UTC and one left on Europe/Berlin, produce files whose lines look two hours apart when they are actually simultaneous. That is why each source here has its own offset box. Setting it correctly is the single most useful thing you can do with this tool.</p>
+
+                <h3>Correlation, Not Just Sorting</h3>
+                <p>A merged file answers what happened in what order. It does not by itself answer what else was happening at the same moment, which is the question people actually have during an incident. Click any line and every entry written by any source within the correlation window you set is highlighted, so a request that failed at one instant can be read next to the database error, the deploy line and the health check that stopped passing around the same second. Without that window, finding the related lines means scrolling and comparing timestamps by eye, and with a few thousand lines nobody does it.</p>
+                <p>The window is a number rather than a guess because the right value depends on your system. A request that completes in forty milliseconds belongs in a window of a few seconds. A batch job that runs every fifteen minutes belongs in a window of minutes. The default is five seconds, which suits request logs, and the field takes anything up to an hour.</p>
+
+                <h3>Silence Is a Signal</h3>
+                <p>The most useful row in a merged timeline is often the one that is missing. When a service logs nothing at all for a minute while its neighbours flood the file, that hole is either the cause or the first symptom. Set a threshold and every interval longer than it inside each source is marked in place, with the exact duration, so a forty seven second gap in the worker log lines up with the errors in the application log instead of hiding between two files.</p>
+                <p>Gaps are computed per source, not across the merged file, because only a per source gap is meaningful. A window with no lines at all in a file that is being written every second is a gap. The same window with no lines in a file that logs once a day is not.</p>
+
+                <h3>Formats This Tool Recognises</h3>
+                <p>Detection runs on the first timestamp-shaped run of characters in each line, and the format it picked is shown for every source so you can see when it guessed. Nothing is dropped silently: lines whose timestamp could not be read are counted per source and listed, because a merge that quietly loses lines is the failure mode you are trying to avoid.</p>
+                <div class="table-scroll">
+                <table class="lm-table">
+                    <caption class="sr-only">Log timestamp formats detected by the merger, with an example and whether the offset is written in the line</caption>
+                    <thead>
+                        <tr><th>Format</th><th>Example</th><th>Offset in the text</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>ISO 8601 / RFC 3339</td><td>2024-01-15T10:30:00.123Z</td><td>Yes</td></tr>
+                        <tr><td>ISO 8601 with offset</td><td>2024-01-15T11:30:00+01:00</td><td>Yes</td></tr>
+                        <tr><td>Apache or nginx combined</td><td>[15/Jan/2024:10:30:00 +0000]</td><td>Yes</td></tr>
+                        <tr><td>AWS ALB access log</td><td>[15/Jan/2024:10:30:00.123456 +0000]</td><td>Yes</td></tr>
+                        <tr><td>Apache error log</td><td>2024/01/15 10:30:00</td><td>No</td></tr>
+                        <tr><td>Syslog RFC 3164</td><td>Jan 15 10:30:00</td><td>No, and no year</td></tr>
+                        <tr><td>Unix epoch seconds</td><td>1705312200</td><td>Implied UTC</td></tr>
+                        <tr><td>Unix epoch milliseconds</td><td>1705312200123</td><td>Implied UTC</td></tr>
+                        <tr><td>JSON lines</td><td>time, ts, timestamp, asctime</td><td>Whatever the value says</td></tr>
+                    </tbody>
+                </table>
+                </div>
+                <p>Every source can be forced to a single format if detection picks the wrong one, which happens with custom application logs that happen to start with a bracketed number.</p>
+
+                <h3>How It Works</h3>
+                <p>Everything runs in this page. Files are read with the browser file reader, split into lines, and each line is matched against the format list in order until one produces a timestamp. Lines that match nothing are kept in the source but excluded from the timeline, and reported. The surviving entries are sorted on their epoch value with the source order and line number as tie breakers, so two entries stamped with the same millisecond always come out in a fixed order and the export matches the screen. No request carries your logs anywhere after the page loads.</p>
+                <p>Large files are trimmed for display rather than for correctness. The merged array always holds every parsed line, and the export always writes all of them, but the on screen list is paged so a two hundred thousand line file does not lock the tab. A count tells you how many rows are hidden.</p>
+
+                <h3>Pairs Well With</h3>
+                <ul class="ref-list">
+                    <li><a href="/tools/timestamp-converter/">Timestamp Converter</a> &mdash; turn any single instant here into Unix time, ISO or another zone.</li>
+                    <li><a href="/tools/text-diff/">Text Diff</a> &mdash; compare two merged timelines and see exactly what a deploy changed.</li>
+                    <li><a href="/tools/json-formatter/">JSON Formatter</a> &mdash; tidy JSON lines before feeding them in.</li>
+                    <li><a href="/tools/regex-tester/">Regex Tester</a> &mdash; pull a request id out of the merged file and follow it across every source.</li>
+                </ul>
+
+                <div class="faq-list">
+                    <details class="faq-item">
+                        <summary>Do my log files get uploaded anywhere?</summary>
+                        <p>No. Files are read in the page with the browser file reader and the parsing runs on your machine. Once the page has finished loading there is no request that carries your log content to any server, there is no account, and nothing is stored between visits. That matters more here than on most tools, because logs are the one kind of input that routinely contains tokens, internal hostnames, user identifiers and request payloads.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Why do the lines come out in the wrong order when I do not set an offset?</summary>
+                        <p>Because a line with no offset written in it carries no information about which clock produced it. A syslog line reading Jan 15 10:30:00 is a different instant depending on whether the writing machine was on UTC or on Central European Time, and nothing in the line can tell you. This tool reads such a line as if it were already UTC, which is the common default, and tells you in the source table that the offset was assumed. Set the box next to that source to the machine's actual offset and the timeline snaps into place.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Why use this instead of sort on the command line?</summary>
+                        <p>Sort compares text, and it is genuinely the right tool when every line starts with the same fixed width timestamp in the same zone. It stops being the right tool the moment one file hides its time inside square brackets with an offset in the middle, one file writes a bare epoch, and one file omits the year entirely. Sort also cannot tell you which lines it could not read, cannot apply a per file offset, cannot highlight a correlation window, and cannot mark the gaps. For one clean file it is faster. For three files from three different systems during an incident, this page gives you an answer you can check.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>How big a file can it handle?</summary>
+                        <p>The parser is written for ordinary log files and handles thousands of lines comfortably in the browser. Nothing is truncated in the stored data: every line that yields a timestamp goes into the merged array and into every export, no matter how large the file is. What is limited is the on screen list, which is paged so that a very large file stays responsive, and the browser memory ceiling that every local tool has. If a file is tens of megabytes it is still worth trying, but splitting or tailing it first will feel faster.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>What happens to lines it cannot read?</summary>
+                        <p>They are not merged and they are not thrown away. Each source reports how many lines it contributed to the timeline and how many were skipped, so a file where a third of the lines were unreadable cannot pass as a clean merge. Skipped lines stay in the source's count and in the format note, which is the honest place to surface a detection failure.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>What is the correlation window for?</summary>
+                        <p>It is the half width, in seconds, of the highlight you get when you click a line. With the default of five seconds, clicking an error in the application log also lights up whatever nginx, the database proxy and the deploy script wrote in the five seconds on either side of it. Set it to zero to turn the highlight off, or widen it for slower systems where a request takes minutes rather than milliseconds.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Does it change the timestamps in the exported file?</summary>
+                        <p>The export writes a new first column with the resolved instant in ISO 8601 UTC, then the source name, then the level, then the original line unchanged. The original text is never rewritten, so you still have the exact bytes your application wrote. Every timestamp your application printed is also kept, which means you can always undo the merge and check it against the source files.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Can I merge logs from two systems that log completely different things?</summary>
+                        <p>Yes, and that is the normal case. The sources only have to agree on what a line is, not on what it means. An nginx access log, an application JSON log and a syslog stream from the same period merge into one timeline, which is exactly the comparison you cannot make by eye while staring at three separate terminals.</p>
+                    </details>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    var MONTH = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+    var COLORS = ['#7eb3ff', '#6ee7b7', '#fcd34d', '#f0abfc', '#fdba74', '#a5b4fc', '#f87171', '#5eead4'];
+    var FORMAT_OPTIONS = [
+        ['', 'Auto detect'],
+        ['iso', 'ISO 8601 / RFC 3339'],
+        ['clf', 'Apache / nginx combined'],
+        ['ngx', 'Apache error log'],
+        ['sys', 'Syslog RFC 3164'],
+        ['json', 'JSON lines'],
+        ['epoch', 'Unix epoch seconds'],
+        ['epochms', 'Unix epoch milliseconds']
+    ];
+    var sources = [];
+    var merged = [];
+    var shown = 0;
+    var PAGE = 400;
+
+    function esc(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function status(msg, kind) {
+        var el = document.getElementById('lm-status');
+        el.textContent = msg;
+        el.className = 'lm-status' + (kind ? ' ' + kind : '');
+    }
+    var YEAR = new Date().getFullYear();
+    var ZONE_LOCAL = false;
+
+    function parseOff(txt) {
+        var m = /^([+-])(\d{1,2}):?(\d{2})$/.exec(String(txt).trim());
+        if (!m) return NaN;
+        var hh = parseInt(m[2], 10), mm = parseInt(m[3], 10);
+        if (hh > 14 || mm > 59) return NaN;
+        return (m[1] === '-' ? -1 : 1) * (hh * 60 + mm);
+    }
+    function utcMs(y, mo, d, h, mi, s, frac, offMin) {
+        return Date.UTC(y, mo, d, h, mi, s, frac || 0) - (offMin === null || offMin === undefined ? 0 : offMin) * 60000;
+    }
+    function epochVal(n, fracStr) {
+        if (n.length >= 13) return parseInt(n, 10);
+        return Math.round(parseFloat(n + '.' + (fracStr || '0')) * 1000);
+    }
+    // Each matcher returns {ms, off, label, rest} or null. `off` is null when the
+    // line itself carries no offset, which is what makes a per source override matter.
+    var MATCH = [
+        { key: 'iso', label: 'ISO 8601', test: function (l) {
+            var m = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:[.,](\d{1,9}))?\s*(Z|[+-]\d{2}:?\d{2})?/.exec(l);
+            if (!m) return null;
+            return { ms: utcMs(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6], m[7] ? Math.round(parseFloat('0.' + m[7]) * 1000) : 0, m[8] ? (m[8].toUpperCase() === 'Z' ? 0 : parseOff(m[8])) : null), off: m[8] ? (m[8].toUpperCase() === 'Z' ? 0 : parseOff(m[8])) : null, rest: l.slice(m[0].length) };
+        } },
+        { key: 'clf', label: 'Apache / nginx', test: function (l) {
+            var m = /\[(\d{1,2})\/([A-Za-z]{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2})(?:[.,](\d{1,6}))?\s*([+-]\d{4})?\]/.exec(l);
+            if (!m || MONTH[m[2].toLowerCase()] === undefined) return null;
+            var off = m[8] ? (m[8][0] === '-' ? -1 : 1) * (parseInt(m[8].slice(1, 3), 10) * 60 + parseInt(m[8].slice(3, 5), 10)) : null;
+            var frac = m[7] ? Math.round(parseFloat('0.' + m[7]) * 1000) : 0;
+            return { ms: utcMs(+m[3], MONTH[m[2].toLowerCase()], +m[1], +m[4], +m[5], +m[6], frac, off), off: off, rest: l.slice(m.index + m[0].length) };
+        } },
+        { key: 'ngx', label: 'Apache error', test: function (l) {
+            var m = /^(\d{4})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/.exec(l);
+            if (!m) return null;
+            return { ms: utcMs(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6], 0, null), off: null, rest: l.slice(m[0].length) };
+        } },
+        { key: 'sys', label: 'syslog (no year, year assumed ' + YEAR + ')', test: function (l) {
+            var m = /^([A-Z][a-z]{2})\s+(\d{1,2})\s+(\d{2}):(\d{2}):(\d{2})/.exec(l);
+            if (!m || MONTH[m[1].toLowerCase()] === undefined) return null;
+            return { ms: utcMs(YEAR, MONTH[m[1].toLowerCase()], +m[2], +m[3], +m[4], +m[5], 0, null), off: null, rest: l.slice(m[0].length) };
+        } },
+        { key: 'json', label: 'JSON lines', test: function (l) {
+            if (l.charAt(0) !== '{') return null;
+            var obj;
+            try { obj = JSON.parse(l); } catch (e) { return null; }
+            var lvl = obj.level !== undefined ? obj.level : (obj.lvl !== undefined ? obj.lvl : obj.severity);
+            var keys = ['time', 'timestamp', 'ts', 'asctime', 'eventTime', '@timestamp', 'timeNano'];
+            for (var i = 0; i < keys.length; i++) {
+                if (obj[keys[i]] === undefined) continue;
+                for (var j = 0; j < MATCH.length; j++) {
+                    var got = MATCH[j].test(String(obj[keys[i]]));
+                    if (got) { got.label = 'JSON lines'; got.lvl = lvl === undefined ? '' : String(lvl); got.rest = l; return got; }
+                }
+            }
+            return null;
+        } },
+        { key: 'epoch', label: 'Unix epoch', test: function (l) {
+            var m = /^\W*(\d{10,16})(\.\d{1,9})?/.exec(l);
+            if (!m) return null;
+            return { ms: epochVal(m[1], m[2]), off: 0, rest: l.slice(m[0].length) };
+        } },
+        { key: 'epochms', label: 'Unix epoch ms', test: function (l) {
+            var m = /^\W*(\d{13})(\.\d{1,9})?/.exec(l);
+            if (!m) return null;
+            return { ms: parseInt(m[1], 10), off: 0, rest: l.slice(m[0].length) };
+        } }
+    ];
+    function parseTimestamp(line, only) {
+        for (var i = 0; i < MATCH.length; i++) {
+            if (only && MATCH[i].key !== only) continue;
+            var got = MATCH[i].test(line);
+            if (got) { got.label = MATCH[i].label; return got; }
+        }
+        return null;
+    }
+
+    var LEVELS = ['TRACE', 'DEBUG', 'INFO', 'NOTICE', 'WARN', 'WARNING', 'ERROR', 'ERR', 'CRITICAL', 'CRIT', 'FATAL', 'ALERT', 'EMERG'];
+    function pickLevel(text) {
+        var re = new RegExp('(^|[^A-Za-z])(' + LEVELS.join('|') + ')([^A-Za-z]|$)', 'i');
+        var m = re.exec(text);
+        if (!m) return '';
+        var lv = m[2].toUpperCase();
+        if (lv === 'ERR') lv = 'ERROR';
+        if (lv === 'WARNING') lv = 'WARN';
+        if (lv === 'CRIT') lv = 'CRITICAL';
+        return lv;
+    }
+
+    function addSource(name, text, tz) {
+        var lines = text.split(/\r?\n/);
+        sources.push({ name: name, text: text, lines: lines.length, tz: tz || 'UTC', forced: 'auto', idx: sources.length });
+        renderSources();
+    }
+    function renderSources() {
+        var box = document.getElementById('lm-srcs');
+        var html = '';
+        for (var i = 0; i < sources.length; i++) {
+            var s = sources[i];
+            html += '<div class="lm-src" style="border-left-color:' + COLORS[i % COLORS.length] + '">' +
+                '<span class="n">' + esc(s.name) + '</span>' +
+                '<span class="m">' + s.lines + ' lines</span>' +
+                '<span class="sr-only" id="lm-tzl-' + i + '">Timezone offset for ' + esc(s.name) + '</span>' +
+                '<input list="lm-tzo" value="' + esc(s.tz) + '" aria-labelledby="lm-tzl-' + i + '" oninput="lmTz(' + i + ', this.value)">' +
+                '<span class="sr-only" id="lm-fmtl-' + i + '">Timestamp format for ' + esc(s.name) + '</span>' +
+                '<select aria-labelledby="lm-fmtl-' + i + '" onchange="lmFmt(' + i + ', this.value)">' +
+                FORMAT_OPTIONS.map(function (o) {
+                    return '<option value="' + o[0] + '"' + (s.forced === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+                }).join('') +
+                '</select>' +
+                '<button type="button" onclick="lmDrop(' + i + ')" title="Remove ' + esc(s.name) + '">Remove</button>' +
+                '</div>';
+        }
+        box.innerHTML = html;
+    }
+    function lmTz(i, v) { sources[i].tz = v; }
+    function lmFmt(i, v) { sources[i].forced = v; }
+    function lmDrop(i) {
+        sources.splice(i, 1);
+        renderSources();
+        if (merged.length && sources.length) run();
+        else { merged = []; shown = 0; document.getElementById('lm-out').innerHTML = ''; }
+    }
+
+    function run() {
+        if (!sources.length) { status('Add at least one log source first.', 'err'); return; }
+        merged = [];
+        var rows = [];
+        var stats = [];
+        var badTz = [];
+        for (var i = 0; i < sources.length; i++) {
+            var s = sources[i];
+        var off = parseOff(s.tz);
+        if (isNaN(off)) { badTz.push(s.name + ' (' + s.tz + ')'); off = 0; }
+        var forced = /^(iso|clf|ngx|sys|epoch|epochms)$/.test(s.forced) ? s.forced : null;
+        var parsed = 0, skipped = 0, assumedCount = 0, fmts = {};
+        var list = s.text.split(/\r?\n/);
+        for (var n = 0; n < list.length; n++) {
+            var line = list[n];
+            if (!line.trim()) continue;
+            var got = parseTimestamp(line, forced);
+            if (got) {
+                var needsOff = got.off === null;
+                var ms = needsOff ? got.ms - off * 60000 : got.ms;
+                parsed++;
+                if (needsOff) assumedCount++;
+                fmts[got.label] = 1;
+                var rest = got.rest.replace(/^\s*[-\]\s|:]+/, '');
+                var level = got.lvl ? pickLevel(got.lvl) : '';
+                rows.push({ ms: ms, si: i, ln: n + 1, level: level || pickLevel(rest), text: rest, raw: line, assumed: needsOff });
+            } else {
+                skipped++;
+            }
+        }
+            stats.push({ name: s.name, total: list.length, parsed: parsed, skipped: skipped, fmts: Object.keys(fmts), off: s.tz, assumed: assumedCount, color: COLORS[i % COLORS.length] });
+        }
+        rows.sort(function (a, b) { return a.ms - b.ms || a.si - b.si || a.ln - b.ln; });
+        merged = rows;
+        shown = 0;
+
+        // Per source silence gaps, computed on that source's own ordered entries.
+        var gaps = {};
+        for (var g = 0; g < stats.length; g++) gaps[g] = [];
+        var lastBySrc = {};
+        for (var r = 0; r < rows.length; r++) {
+            var prev = lastBySrc[rows[r].si];
+            if (prev !== undefined) gaps[rows[r].si].push({ to: rows[r].ms, dur: rows[r].ms - prev });
+            lastBySrc[rows[r].si] = rows[r].ms;
+        }
+        var gapMs = (parseInt(document.getElementById('lm-gap').value, 10) || 0) * 1000;
+        var marked = {};
+        for (var gs = 0; gs < stats.length; gs++) {
+            for (var gi = 0; gi < gaps[gs].length; gi++) {
+                if (gapMs > 0 && gaps[gs][gi].dur >= gapMs) marked[gs + '@' + gaps[gs][gi].to] = gaps[gs][gi].dur;
+            }
+        }
+        render(stats, marked, badTz);
+    }
+
+    function fmtTime(ms) {
+        var d = new Date(ms);
+        var p = function (n, w) { n = String(n); while (n.length < (w || 2)) n = '0' + n; return n; };
+        var base = d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + ':' + p(d.getUTCSeconds()) + '.' + p(d.getUTCMilliseconds(), 3);
+        if (ZONE_LOCAL) base += ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + ' loc';
+        return base;
+    }
+
+    function visibleRows() {
+        var mode = document.getElementById('lm-level').value;
+        if (mode === 'all') return merged;
+        if (mode === 'warn') return merged.filter(function (r) { return r.level === 'ERROR' || r.level === 'WARN' || r.level === 'CRITICAL' || r.level === 'FATAL' || r.level === 'ALERT' || r.level === 'EMERG'; });
+        return merged.filter(function (r) { return r.level === 'ERROR' || r.level === 'CRITICAL' || r.level === 'FATAL' || r.level === 'ALERT' || r.level === 'EMERG'; });
+    }
+
+    function render(stats, marked, badTz) {
+        var out = document.getElementById('lm-out');
+        ZONE_LOCAL = document.getElementById('lm-zone').value === 'local';
+        if (!merged.length) {
+            out.innerHTML = '<div class="lm-note err">No timestamp could be read from any line. Check the format box beside a source, or set the timezone offset if a source writes a bare local time.</div>';
+            status('Nothing merged.', 'err');
+            return;
+        }
+        var rows = visibleRows();
+        var first = merged[0].ms, last = merged[merged.length - 1].ms;
+        var span = (last - first) / 1000;
+        var html = '<div class="lm-cards">' +
+            '<div class="lm-card"><b>' + merged.length + '</b><span>entries merged</span></div>' +
+            '<div class="lm-card"><b>' + sources.length + '</b><span>sources</span></div>' +
+            '<div class="lm-card"><b>' + fmtSpan(span) + '</b><span>time span covered</span></div>' +
+            '<div class="lm-card"><b>' + rows.length + '</b><span>entries after filter</span></div>' +
+            '</div>';
+
+        // The .table-scroll wrapper is the site's convention for a wide table (BUG-356): the
+        // six-column Sources table is 384px wide and pushed the page sideways on a phone.
+        html += '<h3 class="lm-h2">Sources</h3><div class="table-scroll"><table class="lm-table"><caption class="sr-only">Per source merge statistics: lines read, entries merged, lines skipped, detected formats and timezone treatment</caption><thead><tr><th>Source</th><th>Lines</th><th>Merged</th><th>Skipped</th><th>Format detected</th><th>Offset</th></tr></thead><tbody>';
+        for (var i = 0; i < stats.length; i++) {
+            html += '<tr><td><span style="color:' + stats[i].color + '">&#9632; ' + esc(stats[i].name) + '</span></td><td>' + stats[i].total + '</td><td>' + stats[i].parsed + '</td><td>' + stats[i].skipped + '</td><td>' + esc(stats[i].fmts.join(', ') || 'none') + '</td><td>' + esc(stats[i].off) + '</td></tr>';
+        }
+        html += '</tbody></table></div>';
+
+        var assumed = stats.filter(function (s) { return s.assumed && s.parsed; });
+        if (assumed.length) {
+            html += '<div class="lm-note">No offset is written in the line for ' + assumed.map(function (s) { return esc(s.name) + ' (' + s.assumed + ' of ' + s.parsed + ' lines)'; }).join(', ') + ', so the offset you set for that source was applied. Check that box before you trust the order.</div>';
+        }
+        if (badTz.length) {
+            html += '<div class="lm-note err">Offset could not be read for: ' + esc(badTz.join(', ')) + '. Use UTC, Z, local, or a value such as +02:00.</div>';
+        }
+        var skippedTotal = stats.reduce(function (a, s) { return a + s.skipped; }, 0);
+        if (skippedTotal) {
+            html += '<div class="lm-note">' + skippedTotal + ' line' + (skippedTotal === 1 ? '' : 's') + ' could not be read and are not in the timeline. Force a format on the source that is missing rows.</div>';
+        }
+
+        html += '<h3 class="lm-h2">Merged timeline</h3><div class="lm-note">Click any line to highlight everything written around that instant. Use Download to write all ' + merged.length + ' entries, not only the rows on screen.</div>';
+        html += '<div id="lm-rows"></div>';
+        out.innerHTML = html;
+        document.getElementById('lm-rows').addEventListener('click', function (e) {
+            var el = e.target.closest ? e.target.closest('.lm-row') : null;
+            if (el) pickWindow(el);
+        });
+        appendRows(marked);
+        status(merged.length + ' entries merged from ' + sources.length + ' source' + (sources.length === 1 ? '' : 's') + '.', 'ok');
+        window.__lmMarked = marked;
+    }
+    function fmtSpan(sec) {
+        if (sec < 60) return sec.toFixed(1) + 's';
+        if (sec < 3600) return Math.floor(sec / 60) + 'm ' + Math.round(sec % 60) + 's';
+        return Math.floor(sec / 3600) + 'h ' + Math.round((sec % 3600) / 60) + 'm';
+    }
+    function appendRows(marked) {
+        marked = marked || window.__lmMarked || {};
+        var rows = visibleRows();
+        var list = document.getElementById('lm-rows');
+        if (!list) return;
+        var end = Math.min(shown + PAGE, rows.length);
+        var html = list.innerHTML;
+        for (var i = shown; i < end; i++) {
+            var r = rows[i];
+            var mk = marked[r.si + '@' + r.ms];
+            if (mk) html += '<span class="lm-gap">&#9130; ' + sources[r.si].name + ' silent for ' + fmtSpan(mk / 1000) + '</span>';
+            html += '<div class="lm-row" data-ms="' + r.ms + '" style="color:' + COLORS[r.si % COLORS.length] + '">' +
+                '<span class="t">' + fmtTime(r.ms) + '</span>' +
+                '<span class="s">' + esc(sources[r.si].name) + (r.assumed ? '*' : '') + '</span>' +
+                '<span class="lm-lv ' + esc(r.level || '') + '">' + esc(r.level || '') + '</span>' +
+                '<span class="m">' + esc(r.text.slice(0, 400)) + '</span>' +
+                '</div>';
+        }
+        if (end < rows.length) html += '<button type="button" class="lm-more" onclick="lmMore()">Show ' + Math.min(PAGE, rows.length - end) + ' more of ' + (rows.length - end) + ' remaining</button>';
+        list.innerHTML = html;
+        shown = end;
+    }
+    function lmMore() { appendRows(); }
+    function pickWindow(el) {
+        var list = document.getElementById('lm-rows');
+        var picked = list.querySelectorAll('.lm-row.sel');
+        for (var i = 0; i < picked.length; i++) picked[i].classList.remove('sel');
+        var hits = list.querySelectorAll('.lm-row.win');
+        for (var j = 0; j < hits.length; j++) hits[j].classList.remove('win');
+        el.classList.add('sel');
+        var w = (parseInt(document.getElementById('lm-window').value, 10) || 0) * 1000;
+        if (w <= 0) return;
+        var ms = parseInt(el.getAttribute('data-ms'), 10);
+        var all = list.querySelectorAll('.lm-row');
+        for (var k = 0; k < all.length; k++) {
+            var t = parseInt(all[k].getAttribute('data-ms'), 10);
+            if (t !== ms && Math.abs(t - ms) <= w) all[k].classList.add('win');
+        }
+    }
+
+    function download(name, text, mime) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([text], { type: mime }));
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    }
+    function exportText() {
+        if (!merged.length) { status('Nothing to export yet.', 'err'); return; }
+        var lines = visibleRows().map(function (r) {
+            return new Date(r.ms).toISOString() + ' [' + sources[r.si].name + ']' + (r.level ? ' [' + r.level + ']' : '') + ' ' + r.raw;
+        });
+        download('merged-logs.txt', lines.join('\n') + '\n', 'text/plain');
+    }
+    function exportCsv() {
+        if (!merged.length) { status('Nothing to export yet.', 'err'); return; }
+        var q = function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; };
+        var lines = ['timestamp_utc,source,line,level,offset_assumed,message'];
+        visibleRows().forEach(function (r) {
+            lines.push([new Date(r.ms).toISOString(), sources[r.si].name, r.ln, r.level || '', r.assumed ? 'yes' : 'no', r.raw].map(q).join(','));
+        });
+        download('merged-logs.csv', lines.join('\n') + '\n', 'text/csv');
+    }
+    function exportJson() {
+        if (!merged.length) { status('Nothing to export yet.', 'err'); return; }
+        var lines = visibleRows().map(function (r) {
+            return JSON.stringify({ ts: new Date(r.ms).toISOString(), source: sources[r.si].name, line: r.ln, level: r.level || null, offset_assumed: r.assumed, message: r.raw });
+        });
+        download('merged-logs.jsonl', lines.join('\n') + '\n', 'application/x-ndjson');
+    }
+
+    // The example is built from today's date so the three files always describe the
+    // same 75 second window, whenever the page is opened.
+    var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    function p2(n) { return (n < 10 ? '0' : '') + n; }
+    function p3(n) { return (n < 10 ? '00' : n < 100 ? '0' : '') + n; }
+    function at(sec) {
+        var d = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate(), 10, 30, 0, 0));
+        return new Date(d.getTime() + sec * 1000);
+    }
+    function clfLine(sec, ip, method, path, status) {
+        var d = at(sec);
+        return ip + ' - - [' + p2(d.getUTCDate()) + '/' + MON[d.getUTCMonth()] + '/' + d.getUTCFullYear() + ':' + p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes()) + ':' + p2(d.getUTCSeconds()) + ' +0000] "' + method + ' ' + path + ' HTTP/1.1" ' + status + ' ' + (status === 200 ? 2 : 0) + ' "-" "storefront/4.2"';
+    }
+    function apiLine(sec, level, msg) {
+        var d = new Date(at(sec).getTime() + 3600000);
+        return '{"time":"' + d.getUTCFullYear() + '-' + p2(d.getUTCMonth() + 1) + '-' + p2(d.getUTCDate()) + 'T' + p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes()) + ':' + p2(d.getUTCSeconds()) + '.' + p3(d.getUTCMilliseconds()) + '+01:00","level":"' + level + '","msg":"' + msg + '"}';
+    }
+    function sysLine(sec, msg) {
+        var d = at(sec);
+        return MON[d.getUTCMonth()] + ' ' + p2(d.getUTCDate()) + ' ' + p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes()) + ':' + p2(d.getUTCSeconds()) + ' worker-01 compaction[2211]: ' + msg;
+    }
+    function buildSample() {
+        return {
+            web: [clfLine(1, '10.0.0.4', 'GET', '/health', 200),
+                  clfLine(3, '10.0.0.9', 'POST', '/api/checkout', 500),
+                  clfLine(4, '10.0.0.4', 'GET', '/health', 200),
+                  clfLine(7, '10.0.0.9', 'POST', '/api/checkout', 502),
+                  clfLine(12, '10.0.0.9', 'POST', '/api/checkout', 503),
+                  clfLine(14, '10.0.0.4', 'GET', '/health', 200),
+                  clfLine(19, '10.0.0.4', 'GET', '/health', 200),
+                  clfLine(24, '10.0.0.4', 'GET', '/health', 200)].join('\n'),
+            api: [apiLine(2, 'info', 'checkout request accepted'),
+                  apiLine(3, 'error', 'payment gateway timeout after 2000ms'),
+                  apiLine(3.12, 'info', 'retry 1/3 scheduled'),
+                  apiLine(8, 'error', 'payment gateway timeout after 2000ms'),
+                  apiLine(11, 'warn', 'circuit breaker half open')].join('\n'),
+            worker: [sysLine(0, 'starting nightly pass'),
+                     sysLine(5, 'scanned shard 12 in 4.1s'),
+                     sysLine(18, 'ERROR could not acquire advisory lock on shard 14'),
+                     sysLine(21, 'ERROR could not acquire advisory lock on shard 14'),
+                     sysLine(74, 'ERROR lock wait exceeded 60s, aborting shard 14')].join('\n')
+        };
+    }
+
+    window.lmSample = function () {
+        var demo = buildSample();
+        sources = [];
+        addSource('web-01 (nginx, UTC)', demo.web, 'UTC');
+        addSource('api-01 (JSON, local +01:00)', demo.api, 'UTC');
+        addSource('worker-01 (syslog, no offset)', demo.worker, 'UTC');
+        status('Example loaded. worker-01 writes a bare local time, so change its offset box to +05:00 to watch the order break, then put UTC back.', '');
+    };
+
+    document.getElementById('lm-sample').addEventListener('click', window.lmSample);
+    document.getElementById('lm-clear').addEventListener('click', function () {
+        sources = []; merged = []; shown = 0;
+        renderSources();
+        document.getElementById('lm-out').innerHTML = '';
+        status('Cleared.', '');
+    });
+    document.getElementById('lm-run').addEventListener('click', run);
+    document.getElementById('lm-zone').addEventListener('change', function () { if (merged.length) run(); });
+    document.getElementById('lm-gap').addEventListener('input', function () { if (merged.length) run(); });
+    document.getElementById('lm-txt').addEventListener('click', exportText);
+    document.getElementById('lm-csv').addEventListener('click', exportCsv);
+    document.getElementById('lm-json').addEventListener('click', exportJson);
+    document.getElementById('lm-level').addEventListener('change', function () {
+        shown = 0;
+        var list = document.getElementById('lm-rows');
+        if (list) { list.innerHTML = ''; appendRows(); }
+    });
+    document.getElementById('lm-add-paste').addEventListener('click', function () {
+        var t = document.getElementById('lm-paste').value;
+        if (!t.trim()) { status('Paste some log text first.', 'err'); return; }
+        addSource('pasted-' + (sources.length + 1), t, 'UTC');
+        document.getElementById('lm-paste').value = '';
+        status('Source added. Press Merge logs.', '');
+    });
+
+    var drop = document.getElementById('lm-drop');
+    var picker = document.getElementById('lm-files');
+    picker.addEventListener('change', function () {
+        var files = Array.prototype.slice.call(picker.files);
+        files.forEach(function (f) {
+            var r = new FileReader();
+            r.onload = function () { addSource(f.name, String(r.result), 'UTC'); };
+            r.readAsText(f);
+        });
+        if (files.length) status(files.length + ' file(s) loading. Press Merge logs when ready.', '');
+    });
+    ['dragenter', 'dragover'].forEach(function (ev) {
+        drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+        drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); });
+    });
+    drop.addEventListener('drop', function (e) {
+        var files = Array.prototype.slice.call(e.dataTransfer.files);
+        files.forEach(function (f) {
+            var r = new FileReader();
+            r.onload = function () { addSource(f.name, String(r.result), 'UTC'); };
+            r.readAsText(f);
+        });
+        if (files.length) status(files.length + ' file(s) loaded. Press Merge logs.', '');
+    });
+    </script>
+</body>
+</html>

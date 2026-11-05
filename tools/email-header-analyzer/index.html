@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Header Analyzer - SPF, DKIM &amp; DMARC Verdict</title>
+<meta name="description" content="Read raw email headers: SPF, DKIM, DMARC and ARC verdicts, alignment against the From domain, delivery delay attributed to one hop, and spoofing signals.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/email-header-analyzer/">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/email-header-analyzer/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Email Header Analyzer - SPF, DKIM &amp; DMARC Verdict">
+<meta property="og:description" content="Read raw email headers: SPF, DKIM, DMARC and ARC verdicts, alignment against the From domain, delivery delay attributed to one hop, and spoofing signals.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Email Header Analyzer - SPF, DKIM &amp; DMARC Verdict">
+<meta name="twitter:description" content="Read raw email headers: SPF, DKIM, DMARC and ARC verdicts, alignment against the From domain, delivery delay attributed to one hop, and spoofing signals.">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Email Header Analyzer",
+  "description": "Free email header analyzer. Parses the Received chain as a timeline, reads SPF, DKIM, DMARC and ARC results, evaluates organisational-domain alignment against the From line, attributes delivery delay to the hop that caused it, and flags display-name and reply-to spoofing signals.",
+  "url": "https://tools.scoreroute.com/tools/email-header-analyzer/",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "featureList": [
+    "RFC 5322 parser with continuation-line unfolding and duplicate field names",
+    "RFC 2047 encoded-word decoding for subjects and display names",
+    "SPF, DKIM and DMARC verdicts read from Authentication-Results",
+    "Relaxed and strict domain alignment evaluated for SPF and DKIM",
+    "ARC seal chain reported with instance numbers and cv values",
+    "Received chain ordered oldest first with per-hop delay attributed",
+    "Return-Path, Reply-To and Sender domain mismatch detection",
+    "Cross-alphabet lookalike character detection in domains and display names",
+    "One-click unsubscribe and list-signature header checks",
+    "Runs entirely in the browser, no network requests"
+  ],
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+}
+</script>
+<style>
+.eha-form { margin-bottom: 22px; }
+.eha-field { margin-bottom: 16px; }
+.eha-field label { display: block; font-size: 0.85rem; color: #b3b8c0; margin-bottom: 6px; font-weight: 600; }
+.eha-field textarea, .eha-field select {
+  width: 100%; box-sizing: border-box; padding: 12px 14px; background: #0f0f23;
+  border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; font-size: 0.95rem; font-family: inherit;
+}
+.eha-field textarea { font-family: monospace; line-height: 1.5; min-height: 230px; resize: vertical; }
+.eha-field textarea:focus, .eha-field select:focus { border-color: #7eb3ff; outline: 2px solid transparent; }
+.eha-field textarea::placeholder { color: #555; }
+.eha-hint { font-size: 0.78rem; color: #888; margin-top: 5px; }
+.eha-hint a { color: #7eb3ff; }
+.eha-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.eha-row .eha-field { flex: 1 1 240px; margin-bottom: 16px; }
+.eha-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 14px 18px; color: #f87171; margin-bottom: 20px; display: none; }
+.eha-results { display: none; }
+.eha-results.visible { display: block; }
+.eha-verdict { text-align: center; padding: 24px 20px; border-radius: 16px; margin-bottom: 20px; }
+.eha-verdict.ok { background: rgba(16,185,129,0.12); border: 2px solid rgba(16,185,129,0.3); }
+.eha-verdict.mid { background: rgba(234,179,8,0.12); border: 2px solid rgba(234,179,8,0.3); }
+.eha-verdict.bad { background: rgba(239,68,68,0.12); border: 2px solid rgba(239,68,68,0.3); }
+.eha-verdict.unk { background: rgba(107,114,128,0.12); border: 2px solid rgba(107,114,128,0.3); }
+.eha-verdict-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 10px; border-radius: 20px; background: rgba(255,255,255,0.08); color: #fff; }
+.eha-verdict-label { font-size: 1.5rem; font-weight: 800; margin-top: 10px; color: #fff; }
+.eha-verdict-sub { color: #b3b8c0; font-size: 0.92rem; margin-top: 8px; }
+.eha-verdict-why { color: #e5e7eb; font-size: 0.86rem; margin-top: 12px; max-width: 620px; margin-left: auto; margin-right: auto; }
+.eha-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 10px; margin-bottom: 24px; }
+.eha-card { background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 10px; padding: 12px 14px; }
+.eha-card.s-pass { border-left: 4px solid #4ade80; }
+.eha-card.s-fail { border-left: 4px solid #f87171; }
+.eha-card.s-warn { border-left: 4px solid #fbbf24; }
+.eha-card.s-none { border-left: 4px solid #6b7280; }
+.eha-card-name { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.04em; }
+.eha-card-val { font-size: 1.15rem; font-weight: 800; margin-top: 2px; }
+.eha-card.s-pass .eha-card-val { color: #4ade80; }
+.eha-card.s-fail .eha-card-val { color: #f87171; }
+.eha-card.s-warn .eha-card-val { color: #fbbf24; }
+.eha-card.s-none .eha-card-val { color: #9ca3af; }
+.eha-card-note { font-size: 0.75rem; color: #888; margin-top: 3px; word-break: break-word; }
+.eha-sec { margin-top: 26px; }
+.eha-sec > h3 { color: #667eea; font-size: 1.02rem; margin: 0 0 10px; }
+.eha-finding { background: #1a1a2e; border: 1px solid #2a2a4a; border-left-width: 4px; border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; }
+.eha-finding.f-high { border-left-color: #f87171; }
+.eha-finding.f-medium { border-left-color: #fbbf24; }
+.eha-finding.f-low { border-left-color: #7eb3ff; }
+.eha-finding.f-info { border-left-color: #6b7280; }
+.eha-f-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.eha-f-sev { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 8px; border-radius: 20px; }
+.eha-finding.f-high .eha-f-sev { background: rgba(248,113,113,0.15); color: #f87171; }
+.eha-finding.f-medium .eha-f-sev { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.eha-finding.f-low .eha-f-sev { background: rgba(126,179,255,0.15); color: #7eb3ff; }
+.eha-finding.f-info .eha-f-sev { background: rgba(107,114,128,0.2); color: #9ca3af; }
+.eha-f-field { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+.eha-f-title { font-weight: 600; color: #fff; font-size: 0.95rem; }
+.eha-f-body { color: #b3b8c0; font-size: 0.88rem; margin-top: 6px; }
+.eha-f-body code, .eha-f-body a { background: #0f0f23; }
+.eha-f-body code { padding: 1px 5px; border-radius: 4px; font-size: 0.85em; color: #e5e7eb; }
+.eha-f-fix { color: #4ade80; font-size: 0.85rem; margin-top: 6px; }
+.eha-clean { color: #4ade80; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: 10px; padding: 16px 18px; font-size: 0.9rem; }
+.eha-chain { list-style: none; margin: 0; padding: 0; }
+.eha-hop { position: relative; padding: 0 0 18px 26px; border-left: 2px solid #2a2a4a; }
+.eha-hop:last-child { border-left-color: transparent; padding-bottom: 0; }
+.eha-hop::before { content: ""; position: absolute; left: -7px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: #2a2a4a; border: 2px solid #0f0f23; }
+.eha-hop.origin::before { background: #7eb3ff; }
+.eha-hop.slow::before { background: #fbbf24; }
+.eha-hop.stuck::before { background: #f87171; }
+.eha-hop-top { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.eha-hop-n { font-size: 0.7rem; font-weight: 700; color: #888; text-transform: uppercase; }
+.eha-hop-host { font-weight: 600; color: #fff; font-size: 0.92rem; word-break: break-word; }
+.eha-hop-delay { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: #0f0f23; color: #9ca3af; }
+.eha-hop-delay.d-warn { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.eha-hop-delay.d-bad { background: rgba(248,113,113,0.15); color: #f87171; }
+.eha-hop-meta { color: #888; font-size: 0.78rem; margin-top: 4px; word-break: break-word; }
+.eha-raw { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 10px; padding: 14px 16px; max-height: 460px; overflow-y: auto; font-size: 0.8rem; }
+.eha-raw-row { display: grid; grid-template-columns: minmax(120px, 200px) 1fr; gap: 10px; padding: 6px 0; border-bottom: 1px solid #1f2638; }
+.eha-raw-row:last-child { border-bottom: none; }
+.eha-raw-name { color: #7eb3ff; font-family: monospace; word-break: break-word; }
+.eha-raw-val { color: #ccc; font-family: monospace; word-break: break-word; white-space: pre-wrap; }
+.eha-out { width: 100%; box-sizing: border-box; min-height: 220px; font-family: monospace; font-size: 0.82rem; line-height: 1.5; }
+.eha-note { font-size: 0.82rem; color: #888; margin-top: 10px; }
+@media (max-width: 600px) {
+  .eha-verdict-label { font-size: 1.2rem; }
+  .eha-raw-row { grid-template-columns: 1fr; gap: 2px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Email Header Analyzer</h1>
+    <p class="subtitle">Settle It From the Record, Not From the Sender Line</p>
+    <nav class="breadcrumb">
+      <a href="/">Home</a> &gt; <a href="/tools/">Tools</a> &gt; <span>Email Header Analyzer</span>
+      <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="tool-page">
+    <div class="tool-main">
+      <h2>Paste the Raw Headers</h2>
+      <p style="color:#b3b8c0;font-size:0.92rem;">Paste the header block from the raw source of a message. The tool parses it, reads the authentication verdicts, checks whether they are aligned with the From domain, and builds the delivery timeline. It makes no network requests, so what you paste is never stored or sent.</p>
+
+      <form class="eha-form" id="eha-form" onsubmit="return false;">
+        <div class="eha-field">
+          <label for="eha-input">Raw email headers</label>
+          <textarea id="eha-input" spellcheck="false" autocomplete="off" placeholder="Authentication-Results: mx.example.net;&#10; spf=pass smtp.mailfrom=you@example.com; dkim=pass header.d=example.com; dmarc=pass (p=reject)&#10;Received: from mail.example.com (mail.example.com. [203.0.113.10])&#10; by mx.example.net with ESMTPS id abc123&#10; for &lt;someone@example.org&gt;; Tue, 6 Oct 2026 09:12:45 +0000 (UTC)"></textarea>
+          <p class="eha-hint">In Gmail use the three-dot menu and <strong>Show original</strong>. In Outlook use <strong>View message details</strong>. A full <code>.eml</code> file works too: everything from the first blank line down is ignored.</p>
+        </div>
+        <div class="eha-row">
+          <div class="eha-field">
+            <label for="eha-sample">Example header</label>
+            <select id="eha-sample">
+              <option value="auth">Authenticated and aligned</option>
+              <option value="dmarc">DMARC failed, no alignment</option>
+              <option value="bec">Passing DKIM from the wrong domain</option>
+              <option value="delayed">Delayed four hours, lookalike reply-to</option>
+            </select>
+          </div>
+          <div class="eha-field" style="flex:0 0 auto;">
+            <button class="btn" id="eha-load" type="button">Load Example</button>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" id="eha-run" type="button">Analyze Headers</button>
+          <button class="btn btn-secondary" id="eha-clear" type="button">Clear</button>
+        </div>
+      </form>
+
+      <div id="eha-error" class="eha-error" role="alert"></div>
+
+      <div id="eha-results" class="eha-results">
+        <div id="eha-verdict" class="eha-verdict"></div>
+        <div id="eha-cards" class="eha-cards"></div>
+
+        <div class="eha-sec">
+          <h3>Findings</h3>
+          <div id="eha-findings"></div>
+        </div>
+
+        <div class="eha-sec">
+          <h3>Delivery Timeline</h3>
+          <p class="eha-hint" style="margin-bottom:10px;">Read top to bottom in the order the message travelled. Each step is the server that received the message, where it came from, and how long it sat there.</p>
+          <ol id="eha-chain" class="eha-chain"></ol>
+        </div>
+
+        <div class="eha-sec">
+          <h3>Every Header Field</h3>
+          <p class="eha-hint" style="margin-bottom:10px;">Repeated fields are all shown. Encoded words are decoded.</p>
+          <div id="eha-raw" class="eha-raw"></div>
+        </div>
+
+        <div class="eha-sec">
+          <h3>Report</h3>
+          <div class="eha-field">
+            <label for="eha-report">Plain text report</label>
+            <textarea id="eha-report" class="eha-out" readonly spellcheck="false"></textarea>
+          </div>
+          <div class="btn-group" style="margin-top:12px;">
+            <button class="btn btn-primary" id="eha-copy" type="button">Copy Report</button>
+          </div>
+          <p class="status" id="eha-status" role="status"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <h3>Problem: The Header Is the Only Verifiable Record</h3>
+      <p>When a message claims to be from a bank, a supplier or your own finance team, the visible sender line is decoration. It is a string in the message, and any sender can put any string there. The only part of the message that a receiving mail server is not free to invent is the header block, because every hop appends to it and none of them can remove what an earlier hop wrote. That is why the header is what an incident responder reaches for, and it is also why the header is hard to read: it is a plain-text audit trail written for machines, at one in the morning, by whoever configured the mail server in 2019.</p>
+      <p>The usual way to cope is to paste it into an assistant and ask what it means. That is where things go wrong. A language model has no way to reconstruct a folded header line, to subtract two timestamps in different time zones, or to tell whether a pass belongs to the domain in the From line or to a lookalike domain the sender happens to control. It will produce a fluent paragraph, and on a message that failed DMARC it will still find a way to sound reassuring. This tool does the opposite. It parses the record, does the arithmetic, and tells you which mechanism decided the outcome.</p>
+
+      <h3>What Alignment Means, and Why Pass Is Not Enough</h3>
+      <p>Almost every header carries a line that says <code>dkim=pass</code>, and almost every piece of advice online stops there. That reading is wrong, and it is wrong in the direction that matters to you. DKIM only proves that whoever holds the private key for the domain in the <code>d=</code> tag signed the message. It says nothing about whether that domain is the one in the From line. A criminal who owns evil.example can sign their own mail perfectly, and the resulting header will read <code>dkim=pass</code>. The question DMARC asks, and the question that actually decides whether the mail is trustworthy, is whether the domain that signed it is aligned with the domain the message is pretending to be from. Alignment is a domain comparison, and it is a one-line rule. Relaxed alignment accepts a parent or subdomain match; strict alignment demands an exact match. Get this wrong and you will congratulate a phishing message for passing authentication.</p>
+      <p>This tool evaluates alignment for you, on both SPF and DKIM, and reports the two domains side by side whenever they disagree. A <code>dkim=pass</code> with <code>From: bank.com</code> and <code>d=: evil.example.net</code> is the single most useful thing to see in a header, and it is the thing a field-by-field viewer hides behind three screens of scrolling.</p>
+
+      <h3>Reading the Received Chain as a Timeline</h3>
+      <p>Each Received line is written by the server that accepted the message and appended its own name, the address it came from, the protocol and the time. The lines run newest at the top, so read them downward to travel backwards through time. The useful part is not the list of servers, it is the gaps. Subtract one timestamp from the next and you have the time the message spent inside that hop. When a customer says a critical message did not arrive for six hours, the answer is almost always sitting in one of those gaps, and it is usually a queue at the sending side rather than anything to do with the recipient.</p>
+      <p>The tool builds the timeline in the order the message travelled, labels every hop with the server that received it and where it came from, and attributes the delay to the specific hop that held the message longest. It flags a delay against two thresholds that matter in practice: anything over five minutes is visible to the recipient, and anything over an hour is the kind of thing that ends up in a support ticket. Separately, it flags the originating address when that address is private or loopback, because a message claiming to come from a mail server with no public address did not travel the way the chain suggests.</p>
+
+      <h3>The Fields That Lie</h3>
+      <p>Some of the useful signal is not in the authentication results at all. The Return-Path domain is the domain that handles bounces, and it is written by the sending infrastructure rather than by whoever wrote the message, so when it disagrees with the From domain you are looking at mail sent through a service nobody named. The Reply-To domain is where a reply actually goes, which is why business email compromise works the way it does: a message that looks like it came from your chief financial officer can be wired to collect a reply at an unrelated address, and the header shows it. There is nothing subtle about that, and almost nothing checks for it by default.</p>
+      <p>Look at the display name too, rather than only at the address. Email clients render the part before the at sign as ordinary text, and lookalike characters from other alphabets survive that rendering intact. A Cyrillic a in the word paypal looks identical to the Latin one in most fonts, which is a cheap way to defeat a reader who is checking the domain and a filter that is not. This tool compares the scripts character by character and names the offending code point, so you get the finding rather than a hunch.</p>
+      <p>Two more fields are worth reading. The subject line is the cheapest place to hide a payment instruction or an executable attachment name from a filter that only reads the envelope, so a decoded subject carrying a URL or an extension such as .exe or .xlsm is reported on its own. And a serious bulk sender is required to publish one-click unsubscribe headers, so their absence is reported as the compliance gap it is rather than left as something you have to know to look for.</p>
+
+      <h3>What This Cannot Tell You</h3>
+      <p>It is worth being blunt about the boundary, because a tool that overstates itself is worse than no tool. This page reads the header you paste, and it makes no network requests at all, so nothing you paste is stored, logged or sent anywhere. It cannot check whether the sending address is on a blocklist, because that means querying Spamhaus and the other reputation databases, which is server-side work and cannot be done from a browser without handing your data to a third party. It cannot look at the links or the attachments, because it never reads the body. And it cannot tell you whether the message will be filtered, because the deciding factors there are your sender reputation and the recipient's history, neither of which appears in the header.</p>
+      <p>So the verdict is precise about what it covers. It tells you whether the sending infrastructure was authorised by the domain in the From line, whether the visible identity and the replying identity point at the same organisation, and where a delay was introduced. Those three answers settle the large majority of the questions people paste a header in order to ask.</p>
+
+      <h3>Frequently Asked Questions</h3>
+      <details class="faq-item">
+        <summary>How do I get the raw headers in Gmail and Outlook?</summary>
+        <p>In Gmail, open the message, click the three-dot menu at the top right of the message, choose Show original, then click Download original or copy the block under the subject line. In Outlook for Windows, open the message, click the three dots, choose View, then View message details. On Outlook.com the same option sits under the More actions menu. Any of those gives you the same block this tool expects.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does it matter that DKIM passed if the From domain is different?</summary>
+        <p>Very much so. A pass tells you the signing key belongs to the domain in the <code>d=</code> tag, nothing more. DMARC treats the message as authenticated only when that domain is aligned with the domain in the From line, under either relaxed or strict alignment. A message with <code>From: bank.com</code> and <code>dkim=pass header.d=evil.example.net</code> is the standard shape of a spoofed message, and the pass in it is real: evil.example.net really did sign it.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What do the SPF softfail and fail results mean?</summary>
+        <p>A fail means the sending address is not authorised to send for that domain at all. A softfail means the policy exists but does not end in a hard all rule, so the receiving server is signalling doubt without rejecting outright. Neither is the same as a pass. Gmail commonly reports softfail for mail sent from a network the domain owner has not published, which is why alignment is checked separately rather than treating any pass-like value as authentication.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is the ARC chain and why is it shown?</summary>
+        <p>ARC, from RFC 8617, exists for forwarded mail. When a forwarder breaks SPF or DKIM in transit it signs a seal recording the authentication result it saw, so a later receiver can still trust what the first hop found. Each seal carries an instance number counting up from one and a chain validity value: none on the first link, pass when the chain so far validated, fail when it did not. This tool reports the instance numbers and the cv values in order and does not attempt to validate the seals themselves, because that needs the signing keys.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Which hop is responsible for a delay?</summary>
+        <p>The one with the largest gap before its timestamp, measured from the previous hop, or from the Date header for the first hop. A long gap at the first hop means the sending side queued the message. A long gap in the middle means an intermediate relay held it. A long gap at the last hop usually means a filtering or scanning step before delivery.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does it check whether the sender IP is on a blocklist?</summary>
+        <p>No, and deliberately so. A blocklist check means sending your data to a reputation service, and the tool makes no network requests at all. For the live reputation of a domain or address, use the <a href="/tools/dns-lookup/">DNS lookup tool</a> alongside this one.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does it send or store the headers I paste?</summary>
+        <p>No. There is no fetch call in this page, so the headers never leave your browser. If you want the conclusion rather than the analysis, copy the plain text report and paste it wherever you need it.</p>
+      </details>
+      <details class="faq-item">
+        <summary>My DMARC result says none. Is that a failure?</summary>
+        <p>No. A result of none means the sending domain has not published a DMARC record, so there is no policy to evaluate against and the receiving server cannot pass or fail it. That is a weaker position than a pass, because nothing is being enforced, but it is a different thing from a fail. Where an aligned identifier did pass, this tool will say so rather than treating the whole header as undeterminable.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I paste a full email or an .eml file?</summary>
+        <p>Yes. The parser stops at the first blank line, which is where the header block ends and the body begins, so everything below it is ignored. A message with a MIME body, quoted-printable encoding or an attachment comes through unchanged above that line.</p>
+      </details>
+      <details class="faq-item">
+        <summary>My message is a forwarded email. Should I still trust the result?</summary>
+        <p>Treat it with care. Forwarding rewrites the chain and usually adds ARC seals, so the newest authentication result describes the forwarder rather than the original sender. The From domain and the earliest Received line still describe the origin, and the earliest hop is the one to look at when the question is who actually sent this.</p>
+      </details>
+
+      <div class="related-section">
+        <h4>Related Tools</h4>
+        <ul>
+          <li><a href="/tools/email-auth-checker/">Email Authentication Checker (SPF, DKIM, DMARC records)</a></li>
+          <li><a href="/tools/email-spam-checker/">Email Spam Checker (content scoring)</a></li>
+          <li><a href="/tools/dns-lookup/">DNS Lookup</a></li>
+          <li><a href="/tools/whois-lookup/">WHOIS Lookup</a></li>
+          <li><a href="/tools/ssl-checker/">SSL Checker</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+  <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/contact/" style="color:#667eea;text-decoration:none;">Contact</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+  <p style="font-size:0.8rem;color:#666;">Free online developer tools. No signup. Browser-based. 100% private.</p>
+</footer>
+
+<script src="/tools.js"></script>
+<script>
+/* ============================================================
+   EMAIL HEADER ANALYZER
+   Pure, dependency-free. No network calls.
+
+   Everything is parsed from the pasted header block:
+     RFC 5322  unfolding, duplicate field names, .eml body cut
+     RFC 2047  encoded-word decoding (B and Q, quoted-printable)
+     RFC 5321  Received line grammar and date parsing
+     RFC 7208  SPF result and smtp.mailfrom
+     RFC 6376  DKIM-Signature tags
+     RFC 7489  DMARC result, p=, and organisational-domain alignment
+     RFC 8601  ARC seal chain, i= and cv=
+
+   analyze() is deterministic: same input -> same report.
+   ============================================================ */
+
+/* ---- 1. Header block parsing ---- */
+
+function normalizeNewlines(s) {
+  return String(s == null ? '' : s).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+}
+
+/* Unfold continuation lines (RFC 5322 3.2.2): a line starting with SP or
+   TAB continues the previous field. Header field names are printable ASCII
+   other than colon, so a leading token with a colon and no whitespace starts
+   a new field. Everything else is a continuation, which is what keeps a
+   broken paste from silently swallowing fields. */
+function parseHeaderFields(raw) {
+  var lines = normalizeNewlines(raw).split('\n');
+  var fields = [];
+  var cur = null;
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    if (line === '') break; /* end of the header block: the body starts here */
+    var m = line.match(/^([!-9;-~]+)[ \t]*:(.*)$/);
+    if (m) {
+      cur = { name: m[1], value: m[2].replace(/^[ \t]+/, '') };
+      fields.push(cur);
+    } else if (cur) {
+      cur.value += ' ' + line.replace(/^[ \t]+/, '');
+    } else if (line.trim() !== '') {
+      /* Leading junk before any field: a paste that started mid-body, or a
+         line the user typed. Ignore it rather than inventing a field. */
+    }
+  }
+  return fields;
+}
+
+function firstField(fields, name) {
+  var lname = name.toLowerCase();
+  for (var i = 0; i < fields.length; i++) {
+    if (fields[i].name.toLowerCase() === lname) return fields[i].value;
+  }
+  return null;
+}
+
+function allFields(fields, name) {
+  var lname = name.toLowerCase(), out = [];
+  for (var i = 0; i < fields.length; i++) {
+    if (fields[i].name.toLowerCase() === lname) out.push(fields[i].value);
+  }
+  return out;
+}
+
+/* ---- 2. RFC 2047 encoded words ---- */
+
+function qDecodeBytes(s) {
+  var out = '';
+  for (var i = 0; i < s.length; i++) {
+    var ch = s[i];
+    if (ch === '_') { out += ' '; continue; }
+    if (ch === '=') {
+      var hex = s.substr(i + 1, 2);
+      if (/^[0-9A-Fa-f]{2}$/.test(hex)) {
+        out += String.fromCharCode(parseInt(hex, 16));
+        i += 2;
+        continue;
+      }
+    }
+    out += ch;
+  }
+  return out;
+}
+
+function bytesToString(bytes) {
+  if (typeof TextDecoder === 'function') {
+    try { return new TextDecoder('utf-8', { fatal: false }).decode(bytes); } catch (e) { /* fall through */ }
+  }
+  return bytes;
+}
+
+function bytesFromBinary(b64) {
+  var bin = atob(b64), bytes = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+/* Q-decoding works one byte at a time, so its output is a byte string held in a
+   JS string. Re-pack it into real bytes rather than feeding it to the base64
+   decoder, which is where a "café" encoded word silently lost its high bytes. */
+function bytesFromCharCodes(s) {
+  var bytes = new Uint8Array(s.length);
+  for (var i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i) & 0xFF;
+  return bytes;
+}
+
+function decodeEncodedWords(s) {
+  return String(s == null ? '' : s).replace(
+    /=\?([^?\s]+)\?([BbQq])\?([^?]*)\?=/g,
+    function (match, charset, enc, data) {
+      try {
+        var compact = data.replace(/\s/g, '');
+        var bytes = enc.toUpperCase() === 'B'
+          ? bytesFromBinary(compact)
+          : bytesFromCharCodes(qDecodeBytes(compact));
+        /* charset is ignored on purpose: every mail client in use emits utf-8
+           or a single-byte Latin set, and mis-decoding one is a rendering
+           nuisance rather than a security decision. */
+        return bytesToString(bytes);
+      } catch (e) { return match; }
+    }
+  );
+}
+
+/* ---- 3. Addresses and domains ---- */
+
+function parseAddress(value) {
+  var s = decodeEncodedWords(String(value == null ? '' : value)).trim();
+  var m = s.match(/^(.*)<([^>]*)>\s*$/);
+  if (m) return { display: unquote(m[1].trim()), addr: m[2].trim() };
+  return { display: '', addr: unquote(s) };
+}
+
+function unquote(s) {
+  var t = String(s == null ? '' : s).trim();
+  if (t.length > 1 && t.charAt(0) === '"' && t.charAt(t.length - 1) === '"') {
+    return t.slice(1, -1).replace(/\\(.)/g, '$1');
+  }
+  return t;
+}
+
+function addressDomain(addr) {
+  var at = String(addr || '').lastIndexOf('@');
+  if (at < 0) return '';
+  return String(addr).slice(at + 1).toLowerCase().replace(/\.+$/, '');
+}
+
+/* Relaxed alignment, RFC 7489 section 3.1: the two domains must be equal, or
+   one must be a subdomain of the other. Strict is equality. */
+function domainsAligned(a, b, strict) {
+  var x = String(a || '').toLowerCase().replace(/\.+$/, '');
+  var y = String(b || '').toLowerCase().replace(/\.+$/, '');
+  if (!x || !y) return false;
+  if (x === y) return true;
+  if (strict) return false;
+  return x.endsWith('.' + y) || y.endsWith('.' + x);
+}
+
+/* ---- 4. Cross-alphabet lookalikes ---- */
+
+var NON_LATIN = /[\u0400-\u04FF\u0370-\u03FF\u0500-\u052F]/;
+
+function unicodeName(cp) {
+  try { return String.fromCodePoint(cp); } catch (e) { return '?'; }
+}
+
+/* A token is a run of letters, optionally split by the separators that appear
+   inside domains and display names. */
+function lookalikes(text) {
+  var out = [];
+  if (!text) return out;
+  var tokens = String(text).split(/[^0-9A-Za-z\u0400-\u04FF\u0370-\u03FF\u0500-\u052F._\-\u00C0-\u024F]+/);
+  for (var t = 0; t < tokens.length; t++) {
+    var tok = tokens[t];
+    if (!tok) continue;
+    var hasAscii = /[A-Za-z]/.test(tok);
+    if (!hasAscii) continue;
+    for (var c = 0; c < tok.length; c++) {
+      var ch = tok.charAt(c);
+      if (NON_LATIN.test(ch)) {
+        out.push({
+          token: tok,
+          ch: ch,
+          cp: 'U+' + tok.charCodeAt(c).toString(16).toUpperCase().padStart(4, '0')
+        });
+      }
+    }
+  }
+  return out;
+}
+
+/* ---- 5. Dates in a Received line ---- */
+
+var MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+var NAMED_ZONES = { ut: 0, gmt: 0, z: 0, utc: 0, est: -300, edt: -240, cst: -360, cdt: -300, mst: -420, mdt: -360, pst: -480, pdt: -420 };
+
+function parseRfc5322Date(s) {
+  var t = String(s == null ? '' : s).trim().replace(/\(.*?\)\s*$/, '');
+  if (!t) return null;
+  t = t.replace(/^[A-Za-z]{3,9},?\s+/, ''); /* optional day of week */
+  var m = t.match(
+    /^(\d{1,2})[ \-]([A-Za-z]{3})[ \-](\d{2,4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([+-]\d{4}|[+-]\d{2}:\d{2}|[A-Za-z]{1,3})?/
+  );
+  if (!m) return null;
+  var mon = MONTHS.indexOf(m[2].toLowerCase());
+  if (mon < 0) return null;
+  var year = parseInt(m[3], 10);
+  if (year < 100) year += year < 70 ? 2000 : 1900;
+  var zoneMin = 0;
+  var z = m[7];
+  if (z) {
+    if (/^[+-]\d{2}:\d{2}$/.test(z)) {
+      var zs = parseInt(z.slice(1, 3), 10) * 60 + parseInt(z.slice(4, 6), 10);
+      zoneMin = (z.charAt(0) === '-' ? -1 : 1) * zs;
+    } else if (/^[+-]\d{4}$/.test(z)) {
+      /* -0000 means the sender did not know the zone; treat as UTC. */
+      zoneMin = z === '+0000' || z === '-0000' ? 0
+        : (z.charAt(0) === '-' ? -1 : 1) * (parseInt(z.slice(1, 3), 10) * 60 + parseInt(z.slice(3, 5), 10));
+    } else {
+      var key = z.toLowerCase();
+      if (NAMED_ZONES[key] === undefined) zoneMin = 0;
+      else zoneMin = NAMED_ZONES[key];
+    }
+  }
+  return Date.UTC(year, mon, parseInt(m[1], 10), parseInt(m[4], 10), parseInt(m[5], 10), parseInt(m[6] || '0', 10))
+    - zoneMin * 60000;
+}
+
+function formatUtc(ms) {
+  var d = new Date(ms);
+  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+  return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()) +
+    ' ' + pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds()) + ' UTC';
+}
+
+function humanDuration(sec) {
+  var s = Math.max(0, Math.round(sec));
+  if (s < 60) return s + ' second' + (s === 1 ? '' : 's');
+  var m = Math.floor(s / 60), r = s % 60;
+  if (m < 60) return m + ' min' + (r ? ' ' + r + ' s' : '');
+  var h = Math.floor(m / 60); m = m % 60;
+  return h + ' h' + (m ? ' ' + m + ' min' : '');
+}
+
+/* ---- 6. Received lines (RFC 5321 section 4.4) ---- */
+
+var IPV4 = /(?:\d{1,3}\.){3}\d{1,3}/;
+
+function isPublicIPv4(ip) {
+  var p = String(ip || '').split('.').map(Number);
+  if (p.length !== 4 || p.some(function (n) { return !isFinite(n) || n < 0 || n > 255; })) return false;
+  if (p[0] === 10 || p[0] === 127 || p[0] === 0) return false;
+  if (p[0] === 192 && p[1] === 168) return false;
+  if (p[0] === 172 && p[1] >= 16 && p[1] <= 31) return false;
+  if (p[0] === 169 && p[1] === 254) return false;
+  return true;
+}
+
+function parseReceived(value) {
+  var v = String(value || '');
+  var semi = v.lastIndexOf(';');
+  var left = semi >= 0 ? v.slice(0, semi) : v;
+  var hop = {
+    raw: v, host: '', ip: '', ipv6: '', by: '', proto: '', tls: '', id: '', date: null, dateText: ''
+  };
+  if (semi >= 0) {
+    hop.dateText = v.slice(semi + 1).trim();
+    hop.date = parseRfc5322Date(hop.dateText);
+  }
+  var fm = left.match(/\bfrom\s+(\S+)/i);
+  if (fm) hop.host = fm[1].replace(/[\[\(].*$/, '').replace(/:/g, '').toLowerCase();
+  var v4 = left.match(IPV4);
+  if (v4) hop.ip = v4[0];
+  var v6 = left.match(/\((?:IPv6:)?\s*\[?([0-9A-Fa-f]{0,4}(?::[0-9A-Fa-f]{0,4}){2,7})\]?\)/);
+  if (!v6) v6 = left.match(/\[([0-9A-Fa-f]{0,4}(?::[0-9A-Fa-f]{0,4}){2,7})\]/);
+  if (v6) hop.ipv6 = v6[1];
+  var bym = left.match(/\bby\s+(\S+)/i);
+  if (bym) hop.by = bym[1].replace(/[\[\(].*$/, '').toLowerCase();
+  var pm = left.match(/\bwith\s+(\S+)/i);
+  if (pm) hop.proto = pm[1].toLowerCase();
+  var tm = left.match(/\b(TLSv[\d.]+|TLS[\d.]*|SSL[\d.]*|SSLv[\d.]*)\b/i);
+  if (tm) hop.tls = tm[1];
+  var im = left.match(/\bid\s+(\S+)/i);
+  if (im) hop.id = im[1];
+  return hop;
+}
+
+/* ---- 7. Authentication-Results ---- */
+
+/* RFC 8601 and RFC 7489 both put more than one key=value pair in a single
+   semicolon-delimited segment: the commonest shape in the wild is
+   "spf=pass (explanation) smtp.mailfrom=a@b.com". Parenthesised groups are
+   explanatory comments, not results, so they are lifted out of the scan but
+   kept with the position they closed at, which is how a mechanism finds the
+   comment that belongs to it. */
+function liftAuthComments(value) {
+  var flat = '', comments = [], depth = 0, buf = '';
+  for (var i = 0; i < value.length; i++) {
+    var ch = value.charAt(i);
+    if (ch === '(') { depth++; continue; }
+    if (ch === ')') {
+      if (depth > 0) { depth--; comments.push({ at: flat.length, text: buf }); buf = ''; }
+      continue;
+    }
+    if (depth > 0) { buf += ch; continue; }
+    flat += ch;
+  }
+  return { flat: flat, comments: comments };
+}
+
+function commentAfter(comments, pos, re) {
+  for (var i = 0; i < comments.length; i++) {
+    if (comments[i].at < pos) continue;
+    var m = comments[i].text.match(re);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function parseAuthResults(value) {
+  var out = {
+    authority: '', spf: null, dkim: null, dmarc: null, arc: null,
+    smtpmailfrom: '', headerfrom: '', dkimDomain: '',
+    policy: '', subdomainPolicy: '', policyDomain: ''
+  };
+  var str = String(value == null ? '' : value);
+  var firstSemi = str.indexOf(';');
+  out.authority = (firstSemi >= 0 ? str.slice(0, firstSemi) : str).trim();
+
+  var lifted = liftAuthComments(str);
+  var flat = lifted.flat;
+  var re = /([A-Za-z][A-Za-z0-9_.-]*)\s*=\s*([^\s;]+)/g, m;
+  while ((m = re.exec(flat)) !== null) {
+    var key = m[1].toLowerCase();
+    var raw = m[2];
+    var val = raw.toLowerCase();
+    if (key === 'spf' && out.spf === null) out.spf = val;
+    else if (key === 'dkim' && out.dkim === null) {
+      out.dkim = val;
+      var hd = commentAfter(lifted.comments, m.index, /header\.d\s*=\s*([^\s;)]+)/i);
+      if (hd) out.dkimDomain = hd.toLowerCase().replace(/^@/, '');
+    } else if (key === 'dmarc' && out.dmarc === null) {
+      out.dmarc = val;
+      var pc = commentAfter(lifted.comments, m.index, /\bp\s*=\s*([a-z]+)/i);
+      if (pc) out.policy = pc.toLowerCase();
+      var spc = commentAfter(lifted.comments, m.index, /\bsp\s*=\s*([a-z]+)/i);
+      if (spc) out.subdomainPolicy = spc.toLowerCase();
+      var pdc = commentAfter(lifted.comments, m.index, /\bd\s*=\s*([^\s;)]+)/i);
+      if (pdc) out.policyDomain = pdc.toLowerCase();
+    } else if (key === 'arc' && out.arc === null) {
+      out.arc = val;
+    } else if (key === 'smtp.mailfrom') {
+      out.smtpmailfrom = raw.replace(/^<|>$/g, '').toLowerCase();
+    } else if (key === 'header.from') {
+      out.headerfrom = raw.toLowerCase();
+    } else if ((key === 'header.d' || key === 'header.i') && !out.dkimDomain) {
+      /* header.i is the AUID, which equals d= in every normal deployment, and
+         senders report one and omit the other. Treating the omission as "unknown"
+         would silently drop alignment on the majority of real headers. */
+      out.dkimDomain = raw.replace(/^@/, '').toLowerCase();
+    }
+  }
+  return out;
+}
+
+/* ---- 8. DKIM-Signature tags (RFC 6376) ---- */
+
+function parseDkimTags(value) {
+  var tags = {};
+  var parts = String(value || '').split(';');
+  for (var i = 0; i < parts.length; i++) {
+    var p = parts[i].trim();
+    if (!p) continue;
+    var m = p.match(/^([A-Za-z][\w-]*)\s*=\s*(.*)$/);
+    if (!m) continue;
+    tags[m[1].toLowerCase()] = m[2].trim();
+  }
+  if (tags.d) tags.d = tags.d.toLowerCase().replace(/^@/, '');
+  return tags;
+}
+
+function parseArcSeal(value) {
+  var tags = parseDkimTags(value);
+  return {
+    i: parseInt(tags.i || '0', 10) || null,
+    cv: (tags.cv || '').toLowerCase() || null,
+    d: (tags.d || '').toLowerCase() || '',
+    a: tags.a || '',
+    s: tags.s || ''
+  };
+}
+
+/* ---- 9. The engine ---- */
+
+function analyze(raw) {
+  var fields = parseHeaderFields(raw);
+  var findings = [];
+  function add(sev, field, title, body, fix) {
+    findings.push({ sev: sev, field: field, title: title, body: body, fix: fix || null });
+  }
+
+  if (fields.length === 0) {
+    return {
+      ok: false, reason: 'That does not look like a header block. Paste the lines from the top of the message down to the first blank line, starting with a field name and a colon.',
+      fields: [], findings: []
+    };
+  }
+
+  /* --- identities --- */
+  var fromRaw = firstField(fields, 'From');
+  var from = parseAddress(fromRaw);
+  var fromDomain = addressDomain(from.addr);
+  var replyTo = parseAddress(firstField(fields, 'Reply-To'));
+  var replyDomain = addressDomain(replyTo.addr);
+  var sender = parseAddress(firstField(fields, 'Sender'));
+  var senderDomain = addressDomain(sender.addr);
+  var returnPath = parseAddress(firstField(fields, 'Return-Path'));
+  var returnDomain = addressDomain(returnPath.addr);
+  var subject = decodeEncodedWords(firstField(fields, 'Subject') || '');
+  var dateMs = parseRfc5322Date(firstField(fields, 'Date'));
+  var messageId = firstField(fields, 'Message-ID') || '';
+
+  /* --- authentication --- */
+  var authValues = allFields(fields, 'Authentication-Results');
+  var auth = authValues.length ? parseAuthResults(authValues[0]) : null;
+  var spfRes = auth ? auth.spf : null;
+  var dkimRes = auth ? auth.dkim : null;
+  var dmarcRes = auth ? auth.dmarc : null;
+
+  /* Received-SPF (RFC 7208 section 9.1) is a fallback for headers with no
+     Authentication-Results, which is still common on older senders. */
+  var receivedSpf = firstField(fields, 'Received-SPF');
+  if (!spfRes && receivedSpf) {
+    var rs = receivedSpf.trim().toLowerCase();
+    spfRes = rs.indexOf(' ') > 0 ? rs.split(' ')[0] : rs;
+  }
+
+  /* DKIM: Authentication-Results wins; a DKIM-Signature header is the fallback
+     and is the only place some senders record a signing domain. */
+  var dkimValues = allFields(fields, 'DKIM-Signature');
+  var dkimTags = dkimValues.length ? parseDkimTags(dkimValues[0]) : null;
+  if (dkimRes === null && dkimTags) dkimRes = 'pass';
+  var dkimDomain = (auth && auth.dkimDomain) || (dkimTags ? dkimTags.d : '');
+
+  var spfDomain = addressDomain(auth ? auth.smtpmailfrom : '');
+  var spfAligned = spfRes === 'pass' && domainsAligned(spfDomain, fromDomain, false);
+  var dkimAligned = dkimRes === 'pass' && domainsAligned(dkimDomain, fromDomain, false);
+  var alignedPass = spfAligned || dkimAligned;
+
+  /* --- received chain, oldest first --- */
+  var received = allFields(fields, 'Received').map(parseReceived);
+  received.reverse();
+  var origin = null;
+  for (var r = 0; r < received.length; r++) {
+    if (received[r].ip || received[r].ipv6) { origin = received[r]; break; }
+  }
+
+  /* Per-hop delay: time spent between the previous timestamp and this one.
+     Before the first hop the previous timestamp is the Date header, so a gap
+     there is a delay at the sending side rather than in transit. */
+  var prev = dateMs;
+  var hops = [];
+  var worst = null;
+  for (var h = 0; h < received.length; h++) {
+    var hop = received[h];
+    var delaySec = (hop.date !== null && prev !== null) ? (hop.date - prev) / 1000 : null;
+    if (delaySec !== null && (worst === null || delaySec > worst.delaySec)) {
+      worst = { delaySec: delaySec, index: hops.length };
+    }
+    hops.push({ hop: hop, delaySec: delaySec });
+    if (hop.date !== null) prev = hop.date;
+  }
+  var transitSec = (received.length && dateMs !== null &&
+    received[received.length - 1].date !== null)
+    ? (received[received.length - 1].date - dateMs) / 1000 : null;
+
+  /* --- verdict --- */
+  var verdict, verdictClass, badge, why;
+  var spfDecisive = spfAligned;
+  var dkimDecisive = dkimAligned;
+  var deciding = spfDecisive ? 'SPF' : (dkimDecisive ? 'DKIM' : null);
+
+  if (!authValues.length && !receivedSpf && !dkimValues.length) {
+    verdict = 'Undeterminable';
+    verdictClass = 'unk';
+    badge = 'No data';
+    why = 'This header carries no authentication results at all, so nothing in it settles whether the sending host was authorised. That is itself worth knowing: it is either an old or badly configured sender, or a message stripped of its evidence.';
+  } else if (dmarcRes === 'pass') {
+    verdict = 'Authenticated';
+    verdictClass = 'ok';
+    badge = 'DMARC pass';
+    why = alignedPass
+      ? 'DMARC passed, and the passing identifier is aligned with the From domain, so the sending infrastructure was authorised for ' + fromDomain + '.'
+      : 'DMARC reported pass, but no aligned SPF or DKIM identifier was found in this header. The two disagree, which means the result is being read from a different field than the identifiers.';
+  } else if (dmarcRes === 'fail') {
+    verdict = 'Not authenticated';
+    verdictClass = 'bad';
+    badge = 'DMARC fail';
+    why = 'DMARC failed: no SPF or DKIM identifier was aligned with ' + fromDomain +
+      '. The message really was signed or sent, but not by anything that domain authorised.';
+  } else if (dmarcRes && dmarcRes !== 'none') {
+    verdict = 'Undetermined';
+    verdictClass = 'mid';
+    badge = 'DMARC ' + dmarcRes;
+    why = 'DMARC returned ' + dmarcRes + ', which is not a pass and not a fail. Read the SPF and DKIM cards below to see which identifier decided it.';
+  } else if (alignedPass) {
+    verdict = 'Authenticated, no DMARC record';
+    verdictClass = 'ok';
+    badge = 'Aligned pass';
+    why = deciding + ' passed on an identifier aligned with ' + fromDomain +
+      '. There is no DMARC record to enforce, so nothing would have blocked this message if the sender had been different.';
+  } else if (spfRes === 'pass' || dkimRes === 'pass') {
+    verdict = 'Pass from a different domain';
+    verdictClass = 'mid';
+    badge = 'Unaligned pass';
+    why = (spfRes === 'pass' ? 'SPF' : 'DKIM') + ' passed, but for ' +
+      (spfRes === 'pass' ? (spfDomain || 'a different domain') : (dkimDomain || 'a different domain')) +
+      ', which is not aligned with ' + fromDomain + '. A pass proves the signing key, not the identity being claimed.';
+  } else {
+    verdict = 'Undetermined';
+    verdictClass = 'unk';
+    badge = 'No aligned pass';
+    why = 'No mechanism returned a pass for a domain aligned with ' + fromDomain +
+      '. With no DMARC record there is no fail either, so this header cannot establish who sent the message.';
+  }
+
+  /* --- findings: identity and spoofing --- */
+  if (dmarcRes === 'fail') {
+    add('high', 'Authentication-Results',
+      'No SPF or DKIM identifier is aligned with the From domain',
+      'DMARC returned fail, which means neither SPF nor DKIM passed on a domain matching ' + fromDomain +
+      '. The From line is a claim that nothing in this header supports.',
+      'If you sent this: the sender is not in the SPF record or is not signing with the key DMARC expects. If you did not: treat the From line as unverified.');
+  }
+  if (dkimRes === 'pass' && dkimDomain && !domainsAligned(dkimDomain, fromDomain, false)) {
+    add('high', 'Authentication-Results',
+      'DKIM passed for a different domain',
+      'The signature is valid for ' + dkimDomain + ', while the message claims to be from ' + fromDomain +
+      '. This is the normal shape of a spoofed message: the sender can sign their own mail perfectly well.',
+      'Read the d= tag, not the From line, when you decide who signed this.');
+  }
+  if (spfRes === 'fail' || spfRes === 'softfail') {
+    add(spfRes === 'fail' ? 'high' : 'medium', 'Authentication-Results',
+      'SPF ' + spfRes,
+      spfRes === 'fail'
+        ? 'The sending address is not authorised to send for ' + (spfDomain || fromDomain) + '.'
+        : 'The SPF record for ' + (spfDomain || fromDomain) + ' exists but is inconclusive, which is Gmail reporting doubt rather than outright rejection.',
+      'On the sending side: add the sending host to the SPF record. On the receiving side: do not treat a softfail as a pass.');
+  }
+  if (replyTo.addr && fromDomain && replyDomain && !domainsAligned(replyDomain, fromDomain, false)) {
+    var isList = !!firstField(fields, 'List-Id') || !!firstField(fields, 'List-Unsubscribe');
+    add(isList ? 'low' : 'high', 'Reply-To',
+      'Replies go to a different domain than the sender',
+      'The message claims to be from ' + fromDomain + ', but a reply is addressed to ' + replyDomain +
+      (isList ? '. Mailing lists do this legitimately, which is why a List-Unsubscribe header is present.' : '.'),
+      isList ? null : 'Read the Reply-To domain before you send anything. This is how invoice and payroll fraud is routed.');
+  }
+  if (returnPath.addr && fromDomain && returnDomain && !domainsAligned(returnDomain, fromDomain, false)) {
+    add('low', 'Return-Path',
+      'Bounces go to a different domain',
+      'Return-Path is ' + returnPath.addr + ', so the sending infrastructure belongs to ' + returnDomain +
+      '. That is normal for a sending service and worth knowing when you are checking whether a domain sent this.',
+      null);
+  }
+  if (sender.addr && senderDomain && fromDomain && !domainsAligned(senderDomain, fromDomain, false)) {
+    add('low', 'Sender',
+      'The Sender domain differs from the From domain',
+      'Sender is ' + senderDomain + ' while From is ' + fromDomain +
+      '. Verdict software is supposed to check the Sender domain when it differs, which is another reason not to trust the From line alone.',
+      null);
+  }
+
+  /* --- lookalike characters --- */
+  var lookTargets = [
+    { label: 'From display name', text: from.display },
+    { label: 'From address', text: from.addr },
+    { label: 'Reply-To', text: replyTo.addr + ' ' + replyTo.display },
+    { label: 'Subject', text: subject }
+  ];
+  var seenLook = {};
+  for (var L = 0; L < lookTargets.length; L++) {
+    var hits = lookalikes(lookTargets[L].text);
+    for (var h2 = 0; h2 < hits.length; h2++) {
+      var hit = hits[h2];
+      var key = hit.token + '|' + hit.cp;
+      if (seenLook[key]) continue;
+      seenLook[key] = true;
+      add('high', lookTargets[L].label,
+        'Lookalike character in "' + hit.token + '"',
+        'The ' + lookTargets[L].label.toLowerCase() + ' contains ' + hit.ch + ' ' + hit.cp +
+        ', a letter from a non-Latin alphabet inside an otherwise Latin word. It renders like the Latin letter in most fonts, so the domain does not necessarily resolve to the company it appears to name.',
+        'Read the domain character by character, or ask whoever sent it for the domain from their own account.');
+    }
+  }
+
+  /* --- subject --- */
+  if (subject) {
+    var urlInSubject = subject.match(/https?:\/\/[^\s<>"']+/i);
+    var extInSubject = subject.match(/\.(exe|scr|com|js|hta|iso|img|xlsm|jsv|bat|cmd|apk|zip)\b/i);
+    if (urlInSubject) {
+      add('high', 'Subject',
+        'The subject line contains a URL',
+        '"' + subject.slice(0, 120) + '" carries a link, which puts the destination in the one field most filters and most people read first.',
+        'Pay invoices through a portal you navigate to yourself, never through a link in a subject line.');
+    } else if (extInSubject) {
+      add('high', 'Subject',
+        'The subject line names an executable or archive',
+        'The subject mentions ' + extInSubject[1].toUpperCase() + '. Real senders name the document, not the format.',
+        'Ask for confirmation through a channel you already trust before opening anything.');
+    }
+  } else {
+    add('low', 'Subject', 'No subject line',
+      'A missing subject is unusual on legitimate mail and common on bulk and deceptive mail.',
+      null);
+  }
+  if (firstField(fields, 'Subject') && /=\?[^?]+\?[BbQq]\?/.test(firstField(fields, 'Subject'))) {
+    add('info', 'Subject', 'Subject is an RFC 2047 encoded word',
+      'The subject is stored as an encoded word, which is entirely normal for non-ASCII text. It is decoded above, so read the decoded value rather than the raw one.',
+      null);
+  }
+
+  /* --- chain integrity --- */
+  if (received.length === 0) {
+    add('medium', 'Received', 'No Received header',
+      'There is no delivery path in this header, so there is no timeline and no originating address to check.',
+      null);
+  } else {
+    if (origin) {
+      if (origin.ipv6) {
+        add('low', 'Received', 'Origin server used IPv6',
+          'The first hop reports the IPv6 address ' + origin.ipv6 + '. Public IPv6 addresses are not checked against any blocklist here.',
+          null);
+      } else if (origin.ip && !isPublicIPv4(origin.ip)) {
+        add('medium', 'Received',
+          'The originating address ' + origin.ip + ' is not public',
+          'It is a private or loopback range, so either this header was exported from inside a network rather than from the receiving server, or the first hop was rewritten.',
+          'Export the headers from the mailbox, not from a mail client on an internal network.');
+      }
+      if (origin.host && fromDomain && !domainsAligned(addressDomain(origin.host), fromDomain, false) &&
+        !domainsAligned(origin.host, fromDomain, false)) {
+        add('info', 'Received', 'The sending host is not in the From domain',
+          'The first hop came from ' + origin.host + ' while the message claims to be from ' + fromDomain +
+          '. That is normal when a third-party sending service is used, and it is not by itself a problem.',
+          null);
+      }
+      /* ESMTPS and ESMTPSA already mean the segment was sent over STARTTLS, so
+         they are not evidence of a plaintext segment. ESMTPA is ESMTP with
+         AUTH, which says nothing about TLS either way. */
+      if (!origin.tls && /^es?mtp$/.test(origin.proto || '')) {
+        add('low', 'Received', 'The first hop was sent in plaintext',
+          origin.host + ' received the message over plain ' + origin.proto.toUpperCase() +
+          ', so it crossed at least one network segment unencrypted.',
+          null);
+      }
+    }
+    if (received.length > 8) {
+      add('low', 'Received', received.length + ' hops recorded',
+        'A long chain usually means several security gateways. Each one that rewrites the message can break SPF alignment.',
+        null);
+    }
+    for (var u = 1; u < hops.length; u++) {
+      if (hops[u].delaySec !== null && hops[u].delaySec < -60) {
+        add('medium', 'Received', 'Timestamps go backwards at step ' + (u + 1),
+          'Step ' + u + ' is stamped later than step ' + (u + 1) + '. At least one server has an unsynchronised clock, so the delay figures for this header cannot be trusted exactly.',
+          null);
+        break;
+      }
+    }
+  }
+  if (dateMs === null) {
+    add('medium', 'Date', 'No usable Date header',
+      'Without a valid Date there is no baseline for the timeline, so per-hop delays cannot be computed.',
+      null);
+  }
+  if (!messageId) {
+    add('low', 'Message-ID', 'No Message-ID',
+      'Every mail server is required to add one, and it is the field you use to find the same message in another mailbox.',
+      null);
+  } else {
+    var midDomain = addressDomain(messageId.replace(/^<|>$/g, ''));
+    if (midDomain && fromDomain && !domainsAligned(midDomain, fromDomain, false)) {
+      add('info', 'Message-ID', 'Message-ID domain differs from the From domain',
+        'The identifier is issued by ' + midDomain + '. Senders on shared infrastructure issue identifiers from a single domain regardless of who the message is from.',
+        null);
+    }
+  }
+
+  /* --- ARC (RFC 8601) --- */
+  var seals = allFields(fields, 'ARC-Seal').map(parseArcSeal)
+    .sort(function (a, b) { return (a.i || 0) - (b.i || 0); });
+  if (seals.length) {
+    var cvText = seals.map(function (s) { return 'i=' + s.i + ' cv=' + (s.cv || 'unknown') + ' (' + (s.d || 'no d=') + ')'; }).join(', ');
+    add(seals.some(function (s) { return s.cv === 'fail'; }) ? 'high' : 'low', 'ARC',
+      seals.length + ' ARC seal' + (seals.length === 1 ? '' : 's'),
+      'The authenticated received chain records what each forwarder saw: ' + cvText +
+      '. The seals are reported as written and are not validated here, because validation needs the signing keys.',
+      null);
+  }
+
+  /* --- compliance and list signals --- */
+  var lu = firstField(fields, 'List-Unsubscribe');
+  var luPost = firstField(fields, 'List-Unsubscribe-Post') || '';
+  if (lu) {
+    var oneClick = /List-Unsubscribe\s*=\s*One-Click/i.test(luPost);
+    add(oneClick ? 'info' : 'low', 'List-Unsubscribe',
+      oneClick ? 'One-click unsubscribe headers are present' : 'List-Unsubscribe is present without one-click support',
+      oneClick
+        ? 'A serious bulk sender is required to publish both headers. Their presence is a positive signal about the sender, and it is also why a Reply-To on another domain here is not treated as fraud.'
+        : 'List-Unsubscribe is there, but without "List-Unsubscribe-Post: List-Unsubscribe=One-Click" the unsubscribe takes two clicks, which bulk senders are now required to support.',
+      null);
+  }
+
+  /* --- delays --- */
+  if (worst && worst.delaySec !== null && worst.delaySec > 300) {
+    var wp = hops[worst.index];
+    add(worst.delaySec > 3600 ? 'high' : 'medium', 'Received',
+      'Held for ' + humanDuration(worst.delaySec) + ' at step ' + (worst.index + 1),
+      (wp.hop.by || wp.hop.host || 'A relay') + ' took ' + humanDuration(worst.delaySec) +
+      ' to hand the message on' + (transitSec !== null ? ', out of ' + humanDuration(transitSec) + ' in total' : '') +
+      '. Everything else in the chain was fast.',
+      'The delay is at the sending or relaying side, not at the recipient. Queues and greylisting at the sender explain nearly all of it.');
+  }
+  if (transitSec !== null && transitSec > 3600) {
+    add('medium', 'Received', 'Total transit time is ' + humanDuration(transitSec),
+      'From the Date header to the last hop recorded. Anything past an hour is visible to the recipient.',
+      null);
+  }
+
+  /* --- card states --- */
+  function state(res, aligned, okLabels) {
+    if (res === 'pass') return aligned ? 'pass' : 'warn';
+    if (res === 'fail' || res === 'permerror' || res === 'temperror' || res === 'discard') return 'fail';
+    if (res === 'softfail' || res === 'neutral' || res === 'policy') return 'warn';
+    return 'none';
+  }
+  var cards = [
+    { name: 'SPF', state: state(spfRes, spfAligned), value: spfRes || 'absent',
+      note: spfDomain ? ('authorised domain: ' + spfDomain + (spfAligned ? ' (aligned)' : spfRes === 'pass' ? ' (not aligned)' : '')) : 'no smtp.mailfrom recorded' },
+    { name: 'DKIM', state: state(dkimRes, dkimAligned), value: dkimRes || 'absent',
+      note: dkimDomain ? ('signed for: ' + dkimDomain + (dkimAligned ? ' (aligned)' : dkimRes === 'pass' ? ' (not aligned)' : '')) : 'no signing domain recorded' },
+    { name: 'DMARC', state: dmarcRes === 'pass' ? 'pass' : (dmarcRes === 'fail' ? 'fail' : (dmarcRes && dmarcRes !== 'none' ? 'warn' : 'none')),
+      value: dmarcRes || 'absent',
+      note: auth && auth.policy ? ('policy: ' + auth.policy) : (dmarcRes === 'none' ? 'no DMARC record published' : 'no policy recorded') },
+    { name: 'Delivery', state: worst && worst.delaySec > 3600 ? 'fail' : (worst && worst.delaySec > 300 ? 'warn' : 'pass'),
+      value: transitSec !== null ? humanDuration(transitSec) : String(received.length) + ' hop' + (received.length === 1 ? '' : 's'),
+      note: worst ? ('longest hold: ' + humanDuration(worst.delaySec) + ' at step ' + (worst.index + 1)) : 'no timestamps to compare' }
+  ];
+
+  var order = { high: 0, medium: 1, low: 2, info: 3 };
+  findings.sort(function (a, b) { return order[a.sev] - order[b.sev]; });
+
+  return {
+    ok: true,
+    verdict: verdict, verdictClass: verdictClass, badge: badge, why: why,
+    fields: fields, findings: findings, cards: cards, hops: hops, worst: worst,
+    transitSec: transitSec, auth: auth, seals: seals,
+    identity: {
+      from: from, fromDomain: fromDomain, replyTo: replyTo, replyDomain: replyDomain,
+      returnPath: returnPath, returnDomain: returnDomain, subject: subject,
+      date: dateMs, messageId: messageId,
+      spfRes: spfRes, dkimRes: dkimRes, dmarcRes: dmarcRes,
+      spfDomain: spfDomain, dkimDomain: dkimDomain,
+      spfAligned: spfAligned, dkimAligned: dkimAligned, alignedPass: alignedPass,
+      authority: auth ? auth.authority : '', origin: origin, dkimTags: dkimTags
+    }
+  };
+}
+
+/* ---- 10. Rendering ---- */
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function renderVerdict(rep) {
+  var el = document.getElementById('eha-verdict');
+  el.className = 'eha-verdict ' + rep.verdictClass;
+  el.innerHTML =
+    '<div class="eha-verdict-badge">' + esc(rep.badge) + '</div>' +
+    '<div class="eha-verdict-label">' + esc(rep.verdict) + '</div>' +
+    '<div class="eha-verdict-sub">' + (rep.identity.fromDomain ? 'Claimed sender: ' + esc(rep.identity.fromDomain) : 'No From domain found') + '</div>' +
+    '<div class="eha-verdict-why">' + esc(rep.why) + '</div>';
+}
+
+function renderCards(rep) {
+  var html = '';
+  for (var i = 0; i < rep.cards.length; i++) {
+    var c = rep.cards[i];
+    html += '<div class="eha-card s-' + c.state + '">' +
+      '<div class="eha-card-name">' + esc(c.name) + '</div>' +
+      '<div class="eha-card-val">' + esc(c.value) + '</div>' +
+      '<div class="eha-card-note">' + esc(c.note) + '</div></div>';
+  }
+  document.getElementById('eha-cards').innerHTML = html;
+}
+
+function renderFindings(rep) {
+  var el = document.getElementById('eha-findings');
+  if (!rep.findings.length) {
+    el.innerHTML = '<div class="eha-clean">Nothing flagged. Every mechanism that reported a result is aligned with the From domain, the reply path matches the sender, and no delivery delay stood out.</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < rep.findings.length; i++) {
+    var f = rep.findings[i];
+    html += '<div class="eha-finding f-' + f.sev + '">' +
+      '<div class="eha-f-head"><span class="eha-f-sev">' + esc(f.sev) + '</span>' +
+      '<span class="eha-f-field">' + esc(f.field) + '</span>' +
+      '<span class="eha-f-title">' + esc(f.title) + '</span></div>' +
+      '<div class="eha-f-body">' + esc(f.body) + '</div>' +
+      (f.fix ? '<div class="eha-f-fix">' + esc(f.fix) + '</div>' : '') + '</div>';
+  }
+  el.innerHTML = html +
+    '<p class="eha-note">' + rep.findings.length + ' finding' + (rep.findings.length === 1 ? '' : 's') +
+    ' · ' + rep.fields.length + ' header field' + (rep.fields.length === 1 ? '' : 's') +
+    ' · ' + rep.hops.length + ' hop' + (rep.hops.length === 1 ? '' : 's') + '</p>';
+}
+
+function renderChain(rep) {
+  var el = document.getElementById('eha-chain');
+  if (!rep.hops.length) {
+    el.innerHTML = '<div class="eha-clean">No Received header, so there is no path to show.</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < rep.hops.length; i++) {
+    var step = rep.hops[i], h = step.hop;
+    var cls = i === 0 ? 'eha-hop origin' : 'eha-hop';
+    if (rep.worst && rep.worst.index === i) cls += step.delaySec > 3600 ? ' stuck' : ' slow';
+    var delayCls = '', delayTxt = 'no timestamp';
+    if (step.delaySec !== null) {
+      if (step.delaySec < 0) delayTxt = 'clock skew ' + humanDuration(-step.delaySec);
+      else {
+        delayTxt = '+' + humanDuration(step.delaySec);
+        if (step.delaySec > 3600) delayCls = ' d-bad';
+        else if (step.delaySec > 300) delayCls = ' d-warn';
+      }
+    }
+    var bits = [];
+    if (h.by) bits.push('received by <strong>' + esc(h.by) + '</strong>');
+    else if (h.host) bits.push('received by <strong>' + esc(h.host) + '</strong>');
+    if (h.host) bits.push('from ' + esc(h.host));
+    if (h.ip) bits.push(esc(h.ip) + (isPublicIPv4(h.ip) ? '' : ' (not public)'));
+    if (h.ipv6) bits.push(esc(h.ipv6));
+    if (h.proto) bits.push(esc(h.proto.toUpperCase()));
+    if (h.tls) bits.push(esc(h.tls));
+    if (h.id) bits.push('id ' + esc(h.id));
+    if (h.date !== null) bits.push(esc(formatUtc(h.date)));
+    html += '<li class="' + cls + '">' +
+      '<div class="eha-hop-top"><span class="eha-hop-n">' + (i + 1) + (i === 0 ? ' · origin' : '') + '</span>' +
+      '<span class="eha-hop-host">' + esc(i === 0 ? (h.host || 'unknown origin') : (h.by || h.host || 'unknown relay')) + '</span>' +
+      '<span class="eha-hop-delay' + delayCls + '">' + esc(delayTxt) + '</span></div>' +
+      '<div class="eha-hop-meta">' + bits.join(' &middot; ') + '</div></li>';
+  }
+  el.innerHTML = html;
+}
+
+function renderRaw(rep) {
+  var html = '';
+  for (var i = 0; i < rep.fields.length; i++) {
+    var f = rep.fields[i];
+    html += '<div class="eha-raw-row"><div class="eha-raw-name">' + esc(f.name) +
+      '</div><div class="eha-raw-val">' + esc(decodeEncodedWords(f.value)) + '</div></div>';
+  }
+  document.getElementById('eha-raw').innerHTML = html;
+}
+
+function buildReport(rep) {
+  var id = rep.identity, lines = [];
+  lines.push('Email header analysis');
+  lines.push('===================');
+  lines.push('Verdict: ' + rep.verdict + ' (' + rep.badge + ')');
+  lines.push(rep.why);
+  lines.push('');
+  lines.push('IDENTITY');
+  lines.push('  From:        ' + (id.from.addr || 'not present') + (id.from.display ? '  (display name: ' + id.from.display + ')' : ''));
+  lines.push('  Reply-To:    ' + (id.replyTo.addr || 'not present'));
+  lines.push('  Return-Path: ' + (id.returnPath.addr || 'not present'));
+  lines.push('  Subject:     ' + (id.subject || 'not present'));
+  lines.push('  Date:        ' + (id.date !== null ? formatUtc(id.date) : 'not parseable'));
+  lines.push('  Message-ID:  ' + (id.messageId || 'not present'));
+  lines.push('');
+  lines.push('AUTHENTICATION (reported by ' + (id.authority || 'no Authentication-Results header') + ')');
+  lines.push('  SPF:   ' + (id.spfRes || 'absent') + '  authorised domain: ' + (id.spfDomain || 'n/a') + '  aligned: ' + (id.spfAligned ? 'yes' : 'no'));
+  lines.push('  DKIM:  ' + (id.dkimRes || 'absent') + '  signing domain: ' + (id.dkimDomain || 'n/a') + '  aligned: ' + (id.dkimAligned ? 'yes' : 'no'));
+  lines.push('  DMARC: ' + (id.dmarcRes || 'absent') + (rep.auth && rep.auth.policy ? '  policy: ' + rep.auth.policy : ''));
+  if (rep.seals.length) {
+    lines.push('  ARC:   ' + rep.seals.map(function (s) { return 'i=' + s.i + ' cv=' + (s.cv || 'unknown'); }).join(', '));
+  }
+  lines.push('');
+  lines.push('ORIGIN');
+  if (id.origin) {
+    lines.push('  Host: ' + (id.origin.host || 'not recorded'));
+    if (id.origin.ip) lines.push('  IPv4: ' + id.origin.ip + (isPublicIPv4(id.origin.ip) ? '' : ' (not public)'));
+    if (id.origin.ipv6) lines.push('  IPv6: ' + id.origin.ipv6);
+  } else {
+    lines.push('  no Received header');
+  }
+  lines.push('');
+  lines.push('DELIVERY PATH');
+  if (!rep.hops.length) {
+    lines.push('  no hops');
+  } else {
+    for (var i = 0; i < rep.hops.length; i++) {
+      var step = rep.hops[i];
+      lines.push('  ' + (i + 1) + '. ' + (step.hop.by || step.hop.host || 'unknown') +
+        '  held ' + (step.delaySec === null ? 'unknown' : (step.delaySec < 0 ? 'clock skew ' : '') + humanDuration(Math.abs(step.delaySec))) +
+        '  (' + (step.hop.date !== null ? formatUtc(step.hop.date) : 'no timestamp') + ')');
+    }
+    lines.push('  total transit: ' + (rep.transitSec !== null ? humanDuration(rep.transitSec) : 'not computable'));
+  }
+  lines.push('');
+  lines.push('FINDINGS');
+  if (!rep.findings.length) lines.push('  none');
+  for (var f = 0; f < rep.findings.length; f++) {
+    var fd = rep.findings[f];
+    lines.push('  [' + fd.sev.toUpperCase() + '] ' + fd.field + ': ' + fd.title);
+    lines.push('      ' + fd.body);
+    if (fd.fix) lines.push('      -> ' + fd.fix);
+  }
+  lines.push('');
+  lines.push('Limits: blocklist reputation, link and attachment inspection, and inbox placement are not covered.');
+  lines.push('Analysed by the DevTools Hub Email Header Analyzer, entirely in the browser. Nothing was transmitted.');
+  return lines.join('\n');
+}
+
+function showError(msg) {
+  var el = document.getElementById('eha-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('eha-results').className = 'eha-results';
+}
+
+function hideError() { document.getElementById('eha-error').style.display = 'none'; }
+
+function render(rep) {
+  renderVerdict(rep);
+  renderCards(rep);
+  renderFindings(rep);
+  renderChain(rep);
+  renderRaw(rep);
+  document.getElementById('eha-report').value = buildReport(rep);
+  document.getElementById('eha-results').className = 'eha-results visible';
+  document.getElementById('eha-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function run() {
+  hideError();
+  var rep = analyze(document.getElementById('eha-input').value);
+  if (!rep.ok) { showError(rep.reason); return; }
+  render(rep);
+}
+
+/* ---- 11. Synthetic example headers ----
+   All four are fabricated. The domains are reserved by RFC 2606 and the
+   addresses come from the documentation ranges, so nothing here resolves to
+   a real mailbox or server. */
+
+var CYRILLIC_A = '\u0430'; /* looks like Latin a; used in the lookalike example */
+
+var SAMPLES = {
+  auth: [
+    'Delivered-To: procurement@example.org',
+    'Received: by 2002:a05:6512:3f8b:0:1a4:9c11:2e7f with SMTP id b10csp3712334lfv;',
+    '\tTue, 6 Oct 2026 09:14:07 -0700 (PDT)',
+    'Return-Path: <bounce+4f81c2@mailer.example.com>',
+    'From: "Dana Whitfield" <dana.whitfield@example.com>',
+    'Date: Tue, 6 Oct 2026 16:12:44 +0000',
+    'To: procurement@example.org',
+    'Subject: =?UTF-8?B?UXVhcnRlcmx5IHN1cHBseSBjb25maXJtYXRpb24gLSBPUkQtMDEyMw==?=',
+    'Message-ID: <CAJ1k3Z9@mailer.example.com>',
+    'MIME-Version: 1.0',
+    'List-Unsubscribe: <https://example.com/unsub/abcd1234>',
+    'List-Unsubscribe-Post: List-Unsubscribe=One-Click',
+    'Authentication-Results: mx.example.net;',
+    '\tspf=pass (example.com: domain of dana.whitfield@example.com designates 203.0.113.45',
+    '\t as permitted sender) smtp.mailfrom=dana.whitfield@example.com;',
+    '\tdkim=pass header.i=@example.com header.s=sel2026 header.b=Kx9pQ2;',
+    '\tdmarc=pass (p=REJECT sp=REJECT spdomain=example.com d=example.com)',
+    'Received: from mailout.example.com (mailout.example.com. [203.0.113.45])',
+    '\tby mx.example.net with ESMTPS id 4f81c2ab',
+    '\tfor <procurement@example.org>; Tue, 6 Oct 2026 16:12:45 +0000 (UTC)',
+    'DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=example.com; s=sel2026;',
+    '\tt=1767630364; bh=8ZQm3vJ1k7Yx4pN2sT6wR9bC0dE5fG1hI3jK7LmNo=;',
+    '\th=from:to:subject:date:message-id;',
+    '\tb=Kx9pQ2wErTyUiOpAsDfGhJkLzXcVbNmQwErTy1234567890abcdefghijklmn'
+  ].join('\n'),
+
+  dmarc: [
+    'Return-Path: <bounce@mailer-relay.example.net>',
+    'From: "Accounts Payable" <accounts@acme-supplies.example>',
+    'Date: Wed, 7 Oct 2026 11:02:19 +0000',
+    'To: ap@buyer.example.org',
+    'Subject: Remittance advice for invoice 4471',
+    'Message-ID: <20261007110219.9A@mailer-relay.example.net>',
+    'Authentication-Results: mx.example.net;',
+    '\tspf=fail (example.net: domain of accounts@acme-supplies.example does not designate',
+    '\t 198.51.100.23 as permitted sender) smtp.mailfrom=accounts@acme-supplies.example;',
+    '\tdkim=none (message not signed) header.i=none;',
+    '\tdmarc=fail (p=QUARANTINE sp=NONE spdomain=acme-supplies.example d=example.net)',
+    'Received: from relay-a.mailer-relay.example.net (relay-a.mailer-relay.example.net. [198.51.100.23])',
+    '\tby mx.example.net with ESMTPSA id 20261007110219;',
+    '\tfor <ap@buyer.example.org>; Wed, 7 Oct 2026 11:02:31 +0000 (UTC)'
+  ].join('\n'),
+
+  bec: [
+    'Return-Path: <bounce@send-relay-monitor.example>',
+    'From: "Priya Raman, CFO" <priya.raman@acme-supplies.example>',
+    'Reply-To: "Payroll" <treasury.collect@notify-delivery.example>',
+    'Date: Thu, 8 Oct 2026 06:41:02 +0000',
+    'To: payroll@buyer.example.org',
+    'Subject: Updated bank details for October payroll',
+    'Message-ID: <8117ac03@send-relay-monitor.example>',
+    'Authentication-Results: mx.example.net;',
+    '\tarc=none (Message modified by forwarder);',
+    '\tspf=pass (example: domain of bounce@notify-delivery.example designates 198.51.100.77',
+    '\t as permitted sender) smtp.mailfrom=bounce@notify-delivery.example;',
+    '\tdkim=pass header.i=@notify-delivery.example header.s=sel header.b=Zr4kT9;',
+    '\tdmarc=fail (p=QUARANTINE sp=NONE spdomain=acme-supplies.example d=notify-delivery.example)',
+    'ARC-Seal: i=2; a=rsa-sha256; t=1767200600; cv=fail; d=forwarder.example; s=sel; b=Cc3Dd4',
+    'ARC-Authentication-Results: i=2; mx.example.net; spf=pass smtp.mailfrom=bounce@notify-delivery.example;',
+    '\tdkim=pass header.i=@notify-delivery.example; dmarc=fail header.from=acme-supplies.example',
+    'ARC-Message-Signature: i=2; a=rsa-sha256; c=relaxed/relaxed; d=forwarder.example; s=sel;',
+    '\tt=1767200600; h=from:to:subject:date:message-id; b=MsgSig2',
+    'ARC-Seal: i=1; a=rsa-sha256; t=1767200462; cv=none; d=notify-delivery.example; s=sel; b=Aa1Bb2',
+    'ARC-Authentication-Results: i=1; mx.example.net; spf=pass smtp.mailfrom=bounce@notify-delivery.example;',
+    '\tdkim=pass header.i=@notify-delivery.example; dmarc=fail header.from=acme-supplies.example',
+    'ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=notify-delivery.example; s=sel;',
+    '\tt=1767200462; h=from:to:subject:date:message-id; b=MsgSig1',
+    'Received: from fwd.forwarder.example (fwd.forwarder.example. [203.0.113.201])',
+    '\tby mx.example.net with ESMTPS id fwd-8891;',
+    '\tfor <payroll@buyer.example.org>; Thu, 8 Oct 2026 06:45:14 +0000 (UTC)',
+    'Received: from collect.notify-delivery.example (collect.notify-delivery.example. [198.51.100.77])',
+    '\tby fwd.forwarder.example with ESMTPSA id 8117ac03;',
+    '\tfor <payroll@buyer.example.org>; Thu, 8 Oct 2026 06:45:11 +0000 (UTC)'
+  ].join('\n'),
+
+  delayed: [
+    'Return-Path: <bounce@mailer.example.net>',
+    'From: "Acme Billing" <billing@acme-supplies.example>',
+    'Reply-To: "Acme Billing" <paypal-verify@' + CYRILLIC_A + 'cme-supplies.example>',
+    'Date: Fri, 9 Oct 2026 07:55:04 +0000',
+    'To: finance@buyer.example.org',
+    'Subject: =?UTF-8?B?RmluYWwgbm90aWNlOiBzZXR0bGUgaHR0cHM6Ly9hY21lLWludm9pY2VzLmV4YW1wbGUvcGF5LzlmMiBiZWZvcmUgMDk6MDA=?=',
+    'Message-ID: <fin-00291@mailer.example.net>',
+    'X-Mailer: Bulk Sender 4.2',
+    'Authentication-Results: mx.example.net;',
+    '\tspf=softfail (example.net: domain of billing@acme-supplies.example is inconclusive)',
+    '\t smtp.mailfrom=billing@acme-supplies.example;',
+    '\tdkim=pass header.i=@acme-supplies.example header.s=fin2026 header.b=Pp3Qq4;',
+    '\tdmarc=pass (p=NONE sp=NONE spdomain=acme-supplies.example d=acme-supplies.example)',
+    'Received: by 2002:a05:6501:2c7e:0:1f8b:3a44:9b02:6d1e with SMTP id p77421;',
+    '\tFri, 9 Oct 2026 12:06:52 +0000 (UTC)',
+    'Received: from out.sender.example.net (out.sender.example.net. [198.51.100.9])',
+    '\tby relay.partner.example.org with ESMTPS id p-77421',
+    '\tfor <finance@buyer.example.org>; Fri, 9 Oct 2026 12:06:40 +0000 (UTC)',
+    'Received: from queue.sender.example.net (queue.sender.example.net. [192.0.2.66])',
+    '\tby out.sender.example.net with ESMTP id 00291;',
+    '\tFri, 9 Oct 2026 12:03:02 +0000 (UTC)',
+    'Received: from mx4.mailer.example.net (mx4.mailer.example.net. [192.0.2.66])',
+    '\tby queue.sender.example.net with ESMTP id 00291',
+    '\tfor <finance@buyer.example.org>; Fri, 9 Oct 2026 12:02:41 +0000 (UTC)'
+  ].join('\n')
+};
+
+function loadSample() {
+  var key = document.getElementById('eha-sample').value;
+  document.getElementById('eha-input').value = SAMPLES[key] || '';
+  run();
+}
+
+function clearAll() {
+  document.getElementById('eha-input').value = '';
+  hideError();
+  document.getElementById('eha-results').className = 'eha-results';
+  document.getElementById('eha-input').focus();
+}
+
+document.getElementById('eha-run').addEventListener('click', run);
+document.getElementById('eha-load').addEventListener('click', loadSample);
+document.getElementById('eha-clear').addEventListener('click', clearAll);
+document.getElementById('eha-copy').addEventListener('click', function () {
+  var ta = document.getElementById('eha-report');
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) { /* clipboard API below is the fallback */ }
+  if (navigator.clipboard) { navigator.clipboard.writeText(ta.value).catch(function () {}); }
+  showStatus('eha-status', 'Report copied to clipboard', 'success');
+});
+document.getElementById('eha-form').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') run();
+});
+
+/* ---- 12. Self check. Deterministic engine, so it can be asserted. ---- */
+function selfCheck() {
+  var fails = [];
+  function ok(cond, msg) { if (!cond) fails.push(msg); }
+
+  /* Unfolding, duplicates, and the .eml body cut. */
+  var folded = parseHeaderFields('Received: from a.example ([203.0.113.1])\n\tby b.example; Tue, 6 Oct 2026 09:12:45 +0000\nX-Test: one\nX-Test: two\n\nbody line here\nX-Fake: ignored');
+  ok(folded.length === 3, 'expected 3 header fields, got ' + folded.length);
+  ok(allFields(folded, 'X-Test').length === 2, 'duplicate field names not preserved');
+  ok(folded[0].value.indexOf('203.0.113.1') !== -1, 'continuation line lost');
+  ok(firstField(folded, 'X-Fake') === null, 'body content was parsed as a header');
+
+  /* RFC 2047. */
+  ok(decodeEncodedWords('=?UTF-8?B?SGVsbG8gd29ybGQ=?=') === 'Hello world', 'base64 encoded word not decoded');
+  ok(decodeEncodedWords('=?utf-8?Q?caf=C3=A9?=') === 'caf\u00e9', 'Q encoded word not decoded');
+  ok(decodeEncodedWords('plain text') === 'plain text', 'plain text altered by the decoder');
+
+  /* Addresses and alignment. */
+  ok(parseAddress('"Dana Whitfield" <d@e.com>').addr === 'd@e.com', 'display name form not parsed');
+  ok(parseAddress('d@e.com').display === '', 'bare address should have no display name');
+  ok(domainsAligned('mail.e.com', 'e.com', false) === true, 'relaxed alignment should accept a subdomain');
+  ok(domainsAligned('mail.e.com', 'e.com', true) === false, 'strict alignment accepted a subdomain');
+  ok(domainsAligned('e.com', 'other.com', false) === false, 'unrelated domains reported as aligned');
+  ok(domainsAligned('', 'e.com', false) === false, 'empty domain reported as aligned');
+
+  /* Dates and durations. */
+  ok(parseRfc5322Date('Tue, 6 Oct 2026 09:12:45 +0000 (UTC)') === Date.UTC(2026, 9, 6, 9, 12, 45), 'UTC date mis-parsed');
+  ok(parseRfc5322Date('Tue, 6 Oct 2026 09:12:45 +0000') === Date.UTC(2026, 9, 6, 9, 12, 45), 'date without comment mis-parsed');
+  ok(parseRfc5322Date('6 Oct 2026 11:02:19 +0200') === Date.UTC(2026, 9, 6, 9, 2, 19), 'offset not applied');
+  ok(parseRfc5322Date('Mon, 6 Oct 2026 04:12:45 -0000') === Date.UTC(2026, 9, 6, 4, 12, 45), '-0000 should read as UTC');
+  ok(parseRfc5322Date('Tue, 6 Oct 2026 04:12:45 EST') === Date.UTC(2026, 9, 6, 9, 12, 45), 'named zone not applied');
+  ok(parseRfc5322Date('rubbish') === null, 'unparseable date did not return null');
+  ok(humanDuration(45) === '45 seconds', 'duration 45 wrong: ' + humanDuration(45));
+  ok(humanDuration(125) === '2 min 5 s', 'duration 125 wrong: ' + humanDuration(125));
+
+  /* Authentication-Results parsing. */
+  var ar = parseAuthResults('mx.example.net; spf=pass (example.com: designates 203.0.113.1) smtp.mailfrom=a@example.com; dkim=pass header.i=@example.com header.s=s1; dmarc=pass (p=REJECT sp=REJECT spdomain=example.com d=example.com)');
+  ok(ar.authority === 'mx.example.net', 'authority not captured: ' + ar.authority);
+  ok(ar.spf === 'pass' && ar.dkim === 'pass' && ar.dmarc === 'pass', 'mechanism results not parsed');
+  ok(ar.smtpmailfrom === 'a@example.com', 'smtp.mailfrom wrong: ' + ar.smtpmailfrom);
+  ok(ar.dkimDomain === 'example.com', 'header.d wrong: ' + ar.dkimDomain);
+  ok(ar.policy === 'reject', 'p= inside the comment leaked or was missed: ' + ar.policy);
+  var ar2 = parseAuthResults('mx.example.net; spf=fail (example.net: not permitted) smtp.mailfrom=a@other.example; dkim=none (message not signed) header.i=none; dmarc=fail (p=QUARANTINE sp=NONE spdomain=a.example d=other.example)');
+  ok(ar2.spf === 'fail' && ar2.dkim === 'none' && ar2.dmarc === 'fail', 'fail/none results not parsed');
+  ok(ar2.policy === 'quarantine', 'dmarc policy wrong: ' + ar2.policy);
+
+  /* DKIM tags and ARC. */
+  var tags = parseDkimTags('v=1; a=rsa-sha256; c=relaxed/relaxed; d=Example.COM; s=sel; h=from:to:subject; b=AbC=');
+  ok(tags.d === 'example.com', 'd= tag not lowercased/cleaned: ' + tags.d);
+  ok(tags.h.split(':').length === 3, 'h= tag list wrong');
+  var seals = ['ARC-Seal: i=2; a=rsa-sha256; cv=fail; d=f.example;', 'ARC-Seal: i=1; a=rsa-sha256; cv=none; d=s.example;'].map(parseArcSeal);
+  ok(seals[0].cv === 'fail', 'arc cv not parsed');
+
+  /* Lookalikes. */
+  ok(lookalikes('p\u0430ypal').length === 1, 'cyrillic a not detected');
+  ok(lookalikes('paypal.com').length === 0, 'ascii wrongly flagged');
+  ok(lookalikes('\u041f\u0430\u0439\u043f\u0430\u043b').length === 0, 'fully non-latin word flagged, which is legitimate content');
+  ok(lookalikes('').length === 0, 'empty input crashed the lookalike scan');
+
+  /* IP classification. */
+  ok(isPublicIPv4('203.0.113.45') === true, 'documentation range should read as routable syntax');
+  ok(isPublicIPv4('192.168.1.10') === false, 'private range accepted');
+  ok(isPublicIPv4('127.0.0.1') === false, 'loopback accepted');
+  ok(isPublicIPv4('10.0.0.5') === false, '10/8 accepted');
+  ok(isPublicIPv4('172.16.4.4') === false, '172.16/12 accepted');
+  ok(isPublicIPv4('not-an-ip') === false, 'garbage accepted as an address');
+
+  /* Empty input is refused rather than reporting a verdict. */
+  ok(analyze('hello there').ok === false, 'non-header text produced a verdict');
+  ok(analyze('').ok === false, 'empty input produced a verdict');
+
+  /* The four shipped examples must each land on their documented verdict. */
+  var a = analyze(SAMPLES.auth);
+  ok(a.verdict === 'Authenticated' && a.identity.spfAligned && a.identity.dkimAligned,
+    'authenticated sample judged ' + a.verdict);
+  ok(a.identity.fromDomain === 'example.com', 'authenticated sample From domain wrong: ' + a.identity.fromDomain);
+  ok(a.identity.subject === 'Quarterly supply confirmation - ORD-0123', 'encoded subject not decoded: ' + a.identity.subject);
+  ok(a.hops.length === 2, 'authenticated sample hop count wrong: ' + a.hops.length);
+  ok(a.transitSec === 83, 'transit time wrong: ' + a.transitSec);
+  /* The teaching case: the two hops are printed 7 hours apart (09:14:07 -0700
+     against 16:12:45 +0000) but 82 seconds apart in reality. Reading the
+     printed times gives the wrong answer by a factor of 300. */
+  ok(a.hops[0].hop.dateText.indexOf('+0000') !== -1 && a.hops[1].hop.dateText.indexOf('-0700') !== -1,
+    'authenticated sample no longer exercises two different time zones');
+  ok(Math.round(Math.abs(a.hops[1].hop.date - a.hops[0].hop.date) / 1000) === 82,
+    'zone conversion between the two hops is wrong');
+  ok(a.findings.some(function (f) { return f.title === 'The first hop was sent in plaintext'; }) === false,
+    'ESMTPS was wrongly reported as plaintext');
+  ok(a.hops[0].hop.tls === '' || a.hops[0].hop.tls === null, 'a TLS token appeared where the sample has none');
+
+  var b = analyze(SAMPLES.dmarc);
+  ok(b.verdict === 'Not authenticated', 'dmarc sample judged ' + b.verdict);
+  ok(b.identity.dmarcRes === 'fail', 'dmarc sample result wrong');
+  ok(b.identity.spfAligned === false && b.identity.dkimAligned === false, 'dmarc sample reported alignment');
+
+  var c = analyze(SAMPLES.bec);
+  ok(c.verdict === 'Not authenticated', 'bec sample judged ' + c.verdict);
+  ok(c.identity.dkimRes === 'pass' && c.identity.dkimDomain === 'notify-delivery.example' && c.identity.dkimAligned === false,
+    'bec sample should pass DKIM unaligned');
+  ok(c.findings.some(function (f) { return f.title.indexOf('Replies go to a different domain') === 0; }),
+    'bec sample reply-to mismatch not reported');
+  ok(c.findings.some(function (f) { return f.title.indexOf('DKIM passed for a different domain') === 0; }),
+    'bec sample unaligned dkim not reported');
+  ok(c.seals.length === 2 && c.seals[0].i === 1 && c.seals[1].cv === 'fail', 'arc chain wrong: ' + JSON.stringify(c.seals));
+  /* The seals are deliberately stored i=2 before i=1, which is how a chain
+     looks when each forwarder appends. Anything reading them in file order
+     would report cv=fail as the first link, which inverts the meaning. */
+  ok(c.seals[0].cv === 'none' && c.seals[1].cv === 'fail', 'arc seals not ordered by instance');
+  ok(c.hops.length === 2 && Math.round(c.hops[0].delaySec) === 249, 'bec hop order or delay wrong: ' + c.hops.map(function (x) { return x.delaySec; }));
+  ok(c.findings.some(function (f) { return f.title === 'Timestamps go backwards at step 3'; }) === false,
+    'bec sample reported as out of order');
+
+  var d = analyze(SAMPLES.delayed);
+  ok(d.identity.spfRes === 'softfail' && d.identity.dmarcRes === 'pass', 'delayed sample auth wrong');
+  ok(d.hops.length === 4, 'delayed sample hop count wrong: ' + d.hops.length);
+  ok(d.worst && d.worst.delaySec === 14857, 'delayed sample worst hop wrong: ' + (d.worst && d.worst.delaySec));
+  ok(d.findings.some(function (f) { return f.title.indexOf('Lookalike character') === 0; }),
+    'delayed sample lookalike not reported');
+  ok(d.findings.some(function (f) { return f.title.indexOf('The subject line contains a URL') === 0; }),
+    'delayed sample subject url not reported');
+  ok(d.identity.subject.indexOf('https://acme-invoices.example/pay/9f2') !== -1, 'delayed sample subject not decoded');
+
+  /* Determinism. */
+  ok(JSON.stringify(analyze(SAMPLES.bec)) === JSON.stringify(c), 'the engine is not deterministic');
+
+  /* Everything rendered into the DOM must be escaped. */
+  var xss = analyze('From: <img src=x onerror=alert(1)>@e.com\nSubject: <script>alert(2)<\/script>\nAuthentication-Results: mx; spf=pass smtp.mailfrom=a@e.com; dkim=pass header.d=e.com; dmarc=pass');
+  ok(esc(xss.identity.subject).indexOf('<script>') === -1, 'subject is not escaped');
+  ok(esc(xss.identity.subject).indexOf('&lt;script&gt;') !== -1, 'subject not entity-encoded');
+  ok(xss.verdict === 'Authenticated', 'xss probe verdict wrong: ' + xss.verdict);
+
+  if (fails.length) { console.error('[email-header-analyzer] SELF CHECK FAILED:', fails); }
+  return fails;
+}
+
+selfCheck();
+</script>
+</body>
+</html>

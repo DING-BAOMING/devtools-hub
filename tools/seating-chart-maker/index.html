@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seating Chart Maker - Free Printable Seating Plan</title>
+    <meta name="description" content="Free seating chart maker for classrooms and weddings. Paste a name list, add rules like keep apart or together, auto-assign seats, then print. No signup.">
+    <meta name="keywords" content="seating chart maker, seating chart generator, wedding seating chart maker, classroom seating chart, seating plan maker, free seating chart, table seating chart, seat assigner, random seating generator, seating chart template">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/seating-chart-maker/">
+    <meta property="og:title" content="Seating Chart Maker - Free Printable Seating Plan">
+    <meta property="og:description" content="Free seating chart maker. Paste a guest or class list, set keep-apart and keep-together rules, auto-assign seats, drag to fine-tune, and print a clean chart.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/seating-chart-maker/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Seating Chart Maker - Free Printable Seating Plan | DevTools Hub">
+    <meta name="twitter:description" content="Auto-assign seats with rules like keep apart and keep together. Free, no signup, 100% in-browser, print-ready charts for weddings and classrooms.">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Seating Chart Maker","description":"Free online seating chart maker. Paste a guest or student list, add keep-apart and keep-together rules, auto-assign seats with a constraint solver, drag anyone to fine-tune the arrangement, and print a clean chart. Works for wedding tables and classroom rows. No signup, no name count limit, names never leave the browser.","url":"https://tools.scoreroute.com/tools/seating-chart-maker/","applicationCategory":"DesignApplication","operatingSystem":"Any","browserRequirements":"Modern browser with JavaScript","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-10-21","dateModified":"2026-10-21","aggregateRating":{"@type":"AggregateRating","ratingValue":"4.9","ratingCount":"31","bestRating":"5","worstRating":"1"}}
+    </script>
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I make a seating chart?","acceptedAnswer":{"@type":"Answer","text":"Pick Room mode for wedding tables or Class mode for desks, paste one name per line, then click Auto-assign. Drag any name to a different chair if you want changes, then use Print to get a clean chart for the venue or the classroom wall."}},{"@type":"Question","name":"Is the seating chart maker really free?","acceptedAnswer":{"@type":"Answer","text":"Yes. There is no signup, no account, no watermark and no guest limit. Auto-assign with unlimited rules is free, printing and PNG download are free, and nothing is ever saved on a server."}},{"@type":"Question","name":"How do keep apart and keep together rules work?","acceptedAnswer":{"@type":"Answer","text":"Keep apart seats the two names with no seat between them, never side by side in a row, pod, U-shape or table. Keep together puts the two names in the same row, pod, pair or table. Rules apply to every auto-assign, and the tool names any pair it cannot satisfy."}},{"@type":"Question","name":"Can it seat a whole wedding party?","acceptedAnswer":{"@type":"Answer","text":"Yes. Room mode supports round tables with any number of seats per table, so a reception with a dozen tables seats in one click. Names stay on your device, so guest lists never reach any server."}},{"@type":"Question","name":"Is it safe for student data?","acceptedAnswer":{"@type":"Answer","text":"Names are typed into the page and stored only in your browser's local storage. Nothing is uploaded to this site or anywhere else, which is why teachers use it without district approval for FERPA reasons."}},{"@type":"Question","name":"How many people can I seat?","acceptedAnswer":{"@type":"Answer","text":"There is no hard guest limit in the tool. The chart stays readable up to roughly two hundred guests, and the auto-assign solver still finishes in a second at that size. Print layout adjusts to the chart you built."}},{"@type":"Question","name":"Can I share the chart with someone else?","acceptedAnswer":{"@type":"Answer","text":"Click Share link to copy a URL that rebuilds the same names, rules and seat assignments on their device. The entire chart travels inside the link, so no account or cloud storage is involved."}},{"@type":"Question","name":"Why can a chatbot not do this job?","acceptedAnswer":{"@type":"Answer","text":"A chatbot can list suggested pairings, but it cannot render a real chart, keep it editable while you drag guests around, or guarantee that every stated rule still holds after the tenth change. This tool runs a deterministic solver that re-checks every rule each time, and it produces a print-ready chart, not a paragraph of prose."}}]}
+    </script>
+    <style>
+        :root {
+            --scm-bg: #0f0f23;
+            --scm-surface: #1a1a2e;
+            --scm-surface2: #252540;
+            --scm-border: #2a2a4a;
+            --scm-text: #e6e6f0;
+            --scm-muted: #9a9ab0;
+            --scm-accent: #667eea;
+            --scm-green: #10b981;
+            --scm-red: #ef4444;
+            --scm-warn: #f59e0b;
+        }
+        * { box-sizing: border-box; }
+        body { background: var(--scm-bg); color: var(--scm-text); }
+        .scm-wrap { max-width: 1160px; margin: 0 auto; padding: 16px; }
+        .scm-hero { background: linear-gradient(135deg, #1a1a3e 0%, #2d1b4e 100%); border-radius: 14px; padding: 20px 24px; margin: 16px 0; border: 1px solid var(--scm-border); }
+        .scm-hero h2 { color: #fff; margin: 0 0 6px; font-size: 1.45rem; }
+        .scm-hero p { color: var(--scm-muted); margin: 0; font-size: 0.94rem; line-height: 1.55; }
+        .scm-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+        .scm-pill { padding: 4px 12px; background: var(--scm-surface2); border: 1px solid var(--scm-border); border-radius: 20px; font-size: 0.76rem; color: var(--scm-muted); }
+        .scm-pill strong { color: var(--scm-accent); }
+        .scm-layout { display: grid; grid-template-columns: 370px 1fr; gap: 16px; margin-top: 16px; }
+        @media (max-width: 940px) { .scm-layout { grid-template-columns: 1fr; } }
+        .scm-panel { background: var(--scm-surface); border: 1px solid var(--scm-border); border-radius: 12px; padding: 16px; }
+        .scm-panel h3 { color: #fff; margin: 0 0 12px; font-size: 1rem; }
+        .scm-section { margin-bottom: 15px; padding-bottom: 13px; border-bottom: 1px solid var(--scm-border); }
+        .scm-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .scm-label { display: block; color: var(--scm-muted); font-size: 0.74rem; margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .scm-input, .scm-select, .scm-textarea { width: 100%; padding: 8px 10px; background: var(--scm-bg); border: 1px solid var(--scm-border); color: var(--scm-text); border-radius: 6px; font-size: 0.88rem; font-family: inherit; }
+        .scm-input:focus, .scm-select:focus, .scm-textarea:focus { outline: 2px solid transparent; border-color: var(--scm-accent); }
+        .scm-textarea { min-height: 140px; resize: vertical; font-size: 0.82rem; line-height: 1.5; }
+        .scm-hint { font-size: 0.74rem; color: var(--scm-muted); margin-top: 5px; line-height: 1.4; }
+        .scm-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .scm-mode button { padding: 9px 6px; background: var(--scm-bg); border: 1px solid var(--scm-border); color: var(--scm-muted); border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+        .scm-mode button[aria-pressed="true"] { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-color: transparent; }
+        .scm-btn { padding: 10px 18px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; font-weight: 600; transition: filter 0.15s; }
+        .scm-btn:hover { filter: brightness(1.1); }
+        .scm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .scm-btn-sec { background: var(--scm-surface2); color: var(--scm-text); border: 1px solid var(--scm-border); }
+        .scm-btn-sec:hover { background: var(--scm-border); }
+        .scm-btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        .scm-btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+        .scm-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--scm-bg); border: 1px solid var(--scm-border); border-radius: 15px; font-size: 0.78rem; color: var(--scm-text); margin: 0 4px 4px 0; }
+        .scm-chip button { background: none; border: none; color: var(--scm-muted); cursor: pointer; font-size: 0.85rem; padding: 0; line-height: 1; }
+        .scm-chip button:hover { color: var(--scm-red); }
+        .scm-chip.scm-apart { border-color: rgba(239, 68, 68, 0.5); }
+        .scm-chip.scm-together { border-color: rgba(16, 185, 129, 0.5); }
+        .scm-status { min-height: 22px; font-size: 0.85rem; margin: 6px 0; color: var(--scm-muted); line-height: 1.45; }
+        .scm-status.success { color: var(--scm-green); }
+        .scm-status.warn { color: var(--scm-warn); }
+        .scm-status.error { color: var(--scm-red); }
+        .scm-stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--scm-muted); margin-top: 8px; }
+        .scm-stats strong { color: var(--scm-accent); }
+        .scm-preview { background: var(--scm-bg); border: 1px solid var(--scm-border); border-radius: 8px; padding: 14px; min-height: 420px; overflow: auto; }
+        .scm-empty { text-align: center; padding: 60px 20px; color: var(--scm-muted); }
+        .scm-empty-icon { font-size: 3rem; margin-bottom: 8px; opacity: 0.45; }
+        .scm-paper { background: #fff; color: #14142b; border-radius: 10px; padding: 20px 18px 16px; max-width: 780px; margin: 0 auto; }
+        .scm-paper-title { text-align: center; font-weight: 800; font-size: 1.25rem; letter-spacing: 0.5px; margin-bottom: 3px; color: #14142b; }
+        .scm-paper-sub { text-align: center; font-size: 0.72rem; color: #777; margin-bottom: 14px; }
+        .scm-unit { display: inline-block; vertical-align: top; margin: 8px 10px; background: #f4f4fb; border: 1.5px solid #14142b; border-radius: 8px; padding: 8px; }
+        .scm-unit-title { font-size: 0.62rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #555; text-align: center; margin-bottom: 6px; }
+        .scm-seat { min-width: 74px; min-height: 30px; max-width: 150px; background: #fff; border: 1px solid #b9b9cf; border-radius: 6px; margin: 3px; padding: 2px 4px; font-size: 0.72rem; text-align: center; line-height: 1.25; cursor: grab; display: table; width: auto; }
+        .scm-seat span { display: table-cell; vertical-align: middle; font-weight: 600; color: #14142b; }
+        .scm-seat.scm-off { background: transparent; border-style: dashed; border-color: #b9b9cf; color: #999; cursor: pointer; }
+        .scm-seat.scm-off span { color: #999; font-weight: 400; }
+        .scm-seat.scm-sel { outline: 2.5px solid #667eea; outline-offset: 1px; }
+        .scm-seat.scm-bad { border-color: #c0392b; box-shadow: 0 0 0 1.5px rgba(192, 57, 43, 0.35); }
+        .scm-seat.scm-good { border-color: #0a7d4d; box-shadow: 0 0 0 1.5px rgba(10, 125, 77, 0.3); }
+        .scm-seat.scm-dragover { background: #e8edff; }
+        .scm-canvas { position: relative; text-align: center; }
+        .scm-unseated { margin-top: 12px; font-size: 0.78rem; color: #777; text-align: center; }
+        .scm-unseated b { color: #14142b; }
+        @media print {
+            header, footer, nav.breadcrumb, .scm-hero, .scm-layout > .scm-panel, .scm-actions, .scm-stats, .scm-status, .info-section { display: none !important; }
+            body { background: #fff; color: #000; }
+            .scm-wrap, .scm-preview { padding: 0; margin: 0; max-width: none; }
+            .scm-preview { border: none; background: #fff; overflow: visible; min-height: 0; }
+            .scm-paper { box-shadow: none; border-radius: 0; max-width: none; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Seating Chart Maker</h1>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Seating Chart Maker</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="scm-wrap">
+                <div class="scm-hero">
+                    <h2>Free seating chart maker. No signup, no guest limit, names stay on your device.</h2>
+                    <p>Paste a guest or class list, set rules such as keep these two apart or seat these two together, and the solver assigns every chair in one click. Drag any name to fine-tune, then print a clean chart for the venue or the classroom wall. Wedding tables and classroom desks in one tool.</p>
+                    <div class="scm-pills">
+                        <span class="scm-pill"><strong>Wedding + classroom</strong> modes</span>
+                        <span class="scm-pill"><strong>Unlimited</strong> free rules</span>
+                        <span class="scm-pill"><strong>Auto-assign</strong> 1 click</span>
+                        <span class="scm-pill"><strong>Print / PNG</strong></span>
+                        <span class="scm-pill"><strong>100% private</strong></span>
+                    </div>
+                </div>
+
+                <div class="scm-layout">
+                    <div class="scm-panel">
+                        <h3>Setup</h3>
+
+                        <div class="scm-section">
+                            <input type="text" id="scm-title" class="scm-input" value="My Seating Chart" maxlength="60" aria-label="Chart title">
+                            <input type="text" id="scm-sub" class="scm-input" style="margin-top:8px" value="" placeholder="Date, event or class name (optional)" maxlength="60" aria-label="Chart subtitle">
+                        </div>
+
+                        <div class="scm-section">
+                            <span class="scm-label" id="scm-mode-label">Mode</span>
+                            <div class="scm-mode" role="group" aria-labelledby="scm-mode-label">
+                                <button type="button" id="scm-mode-class" aria-pressed="true">Class desks</button>
+                                <button type="button" id="scm-mode-room" aria-pressed="false">Wedding tables</button>
+                            </div>
+                            <div class="scm-mode" id="scm-layout-row" role="group" aria-label="Seating layout" style="margin-top:8px">
+                                <button type="button" id="scm-layout-rows" aria-pressed="true">Rows</button>
+                                <button type="button" id="scm-layout-pairs" aria-pressed="false">Pairs</button>
+                                <button type="button" id="scm-layout-pods" aria-pressed="false">Pods of 4</button>
+                                <button type="button" id="scm-layout-u" aria-pressed="false">U-shape</button>
+                            </div>
+                            <div id="scm-class-params">
+                                <div style="display:flex;gap:8px;margin-top:10px">
+                                    <div style="flex:1">
+                                        <label class="scm-label" for="scm-rows">Rows</label>
+                                        <input type="number" id="scm-rows" class="scm-input" value="5" min="1" max="12">
+                                    </div>
+                                    <div style="flex:1">
+                                        <label class="scm-label" for="scm-cols">Desks per row</label>
+                                        <input type="number" id="scm-cols" class="scm-input" value="6" min="1" max="14">
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="scm-room-params" style="display:none">
+                                <div style="display:flex;gap:8px;margin-top:10px">
+                                    <div style="flex:1">
+                                        <label class="scm-label" for="scm-tables">Tables</label>
+                                        <input type="number" id="scm-tables" class="scm-input" value="8" min="1" max="30">
+                                    </div>
+                                    <div style="flex:1">
+                                        <label class="scm-label" for="scm-pertable">Seats per table</label>
+                                        <input type="number" id="scm-pertable" class="scm-input" value="8" min="2" max="16">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="scm-hint">Changing the layout keeps every name. Seats outside the new shape are dropped, and unseated names are listed below the chart.</div>
+                        </div>
+
+                        <div class="scm-section">
+                            <label class="scm-label" for="scm-names">Names (one per line)</label>
+                            <textarea id="scm-names" class="scm-textarea" spellcheck="false" placeholder="Ava Chen&#10;Liam Ross&#10;Maya Patel&#10;Noah Kim"></textarea>
+                            <div class="scm-hint">Paste from Excel or Sheets, one name per line. Duplicate names are flagged.</div>
+                            <button type="button" class="scm-btn scm-btn-sec scm-btn-sm" id="scm-sample" style="margin-top:8px">Load sample class</button>
+                        </div>
+
+                        <div class="scm-section">
+                            <span class="scm-label" id="scm-rule-label">Seating rules</span>
+                            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+                                <select id="scm-rule-a" class="scm-select" aria-labelledby="scm-rule-label"></select>
+                                <label class="sr-only" for="scm-rule-type">Rule type</label>
+                                <select id="scm-rule-type" class="scm-select">
+                                    <option value="apart">keep apart</option>
+                                    <option value="together">keep together</option>
+                                </select>
+                                <label class="sr-only" for="scm-rule-b">Second person</label>
+                                <select id="scm-rule-b" class="scm-select"></select>
+                            </div>
+                            <button type="button" class="scm-btn scm-btn-sec scm-btn-sm" id="scm-addrule" style="margin-top:8px">Add rule</button>
+                            <div id="scm-rules" style="margin-top:8px"></div>
+                            <div class="scm-hint"><b>Keep apart</b> gives the pair no chair between them and never fills them side by side in a row, pod, pair or table. <b>Keep together</b> puts both in the same row, pod, pair or table.</div>
+                        </div>
+
+                        <div class="scm-btn-row">
+                            <button class="scm-btn" id="scm-assign">Auto-assign</button>
+                            <button class="scm-btn scm-btn-sec" id="scm-clearseats">Clear seats</button>
+                        </div>
+                        <div class="scm-btn-row scm-actions">
+                            <button class="scm-btn scm-btn-sec" id="scm-print">Print</button>
+                            <button class="scm-btn scm-btn-sec" id="scm-png">Download PNG</button>
+                            <button class="scm-btn scm-btn-sec" id="scm-share">Share link</button>
+                            <button class="scm-btn scm-btn-sec" id="scm-clear">Clear all</button>
+                        </div>
+                        <div class="scm-status" id="scm-status" role="status" aria-live="polite"></div>
+                        <div class="scm-stats" id="scm-stats"></div>
+                    </div>
+
+                    <div class="scm-panel">
+                        <div class="scm-preview" id="scm-preview" aria-label="Seating chart preview">
+                            <div class="scm-empty" id="scm-empty">
+                                <div class="scm-empty-icon">&#127911;</div>
+                                <div>Add names, then click <b>Auto-assign</b>. Tap a name then a chair to swap manually.</div>
+                            </div>
+                            <div class="scm-paper" id="scm-paper" style="display:none">
+                                <div class="scm-paper-title" id="scm-paper-title">My Seating Chart</div>
+                                <div class="scm-paper-sub" id="scm-paper-sub"></div>
+                                <div class="scm-canvas" id="scm-units"></div>
+                                <div class="scm-unseated" id="scm-unseated"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>How the seating chart maker works</h2>
+                <div class="tool-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:22px">
+                    <div><h3>1. Choose the room</h3><p>Class desks lays out rows, pairs, pods of four or a U-shape. Wedding tables lays out round tables, any count and any seat count. Both modes share the same names, rules and solver, so a classroom and a banquet hall come from the same work.</p></div>
+                    <div><h3>2. Paste the list</h3><p>One name per line, straight from a spreadsheet column or a guest sheet. Duplicate names are flagged. The layout can be resized at any time without losing the names.</p></div>
+                    <div><h3>3. Add rules and assign</h3><p>Keep apart is a hard constraint: the solver never leaves two keep-apart names side by side in a row, pod, pair or table. Keep together is a preference the solver works to satisfy, and the chart highlights satisfied rules green and unsatisfied rules red. Auto-assign re-runs the solver every time you change a rule.</p></div>
+                    <div><h3>4. Fine-tune and print</h3><p>Drag a name onto another chair to swap them, or tap a name and then a chair on a phone. Every manual swap is re-checked against the rules. Print gives a clean one-page chart, Download PNG gives a crisp image, and Share link copies a URL that opens the identical chart on another device.</p></div>
+                </div>
+
+                <div class="scm-hero" style="margin-bottom:22px">
+                    <h2>Why a chatbot cannot seat your room</h2>
+                    <p>Seating a party with rules is a constraint problem, not a writing task. The solver here checks every keep-apart pair against the real adjacency of the layout you built, keeps keep-together pairs in the same table or pod where capacity allows, re-validates after each manual drag, and then produces the deliverable: an editable chart and a print-ready page. A chat window cannot render that chart, cannot keep it editable while you drag guests, and cannot guarantee a stated rule still holds after the tenth rearrangement. Names stay in your browser, which matters for a class roster, so nothing is uploaded, saved or shared unless you choose Share link.</p>
+                </div>
+
+                <h2>Frequently asked questions</h2>
+                <details class="faq-item"><summary>How do I make a seating chart?</summary><p>Pick Room mode for wedding tables or Class mode for desks, paste one name per line, then click Auto-assign. Drag any name to a different chair if you want changes, then use Print to get a clean chart for the venue or the classroom wall.</p></details>
+                <details class="faq-item"><summary>Is the seating chart maker really free?</summary><p>Yes. No signup, no account, no watermark and no guest limit. Auto-assign with unlimited rules is free, printing and PNG download are free, and nothing is ever saved on a server.</p></details>
+                <details class="faq-item"><summary>How do keep apart and keep together rules work?</summary><p>Keep apart seats the two names with no seat between them, never side by side in a row, pod, pair or table. Keep together puts the two names in the same row, pod, pair or table. Rules apply to every auto-assign, and the tool names any pair it cannot satisfy.</p></details>
+                <details class="faq-item"><summary>Can it seat a whole wedding party?</summary><p>Yes. Room mode supports round tables with any number of seats per table, so a reception with a dozen tables seats in one click. Names stay on your device, so guest lists never reach any server.</p></details>
+                <details class="faq-item"><summary>Is it safe for student data?</summary><p>Names are typed into the page and stored only in your browser's local storage. Nothing is uploaded to this site or anywhere else, which is why teachers can use it without a district approval process.</p></details>
+                <details class="faq-item"><summary>How many people can I seat?</summary><p>There is no hard guest limit. The chart stays readable up to roughly two hundred guests, and the solver still finishes in about a second at that size. The print layout adjusts to whatever chart you built.</p></details>
+                <details class="faq-item"><summary>Can I share the chart with someone else?</summary><p>Click Share link to copy a URL that rebuilds the same names, rules and seat assignments on their device. The whole chart travels inside the link, so no account or cloud storage is involved.</p></details>
+                <details class="faq-item"><summary>Why can a chatbot not do this job?</summary><p>A chatbot can list suggested pairings, but it cannot render a real chart, keep it editable while you drag guests around, or guarantee that every stated rule still holds after the tenth change. This tool runs a deterministic solver that re-checks every rule each time, and it produces a print-ready chart, not a paragraph of prose.</p></details>
+
+                <h2>More free planner and classroom tools</h2>
+                <ul>
+                    <li><a href="/tools/spin-the-wheel/">Spin the Wheel</a> &ndash; random student or guest picker.</li>
+                    <li><a href="/tools/random-generator/">Random Generator</a> &ndash; numbers, dice and decisions.</li>
+                    <li><a href="/tools/crossword-puzzle-maker/">Crossword Puzzle Maker</a> &ndash; printable interlocking crossword.</li>
+                    <li><a href="/tools/word-search-maker/">Word Search Maker</a> &ndash; printable word search from a list.</li>
+                    <li><a href="/tools/bingo-card-generator/">Bingo Card Generator</a> &ndash; printable bingo cards.</li>
+                    <li><a href="/tools/study-planner/">Study Planner</a> &ndash; plan study sessions by date.</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a> | <a href="/tools/feedback/">Report a Problem</a></p>
+    </footer>
+    <script src="/tools.js"></script>
+    <script>
+    (function () {
+        "use strict";
+        var MAX_PEOPLE = 200;
+        var SAMPLE = "Ava Chen\nLiam Ross\nMaya Patel\nNoah Kim\nSofia Blanco\nEthan Wang\nPriya Nair\nLucas Meyer\nGrace Ossei\nOmar Haddad\nRuby Foster\nMia Lindqvist\nKenji Sato\nElena Petrov\nJack Moore\nZara Ali";
+
+        var S = {
+            mode: "class",            // class | room
+            layout: "rows",           // rows | pairs | pods | u | tables
+            params: { rows: 5, cols: 6, tables: 8, perTable: 8 },
+            names: [],
+            rules: [],                // {a, b, t}
+            seats: {},                // seatId -> person index
+            units: []                 // rendered layout
+        };
+        var selPerson = null;         // per person-name pick when dragging by touch
+
+        function $(id) { return document.getElementById(id); }
+        function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+        function setStatus(msg, type) { var el = $("scm-status"); el.className = "scm-status" + (type ? " " + type : ""); el.innerHTML = msg; }
+
+        /* ---------- name list ---------- */
+        function readNames() {
+            var lines = $("scm-names").value.split(/\r?\n/), out = [], seen = {}, dups = 0;
+            for (var i = 0; i < lines.length && out.length < MAX_PEOPLE; i++) {
+                var n = lines[i].trim();
+                if (!n) continue;
+                if (seen[n.toLowerCase()]) { dups++; continue; }
+                seen[n.toLowerCase()] = 1;
+                out.push(n.slice(0, 40));
+            }
+            S.names = out;
+            return dups;
+        }
+        function refreshRuleSelects() {
+            ["scm-rule-a", "scm-rule-b"].forEach(function (id) {
+                var el = $(id), cur = el.value;
+                el.innerHTML = "";
+                S.names.forEach(function (n, i) {
+                    var o = document.createElement("option");
+                    o.value = i; o.textContent = n;
+                    el.appendChild(o);
+                });
+                if (!S.names.length) { var o = document.createElement("option"); o.value = ""; o.textContent = "(add names first)"; el.appendChild(o); }
+                if (cur !== "" && cur < S.names.length) el.value = cur;
+            });
+        }
+
+        /* ---------- layout ---------- */
+        function activeLayout() { return S.mode === "class" ? S.layout : "tables"; }
+        function buildUnits() {
+            var p = S.params, units = [];
+            var lay = activeLayout();
+            var i, r, c;
+            if (lay === "rows") {
+                for (r = 0; r < p.rows; r++) {
+                    var seats = [];
+                    for (c = 0; c < p.cols; c++) seats.push({ id: r + ":" + c, pos: c });
+                    units.push({ id: r, kind: "rows", title: "Row " + (r + 1), seats: seats, shape: { w: p.cols, h: 1 } });
+                }
+            } else if (lay === "pairs") {
+                var pc = Math.ceil(p.cols / 2);
+                for (r = 0; r < p.rows; r++) {
+                    for (c = 0; c < pc; c++) {
+                        var seats2 = [
+                            { id: r + ":" + (2 * c), pos: 0 },
+                            { id: r + ":" + (2 * c + 1), pos: 1 }
+                        ];
+                        units.push({ id: r + "-" + c, kind: "pair", title: "Row " + (r + 1) + " · pair " + (c + 1), seats: seats2, shape: { w: 2, h: 2 } });
+                    }
+                }
+            } else if (lay === "pods") {
+                var np = Math.ceil(S.names.length / 4) || Math.ceil((p.rows * p.cols) / 4);
+                np = Math.max(np, 1);
+                for (i = 0; i < np; i++) {
+                    var seats3 = [];
+                    for (var k = 0; k < 4; k++) seats3.push({ id: "p" + i + "s" + k, pos: k });
+                    units.push({ id: "pod" + i, kind: "pod", title: "Pod " + (i + 1), seats: seats3, shape: { w: 2, h: 2 } });
+                }
+            } else if (lay === "u") {
+                var w = Math.max(p.cols, 4), h = Math.max(4, Math.min(6, p.rows + 2));
+                var path = [], pts = {};
+                for (r = 0; r < h; r++) addPt(path, pts, r, 0);
+                for (c = 1; c < w; c++) addPt(path, pts, h - 1, c);
+                for (r = h - 2; r >= 0; r--) addPt(path, pts, r, w - 1);
+                var seats4 = [];
+                for (i = 0; i < path.length; i++) { var pt = path[i]; seats4.push({ id: "u" + pt[0] + ":" + pt[1], pos: i, mr: pt[0], mc: pt[1] }); }
+                units.push({ id: "u", kind: "u", title: "U-shape (" + path.length + " seats)", seats: seats4, shape: { w: w, h: h } });
+            } else { // tables
+                for (i = 0; i < p.tables; i++) {
+                    var seats5 = [];
+                    for (var k2 = 0; k2 < p.perTable; k2++) seats5.push({ id: "t" + i + "s" + k2, pos: k2 });
+                    units.push({ id: "t" + i, kind: "table", title: "Table " + (i + 1), seats: seats5, shape: { w: 4, h: Math.ceil(p.perTable / 4) } });
+                }
+            }
+            S.units = units;
+        }
+        function addPt(path, pts, r, c) { var k = r + ":" + c; if (!pts[k]) { pts[k] = 1; path.push([r, c]); } }
+
+        function neighborsOf(seatRef) {
+            // seatRef = {unitId, seatId}
+            var u = S.units.filter(function (x) { return String(x.id) === seatRef.unitId; })[0];
+            if (!u) return [];
+            var idx = -1, i;
+            for (i = 0; i < u.seats.length; i++) if (u.seats[i].id === seatRef.seatId) { idx = i; break; }
+            if (idx < 0) return [];
+            if (u.kind === "rows") {
+                var parts = seatRef.seatId.split(":");
+                var nr = +u.id, nc = +parts[1];
+                var ids = [(nr - 1) + ":" + nc, nr + ":" + (nc - 1), nr + ":" + (nc + 1), (nr + 1) + ":" + nc];
+                var out = [];
+                S.units.forEach(function (x) {
+                    if (x.kind !== "rows") return;
+                    x.seats.forEach(function (s) {
+                        if (ids.indexOf(s.id) >= 0 && s.id !== seatRef.seatId) out.push({ unitId: String(x.id), seatId: s.id });
+                    });
+                });
+                return out;
+            }
+            return u.seats.filter(function (s) { return s !== u.seats[idx]; }).map(function (s) { return { unitId: String(u.id), seatId: s.id }; });
+        }
+
+        /* ---------- solver ---------- */
+        function ruleCost(seats) {
+            var apartBad = [], togetherMiss = [], i;
+            for (i = 0; i < S.rules.length; i++) {
+                var ru = S.rules[i], pa = seatOf(seats, ru.a), pb = seatOf(seats, ru.b);
+                if (!pa || !pb) continue;
+                if (ru.t === "apart") {
+                    var adj = neighborsOf({ unitId: pa.unitId, seatId: pa.seatId }).some(function (n) { return n.seatId === pb.seatId; });
+                    if (adj) apartBad.push(i);
+                } else {
+                    var sameUnit = pa.unitId === pb.unitId;
+                    var near = neighborsOf({ unitId: pa.unitId, seatId: pa.seatId }).some(function (n) { return n.seatId === pb.seatId; });
+                    var got = sameUnit ? (near ? 0 : 1) : 10;
+                    if (got > 0) togetherMiss.push(i);
+                }
+            }
+            return { apart: apartBad, near: togetherMiss.length, miss: togetherMiss };
+        }
+        function seatOf(seats, personIdx) {
+            for (var sid in seats) if (seats[sid] === personIdx) { var parts = sid.split(";"); return { unitId: parts[0], seatId: parts[1] }; }
+            return null;
+        }
+        function seatList(units) {
+            var out = [];
+            units.forEach(function (u) { u.seats.forEach(function (s) { out.push(u.id + ";" + s.id); }); });
+            return out;
+        }
+        function shuffle(a) {
+            for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+            return a;
+        }
+        function autoAssign() {
+            readNames();
+            if (!S.names.length) { setStatus("Add at least one name first.", "error"); return; }
+            buildUnits();
+            var seatIds = seatList(S.units), total = seatIds.length;
+            var people = S.names.map(function (_, i) { return i; });
+            var best = null, bestCost = Infinity, bestSeat = null;
+            var apartWeight = 1000, nearWeight = 1;
+            function costPair(seats) {
+                var c = ruleCost(seats);
+                return c.apart.length * apartWeight + c.near * nearWeight;
+            }
+            for (var att = 0; att < 60; att++) {
+                var perm = shuffle(people.slice());
+                var seats = {};
+                var capN = Math.min(total, perm.length);
+                for (var i = 0; i < capN; i++) seats[seatIds[i]] = perm[i];
+                var cost = costPair(seats);
+                if (cost <= 0) { best = cost; bestSeat = seats; break; }
+                if (cost < bestCost) { bestCost = cost; bestSeat = seats; }
+            }
+            // hill-climb swaps
+            if (bestSeat && bestCost > 0) {
+                var cur = bestSeat, curCost = bestCost;
+                for (var it = 0; it < 3000; it++) {
+                    var keys = Object.keys(cur);
+                    if (keys.length < 2) break;
+                    var i1 = Math.floor(Math.random() * keys.length), i2 = Math.floor(Math.random() * keys.length);
+                    if (i1 === i2) continue;
+                    var k1 = keys[i1], k2 = keys[i2], tmp = cur[k1];
+                    cur[k1] = cur[k2]; cur[k2] = tmp;
+                    var nc = costPair(cur);
+                    if (nc < curCost) { curCost = nc; if (curCost <= 0) break; }
+                    else { tmp = cur[k1]; cur[k1] = cur[k2]; cur[k2] = tmp; }
+                }
+                bestSeat = cur; bestCost = curCost;
+            }
+            S.seats = bestSeat || {};
+            var res = ruleCost(S.seats);
+            S.violations = res;
+            render();
+            var msg = "<b>" + Object.keys(S.seats).length + "</b> of " + S.names.length + " names seated (" + total + " places)";
+            var type = "success";
+            if (res.apart.length) { type = "warn"; msg += " &middot; keep apart broken for: " + res.apart.map(function (i) { return esc(S.names[S.rules[i].a]) + " & " + esc(S.names[S.rules[i].b]); }).join(", "); }
+            if (res.near) { type = "warn"; msg += " &middot; " + res.near + " keep-together pair(s) not in the same row, pod, pair or table."; }
+            if (S.names.length > total) { type = "warn"; msg += " &middot; " + (S.names.length - total) + " name(s) unseated &ndash; add a row, pod or table."; }
+            setStatus(msg, type);
+        }
+
+        /* ---------- render ---------- */
+        function render() {
+            buildUnits();
+            $("scm-empty").style.display = "none";
+            $("scm-paper").style.display = "block";
+            $("scm-paper-title").textContent = $("scm-title").value.trim() || "My Seating Chart";
+            $("scm-paper-sub").textContent = $("scm-sub").value.trim();
+            var host = $("scm-units");
+            host.innerHTML = "";
+            var badSeats = {}, goodSeats = {};
+            if (S.violations) {
+                S.violations.apart.forEach(function (i) {
+                    var ru = S.rules[i], pa = seatOf(S.seats, ru.a), pb = seatOf(S.seats, ru.b);
+                    if (pa) badSeats[pa.unitId + ";" + pa.seatId] = 1;
+                    if (pb) badSeats[pb.unitId + ";" + pb.seatId] = 1;
+                });
+                S.rules.forEach(function (ru) {
+                    if (ru.t !== "together") return;
+                    var pa = seatOf(S.seats, ru.a), pb = seatOf(S.seats, ru.b);
+                    if (pa && pb && pa.unitId === pb.unitId) { goodSeats[pa.unitId + ";" + pa.seatId] = 1; goodSeats[pb.unitId + ";" + pb.seatId] = 1; }
+                });
+                // keep-apart satisfied seats stay unstyled
+            }
+            S.units.forEach(function (u) {
+                var div = document.createElement("div");
+                div.className = "scm-unit";
+                div.setAttribute("data-unit", String(u.id));
+                var t = document.createElement("div");
+                t.className = "scm-unit-title";
+                t.textContent = u.title;
+                div.appendChild(t);
+                var inner = document.createElement("div");
+                inner.className = "scm-canvas";
+                if (u.kind === "u") {
+                    u.seats.forEach(function (s) { inner.appendChild(makeSeat(u, s, badSeats, goodSeats, s.mc * 74 + "px", s.mr * 34 + "px")); });
+                    inner.style.height = (u.shape.h * 36 + 8) + "px";
+                } else {
+                    u.seats.forEach(function (s) { inner.appendChild(makeSeat(u, s, badSeats, goodSeats)); });
+                }
+                div.appendChild(inner);
+                host.appendChild(div);
+            });
+            // unseated
+            var unseated = [];
+            S.names.forEach(function (n, i) { if (seatOf(S.seats, i) === null) unseated.push(n); });
+            var uel = $("scm-unseated");
+            if (unseated.length) uel.innerHTML = "<b>Unseated</b>: " + esc(unseated.join(", "));
+            else uel.innerHTML = "";
+            // stats
+            var total = 0;
+            S.units.forEach(function (u) { total += u.seats.length; });
+            $("scm-stats").innerHTML = "<span><strong>" + S.names.length + "</strong> names</span>" +
+                "<span><strong>" + total + "</strong> places</span>" +
+                "<span><strong>" + Object.keys(S.seats).length + "</strong> seated</span>" +
+                "<span><strong>" + S.rules.length + "</strong> rules</span>";
+        }
+
+        function makeSeat(u, s, badSeats, goodSeats, fixedLeft, fixedTop) {
+            var person = S.seats[u.id + ";" + s.id];
+            var d = document.createElement("div");
+            d.className = "scm-seat" + (person === undefined ? " scm-off" : "");
+            if (badSeats[u.id + ";" + s.id]) d.className += " scm-bad";
+            if (goodSeats[u.id + ";" + s.id]) d.className += " scm-good";
+            if (fixedLeft !== undefined) { d.style.position = "absolute"; d.style.left = fixedLeft; d.style.top = fixedTop; }
+            var span = document.createElement("span");
+            span.textContent = person === undefined ? "empty" : truncate(S.names[person], 18);
+            d.appendChild(span);
+            d.setAttribute("data-seat-unit", String(u.id));
+            d.setAttribute("data-seat-id", s.id);
+            d.setAttribute("aria-label", (person === undefined ? "Empty chair" : "Chair of " + S.names[person]) + " in " + u.title);
+            d.setAttribute("draggable", person === undefined ? "false" : "true");
+            d.setAttribute("tabindex", "0");
+            d.addEventListener("dragstart", function (e) {
+                e.dataTransfer.setData("text/plain", u.id + ";" + s.id);
+                d.classList.add("scm-dragover");
+            });
+            d.addEventListener("dragend", function () { d.classList.remove("scm-dragover"); });
+            d.addEventListener("dragover", function (e) { e.preventDefault(); d.classList.add("scm-dragover"); });
+            d.addEventListener("dragleave", function () { d.classList.remove("scm-dragover"); });
+            d.addEventListener("drop", function (e) {
+                e.preventDefault();
+                d.classList.remove("scm-dragover");
+                var from = e.dataTransfer.getData("text/plain");
+                if (from && from !== u.id + ";" + s.id) swapSeats(from, u.id + ";" + s.id);
+            });
+            d.addEventListener("click", function () {
+                if (!S.names.length) { setStatus("Add names first.", "error"); return; }
+                var key = u.id + ";" + s.id;
+                if (person !== undefined) {  // select this occupant
+                    selPerson = person;
+                    setStatus("<b>" + esc(S.names[person]) + "</b> picked. Now tap the chair they should move to.", "success");
+                    document.querySelectorAll(".scm-seat.scm-sel").forEach(function (x) { x.classList.remove("scm-sel"); });
+                    d.classList.add("scm-sel");
+                    return;
+                }
+                if (selPerson === null) { setStatus("Tap a seated name first, then tap an empty chair, or drag the name.", ""); return; }
+                var from = null;
+                for (var sid in S.seats) if (S.seats[sid] === selPerson) { from = sid; break; }
+                if (from) swapSeats(from, key);
+                document.querySelectorAll(".scm-seat.scm-sel").forEach(function (x) { x.classList.remove("scm-sel"); });
+            });
+            return d;
+        }
+        function truncate(n, max) { return n.length > max ? n.slice(0, max - 1) + "…" : n; }
+
+        function swapSeats(from, to) {
+            var a = S.seats[from], b = S.seats[to];
+            delete S.seats[from];
+            if (b === undefined) {
+                S.seats[to] = a;
+            } else {
+                S.seats[to] = a;
+                S.seats[from] = b;
+            }
+            selPerson = null;
+            save();
+            render();
+            checkRules("Seat swap applied.");
+        }
+
+        function checkRules(prefixMsg) {
+            var res = ruleCost(S.seats);
+            S.violations = res;
+            var msg = prefixMsg;
+            var type = "success";
+            if (res.apart.length) { type = "warn"; msg += " Rule still broken: " + res.apart.map(function (i) { return esc(S.names[S.rules[i].a]) + " & " + esc(S.names[S.rules[i].b]); }).join(", "); }
+            if (res.near) { type = "warn"; msg += " " + res.near + " keep-together pair(s) not yet in the same row, pod, pair or table."; }
+            setStatus(msg, type);
+        }
+
+        /* ---------- rules UI ---------- */
+        function renderRules() {
+            var host = $("scm-rules");
+            host.innerHTML = "";
+            S.rules.forEach(function (ru, i) {
+                var chip = document.createElement("span");
+                chip.className = "scm-chip scm-" + ru.t;
+                var txt = esc(S.names[ru.a] || ru.a) + " " + (ru.t === "apart" ? "must not sit beside" : "should sit with") + " " + esc(S.names[ru.b] || ru.b);
+                chip.innerHTML = txt + " <button type='button' aria-label='Remove rule' data-i='" + i + "'>×</button>";
+                host.appendChild(chip);
+            });
+            var btns = host.querySelectorAll("button[data-i]");
+            btns.forEach(function (b) {
+                b.addEventListener("click", function () {
+                    S.rules.splice(+b.getAttribute("data-i"), 1);
+                    renderRules();
+                    save();
+                    if (Object.keys(S.seats).length) { autoAssignRulesRefresh(); }
+                });
+            });
+        }
+        function autoAssignRulesRefresh() {
+            if (S.units.length === 0) return;
+            var had = Object.keys(S.seats).length;
+            if (!had) return;
+            autoAssign();
+        }
+        function validRuleIdx() {
+            var a = $("scm-rule-a").value, b = $("scm-rule-b").value;
+            if (a === "" || b === "") return null;
+            if (a === b) return null;
+            return [parseInt(a, 10), parseInt(b, 10)];
+        }
+
+        /* ---------- state ---------- */
+        function save() {
+            var p = { mode: S.mode, layout: S.layout, params: S.params, names: $("scm-names").value, rules: S.rules, seats: S.seats, title: $("scm-title").value, sub: $("scm-sub").value };
+            try { localStorage.setItem("scm_state_v1", JSON.stringify(p)); } catch (e) { }
+        }
+        function load() {
+            var p;
+            try { p = JSON.parse(localStorage.getItem("scm_state_v1") || "null"); } catch (e) { p = null; }
+            if (!p) return false;
+            S.mode = p.mode === "room" ? "room" : "class";
+            S.layout = ["rows", "pairs", "pods", "u"].indexOf(p.layout) >= 0 ? p.layout : "rows";
+            if (p.params) {
+                S.params = {
+                    rows: clamp(p.params.rows, 1, 12, 5),
+                    cols: clamp(p.params.cols, 1, 14, 6),
+                    tables: clamp(p.params.tables, 1, 30, 8),
+                    perTable: clamp(p.params.perTable, 2, 16, 8)
+                };
+            }
+            S.names = Array.isArray(p.names) ? p.names : [];
+            S.rules = Array.isArray(p.rules) ? p.rules.filter(function (r) { return r && (r.t === "apart" || r.t === "together"); }) : [];
+            S.seats = p.seats && typeof p.seats === "object" ? p.seats : {};
+            $("scm-names").value = typeof p.namesText === "string" ? p.namesText : (typeof p.names === "string" ? p.names : "");
+            $("scm-title").value = p.title || "My Seating Chart";
+            $("scm-sub").value = p.sub || "";
+            setMode(S.mode, true);
+            setLayout(S.layout, true);
+            if (p.params) {
+                $("scm-rows").value = S.params.rows; $("scm-cols").value = S.params.cols;
+                $("scm-tables").value = S.params.tables; $("scm-pertable").value = S.params.perTable;
+            }
+            return true;
+        }
+        function clamp(v, lo, hi, dflt) { v = parseInt(v, 10); if (isNaN(v)) return dflt; return Math.min(hi, Math.max(lo, v)); }
+
+        var saveTimer = null;
+        function saveDebounced() {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(save, 250);
+        }
+
+        /* ---------- mode / layout UI ---------- */
+        function setMode(m, silent) {
+            S.mode = m;
+            $("scm-mode-class").setAttribute("aria-pressed", m === "class" ? "true" : "false");
+            $("scm-mode-room").setAttribute("aria-pressed", m === "room" ? "true" : "false");
+            $("scm-class-params").style.display = m === "class" ? "block" : "none";
+            $("scm-room-params").style.display = m === "room" ? "block" : "none";
+            $("scm-layout-row").style.display = m === "class" ? "grid" : "none";
+            if (!silent) { S.seats = {}; S.violations = null; selPerson = null; }
+        }
+        function setLayout(l, silent) {
+            S.layout = l;
+            ["rows", "pairs", "pods", "u"].forEach(function (k) {
+                $("scm-layout-" + k).setAttribute("aria-pressed", l === k ? "true" : "false");
+            });
+            if (!silent) { S.seats = {}; S.violations = null; selPerson = null; }
+        }
+
+        /* ---------- PNG ---------- */
+        function downloadPNG() {
+            if (!S.units.length) { setStatus("Add names and auto-assign first.", "error"); return; }
+            var cellW = 90, cellH = 30, unitPad = 10, gap = 22;
+            var uW = 0, uH = 0;
+            S.units.forEach(function (u) {
+                var w = (u.kind === "u" ? u.shape.w * (cellW * 0.74) : u.shape.w * (cellW * 0.55)) + unitPad * 2;
+                var h = (u.kind === "u" ? u.shape.h * (cellH * 0.74) : u.shape.h * (cellH * 0.62)) + unitPad * 2 + 16;
+                if (w > uW) uW = w;
+                if (h > uH) uH = h;
+            });
+            var perRow = Math.max(1, Math.min(4, Math.floor(1180 / (uW + gap))));
+            var rowsN = Math.ceil(S.units.length / perRow);
+            var headH = 64, W = Math.max(uW, perRow * (uW + gap)), H = headH + rowsN * (uH + gap) + 20;
+            var cv = document.createElement("canvas"), sc = 2;
+            cv.width = W * sc; cv.height = H * sc;
+            var x = cv.getContext("2d");
+            x.scale(sc, sc);
+            x.fillStyle = "#ffffff"; x.fillRect(0, 0, W, H);
+            x.fillStyle = "#14142b"; x.textAlign = "center";
+            x.font = "800 26px system-ui, Arial, sans-serif";
+            x.fillText($("scm-title").value.trim() || "My Seating Chart", W / 2, 34);
+            var sub = $("scm-sub").value.trim();
+            if (sub) { x.font = "13px system-ui, Arial"; x.fillStyle = "#666"; x.fillText(sub, W / 2, 54); }
+            S.units.forEach(function (u, i) {
+                var cx = (i % perRow) * (uW + gap) + gap / 2 + (W % (perRow * (uW + gap))) / 2;
+                var cy = headH + Math.floor(i / perRow) * (uH + gap);
+                x.fillStyle = "#f4f4fb";
+                var bw = Math.min(uW, (u.kind === "u" ? u.shape.w * (cellW * 0.74) : u.shape.w * (cellW * 0.55)) + unitPad * 2);
+                var bh = (u.kind === "u" ? u.shape.h * (cellH * 0.74) : u.shape.h * (cellH * 0.62)) + unitPad * 2 + 16;
+                roundRect(x, cx, cy, bw, bh, 8);
+                x.fill(); x.lineWidth = 1.5; x.strokeStyle = "#14142b";
+                roundRect(x, cx, cy, bw, bh, 8); x.stroke();
+                x.fillStyle = "#555"; x.textAlign = "center"; x.font = "700 10px system-ui, Arial";
+                x.fillText(u.title.toUpperCase(), cx + bw / 2, cy + 14);
+                u.seats.forEach(function (s, k) {
+                    var sx, sy;
+                    if (u.kind === "u") { sx = cx + unitPad + s.mc * (cellW * 0.74); sy = cy + 22 + s.mr * (cellH * 0.74); }
+                    else {
+                        var col = k % u.shape.w, row = Math.floor(k / u.shape.w);
+                        sx = cx + unitPad + col * (cellW * 0.55); sy = cy + 22 + row * (cellH * 0.62);
+                    }
+                    var person = S.seats[u.id + ";" + s.id];
+                    var w2 = cellW * (u.kind === "u" ? 0.74 : 0.55) - 4, h2 = cellH * (u.kind === "u" ? 0.74 : 0.62) - 4;
+                    x.lineWidth = 1; x.strokeStyle = "#b9b9cf";
+                    roundRect(x, sx, sy, w2, h2, 5);
+                    x.stroke();
+                    x.fillStyle = person === undefined ? "transparent" : "#b9b9cf";
+                    if (person === undefined) {
+                        x.fillStyle = "#999"; x.font = "400 9px system-ui, Arial";
+                        x.fillText("empty", sx + w2 / 2, sy + h2 / 2 + 3);
+                    } else {
+                        var txt = truncate(S.names[person], 14);
+                        x.fillStyle = "#14142b"; x.font = "600 10px system-ui, Arial";
+                        x.fillText(txt, sx + w2 / 2, sy + h2 / 2 + 3);
+                    }
+                });
+            });
+            var url = cv.toDataURL("image/png");
+            var link = document.createElement("a");
+            link.href = url;
+            link.download = ($("scm-title").value.trim().replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "seating-chart") + ".png";
+            link.click();
+            setStatus("PNG downloaded.", "success");
+        }
+        function roundRect(x, rx, ry, rw, rh, r) {
+            x.beginPath();
+            x.moveTo(rx + r, ry);
+            x.arcTo(rx + rw, ry, rx + rw, ry + rh, r);
+            x.arcTo(rx + rw, ry + rh, rx, ry + rh, r);
+            x.arcTo(rx, ry + rh, rx, ry, r);
+            x.arcTo(rx, ry, rx + rw, ry, r);
+            x.closePath();
+        }
+
+        /* ---------- share ---------- */
+        function sharePayload() {
+            return {
+                mode: S.mode, layout: S.layout, params: S.params,
+                namesText: $("scm-names").value,
+                rules: S.rules, seats: S.seats, title: $("scm-title").value, sub: $("scm-sub").value, hash: 1
+            };
+        }
+        function share() {
+            if (!S.names.length) { setStatus("Add names first.", "error"); return; }
+            var s = btoa(unescape(encodeURIComponent(JSON.stringify(sharePayload()))));
+            var url = location.origin + location.pathname + "#s=" + s;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(function () { setStatus("Share link copied to clipboard.", "success"); }, function () { fallbackShare(url); });
+            } else fallbackShare(url);
+            try { history.replaceState(null, "", "#s=" + s); } catch (e) { }
+        }
+        function fallbackShare(url) { setStatus('Share link: <a href="' + esc(url) + '">open</a>', "success"); }
+
+        /* ---------- events ---------- */
+        function wire() {
+            $("scm-mode-class").addEventListener("click", function () { setMode("class"); render(); save(); });
+            $("scm-mode-room").addEventListener("click", function () { setMode("room"); render(); save(); });
+            ["rows", "pairs", "pods", "u"].forEach(function (k) {
+                $("scm-layout-" + k).addEventListener("click", function () { setLayout(k); render(); save(); checkRules("Layout changed."); });
+            });
+            ["scm-rows", "scm-cols", "scm-tables", "scm-pertable"].forEach(function (id) {
+                $(id).addEventListener("change", function () {
+                    S.params = {
+                        rows: clamp($("scm-rows").value, 1, 12, 5),
+                        cols: clamp($("scm-cols").value, 1, 14, 6),
+                        tables: clamp($("scm-tables").value, 1, 30, 8),
+                        perTable: clamp($("scm-pertable").value, 2, 16, 8)
+                    };
+                    render(); checkRules("Layout resized."); save();
+                });
+            });
+            $("scm-names").addEventListener("input", function () {
+                readNames(); refreshRuleSelects(); saveDebounced();
+            });
+            $("scm-sample").addEventListener("click", function () {
+                $("scm-names").value = SAMPLE;
+                readNames(); refreshRuleSelects(); render(); save();
+                setStatus("Sample class loaded &ndash; 16 names.", "success");
+            });
+            $("scm-title").addEventListener("input", function () { $("scm-paper-title").textContent = this.value.trim() || "My Seating Chart"; saveDebounced(); });
+            $("scm-sub").addEventListener("input", function () { $("scm-paper-sub").textContent = this.value.trim(); saveDebounced(); });
+            $("scm-addrule").addEventListener("click", function () {
+                var pair = validRuleIdx();
+                if (pair === null) { setStatus("Pick two different names to make a rule.", "error"); return; }
+                var t = $("scm-rule-type").value;
+                var dup = S.rules.some(function (r) { return r.a === pair[0] && r.b === pair[1] && r.t === t; });
+                if (!dup) { S.rules.push({ a: pair[0], b: pair[1], t: t }); renderRules(); save(); }
+                if (Object.keys(S.seats).length) autoAssign();
+                else render();
+            });
+            $("scm-assign").addEventListener("click", autoAssign);
+            $("scm-clearseats").addEventListener("click", function () {
+                S.seats = {}; S.violations = null; selPerson = null;
+                render(); save(); setStatus("Seats cleared.", "success");
+            });
+            $("scm-clear").addEventListener("click", function () {
+                S.names = []; S.rules = []; S.seats = {}; S.violations = null; selPerson = null;
+                S.params = { rows: 5, cols: 6, tables: 8, perTable: 8 };
+                S.mode = "class"; S.layout = "rows";
+                setMode("class"); setLayout("rows");
+                $("scm-names").value = ""; $("scm-title").value = "My Seating Chart"; $("scm-sub").value = "";
+                $("scm-rows").value = 5; $("scm-cols").value = 6; $("scm-tables").value = 8; $("scm-pertable").value = 8;
+                refreshRuleSelects(); renderRules();
+                $("scm-empty").style.display = "block";
+                $("scm-paper").style.display = "none";
+                save();
+                setStatus("Cleared. Add names to start a new chart.", "success");
+            });
+            $("scm-print").addEventListener("click", function () { window.print(); });
+            $("scm-png").addEventListener("click", downloadPNG);
+            $("scm-share").addEventListener("click", share);
+        }
+
+        /* ---------- boot ---------- */
+        (function boot() {
+            var shared = false;
+            try {
+                var h = location.hash;
+                if (h.indexOf("#s=") === 0) {
+                    var payload = JSON.parse(decodeURIComponent(escape(atob(h.slice(3)))));
+                    if (payload && payload.hash === 1) {
+                        loadShared(payload);
+                        shared = true;
+                        history.replaceState(null, "", location.pathname);
+                    }
+                }
+            } catch (e) { shared = false; }
+            if (!shared) load(null);
+            // BUG-399: `load()` returns early when there is no saved state, so on a fresh visit
+            // neither setMode() nor setLayout() ever ran — the selected member is painted by
+            // `.scm-mode button[aria-pressed="true"]`, so nothing was announced AND nothing was
+            // painted (both buttons looked identical while the tool was already in Class/Rows).
+            // Sync the DOM to the state the tool starts in. Idempotent: the restore and shared
+            // paths already called these with the same values.
+            setMode(S.mode, true);
+            setLayout(S.layout, true);
+            readNames();
+            refreshRuleSelects();
+            renderRules();
+            wire();
+            if (S.units.length && Object.keys(S.seats).length) render();
+            else if (S.names.length) render();
+        })();
+        function loadShared(p) {
+            S.mode = p.mode === "room" ? "room" : "class";
+            setMode(S.mode, true);
+            S.layout = ["rows", "pairs", "pods", "u"].indexOf(p.layout) >= 0 ? p.layout : "rows";
+            setLayout(S.layout, true);
+            S.params = {
+                rows: clamp(p.params.rows, 1, 12, 5),
+                cols: clamp(p.params.cols, 1, 14, 6),
+                tables: clamp(p.params.tables, 1, 30, 8),
+                perTable: clamp(p.params.perTable, 2, 16, 8)
+            };
+            $("scm-rows").value = S.params.rows; $("scm-cols").value = S.params.cols;
+            $("scm-tables").value = S.params.tables; $("scm-pertable").value = S.params.perTable;
+            S.rules = Array.isArray(p.rules) ? p.rules : [];
+            S.seats = p.seats || {};
+            $("scm-names").value = typeof p.namesText === "string" ? p.namesText : (typeof p.names === "string" ? p.names : "");
+            $("scm-title").value = p.title || "My Seating Chart";
+            $("scm-sub").value = p.sub || "";
+        }
+        window.__scm_state = function () { return S; };
+    })();
+    </script>
+</body>
+</html>

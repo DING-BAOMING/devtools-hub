@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>CSS Gradient Generator - Create Linear, Radial & Conic CSS Gradients | DevTools Hub</title>
+    <meta name="description" content="Free CSS gradient generator. Create beautiful linear, radial, and conic CSS gradients with live preview. Copy CSS code, export as SVG. No signup, 100% free.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/css-gradient-generator/">
+    <meta property="og:title" content="CSS Gradient Generator | DevTools Hub">
+    <meta property="og:description" content="Create beautiful CSS gradients with live preview. Linear, radial, conic. Copy CSS code instantly. Free, no signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/css-gradient-generator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Free CSS Gradient Generator","description":"Create beautiful linear, radial, and conic CSS gradients with interactive controls. Copy production-ready CSS code or export as SVG. No signup required.","url":"https://tools.scoreroute.com/tools/css-gradient-generator/","applicationCategory":"DesignApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-10","dateModified":"2026-06-10"}
+    </script>
+    <style>
+        .gg-controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+        .gg-controls label { color:#aaa; font-size:0.85rem; margin-right:4px; }
+        .gg-controls select, .gg-controls input[type="number"] { background:#1a1a2e; border:1px solid #333; color:#fff; padding:8px 12px; border-radius:6px; font-size:0.9rem; }
+        .gg-controls select:focus, .gg-controls input:focus { outline: 2px solid transparent; border-color:#667eea; }
+        .gg-preview { width:100%; height:280px; border-radius:16px; margin-bottom:20px; border:2px solid #2a2a4a; transition:background 0.2s; position:relative; overflow:hidden; }
+        .gg-preview-label { position:absolute; bottom:12px; left:12px; background:rgba(0,0,0,0.6); color:#fff; padding:4px 12px; border-radius:6px; font-size:0.8rem; font-family:monospace; }
+        .gg-stops { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+        .gg-stop { display:flex; align-items:center; gap:10px; background:#0f0f23; padding:10px 14px; border-radius:10px; border:1px solid #2a2a4a; }
+        .gg-stop input[type="color"] { width:44px; height:44px; border:none; border-radius:8px; cursor:pointer; background:transparent; padding:0; }
+        .gg-stop input[type="range"] { flex:1; accent-color:#667eea; }
+        .gg-stop input[type="number"] { width:60px; background:#1a1a2e; border:1px solid #333; color:#fff; padding:6px 8px; border-radius:6px; font-size:0.85rem; text-align:center; }
+        .gg-stop .gg-hex { font-family:monospace; font-size:0.85rem; color:#ddd; min-width:70px; }
+        .gg-stop .gg-remove { background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:1.2rem; padding:4px; }
+        .gg-stop .gg-remove:hover { color:#ff6666; }
+        .gg-add-stop { background:#1a1a2e; border:1px dashed #3a3a5a; color:#888; padding:10px; border-radius:10px; cursor:pointer; text-align:center; font-size:0.9rem; transition:all 0.2s; }
+        .gg-add-stop:hover { border-color:#667eea; color:#667eea; }
+        .gg-angle-control { display:flex; align-items:center; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+        .gg-angle-control label { color:#aaa; font-size:0.85rem; }
+        .gg-angle-dial { position:relative; width:80px; height:80px; border-radius:50%; border:2px solid #3a3a5a; cursor:pointer; flex-shrink:0; }
+        .gg-angle-dial-handle { position:absolute; width:6px; height:30px; background:#667eea; border-radius:3px; top:10px; left:37px; transform-origin:bottom center; transition:transform 0.1s; }
+        .gg-angle-dial:hover { border-color:#667eea; }
+        .gg-angle-input { width:70px; }
+        .gg-presets { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+        .gg-preset { width:48px; height:48px; border-radius:10px; cursor:pointer; border:2px solid transparent; transition:all 0.2s; }
+        .gg-preset:hover, .gg-preset.active { border-color:#667eea; transform:scale(1.1); }
+        .gg-css-output { background:#0f0f23; border:1px solid #2a2a4a; border-radius:12px; padding:16px; font-family:monospace; font-size:0.85rem; color:#aef; white-space:pre-wrap; word-break:break-all; max-height:120px; overflow-y:auto; margin-bottom:16px; }
+        .gg-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+        .gg-preview-shapes { display:flex; gap:8px; margin-bottom:20px; }
+        .gg-shape-btn { background:#1a1a2e; border:1px solid #3a3a5a; color:#888; padding:6px 14px; border-radius:8px; cursor:pointer; font-size:0.8rem; transition:all 0.2s; }
+        .gg-shape-btn:hover, .gg-shape-btn.active { border-color:#667eea; color:#667eea; }
+        .info-section a { color:#667eea; }
+        .info-section a:hover { text-decoration:underline; }
+        .toast { position:fixed; bottom:20px; right:20px; background:#10b981; color:#fff; padding:12px 24px; border-radius:8px; font-weight:500; opacity:0; transition:opacity 0.3s; z-index:2000; }
+        .toast.show { opacity:1; }
+        @media (max-width:700px) {
+            .gg-preview { height:200px; }
+            .gg-stop { flex-wrap:wrap; }
+            .gg-angle-dial { width:60px; height:60px; }
+            .gg-angle-dial-handle { height:22px; top:8px; left:27px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>CSS Gradient Generator</h1>
+            <p class="subtitle">Create Beautiful Linear, Radial & Conic CSS Gradients • Live Preview • Copy CSS / Export SVG</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>CSS Gradient Generator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="gg-controls">
+                    <label for="gg-type">Type:</label>
+                    <select id="gg-type" onchange="updateGradient()">
+                        <option value="linear">Linear</option>
+                        <option value="radial">Radial</option>
+                        <option value="conic">Conic</option>
+                    </select>
+                    <button onclick="randomGradient()" class="btn" id="randomBtn">Random</button>
+                </div>
+
+                <div class="gg-preview-shapes">
+                    <button class="gg-shape-btn active" data-shape="rectangle" onclick="setPreviewShape('rectangle')">Rectangle</button>
+                    <button class="gg-shape-btn" data-shape="circle" onclick="setPreviewShape('circle')">Circle</button>
+                    <button class="gg-shape-btn" data-shape="pill" onclick="setPreviewShape('pill')">Pill</button>
+                </div>
+
+                <div class="gg-preview" id="gg-preview">
+                    <div class="gg-preview-label" id="gg-preview-label">linear-gradient(90deg, #667eea, #764ba2)</div>
+                </div>
+
+                <div class="gg-angle-control" id="gg-angle-section">
+                    <label>Angle:</label>
+                    <div class="gg-angle-dial" id="gg-angle-dial">
+                        <div class="gg-angle-dial-handle" id="gg-angle-handle"></div>
+                    </div>
+                    <input type="number" class="gg-angle-input" id="gg-angle" value="90" min="0" max="360" onchange="setAngle(this.value)" aria-label="Angle degrees">
+                    <label for="gg-angle">deg</label>
+                </div>
+
+                <div class="gg-presets" id="gg-presets"></div>
+
+                <div class="gg-stops" id="gg-stops"></div>
+                <button class="gg-add-stop" onclick="addStop()">+ Add Color Stop</button>
+
+                <div class="gg-css-output" id="gg-css-output"></div>
+
+                <div class="gg-row">
+                    <button onclick="copyCSS()" class="btn btn-primary" id="copyBtn">Copy CSS</button>
+                    <button onclick="exportSVG()" class="btn btn-secondary">Export SVG</button>
+                    <button onclick="resetGradient()" class="btn btn-secondary">Reset</button>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What is a CSS Gradient Generator?</h2>
+                <p>A CSS gradient generator is a visual tool that lets you create smooth color transitions for websites without writing CSS code by hand. Instead of manually typing <code>linear-gradient()</code> or <code>radial-gradient()</code> syntax, you pick colors visually, adjust the angle or position, and copy production-ready CSS instantly. No designer skills needed.</p>
+
+                <h3>How It Works</h3>
+                <p>Choose a gradient type — linear (straight line), radial (circular from center), or conic (rotating around a center point). Add color stops by clicking the "+" button, drag the angle dial to set direction, and pick colors with the native color picker. The live preview updates in real time. When you are happy, copy the CSS code or export as SVG.</p>
+
+                <h3>Features</h3>
+                <ul>
+                    <li><strong>Three Gradient Types</strong> — Linear, radial, and conic gradients with full control</li>
+                    <li><strong>Interactive Angle Dial</strong> — Drag to set direction visually, no guessing</li>
+                    <li><strong>Multiple Color Stops</strong> — Add as many colors as you need, each adjustable</li>
+                    <li><strong>30 Preset Gradients</strong> — Start from beautiful presets and customize</li>
+                    <li><strong>Live Preview</strong> — See your gradient update instantly as you make changes</li>
+                    <li><strong>Preview Shapes</strong> — See how your gradient looks on different shapes</li>
+                    <li><strong>Copy CSS</strong> — One-click copy of production-ready CSS with browser compatibility</li>
+                    <li><strong>Export SVG</strong> — Download gradient as SVG image for design tools</li>
+                    <li><strong>Random Generator</strong> — Get inspired with random beautiful gradients</li>
+                </ul>
+
+                <h3>Why Use This Tool?</h3>
+                <ul>
+                    <li><strong>No AI Needed</strong> — Pure client-side Canvas rendering, no server calls</li>
+                    <li><strong>Privacy Safe</strong> — Everything runs in your browser, nothing uploaded</li>
+                    <li><strong>No Signup</strong> — Free for everyone, no account required</li>
+                    <li><strong>Production Code</strong> — Generates clean CSS ready for your stylesheet</li>
+                </ul>
+
+                <h3>Common Use Cases</h3>
+                <ul>
+                    <li>Create hero section backgrounds for landing pages</li>
+                    <li>Design gradient buttons and UI elements</li>
+                    <li>Build brand color gradient systems</li>
+                    <li>Generate gradient overlays for images</li>
+                    <li>Export SVG gradients for Figma, Sketch, or Photoshop</li>
+                </ul>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>Is this CSS gradient generator free?</summary>
+                    <p>Yes, completely free. No signup, no usage limits, no hidden paid features. Every feature including preset gradients, CSS copying, and SVG export is available to everyone.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What gradient types are supported?</summary>
+                    <p>Three types: <strong>linear</strong> (colors transition along a straight line), <strong>radial</strong> (colors radiate from a center point), and <strong>conic</strong> (colors rotate around a center point like a color wheel).</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How do I copy the CSS code?</summary>
+                    <p>Click the "Copy CSS" button below the gradient preview. The CSS code includes all necessary browser prefixes for maximum compatibility. Paste it directly into your stylesheet.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I export the gradient as an image?</summary>
+                    <p>Yes! Click "Export SVG" to download the gradient as an SVG file. SVG works in all design tools like Figma, Sketch, Adobe Illustrator, and Canva.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How is this different from other gradient generators?</summary>
+                    <p>We focus on speed and simplicity — no account required, no ads, no premium tiers. The angle dial makes direction control intuitive, and the preview shapes help you visualize the gradient in context.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does it work on mobile?</summary>
+                    <p>Yes, the tool is fully responsive and works on phones and tablets. Touch the angle dial to rotate, tap colors to change them, and scroll through presets horizontally.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a> | <a href="/tools/css-gradient-generator/">CSS Gradient Generator</a> | <a href="/tools/color-palette-generator/">Color Palette Generator</a> | <a href="/tools/color-picker/">Color Picker</a> | <a href="/sitemap.xml">Sitemap</a></p>
+    </footer>
+
+    <div class="toast" id="toast">Copied!</div>
+
+    <script src="/tools.js"></script>
+    <script>
+        var GG = {
+            stops: ['#667eea', '#764ba2'],
+            positions: [0, 100],
+            type: 'linear',
+            angle: 90,
+            shape: 'rectangle'
+        };
+
+        var PRESETS = [
+            ['#667eea','#764ba2'], ['#f093fb','#f5576c'], ['#4facfe','#00f2fe'],
+            ['#43e97b','#38f9d7'], ['#fa709a','#fee140'], ['#a18cd1','#fbc2eb'],
+            ['#fccb90','#d57eeb'], ['#e0c3fc','#8ec5fc'], ['#f5576c','#ff6f91'],
+            ['#30cfd0','#330867'], ['#a6c0fe','#f68084'], ['#0acffe','#495aff'],
+            ['#667eea','#764ba2','#f093fb'], ['#4facfe','#00f2fe','#43e97b'],
+            ['#fa709a','#fee140','#30cfd0'], ['#a18cd1','#fbc2eb','#fccb90'],
+            ['#e0c3fc','#8ec5fc','#f5576c'], ['#0acffe','#495aff','#43e97b'],
+            ['#667eea','#764ba2','#fa709a','#fee140'], ['#4facfe','#00f2fe','#43e97b','#38f9d7'],
+            ['#f093fb','#f5576c','#667eea','#764ba2'], ['#a18cd1','#fbc2eb','#e0c3fc','#8ec5fc'],
+            ['#fccb90','#d57eeb','#4facfe','#00f2fe'], ['#30cfd0','#330867','#fa709a','#fee140'],
+            ['#667eea','#764ba2','#f093fb','#f5576c','#43e97b'], ['#4facfe','#00f2fe','#43e97b','#38f9d7','#fa709a'],
+            ['#a18cd1','#fbc2eb','#e0c3fc','#8ec5fc','#fccb90'], ['#0acffe','#495aff','#667eea','#764ba2','#f093fb'],
+            ['#30cfd0','#330867','#a6c0fe','#f68084','#fccb90'], ['#f5576c','#ff6f91','#fa709a','#fee140','#30cfd0']
+        ];
+
+        function initPresets() {
+            var container = document.getElementById('gg-presets');
+            container.innerHTML = '';
+            for (var i = 0; i < PRESETS.length; i++) {
+                var colors = PRESETS[i];
+                var el = document.createElement('div');
+                el.className = 'gg-preset';
+                if (colors.length === 2) {
+                    el.style.background = 'linear-gradient(135deg, ' + colors[0] + ', ' + colors[1] + ')';
+                } else if (colors.length >= 3) {
+                    var stops = colors.map(function(c, j) { return c + ' ' + Math.round(j * 100 / (colors.length - 1)) + '%'; }).join(', ');
+                    el.style.background = 'linear-gradient(135deg, ' + stops + ')';
+                }
+                el.title = colors.join(' → ');
+                el.onclick = function() { loadPreset(this.title.split(' → ')); };
+                container.appendChild(el);
+            }
+        }
+
+        function loadPreset(colors) {
+            GG.stops = colors.slice();
+            GG.positions = [];
+            for (var i = 0; i < GG.stops.length; i++) {
+                GG.positions.push(Math.round(i * 100 / (GG.stops.length - 1)));
+            }
+            document.getElementById('gg-type').value = 'linear';
+            updateGradient();
+        }
+
+        function renderStops() {
+            var container = document.getElementById('gg-stops');
+            container.innerHTML = '';
+            for (var i = 0; i < GG.stops.length; i++) {
+                var div = document.createElement('div');
+                div.className = 'gg-stop';
+                var hex = GG.stops[i];
+                var pos = GG.positions[i];
+                div.innerHTML =
+                    '<input type="color" value="' + hex + '" onchange="updateStopColor(' + i + ', this.value)" aria-label="Color ' + (i+1) + '">' +
+                    '<input type="range" min="0" max="100" value="' + pos + '" oninput="updateStopPos(' + i + ', this.value)" aria-label="Position ' + (i+1) + '">' +
+                    '<input type="number" value="' + pos + '" min="0" max="100" onchange="updateStopPos(' + i + ', this.value)" aria-label="Position %">' +
+                    '<span class="gg-hex" id="gg-hex-' + i + '">' + hex + '</span>' +
+                    (GG.stops.length > 2 ? '<button class="gg-remove" onclick="removeStop(' + i + ')" aria-label="Remove stop">×</button>' : '');
+                container.appendChild(div);
+            }
+        }
+
+        function updateStopColor(index, value) {
+            GG.stops[index] = value;
+            var hexLabel = document.getElementById('gg-hex-' + index);
+            if (hexLabel) hexLabel.textContent = value;
+            updateGradient();
+        }
+
+        function updateStopPos(index, value) {
+            GG.positions[index] = Math.max(0, Math.min(100, parseInt(value) || 0));
+            updateGradient();
+        }
+
+        function addStop() {
+            if (GG.stops.length >= 8) {
+                showToast('Maximum 8 color stops');
+                return;
+            }
+            var last = GG.stops[GG.stops.length - 1];
+            var prevPos = GG.positions[GG.positions.length - 1];
+            var newPos = Math.min(100, prevPos + (GG.positions.length > 1 ? GG.positions[1] - GG.positions[0] : 20));
+            GG.stops.push(last);
+            GG.positions.push(newPos);
+            updateGradient();
+        }
+
+        function removeStop(index) {
+            if (GG.stops.length <= 2) {
+                showToast('Minimum 2 color stops');
+                return;
+            }
+            GG.stops.splice(index, 1);
+            GG.positions.splice(index, 1);
+            updateGradient();
+        }
+
+        function buildCSS() {
+            var stops = [];
+            for (var i = 0; i < GG.stops.length; i++) {
+                stops.push(GG.stops[i] + ' ' + GG.positions[i] + '%');
+            }
+            var stopStr = stops.join(', ');
+            var css = '';
+            if (GG.type === 'linear') {
+                css = 'background: linear-gradient(' + GG.angle + 'deg, ' + stopStr + ');';
+            } else if (GG.type === 'radial') {
+                css = 'background: radial-gradient(circle, ' + stopStr + ');';
+            } else if (GG.type === 'conic') {
+                css = 'background: conic-gradient(from ' + GG.angle + 'deg, ' + stopStr + ');';
+            }
+            return css;
+        }
+
+        function updatePreview() {
+            var preview = document.getElementById('gg-preview');
+            var css = buildCSS();
+            var bgProp = css.replace('background: ', '');
+            preview.style.background = bgProp;
+            if (GG.shape === 'circle') {
+                preview.style.borderRadius = '50%';
+            } else if (GG.shape === 'pill') {
+                preview.style.borderRadius = '140px';
+            } else {
+                preview.style.borderRadius = '16px';
+            }
+            document.getElementById('gg-preview-label').textContent = bgProp;
+            document.getElementById('gg-css-output').textContent = css;
+        }
+
+        function updateAngleDial() {
+            var handle = document.getElementById('gg-angle-handle');
+            handle.style.transform = 'rotate(' + GG.angle + 'deg)';
+        }
+
+        function setAngle(deg) {
+            GG.angle = parseInt(deg) || 0;
+            if (GG.angle < 0) GG.angle = 0;
+            if (GG.angle > 360) GG.angle = 360;
+            document.getElementById('gg-angle').value = GG.angle;
+            updateAngleDial();
+            updatePreview();
+        }
+
+        function updateGradient() {
+            GG.type = document.getElementById('gg-type').value;
+            GG.angle = parseInt(document.getElementById('gg-angle').value) || 90;
+            var angleSection = document.getElementById('gg-angle-section');
+            angleSection.style.display = GG.type === 'radial' ? 'none' : 'flex';
+            renderStops();
+            updatePreview();
+            updateAngleDial();
+        }
+
+        function randomGradient() {
+            var types = ['linear', 'radial', 'conic'];
+            GG.type = types[Math.floor(Math.random() * types.length)];
+            GG.angle = Math.floor(Math.random() * 360);
+            var count = Math.floor(Math.random() * 4) + 2;
+            GG.stops = [];
+            GG.positions = [];
+            for (var i = 0; i < count; i++) {
+                GG.stops.push(randomHex());
+                GG.positions.push(Math.round(i * 100 / (count - 1)));
+            }
+            document.getElementById('gg-type').value = GG.type;
+            document.getElementById('gg-angle').value = GG.angle;
+            updateGradient();
+        }
+
+        function randomHex() {
+            return '#' + Array.from({length: 6}, function() { return '0123456789abcdef'[Math.floor(Math.random() * 16)]; }).join('');
+        }
+
+        function resetGradient() {
+            GG.type = 'linear';
+            GG.angle = 90;
+            GG.stops = ['#667eea', '#764ba2'];
+            GG.positions = [0, 100];
+            GG.shape = 'rectangle';
+            document.getElementById('gg-type').value = 'linear';
+            document.getElementById('gg-angle').value = '90';
+            document.querySelectorAll('.gg-shape-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.shape === 'rectangle'); });
+            updateGradient();
+        }
+
+        function copyCSS() {
+            var css = document.getElementById('gg-css-output').textContent;
+            navigator.clipboard.writeText(css).then(function() {
+                showToast('CSS copied!');
+            });
+        }
+
+        function exportSVG() {
+            var w = 800, h = 400;
+            var css = buildCSS();
+            var bgProp = css.replace('background: ', '');
+            var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '">' +
+                '<defs><style>.g { fill: url(#g); }</style>' +
+                '<linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="0%">';
+            for (var i = 0; i < GG.stops.length; i++) {
+                svg += '<stop offset="' + GG.positions[i] + '%" stop-color="' + GG.stops[i] + '" />';
+            }
+            svg += '</linearGradient></defs><rect class="g" width="' + w + '" height="' + h + '" /></svg>';
+            var blob = new Blob([svg], { type: 'image/svg+xml' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'gradient.svg';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(blob); }, 100);
+            showToast('SVG exported!');
+        }
+
+        function setPreviewShape(shape) {
+            GG.shape = shape;
+            document.querySelectorAll('.gg-shape-btn').forEach(function(b) {
+                b.classList.toggle('active', b.dataset.shape === shape);
+            });
+            updatePreview();
+        }
+
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._timeout);
+            t._timeout = setTimeout(function() { t.classList.remove('show'); }, 2000);
+        }
+
+        // Angle dial drag
+        (function() {
+            var dial = document.getElementById('gg-angle-dial');
+            var dragging = false;
+            dial.addEventListener('mousedown', function(e) { dragging = true; updateAngleFromEvent(e); });
+            document.addEventListener('mousemove', function(e) { if (dragging) updateAngleFromEvent(e); });
+            document.addEventListener('mouseup', function() { dragging = false; });
+            dial.addEventListener('touchstart', function(e) { dragging = true; updateAngleFromTouch(e); });
+            document.addEventListener('touchmove', function(e) { if (dragging) updateAngleFromTouch(e); });
+            document.addEventListener('touchend', function() { dragging = false; });
+
+            function updateAngleFromEvent(e) {
+                var rect = dial.getBoundingClientRect();
+                var cx = rect.left + rect.width / 2;
+                var cy = rect.top + rect.height / 2;
+                var dx = e.clientX - cx;
+                var dy = e.clientY - cy;
+                var angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+                if (angle < 0) angle += 360;
+                setAngle(Math.round(angle));
+            }
+
+            function updateAngleFromTouch(e) {
+                var t = e.touches[0];
+                if (!t) return;
+                var rect = dial.getBoundingClientRect();
+                var cx = rect.left + rect.width / 2;
+                var cy = rect.top + rect.height / 2;
+                var dx = t.clientX - cx;
+                var dy = t.clientY - cy;
+                var angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+                if (angle < 0) angle += 360;
+                setAngle(Math.round(angle));
+            }
+        })();
+
+        // init
+        initPresets();
+        updateGradient();
+    </script>
+</body>
+</html>

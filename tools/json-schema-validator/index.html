@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Schema Validator - Validate JSON Against Schema Online | DevTools Hub</title>
+    <meta name="description" content="Free online JSON Schema validator. Validate JSON data against Draft-07, 2019-09, and 2020-12 schemas. Detailed error paths, all-errors mode. No signup, no storage of your data.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/json-schema-validator/">
+    <meta property="og:title" content="JSON Schema Validator - Validate JSON Against Schema Online | DevTools Hub">
+    <meta property="og:description" content="Free online JSON Schema validator. Validate JSON data against Draft-07, 2019-09, and 2020-12 schemas. Detailed error paths, all-errors mode. No signup, no storage of your data.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/json-schema-validator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="JSON Schema Validator - Validate JSON Against Schema Online | DevTools Hub">
+    <meta name="twitter:description" content="Free online JSON Schema validator. Validate JSON data against Draft-07, 2019-09, and 2020-12 schemas. Detailed error paths, all-errors mode, 100% private browser processing. No signup.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/json-schema-validator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-07-20",
+        "dateModified": "2026-07-20",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "JSON Schema Validator",
+        "description": "Validate JSON data against JSON Schema (Draft-07, 2019-09, 2020-12) with detailed error paths. 100% private browser processing.",
+        "url": "https://tools.scoreroute.com/tools/json-schema-validator/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["Validate JSON against JSON Schema", "Support Draft-07, 2019-09, 2020-12", "Detailed error paths with JSON Pointer", "All-errors mode", "Copy error report", "100% private browser processing"]
+    }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>JSON Schema Validator</h1>
+            <p class="subtitle">Validate JSON Data Against Any JSON Schema Instantly</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>JSON Schema Validator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="schema-container">
+                    <div class="schema-pane">
+                        <div class="pane-header">
+                            <label for="json-data">JSON Data</label>
+                            <span class="pane-badge" id="data-status"></span>
+                        </div>
+                        <textarea id="json-data" class="schema-input" placeholder='Paste your JSON data here, e.g.:&#10;{"name": "John", "age": 30}' spellcheck="false" aria-label="JSON data to validate"></textarea>
+                    </div>
+                    <div class="schema-pane">
+                        <div class="pane-header">
+                            <label for="json-schema">JSON Schema</label>
+                            <span class="pane-badge" id="schema-status"></span>
+                        </div>
+                        <textarea id="json-schema" class="schema-input" placeholder='Paste your JSON Schema here, e.g.:&#10;{"type": "object","properties": {"name": {"type": "string"},"age": {"type": "integer","minimum": 0}},"required": ["name","age"]}' spellcheck="false" aria-label="JSON Schema definition"></textarea>
+                    </div>
+                </div>
+                <div class="schema-controls">
+                    <div class="schema-controls-row">
+                        <div class="draft-selector">
+                            <label for="draft-select">Schema Draft:</label>
+                            <select id="draft-select">
+                                <option value="auto">Auto-detect</option>
+                                <option value="2020-12">Draft 2020-12</option>
+                                <option value="2019-09">Draft 2019-09</option>
+                                <option value="07">Draft-07</option>
+                            </select>
+                        </div>
+                        <div class="btn-group">
+                            <button onclick="validateSchema()" class="btn btn-primary">Validate</button>
+                            <button onclick="loadSample()" class="btn">Load Sample</button>
+                            <button onclick="clearAll()" class="btn btn-secondary">Clear All</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="schema-result" class="schema-result">
+                    <div class="result-header" id="result-header">
+                        <span class="result-icon" id="result-icon"></span>
+                        <span class="result-text" id="result-text">Click "Validate" to check your JSON against the schema</span>
+                    </div>
+                    <div id="result-details" class="result-details"></div>
+                    <div id="result-actions" class="result-actions" style="display:none;">
+                        <button onclick="copyErrors()" class="copy-btn">Copy Errors</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What is JSON Schema Validator?</h2>
+                <p>A JSON Schema Validator is a tool that checks whether a JSON document conforms to a predefined schema. The schema defines the expected structure: which properties are required, what data types they should be (string, number, boolean, array, object), value constraints (minimum, maximum, pattern, enum), and nested object shapes. Unlike JSON syntax validation which only checks if the JSON is well-formed, schema validation verifies that the data meets your specific contract requirements.</p>
+                <p>JSON Schema is the industry standard for API contract validation, configuration file verification, and form data validation. OpenAPI 3.1 uses JSON Schema Draft 2020-12 natively. This tool uses Ajv (Another JSON Schema Validator) — the fastest and most widely-used JSON Schema validator in JavaScript, used by millions of projects including webpack and ESLint.</p>
+
+                <h2>Why AI Cannot Validate JSON Against Schema</h2>
+                <p>Large Language Models, such as ChatGPT, Claude, and Gemini, are not reliable for validating JSON data against a schema. The issue is that these models can produce false positives, where they claim your data is valid even if it violates schema rules. On the other hand, they can also report errors that do not exist, known as false negatives.</p>
+                <p>Generating correct JSON Pointer paths, like <code>/users/0/email</code>, is a problem for these models. They tend to invent paths that do not match the RFC 6901 standard. This is particularly troublesome for deeply nested schemas that use <code>$ref</code>, <code>allOf</code>, or <code>oneOf</code>, which require recursive tree traversal. Text prediction models are not capable of executing this type of traversal correctly.</p>
+                <p>If you ask the same question twice, you are likely to get different answers. This lack of consistency is a concern. Additionally, when you paste proprietary API contracts into ChatGPT or Claude, your data is sent to third-party servers.</p>
+                <p>Our validator is deterministic, meaning it produces the same output every time for a given input. It runs on our server with your data processed in memory and never stored, so you can be sure your data is not being sent elsewhere. This results in bit-identical results every time, guaranteeing consistent and reliable validation.</p>
+
+                <h3>How to Use</h3>
+                <ol>
+                    <li>Paste your JSON data into the left textarea</li>
+                    <li>Paste your JSON Schema into the right textarea</li>
+                    <li>Select the schema draft version (or leave on Auto-detect)</li>
+                    <li>Click <strong>Validate</strong> — results appear instantly</li>
+                    <li>If errors are found, each shows the JSON Pointer path, the failing keyword, and a human-readable message</li>
+                    <li>Click <strong>Copy Errors</strong> to share the error report</li>
+                </ol>
+
+                <h3>Supported Schema Drafts</h3>
+                <ul>
+                    <li><strong>Draft 2020-12</strong> (default for new projects) — used by OpenAPI 3.1, uses <code>$defs</code>, <code>prefixItems</code>, <code>$dynamicRef</code></li>
+                    <li><strong>Draft 2019-09</strong> — transitional version between Draft-07 and 2020-12</li>
+                    <li><strong>Draft-07</strong> (most common) — used by Helm charts, VS Code settings, older Ajv configs, OpenAPI 3.0</li>
+                </ul>
+                <p>When set to <strong>Auto-detect</strong>, the validator reads the <code>$schema</code> field from your schema. If absent, it falls back to Draft-07 for maximum compatibility.</p>
+
+                <h3>Common Errors & Solutions</h3>
+                <div class="example-box">
+                    <div class="example-item">
+                        <strong>Missing Required Property</strong>
+                        <code>data/email — required — must have required property 'email'</code>
+                        <span style="color: #10b981; display: block; margin-top: 4px;">Fix: Add the missing property to your JSON data</span>
+                    </div>
+                    <div class="example-item">
+                        <strong>Type Mismatch</strong>
+                        <code>data/age — type — must be string, got number</code>
+                        <span style="color: #10b981; display: block; margin-top: 4px;">Fix: Ensure the value matches the type declared in the schema</span>
+                    </div>
+                    <div class="example-item">
+                        <strong>Value Out of Range</strong>
+                        <code>data/quantity — minimum — must be >= 0, got -5</code>
+                        <span style="color: #10b981; display: block; margin-top: 4px;">Fix: Adjust the value to fall within the schema's constraints</span>
+                    </div>
+                    <div class="example-item">
+                        <strong>Pattern Not Matched</strong>
+                        <code>data/email — pattern — must match pattern "^\\S+@\\S+\\.\\S+$"</code>
+                        <span style="color: #10b981; display: block; margin-top: 4px;">Fix: Ensure the value satisfies the regex pattern defined in the schema</span>
+                    </div>
+                </div>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>What drafts of JSON Schema are supported?</summary>
+                    <p>Draft-07, Draft 2019-09, and Draft 2020-12. The validator auto-detects the draft from your schema's <code>$schema</code> field, or you can manually select one. For new projects in 2026, use Draft 2020-12 — it is what OpenAPI 3.1 uses natively.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is my data sent to any server?</summary>
+                    <p>Yes - but only to our own Cloudflare Function which runs Ajv (the industry-standard JSON Schema validator) and returns validation results. Your data is processed in-memory and is not stored, logged, or shared. This function is part of the same Cloudflare Pages project, not a third-party service.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is all-errors mode?</summary>
+                    <p>By default, the validator reports every violation in a single pass rather than stopping at the first error. This means you can see all issues at once and fix them before re-validating — much more efficient than fixing errors one at a time.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does this tool support external $ref?</summary>
+                    <p>External HTTP(S) <code>$ref</code> references are intentionally disabled for privacy and security. Internal <code>$ref</code> pointers (<code>#/$defs/Foo</code>, <code>#/properties/bar</code>) resolve automatically within the same schema document.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I use this for OpenAPI validation?</summary>
+                    <p>This tool validates JSON Schema definitions, which are the foundation of OpenAPI 3.1. You can paste individual schema components from an OpenAPI spec. For full OpenAPI document validation (paths, operations, security), we recommend a dedicated OpenAPI linter.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What is the difference between JSON syntax validation and schema validation?</summary>
+                    <p>JSON syntax validation checks if your text is valid JSON (proper brackets, quotes, commas). Schema validation goes further — it checks if the data meets your specific contract: required fields present, correct data types, values within allowed ranges, patterns matched, enums respected. Our site also has a <a href="/tools/json-formatter/">JSON Formatter</a> for syntax validation and formatting.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Does it work offline?</summary>
+                    <p>No - this tool requires an internet connection because validation is performed by a Cloudflare Function running Ajv. However, your data is processed securely and never stored.</p>
+                </details>
+
+                <h3>Related Tools</h3>
+                <ul>
+                    <li><a href="/tools/json-formatter/">JSON Formatter</a> — Format, validate and beautify JSON</li>
+                    <li><a href="/tools/yaml-validator/">YAML Validator</a> — Validate and format YAML</li>
+                    <li><a href="/tools/xml-formatter/">XML Formatter</a> — Format and validate XML</li>
+                    <li><a href="/tools/json-to-typescript/">JSON to TypeScript</a> — Generate TypeScript types from JSON</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+        </div>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    function validateSchema() {
+        var dataText = document.getElementById('json-data').value.trim();
+        var schemaText = document.getElementById('json-schema').value.trim();
+        var draft = document.getElementById('draft-select').value;
+        var resultDiv = document.getElementById('schema-result');
+        var header = document.getElementById('result-header');
+        var icon = document.getElementById('result-icon');
+        var text = document.getElementById('result-text');
+        var details = document.getElementById('result-details');
+        var actions = document.getElementById('result-actions');
+        var dataStatus = document.getElementById('data-status');
+        var schemaStatus = document.getElementById('schema-status');
+
+        details.innerHTML = '';
+        actions.style.display = 'none';
+        dataStatus.textContent = '';
+        schemaStatus.textContent = '';
+
+        if (!dataText) {
+            showValidationResult('error', 'Please paste JSON data to validate.');
+            return;
+        }
+        if (!schemaText) {
+            showValidationResult('error', 'Please paste a JSON Schema to validate against.');
+            return;
+        }
+
+        try { JSON.parse(dataText); dataStatus.textContent = 'Valid JSON'; dataStatus.className = 'pane-badge valid'; }
+        catch (e) { dataStatus.textContent = 'Invalid JSON'; dataStatus.className = 'pane-badge error'; showValidationResult('error', 'JSON Data has syntax errors. Fix them before schema validation.'); return; }
+
+        try { JSON.parse(schemaText); schemaStatus.textContent = 'Valid JSON'; schemaStatus.className = 'pane-badge valid'; }
+        catch (e) { schemaStatus.textContent = 'Invalid JSON'; schemaStatus.className = 'pane-badge error'; showValidationResult('error', 'Schema has JSON syntax errors. Fix them before validation.'); return; }
+
+        showValidationResult('info', 'Validating...');
+
+        fetch('/api/json-schema-validator', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: dataText, schema: schemaText, draft: draft })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+            if (result.error) {
+                showValidationResult('error', result.error);
+                return;
+            }
+            if (result.valid) {
+                showValidationResult('valid', 'JSON data is valid against the schema.');
+            } else {
+                showValidationResult('invalid', 'Found ' + result.errorCount + ' validation error' + (result.errorCount > 1 ? 's' : '') + ':');
+                renderErrors(result.errors);
+                actions.style.display = 'block';
+            }
+        })
+        .catch(function(err) {
+            showValidationResult('error', 'Validation request failed: ' + err.message);
+        });
+    }
+
+    function showValidationResult(type, message) {
+        var header = document.getElementById('result-header');
+        var icon = document.getElementById('result-icon');
+        var text = document.getElementById('result-text');
+        header.className = 'result-header ' + type;
+        if (type === 'valid') {
+            icon.textContent = '\u2713';
+            header.style.borderLeft = '4px solid #10b981';
+        } else if (type === 'invalid') {
+            icon.textContent = '\u2717';
+            header.style.borderLeft = '4px solid #ef4444';
+        } else {
+            icon.textContent = '!';
+            header.style.borderLeft = '4px solid #f59e0b';
+        }
+        text.textContent = message;
+    }
+
+    function renderErrors(errors) {
+        var details = document.getElementById('result-details');
+        details.innerHTML = '';
+        for (var i = 0; i < errors.length; i++) {
+            var e = errors[i];
+            var div = document.createElement('div');
+            div.className = 'error-item';
+            var paramsStr = '';
+            if (e.params) {
+                if (e.params.missingProperty) paramsStr = ' (missing: ' + e.params.missingProperty + ')';
+                else if (e.params.allowedValues) paramsStr = ' (allowed: ' + JSON.stringify(e.params.allowedValues) + ')';
+                else if (e.params.additionalProperty) paramsStr = ' (unexpected: ' + e.params.additionalProperty + ')';
+            }
+            div.innerHTML = '<code class="error-path">' + escapeHtml(e.path) + '</code> <span class="error-keyword">' + escapeHtml(e.keyword) + '</span> <span class="error-msg">' + escapeHtml(e.message) + paramsStr + '</span>';
+            details.appendChild(div);
+        }
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function copyErrors() {
+        var details = document.getElementById('result-details');
+        var items = details.querySelectorAll('.error-item');
+        var text = '';
+        for (var i = 0; i < items.length; i++) {
+            text += items[i].textContent.trim() + '\n';
+        }
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(function() {
+                showStatus('result-header', 'Errors copied to clipboard', 'success');
+            }).catch(function() {
+                fallbackCopy(text);
+            });
+        } else {
+            fallbackCopy(text);
+        }
+    }
+
+    function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand('copy');
+            showStatus('result-header', 'Errors copied to clipboard', 'success');
+        } catch (e) {
+            showStatus('result-header', 'Failed to copy', 'error');
+        }
+        document.body.removeChild(ta);
+    }
+
+    function loadSample() {
+        document.getElementById('json-data').value = JSON.stringify({
+            "name": "John Doe",
+            "email": "john@example.com",
+            "age": 30,
+            "address": {
+                "street": "123 Main St",
+                "city": "New York",
+                "zip": "10001"
+            },
+            "roles": ["admin", "user"],
+            "active": true
+        }, null, 2);
+
+        document.getElementById('json-schema').value = JSON.stringify({
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "name": { "type": "string", "description": "Full name" },
+                "email": { "type": "string", "format": "email", "description": "Email address" },
+                "age": { "type": "integer", "minimum": 18, "maximum": 120, "description": "Age in years" },
+                "address": {
+                    "type": "object",
+                    "properties": {
+                        "street": { "type": "string" },
+                        "city": { "type": "string" },
+                        "zip": { "type": "string", "pattern": "^\\d{5}$" }
+                    },
+                    "required": ["street", "city"]
+                },
+                "roles": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "minItems": 1,
+                    "uniqueItems": true
+                },
+                "active": { "type": "boolean" }
+            },
+            "required": ["name", "email", "age"],
+            "additionalProperties": true
+        }, null, 2);
+    }
+
+    function clearAll() {
+        document.getElementById('json-data').value = '';
+        document.getElementById('json-schema').value = '';
+        document.getElementById('draft-select').value = 'auto';
+        document.getElementById('result-header').className = 'result-header';
+        document.getElementById('result-icon').textContent = '';
+        document.getElementById('result-text').textContent = 'Click "Validate" to check your JSON against the schema';
+        document.getElementById('result-header').style.borderLeft = 'none';
+        document.getElementById('result-details').innerHTML = '';
+        document.getElementById('result-actions').style.display = 'none';
+        document.getElementById('data-status').textContent = '';
+        document.getElementById('schema-status').textContent = '';
+    }
+    </script>
+
+    <style>
+    .schema-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    @media (min-width: 768px) {
+        .schema-container {
+            flex-direction: row;
+        }
+    }
+
+    .schema-pane {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pane-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+
+    .pane-header label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #e0e0e0;
+    }
+
+    .pane-badge {
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+
+    .pane-badge.valid {
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+    }
+
+    .pane-badge.error {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+    }
+
+    .schema-input {
+        width: 100%;
+        min-height: 280px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        padding: 12px;
+        border: 1px solid #2a2a3e;
+        border-radius: 6px;
+        background: #1a1a2e;
+        color: #e0e0e0;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+
+    .schema-input:focus {
+        outline: 2px solid transparent;
+        border-color: #667eea;
+    }
+
+    .schema-controls {
+        margin-bottom: 16px;
+    }
+
+    .schema-controls-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .draft-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .draft-selector label {
+        font-size: 14px;
+        color: #b3b8c0;
+        white-space: nowrap;
+    }
+
+    .draft-selector select {
+        padding: 8px 12px;
+        border: 1px solid #2a2a3e;
+        border-radius: 6px;
+        background: #1a1a2e;
+        color: #e0e0e0;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .draft-selector select:focus {
+        outline: 2px solid transparent;
+        border-color: #667eea;
+    }
+
+    .schema-result {
+        margin-top: 16px;
+        border: 1px solid #2a2a3e;
+        border-radius: 8px;
+        background: #1a1a2e;
+        overflow: hidden;
+    }
+
+    .result-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 16px;
+        font-weight: 600;
+        font-size: 15px;
+        border-left: 4px solid #667eea;
+    }
+
+    .result-header .result-icon {
+        font-size: 18px;
+        width: 24px;
+        text-align: center;
+    }
+
+    .result-details {
+        padding: 0 16px 16px;
+    }
+
+    .error-item {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 6px;
+        padding: 8px 12px;
+        margin-bottom: 6px;
+        background: rgba(239, 68, 68, 0.08);
+        border-radius: 4px;
+        font-size: 13px;
+        font-family: 'Courier New', monospace;
+        line-height: 1.5;
+    }
+
+    .error-path {
+        color: #f59e0b;
+        font-weight: 600;
+    }
+
+    .error-keyword {
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .error-msg {
+        color: #e0e0e0;
+    }
+
+    .result-actions {
+        padding: 0 16px 16px;
+    }
+
+    .example-box {
+        background: #1a1a2e;
+        border: 1px solid #2a2a3e;
+        border-radius: 8px;
+        padding: 16px;
+        margin: 12px 0;
+    }
+
+    .example-item {
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #2a2a3e;
+    }
+
+    .example-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .example-item code {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+        background: #0f0f23;
+        padding: 6px 10px;
+        border-radius: 4px;
+        color: #e0e0e0;
+    }
+
+    .btn-group .btn {
+        margin-right: 6px;
+    }
+
+    .tool-page .info-section h3 {
+        margin-top: 24px;
+    }
+
+    .tool-page .info-section ol li {
+        margin-bottom: 6px;
+        line-height: 1.6;
+    }
+    </style>
+</body>
+</html>

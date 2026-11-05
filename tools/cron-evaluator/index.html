@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cron Expression Evaluator &amp; Explainer - Free Online Tool</title>
+    <meta name="description" content="Paste a cron expression and get its plain-English meaning, the next 10 run times in your timezone, and the traps that break it silently.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/cron-evaluator/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Cron Expression Evaluator &amp; Explainer - Free Online Tool">
+    <meta property="og:description" content="Paste a cron expression and get its plain-English meaning, the next 10 run times in your timezone, and the traps that break it silently.">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-10-13",
+        "dateModified": "2026-10-13",
+        "author": {"@id": "https://tools.scoreroute.com/#author"},
+        "name": "Cron Expression Evaluator & Explainer - Free Online Tool",
+        "description": "Reads an existing cron schedule and shows the plain-English meaning, the concrete set of times each field matches, the next ten real run times in a chosen timezone, the parsing traps that break a schedule silently, and the equivalent expression for GitHub Actions, AWS EventBridge, Kubernetes CronJob and Quartz.",
+        "url": "https://tools.scoreroute.com/tools/cron-evaluator/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["Cron expression parser", "5, 6 and 7 field dialects", "Plain English summary", "Field-by-field value expansion", "Next ten run times", "IANA timezone selection with daylight saving handling", "Trap and portability warnings", "GitHub Actions, EventBridge, Kubernetes and Quartz output"]
+    }
+    </script>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .ce-top { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+        .ce-field { display: flex; flex-direction: column; gap: 6px; }
+        .ce-field label { color: #b3b8c0; font-size: 0.85rem; }
+        .ce-field input, .ce-field select { padding: 12px 14px; background: #0f0f23; border: 1px solid #2a2a4a; color: #fff; border-radius: 8px; font-size: 1rem; }
+        #ce-expr { font-family: 'Fira Code', ui-monospace, monospace; min-width: 280px; }
+        .ce-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .ce-preset { background: #0f0f23; border: 1px solid #2a2a4a; color: #cfd3dc; border-radius: 999px; padding: 7px 14px; font-size: 0.85rem; cursor: pointer; }
+        .ce-preset:hover { border-color: #667eea; color: #fff; }
+        .ce-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+        .ce-badge { border-radius: 999px; padding: 6px 14px; font-size: 0.85rem; font-weight: 600; border: 1px solid transparent; }
+        .ce-badge.dialect { background: rgba(102,126,234,0.16); border-color: rgba(102,126,234,0.5); color: #b3c0ff; }
+        .ce-badge.count { background: rgba(16,185,129,0.14); border-color: rgba(16,185,129,0.45); color: #6ee7b7; }
+        .ce-badge.warn { background: rgba(234,179,8,0.14); border-color: rgba(234,179,8,0.45); color: #fde68a; }
+        .ce-say { background: #0f0f23; border: 1px solid #2a2a4a; border-left: 3px solid #667eea; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; color: #e5e7eb; font-size: 0.98rem; }
+        .ce-say h3 { color: #7eb3ff; margin: 0 0 8px; font-size: 0.95rem; }
+        .ce-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+        .ce-table th, .ce-table td { text-align: left; padding: 9px 12px; border-bottom: 1px solid #1f2638; font-size: 0.88rem; vertical-align: top; }
+        .ce-table th { color: #8b90a0; font-weight: 600; }
+        .ce-table td.raw { font-family: 'Fira Code', ui-monospace, monospace; color: #7eb3ff; white-space: nowrap; }
+        .ce-table td.vals { font-family: 'Fira Code', ui-monospace, monospace; color: #cbd5e1; word-break: break-word; }
+        .ce-h2 { color: #7eb3ff; font-size: 1.05rem; margin: 26px 0 10px; }
+        .ce-note { background: #0f0f23; border: 1px solid #2a2a4a; border-left: 3px solid #eab308; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; color: #d1d5db; font-size: 0.9rem; }
+        .ce-note h4 { color: #eab308; margin: 0 0 8px; }
+        .ce-note.error { border-left-color: #ef4444; }
+        .ce-note.error h4 { color: #fca5a5; }
+        .ce-note ul { margin: 0; padding-left: 20px; }
+        .ce-note li { margin-bottom: 8px; }
+        .ce-note li:last-child { margin-bottom: 0; }
+        .ce-note code { color: #7eb3ff; }
+        .ce-outs { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .ce-out { background: #0f0f23; border: 1px solid #2a2a4a; border-radius: 8px; padding: 14px 16px; }
+        .ce-out h4 { margin: 0 0 4px; font-size: 0.95rem; }
+        .ce-out .meta { color: #8b90a0; font-size: 0.78rem; margin-bottom: 8px; }
+        .ce-out pre { margin: 0; overflow-x: auto; color: #6ee7b7; font-family: 'Fira Code', ui-monospace, monospace; font-size: 0.9rem; white-space: pre-wrap; word-break: break-word; }
+        .ce-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0 4px; }
+        .results { display: none; }
+        .results.visible { display: block; }
+        .ce-spell { color: #8b90a0; font-size: 0.8rem; margin-top: 10px; }
+        @media (max-width: 600px) {
+            #ce-expr { min-width: unset; width: 100%; }
+            .ce-table td.raw { white-space: normal; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Cron Expression Evaluator</h1>
+            <p class="subtitle">Paste a schedule you already have &middot; plain English, every matched value, and the next 10 real run times</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/">Tools</a> &gt; <span>Cron Expression Evaluator</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="ce-top">
+                    <div class="ce-field">
+                        <label for="ce-expr">Cron expression (5, 6 or 7 fields)</label>
+                        <input type="text" id="ce-expr" placeholder="0 9 17 * * 1-5" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="ce-field">
+                        <label for="ce-tz">Evaluate in timezone</label>
+                        <select id="ce-tz"></select>
+                    </div>
+                    <button class="btn btn-primary" id="ce-go" type="button">Evaluate</button>
+                </div>
+
+                <div class="ce-presets" role="group" aria-label="Example cron expressions">
+                    <button class="ce-preset" type="button" data-expr="0 9 * * 1-5">Weekdays at 09:00</button>
+                    <button class="ce-preset" type="button" data-expr="*/15 * * * *">Every 15 minutes</button>
+                    <button class="ce-preset" type="button" data-expr="0 0 1 * *">First of the month</button>
+                    <button class="ce-preset" type="button" data-expr="0 0 13 * 5">The Friday the 13th trap</button>
+                    <button class="ce-preset" type="button" data-expr="30 2 * * 6">02:30 on Saturdays</button>
+                    <button class="ce-preset" type="button" data-expr="0 0 30 2 *">February 30th</button>
+                    <button class="ce-preset" type="button" data-expr="0 30 9 ? * MON-FRI">Quartz weekday job</button>
+                    <button class="ce-preset" type="button" data-expr="0 0 12 1 1 ? 2027">Quartz with a year</button>
+                    <button class="ce-preset" type="button" data-expr="0 0 0 * * 6L">Quartz last Friday</button>
+                    <button class="ce-preset" type="button" data-expr="0 0 L * *">Last day of the month</button>
+                    <button class="ce-preset" type="button" data-expr="0 0 * * 5L">Last Friday of the month</button>
+                    <button class="ce-preset" type="button" data-expr="0 0 * * 5#3">Third Friday of the month</button>
+                    <button class="ce-preset" type="button" data-expr="0 0 15W * *">Nearest weekday to the 15th</button>
+                    <button class="ce-preset" type="button" data-expr="@daily">@daily macro</button>
+                    <button class="ce-preset" type="button" data-expr="0 9 17 * * 1-5 2030">Year out of range</button>
+                </div>
+
+                <div id="ce-status" class="status" role="status" style="display:none;"></div>
+
+                <div id="ce-results" class="results">
+                    <div id="ce-badges" class="ce-badges"></div>
+                    <div id="ce-say" class="ce-say"></div>
+                    <div id="ce-warnings"></div>
+
+                    <h2 class="ce-h2">What each field matches</h2>
+                    <div class="table-scroll">
+                    <table class="ce-table" aria-label="Every cron field, what you wrote, and the values it matches">
+                        <thead>
+                            <tr><th scope="col">#</th><th scope="col">Field</th><th scope="col">You wrote</th><th scope="col">Meaning</th><th scope="col">It matches</th></tr>
+                        </thead>
+                        <tbody id="ce-rows">
+                            <tr id="ce-empty"><td colspan="5" style="color:#8b90a0">No expression evaluated yet. Paste one above, or pick an example.</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+
+                    <h2 class="ce-h2">Next 10 run times</h2>
+                    <div class="table-scroll">
+                    <table class="ce-table" aria-label="The next ten run times in the selected timezone and in UTC">
+                        <thead>
+                            <tr><th scope="col">#</th><th scope="col">In your selected timezone</th><th scope="col">UTC</th><th scope="col">ISO 8601</th></tr>
+                        </thead>
+                        <tbody id="ce-runs">
+                            <tr id="ce-runs-empty"><td colspan="4" style="color:#8b90a0">No run times yet. Evaluate an expression first.</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <div class="ce-actions">
+                        <button class="btn" type="button" id="ce-copy-runs">Copy run times</button>
+                    </div>
+
+                    <h2 class="ce-h2">The same schedule on other platforms</h2>
+                    <div id="ce-platforms" class="ce-outs"></div>
+
+                    <p class="ce-spell" id="ce-meta"></p>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What This Tool Answers That a Chatbot Cannot</h2>
+                <p>Ask a chatbot what <code>0 9 * * 1-5</code> means and you will usually get something plausible. Plausible is not the same as right. Cron syntax hides three decisions inside five short fields: whether the fourth and fifth fields combine with OR or AND, whether the weekday is numbered from zero or from one, and which clock the schedule is read against. Those three answers change what the job actually does, and they differ between the Unix cron on a server, Quartz inside Java, and the six-field dialect that GitHub Actions accepts. A chatbot has one set of crontab syntax in its weights and no way to tell which one you are asking about, so it fills the gap with the most common one and answers without flagging the guess.</p>
+                <p>This tool does the opposite. It parses the expression you actually pasted, tells you which dialect it detected, walks each field one at a time and shows the concrete set of values that field produces, and then shows you the next ten real run times computed in the timezone you choose. When a field carries a trap, the trap is named and explained rather than passed over in silence. The goal is not a sentence of English about your schedule. The goal is that you can look at the output, agree with it, and know it was not guessed.</p>
+
+                <h3>The Five Fields, One at a Time</h3>
+                <p>A cron expression is a row of numbers, and the leftmost field moves fastest. Position decides what a number means, which is why the same digit is 9 o'clock in one column and 9 January in the next. Reading the row right to left answers the question that people actually have, which is how often does this run and at what time.</p>
+                <p>Minute runs first and cycles through 0 to 59, so it is the field that controls frequency inside an hour. Hour runs second, 0 to 23, and sets the clock time of day. Day of month is third, 1 to 31, and is the calendar date. Month is fourth, 1 to 12, and can be written as JAN through DEC. Day of week is last, and here is the first trap: it is numbered 0 to 6 in Unix cron with 0 meaning Sunday, but 1 to 7 in Quartz with 1 meaning Sunday. The expression <code>0 0 * * 1</code> means Sunday midnight on a Unix server and Monday midnight inside a Quartz scheduler. Both are valid. Both are commonly written by people who read documentation from the other dialect.</p>
+                <p>Quartz adds a seconds field in front of minute and sometimes a year field at the end, giving six or seven fields. Six fields starting with a number are far more likely to be Quartz with seconds than Unix, because Unix cron never had six. GitHub Actions, AWS EventBridge and Kubernetes CronJobs each accept a different subset of that, which is why the same job scheduled in two places so often fires at different minutes.</p>
+
+                <h3>The Traps This Tool Looks For</h3>
+                <p>Most of the damage done by cron comes from six specific mistakes. Each one parses cleanly, so nothing errors and nothing warns you. This tool looks for all six and explains what the expression will actually do.</p>
+                <p>The first is the AND versus OR rule. When both day of month and day of week are restricted, most implementations run the job when either one matches, not when both match. <code>0 0 13 * 5</code> does not mean midnight on Friday the 13th. It means midnight on the 13th of every month, and also at midnight on every Friday. You almost never want that, and the fix is to leave one of the two fields as a star.</p>
+                <p>The second is step anchoring. <code>*/15</code> in the minute field means 0, 15, 30 and 45, because the step counts from the bottom of the range and not from the current minute. <code>5/15</code> means 5, 20, 35 and 50, because the range starts at 5. People who assume the step runs from the moment the job last fired get a different schedule than the one they wrote.</p>
+                <p>The third is a day that never arrives. <code>0 0 30 2 *</code> asks for February 30th, which does not exist. The expression is perfectly valid syntax, the scheduler accepts it, and the job silently never runs. Day 29 in February is the same trap one year in four.</p>
+                <p>The fourth is the six field assumption. A schedule moved from Quartz to a five field scheduler keeps its seconds value and shifts every field left by one, so <code>0 30 9 * * *</code> that meant 09:30:00 now means 09:09, 30 minutes, and the month field is whatever the weekday used to be.</p>
+                <p>The fifth is timezone. Cron expressions carry no timezone. The scheduler reads them in whatever the machine is set to, so the same file behaves differently on a server configured for UTC and on a laptop set to Europe/Berlin. When daylight saving moves the clock, a job scheduled at 02:30 either runs twice, skips an hour, or lands an hour out of place, and which of the three happens depends on the zone rather than on your expression.</p>
+                <p>The sixth is assuming a skipped run is caught up. Most schedulers simply start the next occurrence. A job that missed because the machine was down at the time does not run late when it comes back. If the job must eventually happen, that has to be built into the job itself.</p>
+
+                <h3>Timezone: the Field Nobody Writes Down</h3>
+                <p>Because the expression itself is timezone free, the only honest way to answer when a job runs next is to say in which clock. The default here is the browser's own timezone, which is usually the one you are thinking in. The selector changes it.</p>
+                <p>Run times are computed as wall clock time in the selected zone and then converted to a real instant, so the daylight saving answer is the correct one rather than an approximation. A schedule at 02:30 on a day when clocks go forward has no 02:30 that year, and you will see the run land at the first real time that exists instead of being told something that never happens. The UTC column is there because a great many servers, most hosted cron services and every GitHub Actions schedule run in UTC regardless of what the machine believes.</p>
+                <p>If you paste a time such as Europe/Berlin or America/New_York, the tool uses that zone. An unrecognised value falls back to UTC and says so rather than quietly using something else.</p>
+
+                <h3>Porting a Schedule Between Systems</h3>
+                <p>The same schedule written for four different platforms. GitHub Actions takes a six field expression with seconds first, always reads it in UTC, and has no concept of the Quartz extensions. AWS EventBridge also takes six fields with seconds first and is always UTC. Kubernetes CronJob takes five fields in the local time of the cluster, which is usually UTC in practice and not always. Quartz takes six or seven and adds the question mark, L, W and hash operators.</p>
+                <p>Converting between them is mechanical once the expression has been parsed, because each platform only changes which fields exist and what the clock is. What is not mechanical is the part everyone gets wrong: GitHub Actions silently drops a schedule that runs more often than once every five minutes, and it does not tell you. That limit is why a converted six field expression with a step under five in the minute field is flagged here rather than handed over as a working answer.</p>
+
+                <h3>How It Works</h3>
+                <p>Everything runs in this page. The expression is split on whitespace, each field is expanded into the concrete list of values it matches, and the next ten runs are found by stepping forward through the calendar in the selected zone until ten matching wall clock times have been collected. Nothing is uploaded, nothing is stored and no request leaves your browser once the page has loaded.</p>
+                <p>The plain English summary is generated by cRonstrue, a small open source parser loaded from a public CDN. If that library cannot be reached the rest of the tool still works, because the field table, the next run times and the platform conversions are all computed here and do not depend on it. Only the sentence changes.</p>
+
+                <div class="faq-list">
+                    <details class="faq-item">
+                        <summary>What is the difference between a cron generator and a cron evaluator?</summary>
+                        <p>A cron evaluator reads an expression you already have. It is the tool you reach for when a schedule is inherited from a crontab file, copied out of a docker image, or written by whoever set the system up before you, and nobody can say what it does. It answers that question by parsing the expression field by field, showing the exact set of times it matches, and listing the next ten real run times in the timezone you pick. Most cron generators start from a form where you choose a time and hand you the string, which is the opposite direction of travel and does not help when the string is the thing you were given.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Why does the same cron expression mean different things on different servers?</summary>
+                        <p>Because there is no single cron standard, there are several dialects that all call themselves cron. The original Vixie cron on Linux, BSD and macOS uses five fields and numbers the weekday from zero with Sunday as both zero and seven. Quartz, which ships inside Java and in Spring's scheduling annotations, adds a seconds field in front and a year field at the end, and numbers the weekday from one. Between them sit the hosted schedulers, where AWS EventBridge takes six fields and always runs in UTC, GitHub Actions takes six fields and always runs in UTC, and Kubernetes CronJob takes five fields in the cluster's local time. The syntax looks close enough between these that an expression written for one is usually accepted by another and behaves differently. When the parser here sees a six field expression it assumes Quartz with seconds and tells you that is what it assumed.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Why does the day of month and day of week rule matter?</summary>
+                        <p>When both fields are restricted to something other than a star, the standard implementations run the job when either field matches, not when both match. The two are combined with OR. That is why <code>0 0 13 * 5</code>, which looks like Friday the 13th, actually fires at midnight on the 13th of every month and at midnight on every Friday, so thirteen times a month in a normal one. If you want the intersection, the usual workaround is to check the other field inside the job itself, because the scheduler has no AND mode. This behaviour is not universal. Vixie cron, Quartz and systemd all use OR, but the specification language in the original cron documentation is ambiguous enough that some implementations and some hosted schedulers differ, which is another reason not to rely on the combination for anything important.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Why is 0 0 30 2 * a valid cron expression that never runs?</summary>
+                        <p>Because the parser checks the range of each field, not the calendar. 30 is inside the legal range for day of month, which is 1 to 31, and 2 is inside the legal range for month, so nothing objects. But no month ever has thirty days, so the set of matching dates is empty and the job never fires. The same trap catches day 31 in a thirty day month, and day 29 in February in any year that is not a leap year. Many schedulers treat a schedule that has not matched yet as an error, and some accept it and stay silent. This tool reports the empty match set explicitly instead of showing you ten runs that are never going to happen.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Does this tool run my cron job?</summary>
+                        <p>No, and it is not connected to anything. It reads a string and does arithmetic. Nothing you paste is sent anywhere after the page loads, there is no account, and nothing is stored. If you want the next runs for a schedule that needs seconds precision or one of the Quartz extensions, this tool will show you the runs it can compute and name the ones it cannot, rather than printing a plausible answer it did not calculate.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>What does the star slash step notation actually do?</summary>
+                        <p>A step counts from the bottom of the field's range, not from the last time the job ran and not from the current minute. In the minute field, <code>*/15</code> matches 0, 15, 30 and 45 because the range starts at zero. <code>5/15</code> matches 5, 20, 35 and 50 because the range starts at five. <code>*/2</code> matches every minute that is even, which is every other minute rather than every two minutes counted from whenever you happened to look. The same anchoring applies in every field, so <code>*/2</code> in the hour field matches 0, 2, 4 and so on through 22, and a range like <code>10-40/10</code> in the hour field matches 10, 20, 30 and 40. The field table shows the expanded list rather than asking you to redo the arithmetic in your head.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Which timezone is used?</summary>
+                        <p>The browser's own timezone by default, which is normally the one you are thinking in. The selector overrides it with any IANA timezone name, such as Europe/Berlin or America/New_York. Run times are computed as wall clock time in that zone and converted to a real instant, so a schedule that lands on a daylight saving jump shows the first time that actually exists. The UTC column is shown next to every run because hosted schedulers and GitHub Actions interpret schedules in UTC no matter what the machine thinks, and that is the single most common reason a job fires at the wrong hour.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>What does an asterisk mean?</summary>
+                        <p>An asterisk means every value in that field's range, so <code>* * * * *</code> runs every minute of every day. Paired with a slash it becomes the step form, <code>*/5</code> in the minute field runs every five minutes. Paired with a range it becomes <code>9-17</code>, which limits that field to nine through seventeen. The whole expression is usually read as a conjunction: every one of these conditions has to be true at the same moment for the job to fire, and the job fires again when the next such moment arrives.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>How do I schedule a job for the last Friday of the month?</summary>
+                        <p>Both operators live in the day of week field, so the day of month in front of them stays a star. On a five field Unix expression Friday is 5, so the last Friday is <code>0 0 * * 5L</code> and the third is <code>0 0 * * 5#3</code>. The same job in a six field Quartz expression moves to 6, because Quartz counts Sunday as 1, and becomes <code>0 0 0 * * 6L</code>. Unix cron supports neither, so the portable approach is to run on every Friday and let the job itself check the date, or to run daily and exit early. Cron on this site will describe both forms and show the matching days rather than pretending a plain 5 will land on the last Friday.</p>
+                    </details>
+                </div>
+
+                <h3>Pairs Well With</h3>
+                <ul class="ref-list">
+                    <li><a href="/tools/cron-generator/">Cron Generator</a> &mdash; build an expression from a form instead of reading one.</li>
+                    <li><a href="/tools/time-zone-converter/">Time Zone Converter</a> &mdash; check what the run time means in another office.</li>
+                    <li><a href="/tools/timestamp-converter/">Timestamp Converter</a> &mdash; turn the ISO output above into Unix time.</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cronstrue/3.32.0/cronstrue.min.js" integrity="sha384-PidD3tSsME6I0iW9KaZgwcgaIU/v0/Krig6DESEK+MkrDpVeRSgUsgZxkzw6+X6m" crossorigin="anonymous"></script>
+    <script src="/tools.js"></script>
+    <script>
+    var MONTHS = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+    var DOWS = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+
+    var SPEC = {
+        second: { key: 'second', label: 'Second', min: 0, max: 59, names: '0 to 59', gl: 'Only Quartz has this field. It is seconds past the minute.' },
+        minute: { key: 'minute', label: 'Minute', min: 0, max: 59, names: '0 to 59', gl: 'Fires at this minute past the hour. */15 gives 0, 15, 30, 45.' },
+        hour: { key: 'hour', label: 'Hour', min: 0, max: 23, names: '0 to 23 (24h clock)', gl: 'Fires during this hour of the day.' },
+        dom: { key: 'dom', label: 'Day of month', min: 1, max: 31, names: '1 to 31', gl: 'The calendar date. Combined with day of week using OR, not AND.', allowQ: true },
+        month: { key: 'month', label: 'Month', min: 1, max: 12, names: '1 to 12, or JAN to DEC', gl: 'Restricts the job to these months of the year.' },
+        dow: { key: 'dow', label: 'Day of week', min: 0, max: 7, names: '0 to 6, or 0 to 7 in Quartz, or SUN to SAT', gl: 'Sunday is 0 in Unix cron and 1 in Quartz. Combined with day of month using OR, not AND.', allowQ: true },
+        year: { key: 'year', label: 'Year', min: 1970, max: 2199, names: '1970 to 2199', gl: 'Only Quartz has this field, and only in the 7 field form.' }
+    };
+
+    var MACROS = {
+        '@yearly': '0 0 1 1 *', '@annually': '0 0 1 1 *', '@monthly': '0 0 1 * *',
+        '@weekly': '0 0 * * 0', '@daily': '0 0 * * *', '@midnight': '0 0 * * *', '@hourly': '0 * * * *'
+    };
+
+    function CronError(msg) { this.message = msg; this.name = 'CronError'; this.toString = function () { return 'CronError: ' + msg; }; }
+    function cronFail(msg) { throw new CronError(msg); }
+
+    function isNamed(tok, isDow, isMonth) {
+        var t = String(tok).toLowerCase();
+        return (isMonth && MONTHS[t] !== undefined) || (isDow && DOWS[t] !== undefined);
+    }
+
+    function toNum(tok, isDow, isMonth) {
+        var t = String(tok).toLowerCase();
+        if (isMonth && MONTHS[t] !== undefined) return MONTHS[t];
+        if (isDow && DOWS[t] !== undefined) return DOWS[t];
+        if (!/^\d+$/.test(t)) cronFail('"' + tok + '" is not a value this field understands.');
+        return parseInt(t, 10);
+    }
+
+    // Numeric weekday -> Date.getDay(). Unix counts Sunday as 0 and also accepts 7. Quartz counts
+    // Sunday as 1 and Saturday as 7. Day names are unambiguous, so they map straight through.
+    function normDow(v, quartz, named) {
+        if (named) return v;
+        return quartz ? (((v - 1) % 7) + 7) % 7 : (((v % 7) + 7) % 7);
+    }
+
+    // Expands one field into { set: {value:true}, domSpecials: [], dowSpecials: [], stepped: bool }
+    function parseField(spec, raw, quartz) {
+        var set = {}, domSpecials = [], dowSpecials = [], stepped = false, wrapped = false;
+        var isDow = spec.key === 'dow', isMonth = spec.key === 'month', isDom = spec.key === 'dom';
+        var min = spec.min, max = spec.max;
+        if (quartz && isDow) { min = 1; max = 7; }
+        var text = raw;
+        if (text === '?') {
+            if (!spec.allowQ) cronFail('"?" is only legal in the day of month and day of week fields.');
+            text = '*';
+        }
+        var parts = text.split(',');
+        for (var i = 0; i < parts.length; i++) {
+            var part = parts[i].trim();
+            if (part === '') cronFail('There is an empty value in this field.');
+            var slash = part.indexOf('/');
+            var base = part, stepStr = null;
+            if (slash >= 0) {
+                base = part.slice(0, slash);
+                stepStr = part.slice(slash + 1);
+                if (!/^\d+$/.test(stepStr) || parseInt(stepStr, 10) < 1) cronFail('A step must be a whole number of 1 or more.');
+                stepped = true;
+            }
+            var step = stepStr === null ? 1 : parseInt(stepStr, 10);
+
+            if (isDow) {
+                var nth = /^([0-7]|[a-z]{3})#([1-5])$/i.exec(part);
+                if (nth) { dowSpecials.push({ type: 'nth', dow: normDow(toNum(nth[1], true, false), quartz, isNamed(nth[1], true, false)), n: parseInt(nth[2], 10) }); continue; }
+                var lastD = /^([0-7]|[a-z]{3})L$/i.exec(part);
+                if (lastD) { dowSpecials.push({ type: 'last', dow: normDow(toNum(lastD[1], true, false), quartz, isNamed(lastD[1], true, false)) }); continue; }
+                if (/^l$/i.test(part)) { dowSpecials.push({ type: 'lastSat' }); continue; }
+            }
+            if (isDom) {
+                if (/^lw$/i.test(part)) { domSpecials.push({ type: 'lastWeekday' }); continue; }
+                var lm = /^l-(\d{1,2})$/i.exec(part);
+                if (lm) { domSpecials.push({ type: 'lastMinus', n: parseInt(lm[1], 10) }); continue; }
+                if (/^l$/i.test(part)) { domSpecials.push({ type: 'last' }); continue; }
+                var wm = /^(\d{1,2})w$/i.exec(part);
+                if (wm) { domSpecials.push({ type: 'nearestWeekday', n: parseInt(wm[1], 10) }); continue; }
+            }
+
+            var from, to, named = false;
+            if (base === '*') { from = min; to = max; }
+            else {
+                var m2 = /^([a-z0-9]+)(?:-([a-z0-9]+))?$/i.exec(base);
+                if (!m2) cronFail('"' + part + '" is not a value this field understands.');
+                from = toNum(m2[1], isDow, isMonth);
+                named = isNamed(m2[1], isDow, isMonth);
+                if (m2[2] !== undefined) to = toNum(m2[2], isDow, isMonth);
+                else { to = (stepStr === null) ? from : max; }
+            }
+            if (from < min || from > max) cronFail('"' + m2[1] + '" is outside ' + min + '-' + max + '.');
+            if (to < min || to > max) cronFail('"' + (m2[2] || m2[1]) + '" is outside ' + min + '-' + max + '.');
+            wrapped = to < from;
+            var v = from;
+            while (wrapped ? (v >= from || v <= to) : (v <= to)) {
+                set[isDow ? normDow(v, quartz, named) : v] = true;
+                v += step;
+                if (v > max + step) break;
+            }
+        }
+        return { set: set, domSpecials: domSpecials, dowSpecials: dowSpecials, stepped: stepped, wrapped: wrapped, restricted: text !== '*' };
+    }
+
+    function parseCron(input) {
+        var raw = String(input).replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!raw) cronFail('Paste a cron expression first.');
+        var macro = MACROS[raw.toLowerCase()];
+        if (macro) return parseCron(macro);
+        if (raw.charAt(0) === '@') cronFail('"' + raw + '" is not a macro cron knows. The supported ones are ' + Object.keys(MACROS).join(', ') + '.');
+        var f = raw.split(' ');
+        var dialect, keys;
+        if (f.length === 5) { dialect = 'Unix / Vixie cron (5 fields)'; keys = ['minute', 'hour', 'dom', 'month', 'dow']; }
+        else if (f.length === 6) { dialect = 'Quartz, seconds first (6 fields)'; keys = ['second', 'minute', 'hour', 'dom', 'month', 'dow']; }
+        else if (f.length === 7) { dialect = 'Quartz, seconds and year (7 fields)'; keys = ['second', 'minute', 'hour', 'dom', 'month', 'dow', 'year']; }
+        else cronFail('A cron expression has 5 fields, or 6 or 7 in Quartz. This one has ' + f.length + '.');
+        var quartz = f.length > 5;
+        var parsed = [];
+        for (var i = 0; i < keys.length; i++) {
+            var r = parseField(SPEC[keys[i]], f[i], quartz);
+            r.spec = SPEC[keys[i]];
+            r.raw = f[i];
+            parsed.push(r);
+        }
+        return { raw: raw, fields: f, dialect: dialect, quartz: quartz, parts: parsed, byKey: partsByKey(parsed) };
+    }
+
+    function partsByKey(parsed) {
+        var o = {};
+        for (var i = 0; i < parsed.length; i++) o[parsed[i].spec.key] = parsed[i];
+        return o;
+    }
+
+    // --- timezone helpers -------------------------------------------------
+    function tzOffsetMs(instant, tz) {
+        var dtf = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        var p = {};
+        var arr = dtf.formatToParts(new Date(instant));
+        for (var i = 0; i < arr.length; i++) p[arr[i].type] = arr[i].value;
+        var asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, (+p.hour % 24), +p.minute, +p.second);
+        return asUTC - instant;
+    }
+
+    function wallToInstant(wall, tz) {
+        var t1 = wall - tzOffsetMs(wall, tz);
+        var off2 = tzOffsetMs(t1, tz);
+        if (off2 !== tzOffsetMs(wall, tz)) t1 = wall - off2;
+        return t1;
+    }
+
+    function wallToParts(wall) {
+        var d = new Date(wall);
+        return { y: d.getUTCFullYear(), mo: d.getUTCMonth() + 1, da: d.getUTCDate(), h: d.getUTCHours(), mi: d.getUTCMinutes(), se: d.getUTCSeconds(), dow: d.getUTCDay() };
+    }
+
+    function sameWall(instant, wall, tz) {
+        var a = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date(instant));
+        var p = {}; for (var i = 0; i < a.length; i++) p[a[i].type] = a[i].value;
+        var w = wallToParts(wall);
+        return (+p.year === w.y && +p.month === w.mo && +p.day === w.da && (+p.hour % 24) === w.h && +p.minute === w.mi && +p.second === w.se);
+    }
+
+    // --- day matching -----------------------------------------------------
+    function lastDomOf(y, mo) { return new Date(Date.UTC(y, mo, 0)).getUTCDate(); }
+
+    function nearestWeekdayDay(y, mo, n) {
+        var last = lastDomOf(y, mo);
+        if (n > last) return -1;
+        var dow = new Date(Date.UTC(y, mo - 1, n)).getUTCDay();
+        if (dow === 6) return n === 1 ? n + 2 : n - 1;
+        if (dow === 0) return n === last ? n - 2 : n + 1;
+        return n;
+    }
+
+    function lastWeekdayOf(y, mo) {
+        var last = lastDomOf(y, mo);
+        var dow = new Date(Date.UTC(y, mo - 1, last)).getUTCDay();
+        if (dow === 6) return last - 1;
+        if (dow === 0) return last - 2;
+        return last;
+    }
+
+    function dayMatches(y, mo, da, dow, cron) {
+        var dom = cron.byKey.dom, dowp = cron.byKey.dow;
+        var domOK = true, dowOK = true;
+        var last = lastDomOf(y, mo);
+        if (dom.restricted) {
+            domOK = !!dom.set[da];
+            for (var i = 0; i < dom.domSpecials.length && !domOK; i++) {
+                var s = dom.domSpecials[i];
+                if (s.type === 'last') domOK = da === last;
+                else if (s.type === 'lastMinus') domOK = da === last - s.n;
+                else if (s.type === 'lastWeekday') domOK = da === lastWeekdayOf(y, mo);
+                else if (s.type === 'nearestWeekday') domOK = da === nearestWeekdayDay(y, mo, s.n);
+            }
+        }
+        if (dowp.restricted) {
+            dowOK = !!dowp.set[dow];
+            for (var j = 0; j < dowp.dowSpecials.length && !dowOK; j++) {
+                var t = dowp.dowSpecials[j];
+                if (t.type === 'lastSat') dowOK = dow === 6 && da === last;
+                else if (t.type === 'last') dowOK = dow === t.dow && da + 7 > last;
+                else if (t.type === 'nth') dowOK = dow === t.dow && (Math.floor((da - 1) / 7) + 1) === t.n;
+            }
+        }
+        if (dom.restricted && dowp.restricted) return domOK || dowOK;
+        return domOK && dowOK;
+    }
+
+    function has(obj, v) { return !!obj[v]; }
+
+    // --- next runs --------------------------------------------------------
+    function nextRuns(cron, tz, n) {
+        var r = cron.byKey;
+        var sec = r.second, minute = r.minute, hour = r.hour, month = r.month, year = r.year;
+        var wall = Math.floor((Date.now() + tzOffsetMs(Date.now(), tz)) / 60000) * 60000 + 60000;
+        var out = [], guard = 0, skipped = 0;
+        var horizon = Date.UTC(new Date().getUTCFullYear() + 12, 0, 1);
+        while (out.length < n && guard < 500000) {
+            guard++;
+            var p = wallToParts(wall);
+            if (wall >= horizon) break;
+            if (year && !has(year.set, p.y)) { wall = Date.UTC(p.y + 1, 0, 1); skipped++; continue; }
+            if (!has(month.set, p.mo)) { wall = Date.UTC(p.y, p.mo, 1); skipped++; continue; }
+            if (!dayMatches(p.y, p.mo, p.da, p.dow, cron)) {
+                wall = Date.UTC(p.y, p.mo - 1, p.da + 1); skipped++; continue;
+            }
+            if (!has(hour.set, p.h)) { wall = Date.UTC(p.y, p.mo - 1, p.da, p.h + 1); skipped++; continue; }
+            if (!has(minute.set, p.mi)) { wall = Date.UTC(p.y, p.mo - 1, p.da, p.h, p.mi + 1); skipped++; continue; }
+            if (sec && !has(sec.set, p.se)) { wall += 1000; skipped++; continue; }
+            out.push({ wall: wall, instant: wallToInstant(wall, tz), nonexistent: !sameWall(wallToInstant(wall, tz), wall, tz) });
+            wall += sec ? 1000 : 60000;
+        }
+        return { runs: out, exhausted: out.length < n, skipped: skipped, guard: guard };
+    }
+
+    // --- formatting -------------------------------------------------------
+    function esc(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+    function listValues(p) {
+        var keys = Object.keys(p.set).map(Number).sort(function (a, b) { return a - b; });
+        var out = [];
+        for (var i = 0; i < keys.length; i++) out.push(keys[i]);
+        return out;
+    }
+
+    function compress(set, min, max) {
+        var vals = listValues({ set: set });
+        if (!vals.length) return 'none';
+        if (vals.length === max - min + 1) return '*';
+        var runs = [], start = vals[0], prev = vals[0];
+        for (var i = 1; i <= vals.length; i++) {
+            if (i < vals.length && vals[i] === prev + 1) { prev = vals[i]; continue; }
+            runs.push(start === prev ? String(start) : start + '-' + prev);
+            start = prev = vals[i];
+        }
+        var every = vals.length > 2 && vals[0] === min && (vals[vals.length - 1] - vals[0]) % (vals[1] - vals[0]) === 0 &&
+            vals.every(function (v, j) { return j === 0 || (v - vals[0]) % (vals[1] - vals[0]) === 0; }) && vals[1] - vals[0] > 1;
+        if (every) {
+            var step = vals[1] - vals[0];
+            return (min === 0 && vals[0] === 0 ? '*/' + step : vals[0] + '/' + step);
+        }
+        return runs.join(',');
+    }
+
+    // --- warnings ---------------------------------------------------------
+    function warnings(cron, res, tz) {
+        var w = [], dom = cron.byKey.dom, dowp = cron.byKey.dow;
+        if (dom.restricted && dowp.restricted) {
+            w.push('<strong>Day of month and day of week are both restricted, so they are combined with OR.</strong> This runs when <em>either</em> matches, not both. Leave one of the two fields as <code>*</code> if you meant an intersection. The original cron specification is ambiguous here and a few implementations differ, so do not build anything important on the combination.');
+        }
+        var mins = listValues(cron.byKey.minute);
+        if (mins.length > 1) {
+            var step = mins[1] - mins[0];
+            if (step > 1 && mins[0] > 0 && mins.every(function (v) { return (v - mins[0]) % step === 0; })) {
+                w.push('<strong>Steps count from the bottom of the field, not from the last run.</strong> The minute field starts at ' + mins[0] + ', so this fires at ' + mins.slice(0, 8).join(', ') + (mins.length > 8 ? ', ...' : '') + ' and not at ' + (mins[0] + step) + ' onward.');
+            }
+        }
+        if (dom.restricted && !dom.domSpecials.length && dom.set[29] !== undefined && dom.set[30] !== undefined && dom.set[31] !== undefined) {
+            w.push('<strong>This schedule includes 29, 30 and 31.</strong> It will not fire in any month that is shorter than the chosen day, so it is not a daily schedule.');
+        }
+        if (cron.quartz) {
+            w.push('<strong>This has ' + cron.fields.length + ' fields, so it was read as Quartz with a seconds field in front.</strong> Move it to a five field scheduler unchanged and every field shifts left by one, which changes the time it fires.');
+        }
+        if (!cron.quartz && (dowp.set[0] !== undefined || dowp.set[6] !== undefined)) {
+            var fd = dowp.set[5] !== undefined ? 5 : 6;
+            w.push('<strong>This is a five field expression, so the weekday is numbered Unix style: 0 is Sunday and 5 is Friday.</strong> Written as a six field Quartz job the same day needs to be one higher, so weekday ' + fd + ' becomes ' + (fd + 1) + ' there, and Friday is Quartz ' + 6 + '. Copying the line across without renumbering moves the job to a different day.');
+        }
+        if (cron.byKey.year) {
+            var y = listValues(cron.byKey.year);
+            w.push('<strong>The year field is restricted to ' + y.slice(0, 6).join(', ') + (y.length > 6 ? ', ...' : '') + '.</strong> A schedule whose year field does not include the current year simply never fires.');
+        }
+        if (cron.byKey.second && listValues(cron.byKey.second).some(function (v) { return v !== 0; })) {
+            w.push('<strong>The seconds field is not zero.</strong> Unix cron, Kubernetes CronJob and systemd cannot express sub-minute schedules at all, so this will be silently rounded or rejected.');
+        }
+        if (res.exhausted) {
+            w.push('<strong>Only ' + res.runs.length + ' run time' + (res.runs.length === 1 ? '' : 's') + ' exist within the next twelve years.</strong> The schedule matches too rarely to show ten, which usually means a date that never comes round, such as the 30th of February.');
+        }
+        var bad = (res.runs || []).filter(function (r) { return r.nonexistent; });
+        if (bad.length) {
+            w.push('<strong>' + bad.length + ' of the runs shown do not exist on their date in ' + tz + '.</strong> The wall clock time is skipped by a daylight saving change, and the run is shown at the first real time instead.');
+        }
+        var stepMin = (function () {
+            var m = listValues(cron.byKey.minute);
+            if (m.length < 2) return null;
+            var gaps = [];
+            for (var i = 1; i < m.length; i++) gaps.push(m[i] - m[i - 1]);
+            return Math.min.apply(null, gaps);
+        })();
+        if (stepMin !== null && stepMin < 5) {
+            w.push('<strong>GitHub Actions will not run this.</strong> Scheduled workflows are limited to once every five minutes, and GitHub drops shorter intervals without telling you.');
+        }
+        if (!w.length) w.push('<strong>No common traps found.</strong> That is not a guarantee the schedule is what you intended, only that it does not hit any of the mistakes above.');
+        return w;
+    }
+
+    // --- platform output --------------------------------------------------
+    function platforms(cron) {
+        var g = cron.byKey, q = cron.quartz;
+        var min = g.minute.set, hour = g.hour.set, dom = g.dom.set, mon = g.month.set, dow = g.dow.set, sec = g.second ? g.second.set : { 0: true };
+        var d5 = compress(min, 0, 59) + ' ' + compress(hour, 0, 23) + ' ' + compress(dom, 1, 31) + ' ' + compress(mon, 1, 12) + ' ' + compress(dow, 0, 6);
+        var s6 = compress(sec, 0, 59) + ' ' + d5;
+        var y7 = g.year ? s6 + ' ' + compress(g.year.set, 1970, 2199) : '';
+        var out = [
+            {
+                name: 'GitHub Actions',
+                meta: '6 fields, seconds first, always UTC, minimum interval 5 minutes',
+                code: 'on:\n  schedule:\n    - cron: \'' + s6 + '\'',
+                note: g.second && listValues(g.second).some(function (v) { return v !== 0; })
+                    ? 'GitHub Actions ignores the seconds part of a schedule; it fires at the top of the minute.'
+                    : null
+            },
+            {
+                name: 'AWS EventBridge',
+                meta: '6 fields, seconds first, always UTC, one minute minimum',
+                code: s6,
+                note: 'EventBridge takes only the first 60 fields of a rule and does not support the Quartz extensions.'
+            },
+            {
+                name: 'Kubernetes CronJob',
+                meta: '5 fields, read in the cluster local time, no sub-minute support',
+                code: d5,
+                note: g.second && listValues(g.second).some(function (v) { return v !== 0; })
+                    ? 'The seconds field is dropped, so this fires at the start of each matched minute.'
+                    : 'Set timeZone in the job spec if the cluster is not on UTC.'
+            },
+            {
+                name: 'Quartz / Spring @Scheduled',
+                meta: q ? cron.fields.length + ' fields, Quartz extensions supported' : 'Quartz is read as 6 fields with a seconds field',
+                code: q ? (y7 || s6) : s6 + ' *',
+                note: q ? null : 'Quartz has no day of week AND day of month intersection, so keep one of the two as a star.'
+            },
+            {
+                name: 'Unix crontab (5 fields)',
+                meta: 'Read in the machine timezone of the host running cron',
+                code: d5,
+                note: g.dom.domSpecials.length || g.dow.dowSpecials.length ? 'The L, W and # operators are Quartz only. Unix cron will reject this line.' : null
+            }
+        ];
+        return out;
+    }
+
+    // --- rendering --------------------------------------------------------
+    function setStatus(msg, type) {
+        var el = document.getElementById('ce-status');
+        el.textContent = msg;
+        el.className = 'status' + (type ? ' ' + type : '');
+        el.style.display = 'block';
+    }
+
+    function explain(cron) {
+        try {
+            if (window.cronstrue && cronstrue.toString) {
+                var d = cronstrue.toString(cron.raw);
+                if (d) return d;
+            }
+        } catch (e) { /* fall through */ }
+        var parts = [];
+        for (var i = 0; i < cron.parts.length; i++) {
+            var p = cron.parts[i];
+            parts.push(p.spec.label + ': ' + (p.raw === '*' ? 'every value' : p.raw));
+        }
+        return 'Read as ' + cron.dialect + '. ' + parts.join('. ') + '.';
+    }
+
+    var lastRunsText = '';
+
+    function run() {
+        var expr = document.getElementById('ce-expr').value;
+        var tz = document.getElementById('ce-tz').value || 'UTC';
+        var cron;
+        try {
+            cron = parseCron(expr);
+        } catch (e) {
+            document.getElementById('ce-results').classList.remove('visible');
+            setStatus(e instanceof CronError ? e.message : 'That expression could not be read: ' + e.message, 'error');
+            return;
+        }
+        var res = nextRuns(cron, tz, 10);
+        var warns = warnings(cron, res, tz);
+
+        var badges = '<span class="ce-badge dialect">' + esc(cron.dialect) + '</span>' +
+            '<span class="ce-badge count">' + (res.runs.length ? res.runs.length + ' of 10 run times found' : 'No run times found') + '</span>' +
+            (warns.length && warns[0].indexOf('No common traps') === 0 ? '' : '<span class="ce-badge warn">' + (warns[0].indexOf('No common traps') === 0 ? 'clean' : (warns.length) + ' thing' + (warns.length === 1 ? '' : 's') + ' to check') + '</span>');
+        document.getElementById('ce-badges').innerHTML = badges;
+
+        document.getElementById('ce-say').innerHTML = '<h3>In plain English</h3>' + esc(explain(cron));
+
+        document.getElementById('ce-warnings').innerHTML = '<div class="ce-note"><h4>Read this before you trust the schedule</h4><ul>' +
+            warns.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul></div>';
+
+        var rows = cron.parts.map(function (p, i) {
+            var vals = listValues(p);
+            var shown = vals.length > 10 ? vals.slice(0, 10).join(', ') + ', ... (' + vals.length + ' values)' : vals.join(', ');
+            if (p.domSpecials.length) shown += (shown ? ', ' : '') + p.domSpecials.map(function (s) {
+                if (s.type === 'last') return 'last day of month';
+                if (s.type === 'lastMinus') return (lastDayText(s.n));
+                if (s.type === 'lastWeekday') return 'last weekday of month';
+                if (s.type === 'nearestWeekday') return 'weekday nearest the ' + s.n;
+                return s.type;
+            }).join(', ');
+            if (p.dowSpecials.length) shown += (shown ? ', ' : '') + p.dowSpecials.map(function (s) {
+                if (s.type === 'lastSat') return 'last Saturday of month';
+                if (s.type === 'last') return 'last ' + DOWNAME[s.dow] + ' of month';
+                if (s.type === 'nth') return DOWNAME[s.dow] + ' number ' + s.n + ' of month';
+                return s.type;
+            }).join(', ');
+            return '<tr><td>' + (i + 1) + '</td><td>' + esc(p.spec.label) + '</td><td class="raw">' + esc(p.raw) + '</td>' +
+                '<td>' + esc(p.spec.gl) + '</td><td class="vals">' + esc(shown || 'none') + '</td></tr>';
+        }).join('');
+        document.getElementById('ce-rows').innerHTML = rows;
+
+        var rrows = res.runs.map(function (r, i) {
+            var p = wallToParts(r.wall);
+            var local = p.y + '-' + pad(p.mo) + '-' + pad(p.da) + ' ' + pad(p.h) + ':' + pad(p.mi) + ':' + pad(p.se) + ' (' + DOWNAME[p.dow] + ')';
+            var u = new Date(r.instant);
+            var utc = u.getUTCFullYear() + '-' + pad(u.getUTCMonth() + 1) + '-' + pad(u.getUTCDate()) + ' ' + pad(u.getUTCHours()) + ':' + pad(u.getUTCMinutes()) + ':' + pad(u.getUTCSeconds());
+            var iso = u.toISOString();
+            if (r.nonexistent) local += ' — no such local time';
+            return '<tr><td>' + (i + 1) + '</td><td class="raw">' + esc(local) + '</td><td class="raw">' + esc(utc) + ' UTC</td><td class="vals">' + esc(iso) + '</td></tr>';
+        }).join('');
+        document.getElementById('ce-runs').innerHTML = rrows || '<tr><td colspan="4" style="color:#8b90a0">This schedule never fires. See the notes above.</td></tr>';
+
+        lastRunsText = res.runs.map(function (r, i) {
+            var u = new Date(r.instant);
+            return (i + 1) + '. ' + u.toISOString() + ' (' + esc(wallToParts(r.wall).y + '-' + pad(wallToParts(r.wall).mo) + '-' + pad(wallToParts(r.wall).da) + ' ' + pad(wallToParts(r.wall).h) + ':' + pad(wallToParts(r.wall).mi) + ')');
+        }).join('\n');
+
+        document.getElementById('ce-platforms').innerHTML = platforms(cron).map(function (p) {
+            return '<div class="ce-out"><h4>' + esc(p.name) + '</h4><div class="meta">' + esc(p.meta) + '</div><pre>' + esc(p.code) + '</pre>' +
+                (p.note ? '<div class="meta" style="margin:8px 0 0">' + esc(p.note) + '</div>' : '') + '</div>';
+        }).join('');
+
+        document.getElementById('ce-meta').textContent = 'Evaluated ' + cron.fields.length + ' fields as ' + cron.dialect + ', in ' + tz + '. Everything above was computed in this page.';
+
+        document.getElementById('ce-results').classList.add('visible');
+        setStatus(res.runs.length ? 'Evaluated. ' + res.runs.length + ' run time' + (res.runs.length === 1 ? '' : 's') + ' found in ' + tz + '.' : 'Parsed, but this schedule never fires.', res.runs.length ? '' : 'error');
+    }
+
+    var DOWNAME = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    function lastDayText(n) { return n + ' days before the last day of month'; }
+
+    // --- timezone list ----------------------------------------------------
+    function fillTimezones() {
+        var sel = document.getElementById('ce-tz');
+        var here = 'UTC';
+        try { here = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch (e) { }
+        var names = ['UTC', 'America/Los_Angeles', 'America/Denver', 'America/Chicago', 'America/New_York', 'America/Sao_Paulo', 'Europe/London', 'Europe/Dublin', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid', 'Europe/Moscow', 'Africa/Lagos', 'Africa/Johannesburg', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Karachi', 'Asia/Bangkok', 'Asia/Shanghai', 'Asia/Hong_Kong', 'Asia/Singapore', 'Asia/Tokyo', 'Asia/Seoul', 'Australia/Perth', 'Australia/Sydney', 'Pacific/Auckland', 'Pacific/Honolulu'];
+        if (names.indexOf(here) === -1) names.unshift(here);
+        var seen = {};
+        var html = '';
+        for (var i = 0; i < names.length; i++) {
+            if (seen[names[i]]) continue;
+            seen[names[i]] = true;
+            html += '<option value="' + esc(names[i]) + '"' + (names[i] === here ? ' selected' : '') + '>' + esc(names[i]) + (names[i] === here ? ' (this device)' : '') + '</option>';
+        }
+        sel.innerHTML = html;
+    }
+
+    function boot() {
+        fillTimezones();
+        document.getElementById('ce-go').addEventListener('click', run);
+        document.getElementById('ce-expr').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); run(); } });
+        document.getElementById('ce-tz').addEventListener('change', function () {
+            if (document.getElementById('ce-expr').value.trim()) run();
+        });
+        document.getElementById('ce-copy-runs').addEventListener('click', function () {
+            if (!lastRunsText) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(lastRunsText);
+                setStatus('Run times copied to the clipboard.', '');
+            } else {
+                setStatus('Copy is unavailable here. Select the table instead.', 'error');
+            }
+        });
+        var ps = document.querySelectorAll('.ce-preset');
+        for (var i = 0; i < ps.length; i++) {
+            ps[i].addEventListener('click', function () {
+                document.getElementById('ce-expr').value = this.getAttribute('data-expr');
+                run();
+            });
+        }
+        document.getElementById('ce-expr').value = '0 9 * * 1-5';
+        run();
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
+    </script>
+</body>
+</html>

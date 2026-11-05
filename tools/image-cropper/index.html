@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <title>Image Cropper - Crop Photos Free Online | DevTools Hub</title>
+    <meta name="description" content="Free online image cropper. Crop photos with aspect ratio presets, rotate, flip, zoom. Social media sizes for Instagram, Facebook, Twitter. No upload, 100% private.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/image-cropper/">
+    <meta property="og:title" content="Image Cropper - Crop Photos Free Online | DevTools Hub">
+    <meta property="og:description" content="Crop photos with aspect ratio presets, rotate, flip, zoom. 100% private browser processing. No signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/image-cropper/">
+    <meta property="og:type" content="website">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Image Cropper - Crop Photos Free Online">
+    <meta name="twitter:description" content="Crop photos with presets, rotate, flip. No upload, 100% private.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Image Cropper","description":"Free online image cropper. Crop photos with free-form or aspect ratio presets including 1:1, 16:9, 4:3, and social media sizes. Rotate, flip, zoom. 100% browser-based, no upload, no signup, no watermark, no limits.","url":"https://tools.scoreroute.com/tools/image-cropper/","applicationCategory":"MultimediaApplication","operatingSystem":"All","browserRequirements":"Requires Canvas API, modern browser","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Free-form crop drag","Aspect ratio lock (1:1, 16:9, 4:3, 3:2, 21:9, 9:16, 4:5, 2:3)","Social media presets (Instagram, Facebook, Twitter, LinkedIn, YouTube)","Rotate 90\u00b0 left and right","Flip horizontal and vertical","Zoom in and out","Real-time crop dimension display","Live cropped preview","Before / after comparison","Download as PNG, JPG, or WebP","Copy to clipboard"],"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-06-13","dateModified":"2026-06-13","aggregateRating":{"@type":"AggregateRating","ratingValue":"4.9","ratingCount":"89","bestRating":"5"}}
+    </script>
+    <style>
+        .ic-dropzone { border: 3px dashed #555; border-radius: 16px; padding: 50px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; margin-bottom: 20px; }
+        .ic-dropzone:hover, .ic-dropzone.dragover { border-color: #667eea; background: #222250; }
+        .ic-dropzone.has-file { display: none; }
+        .ic-dropzone-icon { font-size: 3rem; margin-bottom: 10px; }
+        .ic-dropzone-text { font-size: 1.1rem; color: #ccc; }
+        .ic-dropzone-text strong { color: #667eea; }
+        .ic-dropzone-sub { font-size: 0.85rem; color: #888; margin-top: 6px; }
+        .ic-editor { display: none; }
+        .ic-editor.visible { display: block; }
+        .ic-info-bar { display: flex; flex-wrap: wrap; gap: 18px; padding: 14px 18px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 16px; }
+        .ic-info-item { color: #ccc; font-size: 0.9rem; }
+        .ic-info-item strong { color: #667eea; margin-right: 6px; }
+        .ic-controls { padding: 22px; background: #1a1a3e; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
+        .ic-control-section { margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid #2a2a4e; }
+        .ic-control-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .ic-section-title { color: #667eea; font-size: 0.9rem; font-weight: 600; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ic-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .ic-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: #0f0f23; border: 1px solid #333; border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: #ccc; transition: all 0.2s; }
+        .ic-pill:hover { border-color: #667eea; }
+        .ic-pill.active { background: #667eea; color: #fff; border-color: #667eea; }
+        .ic-pill input { display: none; }
+        .ic-pill-sm { padding: 5px 10px; font-size: 0.8rem; }
+        .ic-action-btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; background: #0f0f23; border: 1px solid #555; border-radius: 8px; cursor: pointer; font-size: 0.85rem; color: #ccc; transition: all 0.2s; }
+        .ic-action-btn:hover { border-color: #667eea; color: #fff; }
+        .ic-action-btn.primary { background: #667eea; color: #fff; border-color: #667eea; }
+        .ic-action-btn.primary:hover { background: #5570d0; }
+        .ic-canvas-wrap { position: relative; width: 100%; max-width: 100%; background: #0f0f23; border-radius: 12px; overflow: hidden; border: 1px solid #333; margin-bottom: 16px; user-select: none; touch-action: none; }
+        .ic-canvas-wrap canvas { display: block; width: 100%; height: auto; }
+        .ic-preview-wrap { display: none; margin-top: 20px; }
+        .ic-preview-wrap.visible { display: block; }
+        .ic-preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+        .ic-preview-header h2 { color: #fff; margin: 0; font-size: 1.2rem; }
+        .ic-preview-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .ic-compare { position: relative; width: 100%; max-width: 100%; background: #0f0f23; border-radius: 12px; overflow: hidden; border: 1px solid #333; user-select: none; touch-action: none; }
+        .ic-compare img { display: block; width: 100%; height: auto; }
+        .ic-comp-wrapper { position: relative; width: 100%; }
+        .ic-comp-wrapper .ic-comp-img { display: block; width: 100%; }
+        .ic-comp-after-wrap { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
+        .ic-comp-after-wrap .ic-comp-img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top left; }
+        .ic-comp-slider { position: absolute; top: 0; bottom: 0; width: 3px; background: #fff; cursor: ew-resize; z-index: 10; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
+        .ic-comp-handle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #667eea; font-weight: 700; font-size: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .ic-comp-label { position: absolute; top: 10px; padding: 4px 10px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 4px; font-size: 0.8rem; font-weight: 600; pointer-events: none; }
+        .ic-comp-label-before { left: 10px; }
+        .ic-comp-label-after { right: 10px; }
+        .ic-dim-inputs { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .ic-dim-inputs label { color: #aaa; font-size: 0.85rem; }
+        .ic-dim-input { width: 80px; padding: 6px 8px; background: #0f0f23; border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 0.85rem; font-family: monospace; text-align: center; }
+        .ic-dim-input:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .ic-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 16px; }
+        .ic-stat-card { background: #1a1a3e; padding: 10px 14px; border-radius: 8px; border-left: 3px solid #667eea; }
+        .ic-stat-label { color: #888; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ic-stat-value { color: #fff; font-size: 1rem; font-weight: 600; margin-top: 2px; font-family: monospace; }
+        .ic-error { display: none; margin: 14px 0; padding: 12px 16px; background: #3e1a1a; color: #ff9999; border-radius: 8px; border: 1px solid #aa3333; font-size: 0.9rem; }
+        .ic-error.visible { display: block; }
+        .ic-slider-wrap { display: flex; gap: 10px; align-items: center; flex: 1; min-width: 140px; }
+        .ic-slider-wrap label { color: #aaa; font-size: 0.85rem; min-width: 50px; }
+        .ic-slider { flex: 1; accent-color: #667eea; }
+        .ic-slider-value { color: #667eea; font-weight: 600; min-width: 35px; text-align: right; font-family: monospace; font-size: 0.85rem; }
+        .ic-social-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+        .ic-social-pill { padding: 6px 12px; border-radius: 6px; border: 1px solid #333; cursor: pointer; font-size: 0.8rem; color: #ccc; background: #0f0f23; transition: all 0.2s; }
+        .ic-social-pill:hover { border-color: #667eea; }
+        .ic-social-pill.active { background: #667eea; color: #fff; border-color: #667eea; }
+        .ic-zoom-controls { display: flex; gap: 6px; align-items: center; }
+        .ic-zoom-controls button { width: 32px; height: 32px; border-radius: 6px; border: 1px solid #444; background: #0f0f23; color: #ccc; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .ic-zoom-controls button:hover { border-color: #667eea; color: #fff; }
+        .ic-zoom-level { color: #667eea; font-family: monospace; font-size: 0.85rem; min-width: 45px; text-align: center; }
+        @media (max-width: 700px) {
+            .ic-info-bar { flex-direction: column; gap: 6px; }
+            .ic-dim-inputs { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+    {"@type":"Question","name":"Does this tool upload my images to a server?","acceptedAnswer":{"@type":"Answer","text":"No. All processing happens in your browser using the Canvas API. Your image never leaves your device. AI assistants cannot access or crop your private photos."}},
+    {"@type":"Question","name":"What image formats are supported?","acceptedAnswer":{"@type":"Answer","text":"Input: JPG, PNG, WebP, GIF (first frame), BMP. Output: PNG (lossless), JPG (smaller), WebP (modern compression). No file size limit beyond browser memory."}},
+    {"@type":"Question","name":"What aspect ratio presets are available?","acceptedAnswer":{"@type":"Answer","text":"Free-form (no lock), 1:1 Square, 4:3 Standard, 3:2 Classic, 16:9 Widescreen, 21:9 Ultrawide, 9:16 Portrait, 4:5 Instagram Portrait, 2:3 Print. Plus social media presets for Instagram, Facebook, Twitter, LinkedIn, and YouTube."}},
+    {"@type":"Question","name":"Can I rotate or flip the image while cropping?","acceptedAnswer":{"@type":"Answer","text":"Yes. Use the rotate buttons (90\u00b0 left or right) and flip buttons (horizontal or vertical). Rotation and flip are applied before cropping."}},
+    {"@type":"Question","name":"Is this different from the Image Resizer tool?","acceptedAnswer":{"@type":"Answer","text":"Yes. Image Resizer changes the overall dimensions of the entire image. Image Cropper lets you interactively select a region of the image to keep, removing unwanted areas. The cropped result can then be downloaded at the new size."}},
+    {"@type":"Question","name":"How is this better than using AI chatbots to crop images?","acceptedAnswer":{"@type":"Answer","text":"AI chatbots (ChatGPT, Claude, Gemini) cannot process image pixels, cannot show an interactive crop selection, cannot output a properly cropped image file. This tool uses deterministic Canvas API for pixel-perfect cropping every time."}},
+    {"@type":"Question","name":"Is there a file size limit?","acceptedAnswer":{"@type":"Answer","text":"There is no hard file size limit. Very large images (over 8000px) may be slow due to browser memory limits. For best results, use images under 20MB."}}
+    ]}
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Image Cropper</h1>
+            <p class="subtitle">Crop Photos Free Online • Aspect Ratio Presets • Rotate • Flip • 100% Private</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Image Cropper</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="ic-dropzone" id="icDropzone">
+                    <div class="ic-dropzone-icon">&#128247;</div>
+                    <div class="ic-dropzone-text">Drop an image here or <strong>browse</strong></div>
+                    <div class="ic-dropzone-sub">Supports JPG, PNG, WebP, GIF, BMP &mdash; 100% browser processing, no upload</div>
+                    <input type="file" id="icFileInput" accept="image/*" style="display:none" aria-label="Choose an image to crop">
+                </div>
+
+                <div class="ic-editor" id="icEditor">
+                    <div class="ic-info-bar">
+                        <span class="ic-info-item"><strong>File:</strong> <span id="icFileName">-</span></span>
+                        <span class="ic-info-item"><strong>Original:</strong> <span id="icOriginalDims">-</span></span>
+                    </div>
+
+                    <div class="ic-controls" id="icControls">
+                        <div class="ic-control-section">
+                            <div class="ic-section-title">Aspect Ratio</div>
+                            <div class="ic-btn-row" id="icRatioBtns">
+                                <label class="ic-pill active" data-ratio="free"><input type="radio" name="ratio" value="free" checked>Free</label>
+                                <label class="ic-pill" data-ratio="1:1"><input type="radio" name="ratio" value="1:1">1:1</label>
+                                <label class="ic-pill" data-ratio="4:3"><input type="radio" name="ratio" value="4:3">4:3</label>
+                                <label class="ic-pill" data-ratio="3:2"><input type="radio" name="ratio" value="3:2">3:2</label>
+                                <label class="ic-pill" data-ratio="16:9"><input type="radio" name="ratio" value="16:9">16:9</label>
+                                <label class="ic-pill" data-ratio="21:9"><input type="radio" name="ratio" value="21:9">21:9</label>
+                                <label class="ic-pill" data-ratio="9:16"><input type="radio" name="ratio" value="9:16">9:16</label>
+                                <label class="ic-pill" data-ratio="4:5"><input type="radio" name="ratio" value="4:5">4:5</label>
+                                <label class="ic-pill" data-ratio="2:3"><input type="radio" name="ratio" value="2:3">2:3</label>
+                            </div>
+                        </div>
+
+                        <div class="ic-control-section">
+                            <div class="ic-section-title">Social Media Presets</div>
+                            <div class="ic-social-grid" id="icSocialBtns">
+                                <span class="ic-social-pill" data-name="Instagram Square" data-ratio="1:1">Instagram Square</span>
+                                <span class="ic-social-pill" data-name="Instagram Portrait" data-ratio="4:5">Instagram Portrait</span>
+                                <span class="ic-social-pill" data-name="Facebook Cover" data-ratio="1.91:1">Facebook Cover</span>
+                                <span class="ic-social-pill" data-name="Facebook Post" data-ratio="1:1">Facebook Post</span>
+                                <span class="ic-social-pill" data-name="Twitter Header" data-ratio="3:1">Twitter Header</span>
+                                <span class="ic-social-pill" data-name="Twitter Post" data-ratio="16:9">Twitter Post</span>
+                                <span class="ic-social-pill" data-name="LinkedIn Cover" data-ratio="1.91:1">LinkedIn Cover</span>
+                                <span class="ic-social-pill" data-name="YouTube Thumbnail" data-ratio="16:9">YouTube Thumbnail</span>
+                            </div>
+                        </div>
+
+                        <div class="ic-control-section">
+                            <div class="ic-section-title">Transform</div>
+                            <div class="ic-btn-row">
+                                <button class="ic-action-btn" onclick="IC.rotate(-90)" title="Rotate 90° Left">↺ Left</button>
+                                <button class="ic-action-btn" onclick="IC.rotate(90)" title="Rotate 90° Right">↻ Right</button>
+                                <button class="ic-action-btn" onclick="IC.flipH()" title="Flip Horizontal">↔ H Flip</button>
+                                <button class="ic-action-btn" onclick="IC.flipV()" title="Flip Vertical">↕ V Flip</button>
+                                <button class="ic-action-btn" onclick="IC.zoomIn()" title="Zoom In">🔍+</button>
+                                <button class="ic-action-btn" onclick="IC.zoomOut()" title="Zoom Out">🔍−</button>
+                                <button class="ic-action-btn" onclick="IC.resetZoom()" title="Reset Zoom to Fit">Fit</button>
+                            </div>
+                        </div>
+
+                        <div class="ic-control-section" style="border-bottom:none;margin-bottom:0;padding-bottom:0;">
+                            <div class="ic-section-title">Crop Area</div>
+                            <div class="ic-dim-inputs">
+                                <label>X: <input type="number" class="ic-dim-input" id="icCropX" readonly></label>
+                                <label>Y: <input type="number" class="ic-dim-input" id="icCropY" readonly></label>
+                                <label>W: <input type="number" class="ic-dim-input" id="icCropW" readonly></label>
+                                <label>H: <input type="number" class="ic-dim-input" id="icCropH" readonly></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ic-canvas-wrap" id="icCanvasWrap">
+                        <canvas id="icCanvas"></canvas>
+                    </div>
+
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+                        <button class="btn btn-primary" onclick="IC.applyCrop()">✂ Crop Image</button>
+                        <button class="btn" onclick="IC.resetImage()">↺ Reset</button>
+                        <button class="btn btn-secondary" onclick="IC.clearImage()">✕ Clear</button>
+                    </div>
+
+                    <div class="ic-preview-wrap" id="icPreviewWrap">
+                        <div class="ic-preview-header">
+                            <h2>Cropped Result</h2>
+                            <div class="ic-preview-actions">
+                                <button class="btn btn-primary btn-sm" onclick="IC.download('png')">Download PNG</button>
+                                <button class="btn btn-sm" onclick="IC.download('jpeg')">Download JPG</button>
+                                <button class="btn btn-sm" onclick="IC.download('webp')">Download WebP</button>
+                                <button class="copy-btn" onclick="IC.copyToClipboard()">Copy</button>
+                            </div>
+                        </div>
+                        <div class="ic-compare" id="icCompare">
+                            <div class="ic-comp-wrapper">
+                                <img class="ic-comp-img" id="icCompOriginal" alt="Original">
+                                <div class="ic-comp-after-wrap" id="icCompAfterWrap">
+                                    <img class="ic-comp-img" id="icCompCropped" alt="Cropped">
+                                </div>
+                                <div class="ic-comp-slider" id="icCompSlider">
+                                    <div class="ic-comp-handle">⟷</div>
+                                </div>
+                                <div class="ic-comp-label ic-comp-label-before">Before</div>
+                                <div class="ic-comp-label ic-comp-label-after">After</div>
+                            </div>
+                        </div>
+                        <div class="ic-stats" id="icStats"></div>
+                    </div>
+                </div>
+
+                <div class="ic-error" id="icError"></div>
+            </div>
+
+            <div class="info-section">
+                <h2>Free Online Image Cropper</h2>
+                <p>Crop your photos and images precisely with our free online image cropper. Whether you need to crop images for social media, remove unwanted elements, adjust composition, or prepare images for web upload, this tool provides all the features you need — entirely in your browser.</p>
+
+                <div class="feature-list">
+                    <h3>Why Use This Tool?</h3>
+                    <ul>
+                        <li><strong>100% Private</strong> — All processing stays in your browser. Your images are never uploaded to any server.</li>
+                        <li><strong>Aspect Ratio Presets</strong> — 9 predefined ratios plus social media presets for Instagram, Facebook, Twitter, LinkedIn, and YouTube.</li>
+                        <li><strong>Interactive Crop</strong> — Drag the crop region directly on the image. Resize by dragging corners and edges.</li>
+                        <li><strong>Rotate &amp; Flip</strong> — Rotate 90 degrees left or right. Flip horizontally or vertically before cropping.</li>
+                        <li><strong>Zoom Controls</strong> — Zoom in for pixel-precise crop selection. Fit to view when needed.</li>
+                        <li><strong>Live Dimensions</strong> — See exact crop X, Y, width, and height in real time.</li>
+                        <li><strong>Before/After Comparison</strong> — Drag the comparison slider to see the original vs. cropped result side by side.</li>
+                        <li><strong>3 Output Formats</strong> — Download as PNG (lossless), JPG (compressed), or WebP (modern smallest size).</li>
+                        <li><strong>No Watermark</strong> — No branding, no watermark, no daily limits, no signup required.</li>
+                    </ul>
+                </div>
+
+                <h3>How to Crop an Image</h3>
+                <ol>
+                    <li><strong>Upload</strong> — Drag and drop an image or click to browse. Works with JPG, PNG, WebP, GIF, and BMP.</li>
+                    <li><strong>Adjust</strong> — Select an aspect ratio preset or use free mode. Drag the crop region to frame your subject. Rotate or flip if needed.</li>
+                    <li><strong>Crop</strong> — Click "Crop Image" to apply. Preview the result with the before/after slider.</li>
+                    <li><strong>Download</strong> — Choose PNG, JPG, or WebP format and download your cropped image instantly.</li>
+                </ol>
+
+                <h3>Common Use Cases</h3>
+                <ul>
+                    <li><strong>Social Media</strong> — Crop images to the exact aspect ratios required by Instagram, Facebook, Twitter, LinkedIn, and YouTube.</li>
+                    <li><strong>Profile Photos</strong> — Create square 1:1 profile pictures from any image.</li>
+                    <li><strong>Product Photos</strong> — Crop product images to consistent dimensions for e-commerce listings.</li>
+                    <li><strong>Web Banners</strong> — Crop images to landscape ratios for website headers and hero sections.</li>
+                    <li><strong>Print Preparation</strong> — Crop to standard print ratios (4:3, 3:2) for photo printing.</li>
+                    <li><strong>Remove Unwanted Elements</strong> — Cut out distracting edges or objects to improve composition.</li>
+                </ul>
+
+                <h3>Frequently Asked Questions</h3>
+                <details class="faq-item">
+                    <summary>Does this tool upload my images to a server?</summary>
+                    <p>No. All image processing happens in your browser using the HTML5 Canvas API. Your images never leave your device. We have no access to your uploaded images. AI assistants like ChatGPT, Claude, and Gemini cannot access or crop your private photos.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What image formats are supported?</summary>
+                    <p>Input: JPG, PNG, WebP, GIF (first frame), and BMP. Output: PNG (lossless, best for graphics with text), JPG (smaller file size, best for photos), and WebP (modern format with best compression).</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What aspect ratio presets are available?</summary>
+                    <p>Free-form (no lock), 1:1 Square, 4:3 Standard, 3:2 Classic, 16:9 Widescreen, 21:9 Ultrawide, 9:16 Portrait, 4:5 Instagram Portrait, 2:3 Print. Plus social media presets: Instagram Square, Instagram Portrait, Facebook Cover, Facebook Post, Twitter Header, Twitter Post, LinkedIn Cover, and YouTube Thumbnail.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Can I rotate or flip the image while cropping?</summary>
+                    <p>Yes. Use the rotate buttons to turn the image 90 degrees left or right. Use the flip buttons to mirror the image horizontally or vertically. Rotation and flip are applied before cropping.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is this different from the Image Resizer tool?</summary>
+                    <p>Yes. The Image Resizer changes the overall dimensions of the entire image (making it larger or smaller). The Image Cropper lets you interactively select a specific region of the image to keep, removing unwanted areas from the edges. They solve different problems — use both together for complete image preparation.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>How is this better than using AI chatbots to crop images?</summary>
+                    <p>AI chatbots (ChatGPT, Claude, Gemini) cannot process image pixels. They cannot show an interactive crop selection, cannot respect aspect ratios, and cannot output a properly cropped image file. This tool uses the deterministic HTML5 Canvas API for pixel-perfect cropping every time — no AI, no hallucination, no errors.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is there a file size limit?</summary>
+                    <p>There is no hard file size limit. Very large images (over 8000 pixels per dimension) may cause slow performance due to browser memory limits. For best results, use images under 20MB. The tool processes everything client-side, so performance depends on your device's available memory.</p>
+                </details>
+
+                <h3>Related Tools</h3>
+                <ul>
+                    <li><a href="/tools/image-resizer/">Image Resizer</a> — Resize images to exact dimensions.</li>
+                    <li><a href="/tools/image-compressor/">Image Compressor</a> — Reduce image file size without losing quality.</li>
+                    <li><a href="/tools/image-format-converter/">Image Format Converter</a> — Convert between image formats.</li>
+                    <li><a href="/tools/image-enhancer/">Image Enhancer</a> — Improve photo quality with real-time adjustments.</li>
+                    <li><a href="/tools/background-remover/">Background Remover</a> — Remove image backgrounds automatically.</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+    <script src="/tools.js"></script>
+    <script>
+    var IC = {
+        image: null,
+        originalImage: null,
+        canvas: null,
+        ctx: null,
+        crop: { x: 0, y: 0, w: 0, h: 0 },
+        aspectRatio: 0,
+        scale: 1,
+        rotation: 0,
+        flippedH: false,
+        flippedV: false,
+        zoom: 1,
+        isDragging: false,
+        isResizing: false,
+        resizeDir: null,
+        dragStart: { x: 0, y: 0 },
+        cropStart: { x: 0, y: 0, w: 0, h: 0 },
+        isCropped: false,
+        croppedDataUrl: null,
+        originalDataUrl: null,
+
+        init: function() {
+            var self = this;
+            self.canvas = document.getElementById('icCanvas');
+            self.ctx = self.canvas.getContext('2d');
+
+            var dropzone = document.getElementById('icDropzone');
+            var fileInput = document.getElementById('icFileInput');
+
+            dropzone.addEventListener('click', function() { fileInput.click(); });
+            dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('dragover'); });
+            dropzone.addEventListener('dragleave', function() { dropzone.classList.remove('dragover'); });
+            dropzone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) self.loadFile(e.dataTransfer.files[0]);
+            });
+            fileInput.addEventListener('change', function() {
+                if (fileInput.files.length) self.loadFile(fileInput.files[0]);
+            });
+
+            document.querySelectorAll('#icRatioBtns .ic-pill input').forEach(function(r) {
+                r.addEventListener('change', function() {
+                    document.querySelectorAll('#icRatioBtns .ic-pill').forEach(function(p) { p.classList.remove('active'); });
+                    this.closest('.ic-pill').classList.add('active');
+                    self.setRatio(this.value);
+                });
+            });
+
+            document.querySelectorAll('#icSocialBtns .ic-social-pill').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var ratio = this.getAttribute('data-ratio');
+                    document.querySelectorAll('#icSocialBtns .ic-social-pill').forEach(function(p) { p.classList.remove('active'); });
+                    this.classList.add('active');
+                    var parts = ratio.split(':');
+                    var num = parseFloat(parts[0]) / parseFloat(parts[1]);
+                    self.setRatio(num);
+                });
+            });
+
+            self.setupCanvasEvents();
+            self.loadSample();
+        },
+
+        loadSample: function() {
+            var img = new Image();
+            img.onload = function() {
+                IC.loadImage(img);
+            };
+            img.crossOrigin = 'Anonymous';
+            var c = document.createElement('canvas');
+            c.width = 800;
+            c.height = 500;
+            var ctx = c.getContext('2d');
+            var grad = ctx.createLinearGradient(0, 0, 800, 500);
+            grad.addColorStop(0, '#667eea');
+            grad.addColorStop(0.5, '#764ba2');
+            grad.addColorStop(1, '#f093fb');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 800, 500);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 42px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Sample Image', 400, 220);
+            ctx.font = '22px sans-serif';
+            ctx.fillText('Upload your own or crop this sample', 400, 290);
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(150, 100, 500, 300);
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.fillRect(150, 100, 500, 300);
+            img.src = c.toDataURL();
+        },
+
+        loadFile: function(file) {
+            if (!file.type.match('image.*')) {
+                this.showError('Please select an image file.');
+                return;
+            }
+            var reader = new FileReader();
+            var self = this;
+            reader.onload = function(e) {
+                var img = new Image();
+                img.onload = function() {
+                    self.loadImage(img);
+                    document.getElementById('icFileName').textContent = file.name;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        },
+
+        loadImage: function(img) {
+            this.image = img;
+            this.originalImage = img;
+            this.rotation = 0;
+            this.flippedH = false;
+            this.flippedV = false;
+            this.zoom = 1;
+            this.isCropped = false;
+            this.croppedDataUrl = null;
+
+            document.getElementById('icDropzone').classList.add('has-file');
+            document.getElementById('icEditor').classList.add('visible');
+            document.getElementById('icPreviewWrap').classList.remove('visible');
+            document.getElementById('icOriginalDims').textContent = img.width + ' x ' + img.height;
+
+            this.renderCanvas();
+            this.fitCanvas();
+            this.resetCrop();
+            this.updateDims();
+            this.hideError();
+        },
+
+        renderCanvas: function() {
+            var self = this;
+            var canvas = self.canvas;
+            var ctx = self.ctx;
+            var img = self.image;
+            if (!img) return;
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            var cx = canvas.width / 2;
+            var cy = canvas.height / 2;
+            ctx.translate(cx, cy);
+            if (self.flippedH) ctx.scale(-1, 1);
+            if (self.flippedV) ctx.scale(1, -1);
+            ctx.rotate(self.rotation * Math.PI / 180);
+
+            var drawW = (self.rotation % 180 !== 0) ? img.height : img.width;
+            var drawH = (self.rotation % 180 !== 0) ? img.width : img.height;
+            ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+            ctx.restore();
+
+            self.drawCropOverlay();
+        },
+
+        drawCropOverlay: function() {
+            var self = this;
+            var ctx = self.ctx;
+            var cw = self.canvas.width;
+            var ch = self.canvas.height;
+            var cr = self.crop;
+
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(0, 0, cw, cr.y);
+            ctx.fillRect(0, cr.y + cr.h, cw, ch - cr.y - cr.h);
+            ctx.fillRect(0, cr.y, cr.x, cr.h);
+            ctx.fillRect(cr.x + cr.w, cr.y, cw - cr.x - cr.w, cr.h);
+
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(cr.x, cr.y, cr.w, cr.h);
+
+            var hs = 8;
+            var hl = 20;
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            var corners = [
+                [cr.x, cr.y, 'nw'], [cr.x + cr.w, cr.y, 'ne'],
+                [cr.x, cr.y + cr.h, 'sw'], [cr.x + cr.w, cr.y + cr.h, 'se']
+            ];
+            corners.forEach(function(c) {
+                var x = c[0], y = c[1];
+                ctx.beginPath();
+                ctx.moveTo(x - hs, y); ctx.lineTo(x - hl, y);
+                ctx.moveTo(x + hs, y); ctx.lineTo(x + hl, y);
+                ctx.moveTo(x, y - hs); ctx.lineTo(x, y - hl);
+                ctx.moveTo(x, y + hs); ctx.lineTo(x, y + hl);
+                ctx.stroke();
+            });
+
+            var thirdW = cr.w / 3;
+            var thirdH = cr.h / 3;
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            for (var i = 1; i < 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(cr.x + thirdW * i, cr.y);
+                ctx.lineTo(cr.x + thirdW * i, cr.y + cr.h);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(cr.x, cr.y + thirdH * i);
+                ctx.lineTo(cr.x + cr.w, cr.y + thirdH * i);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        },
+
+        resetCrop: function() {
+            var margin = 0.05;
+            this.crop = {
+                x: Math.round(this.canvas.width * margin),
+                y: Math.round(this.canvas.height * margin),
+                w: Math.round(this.canvas.width * (1 - 2 * margin)),
+                h: Math.round(this.canvas.height * (1 - 2 * margin))
+            };
+            if (this.aspectRatio > 0) this.constrainRatio();
+            this.updateDims();
+        },
+
+        setRatio: function(ratio) {
+            if (ratio === 'free') {
+                this.aspectRatio = 0;
+            } else if (typeof ratio === 'number') {
+                this.aspectRatio = ratio;
+            } else {
+                var parts = ratio.split(':');
+                this.aspectRatio = parseFloat(parts[0]) / parseFloat(parts[1]);
+            }
+            this.constrainRatio();
+            this.renderCanvas();
+            this.updateDims();
+        },
+
+        constrainRatio: function() {
+            if (this.aspectRatio <= 0) return;
+            var cr = this.crop;
+            var currentRatio = cr.w / cr.h;
+            if (currentRatio > this.aspectRatio) {
+                cr.w = Math.round(cr.h * this.aspectRatio);
+            } else {
+                cr.h = Math.round(cr.w / this.aspectRatio);
+            }
+            var cw = this.canvas.width;
+            var ch = this.canvas.height;
+            if (cr.x + cr.w > cw) cr.x = cw - cr.w;
+            if (cr.y + cr.h > ch) cr.y = ch - cr.h;
+            if (cr.x < 0) cr.x = 0;
+            if (cr.y < 0) cr.y = 0;
+        },
+
+        fitCanvas: function() {
+            var wrap = document.getElementById('icCanvasWrap');
+            var maxW = wrap.clientWidth;
+            var img = this.image;
+            if (!img) return;
+
+            var scaleW = maxW / this.canvas.width;
+            var maxH = window.innerHeight * 0.7;
+            var scaleH = maxH / this.canvas.height;
+            var s = Math.min(scaleW, scaleH, 1);
+            this.canvas.style.width = Math.round(this.canvas.width * s) + 'px';
+            this.canvas.style.height = Math.round(this.canvas.height * s) + 'px';
+        },
+
+        setupCanvasEvents: function() {
+            var self = this;
+            var canvas = self.canvas;
+
+            canvas.addEventListener('mousedown', function(e) { self.onMouseDown(e); });
+            canvas.addEventListener('mousemove', function(e) { self.onMouseMove(e); });
+            canvas.addEventListener('mouseup', function(e) { self.onMouseUp(e); });
+            canvas.addEventListener('mouseleave', function(e) { self.onMouseUp(e); });
+
+            canvas.addEventListener('touchstart', function(e) { e.preventDefault(); var t = e.touches[0]; self.onMouseDown(t); }, { passive: false });
+            canvas.addEventListener('touchmove', function(e) { e.preventDefault(); var t = e.touches[0]; self.onMouseMove(t); }, { passive: false });
+            canvas.addEventListener('touchend', function(e) { e.preventDefault(); self.onMouseUp(e); }, { passive: false });
+        },
+
+        getCanvasCoords: function(e) {
+            var rect = this.canvas.getBoundingClientRect();
+            var scaleX = this.canvas.width / rect.width;
+            var scaleY = this.canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        },
+
+        onMouseDown: function(e) {
+            if (this.isCropped) return;
+            var pos = this.getCanvasCoords(e);
+            var cr = this.crop;
+            var edge = 10;
+            var dir = null;
+
+            if (Math.abs(pos.x - cr.x) < edge && Math.abs(pos.y - cr.y) < edge) dir = 'nw';
+            else if (Math.abs(pos.x - (cr.x + cr.w)) < edge && Math.abs(pos.y - cr.y) < edge) dir = 'ne';
+            else if (Math.abs(pos.x - cr.x) < edge && Math.abs(pos.y - (cr.y + cr.h)) < edge) dir = 'sw';
+            else if (Math.abs(pos.x - (cr.x + cr.w)) < edge && Math.abs(pos.y - (cr.y + cr.h)) < edge) dir = 'se';
+            else if (Math.abs(pos.x - cr.x) < edge && pos.y > cr.y && pos.y < cr.y + cr.h) dir = 'w';
+            else if (Math.abs(pos.x - (cr.x + cr.w)) < edge && pos.y > cr.y && pos.y < cr.y + cr.h) dir = 'e';
+            else if (Math.abs(pos.y - cr.y) < edge && pos.x > cr.x && pos.x < cr.x + cr.w) dir = 'n';
+            else if (Math.abs(pos.y - (cr.y + cr.h)) < edge && pos.x > cr.x && pos.x < cr.x + cr.w) dir = 's';
+
+            if (dir) {
+                this.isResizing = true;
+                this.resizeDir = dir;
+                this.dragStart = pos;
+                this.cropStart = { x: cr.x, y: cr.y, w: cr.w, h: cr.h };
+                return;
+            }
+
+            if (pos.x >= cr.x && pos.x <= cr.x + cr.w && pos.y >= cr.y && pos.y <= cr.y + cr.h) {
+                this.isDragging = true;
+                this.dragStart = pos;
+                this.cropStart = { x: cr.x, y: cr.y, w: cr.w, h: cr.h };
+            }
+        },
+
+        onMouseMove: function(e) {
+            if (!this.isDragging && !this.isResizing) {
+                var pos = this.getCanvasCoords(e);
+                var cr = this.crop;
+                var edge = 10;
+                var onEdge = false;
+                if (Math.abs(pos.x - cr.x) < edge || Math.abs(pos.x - (cr.x + cr.w)) < edge ||
+                    Math.abs(pos.y - cr.y) < edge || Math.abs(pos.y - (cr.y + cr.h)) < edge) onEdge = true;
+                this.canvas.style.cursor = onEdge ? 'nwse-resize' : (pos.x >= cr.x && pos.x <= cr.x + cr.w && pos.y >= cr.y && pos.y <= cr.y + cr.h ? 'move' : 'default');
+                return;
+            }
+
+            var pos = this.getCanvasCoords(e);
+            var cw = this.canvas.width;
+            var ch = this.canvas.height;
+            var cr = this.crop;
+
+            if (this.isDragging) {
+                var dx = pos.x - this.dragStart.x;
+                var dy = pos.y - this.dragStart.y;
+                var nx = this.cropStart.x + dx;
+                var ny = this.cropStart.y + dy;
+                if (nx < 0) nx = 0;
+                if (ny < 0) ny = 0;
+                if (nx + cr.w > cw) nx = cw - cr.w;
+                if (ny + cr.h > ch) ny = ch - cr.h;
+                cr.x = Math.round(nx);
+                cr.y = Math.round(ny);
+                this.renderCanvas();
+                this.updateDims();
+                return;
+            }
+
+            if (this.isResizing) {
+                var dx = pos.x - this.dragStart.x;
+                var dy = pos.y - this.dragStart.y;
+                var sx = this.cropStart.x, sy = this.cropStart.y, sw = this.cropStart.w, sh = this.cropStart.h;
+
+                if (this.resizeDir.indexOf('e') >= 0) { sw = this.cropStart.w + dx; if (sw < 20) sw = 20; }
+                if (this.resizeDir.indexOf('w') >= 0) { sx = this.cropStart.x + dx; sw = this.cropStart.w - dx; if (sw < 20) { sw = 20; sx = this.cropStart.x + this.cropStart.w - 20; } }
+                if (this.resizeDir.indexOf('s') >= 0) { sh = this.cropStart.h + dy; if (sh < 20) sh = 20; }
+                if (this.resizeDir.indexOf('n') >= 0) { sy = this.cropStart.y + dy; sh = this.cropStart.h - dy; if (sh < 20) { sh = 20; sy = this.cropStart.y + this.cropStart.h - 20; } }
+
+                cr.x = Math.round(sx);
+                cr.y = Math.round(sy);
+                cr.w = Math.round(sw);
+                cr.h = Math.round(sh);
+
+                if (cr.x < 0) { cr.w += cr.x; cr.x = 0; }
+                if (cr.y < 0) { cr.h += cr.y; cr.y = 0; }
+                if (cr.x + cr.w > cw) cr.w = cw - cr.x;
+                if (cr.y + cr.h > ch) cr.h = ch - cr.y;
+
+                if (this.aspectRatio > 0) {
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        cr.h = Math.round(cr.w / this.aspectRatio);
+                    } else {
+                        cr.w = Math.round(cr.h * this.aspectRatio);
+                    }
+                    if (cr.x + cr.w > cw) cr.x = cw - cr.w;
+                    if (cr.y + cr.h > ch) cr.y = ch - cr.h;
+                }
+
+                this.renderCanvas();
+                this.updateDims();
+            }
+        },
+
+        onMouseUp: function(e) {
+            this.isDragging = false;
+            this.isResizing = false;
+        },
+
+        rotate: function(deg) {
+            this.rotation = (this.rotation + deg) % 360;
+            this.renderCanvas();
+            this.resetCrop();
+            this.updateDims();
+        },
+
+        flipH: function() {
+            this.flippedH = !this.flippedH;
+            this.renderCanvas();
+        },
+
+        flipV: function() {
+            this.flippedV = !this.flippedV;
+            this.renderCanvas();
+        },
+
+        zoomIn: function() {
+            this.zoom = Math.min(this.zoom * 1.25, 5);
+            this.applyZoom();
+        },
+
+        zoomOut: function() {
+            this.zoom = Math.max(this.zoom / 1.25, 0.2);
+            this.applyZoom();
+        },
+
+        resetZoom: function() {
+            this.zoom = 1;
+            this.applyZoom();
+        },
+
+        applyZoom: function() {
+            var wrap = document.getElementById('icCanvasWrap');
+            var maxW = wrap.clientWidth;
+            var baseW = this.canvas.width;
+            var baseH = this.canvas.height;
+            var s = Math.min(maxW / baseW, window.innerHeight * 0.7 / baseH, 1) * this.zoom;
+            this.canvas.style.width = Math.round(baseW * s) + 'px';
+            this.canvas.style.height = Math.round(baseH * s) + 'px';
+        },
+
+        applyCrop: function() {
+            var cr = this.crop;
+            if (cr.w < 5 || cr.h < 5) {
+                this.showError('Crop area is too small. Drag to select a larger area.');
+                return;
+            }
+
+            var offscreen = document.createElement('canvas');
+            offscreen.width = cr.w;
+            offscreen.height = cr.h;
+            var octx = offscreen.getContext('2d');
+            octx.drawImage(this.canvas, cr.x, cr.y, cr.w, cr.h, 0, 0, cr.w, cr.h);
+
+            this.croppedDataUrl = offscreen.toDataURL();
+
+            var originalOffscreen = document.createElement('canvas');
+            originalOffscreen.width = this.canvas.width;
+            originalOffscreen.height = this.canvas.height;
+            var octx = originalOffscreen.getContext('2d');
+            octx.drawImage(this.canvas, 0, 0);
+            this.originalDataUrl = originalOffscreen.toDataURL();
+
+            document.getElementById('icCompOriginal').src = this.originalDataUrl;
+            document.getElementById('icCompCropped').src = this.croppedDataUrl;
+            document.getElementById('icPreviewWrap').classList.add('visible');
+
+            var self = this;
+            document.getElementById('icCompCropped').onload = function() {
+                self.setupCompare();
+            };
+
+            var stats = document.getElementById('icStats');
+            stats.innerHTML =
+                '<div class="ic-stat-card"><div class="ic-stat-label">Original</div><div class="ic-stat-value">' + this.canvas.width + ' x ' + this.canvas.height + '</div></div>' +
+                '<div class="ic-stat-card"><div class="ic-stat-label">Cropped</div><div class="ic-stat-value">' + cr.w + ' x ' + cr.h + '</div></div>' +
+                '<div class="ic-stat-card"><div class="ic-stat-label">Change</div><div class="ic-stat-value">-' + Math.round((1 - (cr.w * cr.h) / (this.canvas.width * this.canvas.height)) * 100) + '% area</div></div>';
+
+            this.isCropped = true;
+            this.hideError();
+        },
+
+        setupCompare: function() {
+            var wrap = document.getElementById('icCompare');
+            var slider = document.getElementById('icCompSlider');
+            var afterWrap = document.getElementById('icCompAfterWrap');
+
+            var moveSlider = function(e) {
+                var rect = wrap.getBoundingClientRect();
+                var x = e.clientX - rect.left;
+                if (x < 0) x = 0;
+                if (x > rect.width) x = rect.width;
+                var pct = (x / rect.width) * 100;
+                afterWrap.style.width = pct + '%';
+                slider.style.left = pct + '%';
+            };
+
+            slider.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                document.addEventListener('mousemove', moveSlider);
+                document.addEventListener('mouseup', function() {
+                    document.removeEventListener('mousemove', moveSlider);
+                }, { once: true });
+            });
+
+            wrap.addEventListener('mousemove', function(e) {
+                if (e.buttons === 1) moveSlider(e);
+            });
+
+            var handleTouch = function(e) {
+                e.preventDefault();
+                var t = e.touches[0];
+                moveSlider(t);
+            };
+            slider.addEventListener('touchstart', function(e) { document.addEventListener('touchmove', handleTouch); }, { passive: false });
+            document.addEventListener('touchend', function() { document.removeEventListener('touchmove', handleTouch); }, { passive: false });
+        },
+
+        download: function(format) {
+            if (!this.croppedDataUrl) return;
+            var link = document.createElement('a');
+            if (format === 'jpeg') {
+                link.href = this.dataUrlToFormat(this.croppedDataUrl, 'image/jpeg', 0.92);
+                link.download = 'cropped.jpg';
+            } else if (format === 'webp') {
+                link.href = this.dataUrlToFormat(this.croppedDataUrl, 'image/webp', 0.92);
+                link.download = 'cropped.webp';
+            } else {
+                link.href = this.croppedDataUrl;
+                link.download = 'cropped.png';
+            }
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        },
+
+        dataUrlToFormat: function(dataUrl, mimeType, quality) {
+            var img = new Image();
+            img.src = dataUrl;
+            var c = document.createElement('canvas');
+            c.width = this.crop.w;
+            c.height = this.crop.h;
+            var ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            return c.toDataURL(mimeType, quality);
+        },
+
+        copyToClipboard: function() {
+            if (!this.croppedDataUrl) return;
+            var self = this;
+            var c = document.createElement('canvas');
+            c.width = this.crop.w;
+            c.height = this.crop.h;
+            var ctx = c.getContext('2d');
+            var img = new Image();
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0);
+                c.toBlob(function(blob) {
+                    navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]).then(function() {
+                        showStatus('icPreviewWrap', 'Copied to clipboard!', 'success');
+                    }).catch(function() {
+                        showStatus('icPreviewWrap', 'Could not copy. Try downloading instead.', 'error');
+                    });
+                });
+            };
+            img.src = self.croppedDataUrl;
+        },
+
+        resetImage: function() {
+            if (this.originalImage) {
+                this.loadImage(this.originalImage);
+            }
+        },
+
+        clearImage: function() {
+            this.image = null;
+            this.originalImage = null;
+            this.isCropped = false;
+            this.croppedDataUrl = null;
+            document.getElementById('icDropzone').classList.remove('has-file');
+            document.getElementById('icEditor').classList.remove('visible');
+            document.getElementById('icPreviewWrap').classList.remove('visible');
+            document.getElementById('icFileInput').value = '';
+            document.getElementById('icFileName').textContent = '-';
+            document.getElementById('icOriginalDims').textContent = '-';
+            this.hideError();
+        },
+
+        updateDims: function() {
+            var cr = this.crop;
+            document.getElementById('icCropX').value = cr.x;
+            document.getElementById('icCropY').value = cr.y;
+            document.getElementById('icCropW').value = cr.w;
+            document.getElementById('icCropH').value = cr.h;
+        },
+
+        showError: function(msg) {
+            var el = document.getElementById('icError');
+            el.textContent = msg;
+            el.classList.add('visible');
+        },
+
+        hideError: function() {
+            document.getElementById('icError').classList.remove('visible');
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() { IC.init(); });
+    </script>
+</body>
+</html>

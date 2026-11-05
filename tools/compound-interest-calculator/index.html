@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compound Interest Calculator - Free Investment Growth Tool | DevTools Hub</title>
+    <meta name="description" content="Free compound interest calculator. Calculate investment growth with monthly contributions, compounding frequency, and year-by-year breakdown. No signup, 100% private browser tool. AI cannot compute this accurately.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/compound-interest-calculator/">
+    <meta property="og:title" content="Compound Interest Calculator - Free Investment Growth Tool | DevTools Hub">
+    <meta property="og:description" content="Free compound interest calculator. Calculate investment growth with monthly contributions, compounding frequency, and year-by-year breakdown. 100% private.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/compound-interest-calculator/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Compound Interest Calculator - Free Investment Growth Tool | DevTools Hub">
+    <meta name="twitter:description" content="Free compound interest calculator. Calculate investment growth with monthly contributions, compounding frequency, and year-by-year breakdown. 100% private.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/compound-interest-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-07-09","dateModified":"2026-07-09","author":{"@type":"Person","name":"BAOMING"},"name":"Compound Interest Calculator","description":"Free compound interest and investment growth calculator. Calculate final balance with monthly contributions, compounding frequency options, and year-by-year breakdown.","url":"https://tools.scoreroute.com/tools/compound-interest-calculator/","applicationCategory":"FinanceApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        :root {
+            --bg: #0f0f23;
+            --card-bg: #1a1a2e;
+            --border: #2a2a4a;
+            --primary: #667eea;
+            --text: #fff;
+            --text-secondary: #888;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+        .cic-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 20px;
+            background: var(--bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .cic-form .full-width {
+            grid-column: 1 / -1;
+        }
+        .cic-form label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .cic-form input, .cic-form select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+        .cic-form input:focus, .cic-form select:focus {
+            outline: 2px solid var(--primary);
+            border-color: transparent;
+        }
+        .cic-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .cic-result-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        .cic-result-card .value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 8px;
+        }
+        .cic-result-card .label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .cic-result-card.principal .value { color: var(--text); }
+        .cic-result-card.interest .value { color: var(--success); }
+        .cic-toggles {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .cic-toggles button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .cic-toggles button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .cic-breakdown {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .cic-breakdown th {
+            background: var(--card-bg);
+            color: var(--text-secondary);
+            padding: 10px 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        .cic-breakdown th:first-child { text-align: left; }
+        .cic-breakdown td {
+            padding: 10px 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        .cic-breakdown td:first-child { text-align: left; }
+        .cic-breakdown tr:hover { background: var(--card-bg); }
+        .cic-breakdown tr.total td {
+            font-weight: 700;
+            border-top: 2px solid var(--primary);
+        }
+        .cic-chart-container {
+            width: 100%;
+            height: 300px;
+            margin: 24px 0;
+            position: relative;
+        }
+        #cicChart {
+            width: 100%;
+            height: 100%;
+        }
+        .cic-examples {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .cic-examples button {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .cic-examples button:hover {
+            background: var(--primary);
+            color: white;
+        }
+        @media (max-width: 640px) {
+            .cic-form { grid-template-columns: 1fr; }
+            /* minmax(0,1fr), not 1fr: a 1fr track floors at min-content, so a long
+               value ("$32,187.50") pushes the card past the viewport. */
+            .cic-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            /* The value has to fit INSIDE its card too: one column below 480px, a
+               smaller figure above it (the longest value is ~13 characters). */
+            .cic-result-card .value { font-size: 1.25rem; overflow-wrap: anywhere; }
+        }
+        @media (max-width: 480px) {
+            .cic-results { grid-template-columns: minmax(0, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Compound Interest Calculator</h1>
+            <p class="subtitle">See How Your Investments Grow Over Time</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/finance/">Finance</a> &gt; <span>Compound Interest Calculator</span>
+              <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" role="main">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Calculate Investment Growth</h2>
+
+                <div class="cic-examples">
+                    <button onclick="loadExample('retirement')">Retirement Savings</button>
+                    <button onclick="loadExample('education')">Education Fund</button>
+                    <button onclick="loadExample('wealth')">Wealth Building</button>
+                    <button onclick="loadExample('snowball')">Snowball Effect</button>
+                </div>
+
+                <div class="cic-form">
+                    <div>
+                        <label for="principal">Initial Investment ($)</label>
+                        <input type="number" id="principal" value="10000" min="0" step="100" aria-label="Initial investment amount">
+                    </div>
+                    <div>
+                        <label for="monthly">Monthly Contribution ($)</label>
+                        <input type="number" id="monthly" value="500" min="0" step="50" aria-label="Monthly contribution">
+                    </div>
+                    <div>
+                        <label for="rate">Annual Interest Rate (%)</label>
+                        <input type="number" id="rate" value="8" min="0" max="100" step="0.25" aria-label="Annual interest rate">
+                    </div>
+                    <div>
+                        <label for="years">Time Period (Years)</label>
+                        <input type="number" id="years" value="30" min="1" max="100" step="1" aria-label="Investment time period in years">
+                    </div>
+                    <div>
+                        <label for="compound">Compounding Frequency</label>
+                        <select id="compound">
+                            <option value="365">Daily</option>
+                            <option value="52">Weekly</option>
+                            <option value="12" selected>Monthly</option>
+                            <option value="4">Quarterly</option>
+                            <option value="2">Semi-Annually</option>
+                            <option value="1">Annually</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="rateType">Rate Type</label>
+                        <select id="rateType">
+                            <option value="nominal" selected>Nominal (APR)</option>
+                            <option value="effective">Effective (APY)</option>
+                        </select>
+                    </div>
+                    <div class="btn-group full-width">
+                        <button onclick="calculateCompoundInterest()" class="btn btn-primary">Calculate</button>
+                        <button onclick="clearAll()" class="btn btn-secondary">Clear</button>
+                    </div>
+                </div>
+
+                <div id="cicStatus" class="status"></div>
+
+                <div id="cicResults" style="display:none;">
+                    <div class="cic-results">
+                        <div class="cic-result-card">
+                            <div class="label">Final Balance</div>
+                            <div class="value" id="finalBalance">$0.00</div>
+                        </div>
+                        <div class="cic-result-card principal">
+                            <div class="label">Total Contributions</div>
+                            <div class="value" id="totalContributions">$0.00</div>
+                        </div>
+                        <div class="cic-result-card interest">
+                            <div class="label">Total Interest Earned</div>
+                            <div class="value" id="totalInterest">$0.00</div>
+                        </div>
+                        <div class="cic-result-card">
+                            <div class="label">Interest % of Total</div>
+                            <div class="value" id="interestPercent">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="cic-toggles">
+                        <button class="active" onclick="showBreakdown('table')">Year-by-Year</button>
+                        <button onclick="showBreakdown('chart')">Chart View</button>
+                    </div>
+
+                    <div id="breakdownTable" class="table-scroll">
+                        <table class="cic-breakdown" id="cicTable">
+<caption class="sr-only">How the balance grows year by year, and how much of each year's growth is interest rather than your own deposits</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Year</th>
+                                    <th scope="col">Starting Balance</th>
+                                    <th scope="col">Contributions</th>
+                                    <th scope="col">Interest Earned</th>
+                                    <th scope="col">Ending Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cicTableBody"><tr><td colspan="5">Click Calculate to see year-by-year breakdown</td></tr></tbody>
+                        </table>
+                    </div>
+
+                    <div id="breakdownChart" style="display:none;">
+                        <div class="cic-chart-container">
+                            <canvas id="cicChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="btn-group" style="margin-top:16px;">
+                        <button onclick="copyResults()" class="copy-btn">Copy Results</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>How Compound Interest Works</h2>
+                <p>Compound interest is the eighth wonder of the world. It means you earn interest on your interest. When your investment generates returns and those returns themselves generate more returns, your money grows exponentially over time. The longer your money compounds, the more dramatic the growth becomes. This is why starting early is the single most important factor in building long-term wealth.</p>
+
+                <h3>The Formula</h3>
+                <p>For a lump sum with regular contributions, the formula is:</p>
+                <p style="font-family:monospace;background:var(--card-bg);padding:16px;border-radius:8px;text-align:center;font-size:1.1rem;">
+                    A = P(1 + r/n)^(nt) + PMT × ((1 + r/n)^(nt) - 1) / (r/n)
+                </p>
+                <p>Where A is the final amount, P is the principal, r is the annual rate, n is compounds per year, t is years, and PMT is the monthly contribution.</p>
+
+                <h2>Why AI Cannot Replace This Tool</h2>
+                <p>Large language models frequently hallucinate compound interest calculations. They misapply formulas, confuse nominal and effective rates, mishandle contribution timing, and produce inconsistent results for the same inputs across different conversations. This tool uses deterministic JavaScript math with no approximation, no hallucination, and no variability. Every calculation is bit-exact and reproducible.</p>
+
+                <h2>Frequently Asked Questions</h2>
+
+                <details class="faq-item">
+                    <summary>What is compound interest?</summary>
+                    <p>Compound interest is interest calculated on both the initial principal and the accumulated interest from previous periods. Unlike simple interest which only earns on the principal, compounding creates exponential growth. The effect is minimal in early years but becomes dramatic over decades.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What compounding frequency should I choose?</summary>
+                    <p>Monthly compounding is the most common for savings accounts, 401(k)s, IRAs, and mortgages. Daily compounding earns slightly more (about $57 more per $10,000 at 7% over 10 years). The difference between monthly and daily compounding is usually minimal for long-term planning. Use the frequency that matches your actual account.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What is the difference between nominal rate and effective rate (APR vs APY)?</summary>
+                    <p>Nominal APR is the stated annual rate before compounding. Effective APY accounts for compounding frequency and shows the actual annual return. For example, 8% APR compounded monthly gives an APY of about 8.30%. Select Nominal if you know your account's stated rate; select Effective if you know the actual annual yield.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How much should I contribute monthly?</summary>
+                    <p>A common rule is 15% of your pre-tax income for retirement. Even small amounts matter: $100/month at 8% for 40 years grows to over $350,000. The most important factor is not the amount but the consistency and time horizon. Automate your contributions to build wealth steadily.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>How long does it take for my money to double?</summary>
+                    <p>The Rule of 72 gives a quick estimate: divide 72 by your annual return rate. At 8%, money doubles every 9 years (72/8 = 9). At 10%, it doubles every 7.2 years. This rule works for any compounding frequency as a rough approximation.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Is this calculator accurate for real financial planning?</summary>
+                    <p>This calculator uses the standard compound interest formula that matches what banks and financial institutions use. However, real-world returns vary year to year, taxes may apply, and inflation reduces purchasing power. Use this as a planning tool, not a guarantee. Consult a financial advisor for personalized advice.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What is the snowball effect in investing?</summary>
+                    <p>The snowball effect describes how small investments grow into large sums over time, much like a snowball rolling downhill grows larger. In early years, most growth comes from your contributions. In later years, interest takes over and becomes the dominant growth driver. This calculator clearly separates contributions from interest so you can see when the snowball effect kicks in.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Does this tool save my financial data?</summary>
+                    <p>No. All calculations happen in your browser. Your financial data never leaves your device, is never stored on any server, and is never transmitted over the internet. This is 100% private. You can verify this by checking the Network tab in your browser's developer tools.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        var chartInstance = null;
+        var lastResults = null;
+
+        function getVals() {
+            return {
+                principal: parseFloat(document.getElementById('principal').value) || 0,
+                monthly: parseFloat(document.getElementById('monthly').value) || 0,
+                rate: parseFloat(document.getElementById('rate').value) || 0,
+                years: parseInt(document.getElementById('years').value) || 1,
+                n: parseInt(document.getElementById('compound').value) || 12,
+                effective: document.getElementById('rateType').value === 'effective'
+            };
+        }
+
+        function getEffectiveRate(r, n, isEffective) {
+            if (isEffective) {
+                return r;
+            }
+            return r;
+        }
+
+        function calculateCompoundInterest() {
+            var v = getVals();
+            var r = v.rate / 100;
+            var n = v.n;
+            var t = v.years;
+            var P = v.principal;
+            var PMT = v.monthly;
+            var isEffective = v.effective;
+
+            if (t < 1) { showStatus('cicStatus', 'Time period must be at least 1 year.', 'error'); return; }
+            if (r <= 0 && P <= 0 && PMT <= 0) { showStatus('cicStatus', 'Please enter an interest rate or investment amount.', 'error'); return; }
+
+            var effectiveAnnual = r;
+            if (isEffective) {
+                effectiveAnnual = r;
+            } else {
+                effectiveAnnual = Math.pow(1 + r / n, n) - 1;
+            }
+
+            var periodicRate = effectiveAnnual;
+            if (n > 1) {
+                periodicRate = Math.pow(1 + effectiveAnnual, 1 / n) - 1;
+            } else {
+                periodicRate = effectiveAnnual;
+            }
+            if (n === 365 || n === 52) {
+                if (isEffective) {
+                    periodicRate = Math.pow(1 + effectiveAnnual, 1 / n) - 1;
+                } else {
+                    periodicRate = r / n;
+                }
+            }
+            if (!isEffective) {
+                periodicRate = r / n;
+            }
+
+            var yearData = [];
+            var balance = P;
+            var totalContrib = P;
+
+            for (var y = 1; y <= t; y++) {
+                var startBalance = balance;
+                var yearContrib = 0;
+                var yearInterest = 0;
+
+                for (var p = 0; p < n; p++) {
+                    var monthlyContribThisPeriod = 0;
+                    if (v.monthly > 0) {
+                        monthlyContribThisPeriod = PMT * (12 / n);
+                    }
+                    var interestThisPeriod = balance * periodicRate;
+                    balance = balance + interestThisPeriod + monthlyContribThisPeriod;
+                    yearInterest += interestThisPeriod;
+                    yearContrib += monthlyContribThisPeriod;
+                }
+
+                totalContrib += yearContrib;
+
+                yearData.push({
+                    year: y,
+                    startBalance: round2(startBalance),
+                    contributions: round2(yearContrib),
+                    interest: round2(yearInterest),
+                    endBalance: round2(balance),
+                    totalContributions: round2(totalContrib)
+                });
+            }
+
+            var finalBal = round2(balance);
+            var totalContribs = round2(P + v.monthly * 12 * t);
+            var totalInt = round2(finalBal - totalContribs);
+            var intPct = finalBal > 0 ? round2((totalInt / finalBal) * 100) : 0;
+
+            lastResults = {
+                finalBalance: finalBal,
+                totalContributions: totalContribs,
+                totalInterest: totalInt,
+                interestPercent: intPct,
+                yearData: yearData,
+                principal: P,
+                monthly: v.monthly,
+                rate: v.rate,
+                years: t
+            };
+
+            document.getElementById('finalBalance').textContent = formatCurrency(finalBal);
+            document.getElementById('totalContributions').textContent = formatCurrency(totalContribs);
+            document.getElementById('totalInterest').textContent = formatCurrency(totalInt);
+            document.getElementById('interestPercent').textContent = intPct + '%';
+
+            renderTable(yearData);
+            renderChart(yearData, totalContribs);
+
+            document.getElementById('cicResults').style.display = 'block';
+            showStatus('cicStatus', 'Calculation complete. Results shown below.', 'success');
+        }
+
+        function renderTable(data) {
+            var tbody = document.getElementById('cicTableBody');
+            tbody.innerHTML = '';
+            for (var i = 0; i < data.length; i++) {
+                var r = data[i];
+                var tr = document.createElement('tr');
+                if (i === data.length - 1) tr.className = 'total';
+                tr.innerHTML =
+                    '<td>Year ' + r.year + '</td>' +
+                    '<td>' + formatCurrency(r.startBalance) + '</td>' +
+                    '<td>' + formatCurrency(r.contributions) + '</td>' +
+                    '<td>' + formatCurrency(r.interest) + '</td>' +
+                    '<td>' + formatCurrency(r.endBalance) + '</td>';
+                tbody.appendChild(tr);
+            }
+        }
+
+        function renderChart(data, totalContribs) {
+            var canvas = document.getElementById('cicChart');
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+
+            if (typeof Chart === 'undefined') {
+                var script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';
+                script.onload = function() { renderChartActual(data, totalContribs); };
+                document.head.appendChild(script);
+                return;
+            }
+            renderChartActual(data, totalContribs);
+        }
+
+        function renderChartActual(data, totalContribs) {
+            var canvas = document.getElementById('cicChart');
+            var ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            var parent = canvas.parentElement;
+            canvas.width = parent.offsetWidth || 800;
+            canvas.height = 300;
+
+            var labels = data.map(function(d) { return 'Year ' + d.year; });
+            var endBalances = data.map(function(d) { return d.endBalance; });
+            var contributions = data.map(function(d) { return d.totalContributions; });
+
+            var earliest = 0;
+            for (var i = 0; i < data.length; i++) {
+                if (endBalances[i] > 0) { earliest = i; break; }
+            }
+            var filteredLabels = labels.slice(earliest);
+            var filteredEnd = endBalances.slice(earliest);
+            var filteredContrib = contributions.slice(earliest);
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: filteredLabels.length > 20 ? filteredLabels.filter(function(_, i) { return i % Math.ceil(filteredLabels.length / 20) === 0 || i === filteredLabels.length - 1; }) : filteredLabels,
+                    datasets: [{
+                        label: 'Total Balance',
+                        data: filteredEnd,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102,126,234,0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 2
+                    }, {
+                        label: 'Total Contributions',
+                        data: filteredContrib,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.05)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 1,
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#b3b8c0', font: { size: 12 } }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#888', maxTicksLimit: 15 },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            ticks: { color: '#888', callback: function(v) { return formatCurrency(v); } },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showBreakdown(view) {
+            var table = document.getElementById('breakdownTable');
+            var chart = document.getElementById('breakdownChart');
+            var buttons = document.querySelectorAll('.cic-toggles button');
+
+            if (view === 'table') {
+                table.style.display = 'block';
+                chart.style.display = 'none';
+                buttons[0].classList.add('active');
+                buttons[1].classList.remove('active');
+            } else {
+                table.style.display = 'none';
+                chart.style.display = 'block';
+                buttons[0].classList.remove('active');
+                buttons[1].classList.add('active');
+                if (lastResults) {
+                    renderChart(lastResults.yearData, lastResults.totalContributions);
+                }
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('principal').value = '10000';
+            document.getElementById('monthly').value = '500';
+            document.getElementById('rate').value = '8';
+            document.getElementById('years').value = '30';
+            document.getElementById('compound').value = '12';
+            document.getElementById('rateType').value = 'nominal';
+            document.getElementById('cicResults').style.display = 'none';
+            showStatus('cicStatus', '', '');
+        }
+
+        function copyResults() {
+            if (!lastResults) return;
+            var text = 'Compound Interest Calculator Results\n';
+            text += '================================\n';
+            text += 'Initial Investment: ' + formatCurrency(lastResults.principal) + '\n';
+            text += 'Monthly Contribution: ' + formatCurrency(lastResults.monthly) + '\n';
+            text += 'Annual Rate: ' + lastResults.rate + '%\n';
+            text += 'Time Period: ' + lastResults.years + ' years\n';
+            text += '--------------------------------\n';
+            text += 'Final Balance: ' + formatCurrency(lastResults.finalBalance) + '\n';
+            text += 'Total Contributions: ' + formatCurrency(lastResults.totalContributions) + '\n';
+            text += 'Total Interest Earned: ' + formatCurrency(lastResults.totalInterest) + '\n';
+            text += 'Interest % of Total: ' + lastResults.interestPercent + '%\n';
+            text += '================================\n\n';
+            text += 'Year-by-Year Breakdown:\n';
+            for (var i = 0; i < lastResults.yearData.length; i++) {
+                var d = lastResults.yearData[i];
+                text += 'Year ' + d.year + ': Start=' + formatCurrency(d.startBalance) + ' +Contr=' + formatCurrency(d.contributions) + ' +Int=' + formatCurrency(d.interest) + ' = End=' + formatCurrency(d.endBalance) + '\n';
+            }
+            copyToClipboardRaw(text);
+            showStatus('cicStatus', 'Results copied to clipboard!', 'success');
+        }
+
+        function loadExample(name) {
+            var examples = {
+                retirement: { principal: 25000, monthly: 1000, rate: 8, years: 35 },
+                education: { principal: 5000, monthly: 300, rate: 6, years: 18 },
+                wealth: { principal: 50000, monthly: 2000, rate: 9, years: 25 },
+                snowball: { principal: 10000, monthly: 500, rate: 10, years: 40 }
+            };
+            var ex = examples[name];
+            if (!ex) return;
+            document.getElementById('principal').value = ex.principal;
+            document.getElementById('monthly').value = ex.monthly;
+            document.getElementById('rate').value = ex.rate;
+            document.getElementById('years').value = ex.years;
+            calculateCompoundInterest();
+        }
+
+        function round2(v) { return Math.round(v * 100) / 100; }
+
+        function formatCurrency(v) {
+            if (v >= 1000000) return '$' + (v / 1000000).toFixed(2) + 'M';
+            if (v >= 1000) return '$' + (v / 1000).toFixed(2) + 'K';
+            return '$' + v.toFixed(2);
+        }
+
+        function formatCurrencyFull(v) {
+            return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function copyToClipboardRaw(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch(e) {}
+            document.body.removeChild(ta);
+        }
+
+        calculateCompoundInterest();
+    </script>
+</body>
+</html>

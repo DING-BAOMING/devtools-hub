@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIN Decoder - Free VIN Check Digit Validator & Lookup | DevTools Hub</title>
+    <meta name="description" content="Free VIN decoder and check digit validator. Verify ISO 3779 check digits, decode model year, and look up specs from the NHTSA database. 100% private.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/vin-decoder/">
+    <meta property="og:title" content="VIN Decoder - Free VIN Check Digit Validator & Lookup | DevTools Hub">
+    <meta property="og:description" content="Free VIN decoder and check digit validator. Verify ISO 3779 check digits, decode model year, and look up specs from the NHTSA database. 100% private.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/vin-decoder/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="VIN Decoder - Free VIN Check Digit Validator & Lookup | DevTools Hub">
+    <meta name="twitter:description" content="Free VIN decoder and check digit validator. Verify ISO 3779 check digits, decode model year, and look up specs from the NHTSA database. 100% private.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/vin-decoder/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-08-01","dateModified":"2026-08-01","author":{"@type":"Person","name":"BAOMING"},"name":"VIN Decoder - Check Digit Validator & Vehicle Lookup","description":"Free VIN decoder and check digit validator. Verify ISO 3779 check digits, decode model year, and look up specs from the NHTSA database. 100% private.","url":"https://tools.scoreroute.com/tools/vin-decoder/","applicationCategory":"UtilitiesApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+    </script>
+    <style>
+        :root {
+            --bg: #0f0f23;
+            --card-bg: #1a1a2e;
+            --border: #2a2a4a;
+            --primary: #667eea;
+            --text: #fff;
+            --text-secondary: #888;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+        .vd-input-area { margin-bottom: 20px; }
+        .vd-input-area input { width: 100%; padding: 14px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 1.2rem; font-family: 'Courier New', monospace; letter-spacing: 3px; text-transform: uppercase; }
+        .vd-input-area input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+        .vd-badges { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+        .vd-badge { padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-secondary); cursor: pointer; font-family: 'Courier New', monospace; }
+        .vd-badge:hover { border-color: var(--primary); color: var(--primary); }
+        .vd-result { border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--border); display: none; }
+        .vd-result.valid { display: block; border-color: var(--success); background: rgba(16,185,129,0.08); }
+        .vd-result.invalid { display: block; border-color: var(--error); background: rgba(239,68,68,0.08); }
+        .vd-result-icon { font-size: 2rem; margin-bottom: 8px; }
+        .vd-result-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 12px; }
+        .vd-valid .vd-result-title { color: var(--success); }
+        .vd-invalid .vd-result-title { color: var(--error); }
+        .vd-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 16px 0; }
+        .vd-breakdown-item { background: var(--bg); border-radius: 8px; padding: 12px; border: 1px solid var(--border); }
+        .vd-breakdown-item .label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .vd-breakdown-item .value { font-size: 1rem; font-weight: 600; color: var(--text); margin-top: 4px; word-break: break-all; }
+        .vd-breakdown-item .sub { font-size: 0.78rem; color: var(--text-secondary); margin-top: 3px; }
+        .vd-errors { margin-top: 12px; }
+        .vd-errors li { color: var(--error); font-size: 0.9rem; margin-bottom: 4px; }
+        .vd-specs { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .vd-specs h3 { font-size: 1rem; color: var(--text); margin-bottom: 12px; }
+        .vd-specs table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .vd-specs th { background: var(--card-bg); color: var(--text-secondary); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600; }
+        /* BUG-337: the NHTSA spec rows are a label/value table, so the label cell is a real
+           row header. Neutralise .vd-specs th so promoting <td>-><th scope="row"> is a
+           purely semantic change and the label keeps the colour it had as a <td>. */
+        .vd-specs th[scope="row"] { background: none; color: var(--text); font-weight: 400; }
+        .vd-specs td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+        .vd-specs td.value-cell { color: var(--text-secondary); text-align: right; }
+        .vd-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+        .vd-tab { padding: 10px 18px; cursor: pointer; color: var(--text-secondary); font-size: 0.9rem; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .vd-tab:hover { color: var(--text); }
+        .vd-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .vd-tab-content { display: none; }
+        .vd-tab-content.active { display: block; }
+        .vd-batch-area textarea { min-height: 120px; font-family: 'Courier New', monospace; font-size: 0.9rem; width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 12px; }
+        .vd-batch-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; display: none; margin-top: 12px; }
+        .vd-batch-table th { background: var(--card-bg); color: var(--text-secondary); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        .vd-batch-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-family: 'Courier New', monospace; color: var(--text-secondary); }
+        .vd-batch-table tr.valid td { color: var(--success); }
+        .vd-batch-table tr.invalid td { color: var(--error); }
+        .vd-batch-table .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .vd-batch-table .status-badge.ok { background: rgba(16,185,129,0.15); color: var(--success); }
+        .vd-batch-table .status-badge.fail { background: rgba(239,68,68,0.15); color: var(--error); }
+        .vd-gen-output { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-family: 'Courier New', monospace; font-size: 1.2rem; letter-spacing: 3px; color: var(--success); margin: 12px 0; word-break: break-all; }
+        .vd-year-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 12px; }
+        .vd-year-table th { background: var(--card-bg); color: var(--text-secondary); padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+        .vd-year-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+        .vd-note { font-size: 0.8rem; color: var(--text-secondary); margin-top: 8px; }
+        @media (max-width: 640px) {
+            .vd-breakdown { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>VIN Decoder</h1>
+            <p class="subtitle">Check the VIN Check Digit &amp; Look Up Vehicle Specs</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/life/">Daily Life</a> &gt; <span>VIN Decoder</span>
+              <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container" role="main">
+        <section class="tool-page">
+            <div class="tool-main">
+                <div class="vd-tabs">
+                    <div class="vd-tab active" onclick="switchTab('decode')">Decode VIN</div>
+                    <div class="vd-tab" onclick="switchTab('batch')">Batch Validate</div>
+                    <div class="vd-tab" onclick="switchTab('generate')">Test VIN Generator</div>
+                </div>
+
+                <div id="tab-decode" class="vd-tab-content active">
+                    <h2>Decode &amp; Validate a VIN</h2>
+                    <p style="color:var(--text-secondary);margin-bottom:16px;">Enter a 17-character VIN. The check digit is validated instantly in your browser; vehicle specs load from the official NHTSA vPIC database. No VIN is ever stored or logged.</p>
+
+                    <div class="vd-input-area">
+                        <input type="text" id="vinInput" placeholder="e.g. 1HGCM82633A004352" maxlength="17" aria-label="Enter 17-character VIN" autocomplete="off" autocapitalize="characters">
+                    </div>
+
+                    <div class="vd-badges">
+                        <span class="vd-badge" onclick="loadSample('1HGCM82633A004352')">1HGCM82633A004352</span>
+                        <span class="vd-badge" onclick="loadSample('JHMCM56557C404453')">JHMCM56557C404453</span>
+                        <span class="vd-badge" onclick="loadSample('WP0AA2A93BS788158')">WP0AA2A93BS788158</span>
+                    </div>
+
+                    <div class="btn-group">
+                        <button onclick="decodeVin()" class="btn btn-primary">Decode &amp; Validate</button>
+                        <button onclick="clearVin()" class="btn btn-secondary">Clear</button>
+                    </div>
+
+                    <div id="vdStatus" class="status"></div>
+
+                    <div id="vdResult" class="vd-result">
+                        <div class="vd-result-icon" id="vdResultIcon">&#10003;</div>
+                        <div class="vd-result-title" id="vdResultTitle">Valid VIN</div>
+                        <div id="vdResultDetails"></div>
+                    </div>
+                </div>
+
+                <div id="tab-batch" class="vd-tab-content">
+                    <h2>Batch Validate VINs</h2>
+                    <p style="color:var(--text-secondary);margin-bottom:16px;">Paste multiple VINs, one per line. The ISO 3779 check digit for each VIN is verified locally in your browser — no data is sent anywhere.</p>
+                    <div class="vd-batch-area">
+                        <textarea id="batchInput" placeholder="1HGCM82633A004352&#10;JHMCM56557C404453&#10;1G1ZD5ST8JF123456" aria-label="Enter multiple VINs, one per line"></textarea>
+                        <div class="btn-group">
+                            <button onclick="batchValidate()" class="btn btn-primary">Validate All</button>
+                            <button onclick="clearBatch()" class="btn btn-secondary">Clear</button>
+                        </div>
+                        <div class="vd-batch-results">
+                            <div id="batchStatus" class="status"></div>
+                            <table class="vd-batch-table" id="batchTable">
+                                <caption class="sr-only">Batch decode results, one row per VIN</caption>
+                                <thead>
+                                    <tr><th>#</th><th>VIN</th><th>Status</th><th>Check Digit</th><th>Notes</th></tr>
+                                </thead>
+                                <tbody id="batchBody"><tr><td colspan="5">No data yet.</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-generate" class="vd-tab-content">
+                    <h2>Generate a Valid Test VIN</h2>
+                    <p style="color:var(--text-secondary);margin-bottom:16px;">Generate a structurally valid 17-character VIN with a correct ISO 3779 check digit. Perfect for testing your own VIN validation code, form fields, and API integrations.</p>
+                    <div class="btn-group">
+                        <button onclick="generateVin()" class="btn btn-primary">Generate Test VIN</button>
+                        <button onclick="copyGenerated()" class="btn">Copy</button>
+                        <button onclick="clearGenerated()" class="btn btn-secondary">Clear</button>
+                    </div>
+                    <div id="genOutput" class="vd-gen-output" style="display:none;"></div>
+                    <div id="genStatus" class="status"></div>
+                    <div class="vd-note">Note: A valid check digit proves the VIN is mathematically well-formed. It does not prove the vehicle exists. Use it to test software, not to certify a real vehicle.</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>How VIN Decoding Works</h2>
+                <p>A Vehicle Identification Number, or VIN, is a 17-character code stamped on every vehicle built for sale since 1981. It is not a random string. Each section stores a specific fact about the car. The first three characters are the World Manufacturer Identifier, or WMI, which tells you the country and brand. Characters four through eight are the Vehicle Descriptor Section, which encodes the model, body style, engine, and restraint system. Position nine is a check digit, a mathematical value computed from the other sixteen characters using the ISO 3779 algorithm. Character ten is the model year code, and character eleven identifies the assembly plant. The final six characters are the vehicle's unique serial number. A decoder reads these fields and translates them into plain language.</p>
+                <p>The check digit is not a security feature — it is an error-detection code. It catches single-character typos and most digit transpositions, which is exactly what happens when someone hand-copies a VIN from a windshield, title, or door sticker. To compute it, each character is converted to a number (letters A-H are 1-8, J-N are 1-5, P-Z use a fixed map, digits keep their value), then each value is multiplied by a fixed weight (8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2). The products are summed and divided by 11. A remainder of 10 is written as the letter X; otherwise the remainder is the check digit. If the computed value matches position 9, the VIN passed the check.</p>
+                <p>For full vehicle details, this tool calls the National Highway Traffic Safety Administration's public vPIC (Vehicle Product Information Catalog) API — the same official source used by dealers, insurers, and state DMVs. The lookup is free, requires no API key, and returns make, model, model year, body class, engine, and assembly plant data.</p>
+
+                <h2>Why AI Cannot Replace This Tool</h2>
+                <p>Large language models cannot decode a VIN reliably. They predict text patterns rather than querying a database, so they tend to invent make and model details that look plausible but are wrong. Even the check digit, which is a simple weighted arithmetic sum, trips them up because they do not perform exact arithmetic. A VIN decoder that pulls live data from the official NHTSA vPIC catalog is deterministic: the same VIN always returns the same result, with no guessing, no hallucination, and no outdated training data. It also keeps the VIN private, because validation of the check digit happens entirely in your browser and the lookup calls the government's public API directly.</p>
+                <ul style="color:var(--text-secondary);margin:12px 0 20px 24px;">
+                    <li>AI models hallucinate make/model/year from VIN patterns instead of querying real data</li>
+                    <li>The ISO 3779 weighted mod-11 check digit requires exact arithmetic AI cannot perform reliably</li>
+                    <li>NHTSA vPIC returns authoritative, up-to-date vehicle specifications</li>
+                    <li>Deterministic results — the same VIN always decodes to the same answer</li>
+                    <li>Your VIN stays private — check digit math runs locally, and the lookup uses the public government API</li>
+                    <li>Batch validation of many VINs at once is trivial here, tedious and error-prone for AI</li>
+                </ul>
+
+                <h2>Frequently Asked Questions</h2>
+
+                <details class="faq-item">
+                    <summary>How do I find my VIN?</summary>
+                    <p>The VIN is usually visible through the lower corner of the driver's-side windshield, on the driver's-side door jamb sticker, on the firewall under the hood, and on vehicle registration and insurance documents. Motorcycles stamp it on the steering neck. Trailers stamp it on the left front frame.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What is a VIN check digit and why does it matter?</summary>
+                    <p>The check digit is the 9th character of a 17-character VIN. It is computed from the other 16 characters using the ISO 3779 weighted mod-11 algorithm and acts as an error-detection code. If the 9th character does not match the computed value, the VIN was either typed wrong or tampered with. NHTSA requires every US-market VIN (since 1981) to satisfy this equation, so a failed check is a red flag when copying a VIN or inspecting a vehicle.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Does a passing check digit mean the VIN is real?</summary>
+                    <p>No. A passing check digit only proves the VIN is mathematically well-formed and free of typos. Someone can fabricate a 17-character string and compute a legal check digit for it. To confirm a VIN corresponds to a real vehicle, run it through a decoder that queries the NHTSA vPIC database and, for history (title brands, theft, recalls, accidents), a title-history service that accesses state records.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What does the VIN decode tell me about a car?</summary>
+                    <p>From the VIN alone you get the manufacturer, country of assembly, model year (encoded in position 10), body class, and a rough idea of the engine. Querying NHTSA vPIC adds make, model, model year, displacement, cylinders, drive type, fuel type, and assembly plant location. It does not reveal ownership history, odometer readings, accident records, or current market value — those require a paid title-history report.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Can a VIN be shorter than 17 characters?</summary>
+                    <p>Vehicles built before 1981 used shorter VINs (5 to 13 characters) that are not standardized and cannot be validated with the ISO 3779 check digit. Every vehicle produced for the US and Canadian market since the 1981 model year must use the standardized 17-character format. This tool validates the modern 17-character standard only.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Which characters are never used in a VIN?</summary>
+                    <p>The letters I, O, and Q are never used in a VIN because they look too similar to the digits 1 and 0. If you see one of those letters in a VIN, it is a typo. All other letters A-Z (except I, O, Q) and digits 0-9 are allowed.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Is my VIN sent to a server?</summary>
+                    <p>The check digit validation runs entirely in your browser, so the VIN never leaves your device for that step. The optional vehicle lookup sends the VIN to the National Highway Traffic Safety Administration's public vPIC API, which is the same official source used by dealers and insurance companies. No VIN is stored, logged, or sold by this tool.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What is the model year code in a VIN?</summary>
+                    <p>Position 10 of a VIN is a code that encodes the model year on a rotating 30-year cycle. For example, A = 1980 or 2010, S = 1995 or 2025, T = 1996 or 2026. Because the code repeats every 30 years, it tells you the decade of production but not the exact year — position 11 (plant code) and the WMI help narrow it down. A complete table is shown below.</p>
+                </details>
+
+                <h2>VIN Model Year Code Chart</h2>
+                <p style="color:var(--text-secondary);margin-bottom:8px;">Position 10 of a VIN encodes the model year. Codes repeat every 30 years.</p>
+                <table class="vd-year-table">
+                    <caption class="sr-only">Model year codes by position 10 of the VIN</caption>
+                    <thead><tr><th>Code</th><th>Year</th><th>Code</th><th>Year</th><th>Code</th><th>Year</th></tr></thead>
+                    <tbody>
+                        <tr><td>A</td><td>1980 / 2010</td><td>L</td><td>1990 / 2020</td><td>Y</td><td>2000 / 2030</td></tr>
+                        <tr><td>B</td><td>1981 / 2011</td><td>M</td><td>1991 / 2021</td><td>1</td><td>2001 / 2031</td></tr>
+                        <tr><td>C</td><td>1982 / 2012</td><td>N</td><td>1992 / 2022</td><td>2</td><td>2002 / 2032</td></tr>
+                        <tr><td>D</td><td>1983 / 2013</td><td>P</td><td>1993 / 2023</td><td>3</td><td>2003 / 2033</td></tr>
+                        <tr><td>E</td><td>1984 / 2014</td><td>R</td><td>1994 / 2024</td><td>4</td><td>2004 / 2034</td></tr>
+                        <tr><td>F</td><td>1985 / 2015</td><td>S</td><td>1995 / 2025</td><td>5</td><td>2005 / 2035</td></tr>
+                        <tr><td>G</td><td>1986 / 2016</td><td>T</td><td>1996 / 2026</td><td>6</td><td>2006 / 2036</td></tr>
+                        <tr><td>H</td><td>1987 / 2017</td><td>V</td><td>1997 / 2027</td><td>7</td><td>2007 / 2037</td></tr>
+                        <tr><td>J</td><td>1988 / 2018</td><td>W</td><td>1998 / 2028</td><td>8</td><td>2008 / 2038</td></tr>
+                        <tr><td>K</td><td>1989 / 2019</td><td>X</td><td>1999 / 2029</td><td>9</td><td>2009 / 2039</td></tr>
+                    </tbody>
+                </table>
+                <div class="vd-note">Codes are position 10 characters. The cycle repeats every 30 years, so combined with the WMI (first 3 chars) and position 11 plant code you can narrow the actual year.</div>
+
+                <h2>Related Tools</h2>
+                <ul style="color:var(--text-secondary);margin:12px 0 20px 24px;">
+                    <li><a href="/tools/iban-validator/">IBAN Validator</a> — verify bank account numbers with the MOD-97 checksum</li>
+                    <li><a href="/tools/email-verifier/">Email Verifier</a> — check if an email address is deliverable</li>
+                    <li><a href="/tools/domain-age-checker/">Domain Age Checker</a> — see when a domain was registered</li>
+                    <li><a href="/tools/ssl-checker/">SSL Checker</a> — inspect certificate details for any host</li>
+                    <li><a href="/tools/barcode-scanner/">Barcode Scanner</a> — decode EAN, UPC, Code 128 and QR codes</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+        var VIN_TRANS = {A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8,J:1,K:2,L:3,M:4,N:5,P:7,R:9,S:2,T:3,U:4,V:5,W:6,X:7,Y:8,Z:9};
+        var VIN_WEIGHTS = [8,7,6,5,4,3,2,10,0,9,8,7,6,5,4,3,2];
+        var YEAR_CODE = {A:0,B:1,C:2,D:3,E:4,F:5,G:6,H:7,J:8,K:9,L:10,M:11,N:12,P:13,R:14,S:15,T:16,V:17,W:18,X:19,Y:20,1:21,2:22,3:23,4:24,5:25,6:26,7:27,8:28,9:29};
+        var YEAR_START = 1980;
+        var WMI_MAP = {
+            '1G1':'Chevrolet (USA)','1GC':'Chevrolet Truck (USA)','1HG':'Honda (USA)','1FA':'Ford (USA)','1FD':'Ford Truck (USA)',
+            '1FM':'Ford (USA)','1FT':'Ford Truck (USA)','1FMC':'Ford (USA)','1NX':'Toyota (USA)','1N4':'Nissan (USA)',
+            '1N6':'Nissan (USA)','1C4':'Chrysler/Jeep (USA)','1C3':'Chrysler (USA)','1J4':'Jeep (USA)','1J8':'Jeep (USA)',
+            '1M4':'Porsche (USA)','1XP':'Volvo (USA)','1VW':'Volkswagen (USA)','1GKS':'GMC (USA)','1GTG':'GMC (USA)',
+            '1GT':'GMC Truck (USA)','2HG':'Honda (Canada)','2T1':'Toyota (Canada)','2T2':'Lexus (Canada)','2H4':'Chrysler (Canada)',
+            '2C3':'Chrysler (Canada)','2F':'Ford (Canada)','2FM':'Ford (Canada)','2GN':'GMC (Canada)','2HK':'Honda (Canada)',
+            '3VW':'Volkswagen (Mexico)','3N1':'Nissan (Mexico)','3C':'Chrysler (Mexico)','3F':'Ford (Mexico)','3D':'Dodge (Mexico)',
+            '3MZ':'Mazda (Mexico)','3FA':'Ford (Mexico)','3HG':'Honda (Mexico)','4S3':'Subaru (USA)','4US':'BMW (USA)',
+            '4T1':'Toyota (USA)','4T3':'Lexus (USA)','4F2':'Mazda (USA)','4T4':'Subaru (USA)','5YJ':'Tesla (USA)',
+            '5UX':'BMW (USA)','5TD':'Toyota (Canada)','5T':'Toyota (Canada)','5N':'Hyundai (USA)','5LM':'Lincoln (USA)',
+            '6G1':'Holden/GM (Australia)','6F':'Ford (Australia)','6H':'Holden (Australia)','7A4':'Chrysler (Australia)',
+            '8AD':'Peugeot (Argentina)','8AF':'Ford (Argentina)','8GG':'Chevrolet (Chile)','9BG':'Chevrolet (Brazil)',
+            '9BW':'Volkswagen (Brazil)','9FB':'Fiat (Brazil)','9GA':'GM (Brazil)','JHM':'Honda (Japan)','JH4':'Acura (Japan)',
+            'JHL':'Honda (Japan)','JTD':'Toyota (Japan)','JT2':'Toyota (Japan)','JTK':'Toyota (Japan)','JN1':'Nissan (Japan)',
+            'JN3':'Nissan (Japan)','JM1':'Mazda (Japan)','JM3':'Mazda (Japan)','JSA':'Suzuki (Japan)','JF1':'Subaru (Japan)',
+            'JF2':'Subaru (Japan)','JKA':'Kawasaki (Japan)','JYA':'Yamaha (Japan)','JHMCM':'Honda (Japan)','KMH':'Hyundai (Korea)',
+            'KNA':'Kia (Korea)','KPT':'SsangYong (Korea)','KM8':'Hyundai (Korea)','KL1':'GM Korea','KND':'Kia (Korea)',
+            'LJ1':'JAC (China)','LGW':'Great Wall (China)','LSG':'SAIC-GM (China)','LFV':'FAW-VW (China)','LG':'Chery (China)',
+            'LVG':'GAC-Toyota (China)','LVV':'Chery (China)','LZW':'SAIC-GM-Wuling (China)','LDC':'Dongfeng-Peugeot (China)',
+            'WBA':'BMW (Germany)','WBS':'BMW M (Germany)','WBY':'BMW i (Germany)','WDB':'Mercedes-Benz (Germany)',
+            'WDD':'Mercedes-Benz (Germany)','WDC':'Mercedes-Benz (Germany)','Wau':'Audi (Germany)','WAU':'Audi (Germany)',
+            'WUA':'Audi (Germany)','WP0':'Porsche (Germany)','WOL':'Opel (Germany)','WVW':'Volkswagen (Germany)',
+            'WVG':'Volkswagen (Germany)','W09':'Volkswagen (Germany)','W0L':'Opel/Vauxhall (Germany)','W1':'Mercedes-Benz (Germany)',
+            'VF1':'Renault (France)','VF3':'Peugeot (France)','VF7':'Citroen (France)','VF9':'Renault (France)',
+            'YV1':'Volvo (Sweden)','YK1':'Saab (Sweden)','YSM':'Volvo (Sweden)','ZFA':'Fiat (Italy)','ZAR':'Alfa Romeo (Italy)',
+            'ZAM':'Maserati (Italy)','ZFF':'Ferrari (Italy)','ZHW':'Lamborghini (Italy)','ZLA':'Lancia (Italy)',
+            'SAL':'Land Rover (UK)','SAJ':'Jaguar (UK)','SAD':'Aston Martin (UK)','SCC':'Lotus (UK)','SMT':'TVR (UK)',
+            'TMB':'Skoda (Czech)','TMT':'Tatra (Czech)','TMP':'Skoda (Czech)','XW8':'Volkswagen (Poland)','VSS':'SEAT (Spain)',
+            'VWV':'Volkswagen (Spain)','VAN':'Ford (Spain)','VSK':'Nissan (Spain)'
+        };
+
+        function switchTab(tab) {
+            var tabs = ['decode', 'batch', 'generate'];
+            for (var i = 0; i < tabs.length; i++) {
+                var t = tabs[i];
+                document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+                var btns = document.querySelectorAll('.vd-tab');
+                if (btns[i]) btns[i].classList.toggle('active', t === tab);
+            }
+        }
+
+        function loadSample(vin) {
+            document.getElementById('vinInput').value = vin;
+            document.getElementById('vdStatus').textContent = '';
+            decodeVin();
+        }
+
+        function clearVin() {
+            document.getElementById('vinInput').value = '';
+            document.getElementById('vdStatus').textContent = '';
+            document.getElementById('vdResult').className = 'vd-result';
+            document.getElementById('vdResultDetails').innerHTML = '';
+            document.getElementById('vdResultTitle').textContent = '';
+        }
+
+        function computeCheckDigit(vin) {
+            var total = 0;
+            for (var i = 0; i < 17; i++) {
+                var ch = vin.charAt(i).toUpperCase();
+                var val;
+                if (ch >= '0' && ch <= '9') {
+                    val = parseInt(ch, 10);
+                } else {
+                    val = VIN_TRANS[ch];
+                    if (val === undefined) return null;
+                }
+                total += val * VIN_WEIGHTS[i];
+            }
+            var rem = total % 11;
+            return rem === 10 ? 'X' : String(rem);
+        }
+
+        function validateVin(vin) {
+            var errors = [];
+            var v = (vin || '').replace(/[\s-]/g, '').toUpperCase();
+            if (v.length === 0) return { errors: ['Please enter a VIN.'] };
+            if (v.length !== 17) errors.push('VIN must be exactly 17 characters (found ' + v.length + ').');
+            var forbidden = [];
+            for (var i = 0; i < v.length; i++) {
+                var ch = v.charAt(i);
+                if (ch === 'I' || ch === 'O' || ch === 'Q') forbidden.push(ch);
+                if (!/[A-Z0-9]/.test(ch)) errors.push('Invalid character "' + ch + '" at position ' + (i + 1) + '.');
+            }
+            if (forbidden.length > 0) errors.push('The letters I, O, and Q are never used in a VIN (found: ' + forbidden.join(', ') + ').');
+            if (v.length === 17 && errors.length === 0) {
+                var cd = computeCheckDigit(v);
+                if (cd === null) {
+                    errors.push('Could not compute the check digit. VIN contains invalid characters.');
+                } else if (cd !== v.charAt(8)) {
+                    errors.push('Check digit mismatch. Position 9 is "' + v.charAt(8) + '" but ISO 3779 computes "' + cd + '". The VIN was likely typed wrong or tampered with.');
+                }
+            }
+            return { normalized: v, errors: errors };
+        }
+
+        function decodeVin() {
+            var raw = document.getElementById('vinInput').value;
+            var res = validateVin(raw);
+            var statusEl = document.getElementById('vdStatus');
+            var resultEl = document.getElementById('vdResult');
+
+            if (res.errors.length > 0) {
+                statusEl.textContent = '';
+                resultEl.className = 'vd-result invalid';
+                document.getElementById('vdResultIcon').innerHTML = '&#10007;';
+                document.getElementById('vdResultTitle').textContent = 'Invalid VIN';
+                var errHtml = '<ul class="vd-errors">';
+                for (var i = 0; i < res.errors.length; i++) errHtml += '<li>' + res.errors[i] + '</li>';
+                errHtml += '</ul>';
+                document.getElementById('vdResultDetails').innerHTML = errHtml;
+                return;
+            }
+
+            var vin = res.normalized;
+            statusEl.textContent = 'Check digit passed. Loading vehicle data from NHTSA...';
+            resultEl.className = 'vd-result valid';
+            document.getElementById('vdResultIcon').innerHTML = '&#10003;';
+            document.getElementById('vdResultTitle').textContent = 'Valid VIN — Check Digit OK';
+
+            var wmi = vin.substring(0, 3);
+            var wmiName = WMI_MAP[wmi] || WMI_MAP[vin.substring(0, 2)] || countryFromFirstChar(vin.charAt(0));
+            var yearCode = vin.charAt(9);
+            var baseYear = YEAR_CODE[yearCode];
+            var years = baseYear !== undefined ? (YEAR_START + baseYear) + ' or ' + (YEAR_START + baseYear + 30) : 'Unknown code';
+
+            var breakdownHtml =
+                '<div class="vd-breakdown">' +
+                '<div class="vd-breakdown-item"><div class="label">WMI (1-3)</div><div class="value">' + vin.substring(0, 3) + '</div><div class="sub">' + esc(wmiName) + '</div></div>' +
+                '<div class="vd-breakdown-item"><div class="label">VDS (4-8)</div><div class="value">' + vin.substring(3, 8) + '</div><div class="sub">Model, body, engine</div></div>' +
+                '<div class="vd-breakdown-item"><div class="label">Check Digit (9)</div><div class="value">' + vin.charAt(8) + '</div><div class="sub">ISO 3779: PASS</div></div>' +
+                '<div class="vd-breakdown-item"><div class="label">Model Year (10)</div><div class="value">' + vin.charAt(9) + '</div><div class="sub">' + esc(years) + '</div></div>' +
+                '<div class="vd-breakdown-item"><div class="label">Plant (11)</div><div class="value">' + vin.charAt(10) + '</div><div class="sub">Assembly plant code</div></div>' +
+                '<div class="vd-breakdown-item"><div class="label">Serial (12-17)</div><div class="value">' + vin.substring(11, 17) + '</div><div class="sub">Unique sequence</div></div>' +
+                '</div>';
+            document.getElementById('vdResultDetails').innerHTML = breakdownHtml;
+
+            fetchNhtsa(vin);
+        }
+
+        function countryFromFirstChar(c) {
+            if (c >= '1' && c <= '5') return 'North America (USA/Canada/Mexico)';
+            if (c === '6' || c === '7') return 'Oceania (Australia/New Zealand)';
+            if (c === '8' || c === '9') return 'South America';
+            if (c === 'J') return 'Japan';
+            if (c === 'K') return 'Korea';
+            if (c === 'L') return 'China';
+            if (c === 'M') return 'India';
+            if (c === 'N') return 'Iran / Middle East';
+            if (c === 'P') return 'Thailand / Asia';
+            if (c === 'S') return 'United Kingdom';
+            if (c === 'T') return 'Switzerland';
+            if (c === 'V') return 'France';
+            if (c === 'W') return 'Germany';
+            if (c === 'X') return 'Netherlands / Europe';
+            if (c === 'Y') return 'Sweden / Belgium / Finland';
+            if (c === 'Z') return 'Italy';
+            if (c >= 'A' && c <= 'H') return 'Africa';
+            return 'Unknown region';
+        }
+
+        function fetchNhtsa(vin) {
+            var url = 'https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/' + encodeURIComponent(vin) + '?format=json';
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    var specEl = document.getElementById('vdResultDetails');
+                    var r = (data.Results && data.Results[0]) || null;
+                    if (!r) {
+                        specEl.innerHTML += '<div class="vd-specs"><h3>Vehicle Lookup</h3><p>NHTSA returned no data for this VIN.</p></div>';
+                        showStatus('vdStatus', 'Check digit passed. No NHTSA records returned.', 'info');
+                        return;
+                    }
+                    var map = [
+                        ['Make', r.Make], ['Model', r.Model], ['Model Year', r.ModelYear], ['Trim', r.Trim],
+                        ['Body Class', r.BodyClass], ['Engine Cylinders', r.EngineCylinders], ['Displacement (L)', r.DisplacementL],
+                        ['Drive Type', r.DriveType], ['Fuel Type', r.FuelTypePrimary], ['Doors', r.Doors],
+                        ['Assembly Plant', r.PlantCity + (r.PlantCountry ? ', ' + r.PlantCountry : '')],
+                        ['Error Text', r.ErrorText]
+                    ];
+                    var html = '<div class="vd-specs"><h3>Vehicle Specs (NHTSA vPIC)</h3><table>';
+                    var hasData = false;
+                    for (var i = 0; i < map.length; i++) {
+                        var val = (map[i][1] || '').toString().trim();
+                        if (val === '' || val === 'Not Applicable' || val === 'null' || val === '0') continue;
+                        hasData = true;
+                        html += '<tr><th scope="row">' + esc(map[i][0]) + '</th><td class="value-cell">' + esc(val) + '</td></tr>';
+                    }
+                    html += '</table></div>';
+                    if (!hasData) {
+                        html += '<div class="vd-specs"><h3>Vehicle Specs (NHTSA vPIC)</h3><p>NHTSA returned no populated fields for this VIN (common for non-US market or very new vehicles).</p></div>';
+                    }
+                    specEl.innerHTML += html;
+                    showStatus('vdStatus', 'Decode complete.', 'success');
+                })
+                .catch(function (e) {
+                    showStatus('vdStatus', 'Check digit passed, but the NHTSA lookup failed (' + (e && e.message ? e.message : 'network error') + '). Your VIN structure was still decoded locally.', 'info');
+                });
+        }
+
+        function batchValidate() {
+            var raw = document.getElementById('batchInput').value;
+            var lines = raw.split(/\n/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
+            var statusEl = document.getElementById('batchStatus');
+            if (lines.length === 0) {
+                statusEl.textContent = 'Enter at least one VIN.';
+                return;
+            }
+            var tbody = document.getElementById('batchBody');
+            tbody.innerHTML = '';
+            for (var i = 0; i < lines.length; i++) {
+                var res = validateVin(lines[i]);
+                var vin = res.normalized || lines[i];
+                var valid = res.errors.length === 0;
+                var tr = document.createElement('tr');
+                tr.className = valid ? 'valid' : 'invalid';
+                var notes = valid ? 'Check digit OK' : res.errors[0];
+                var badge = valid
+                    ? '<span class="status-badge ok">VALID</span>'
+                    : '<span class="status-badge fail">INVALID</span>';
+                tr.innerHTML = '<td>' + (i + 1) + '</td><td>' + esc(vin) + '</td><td>' + badge + '</td><td>' + (vin.length === 17 ? vin.charAt(8) : '-') + '</td><td style="font-family:inherit;">' + esc(notes) + '</td>';
+                tbody.appendChild(tr);
+            }
+            document.getElementById('batchTable').style.display = 'table';
+            statusEl.textContent = 'Validated ' + lines.length + ' VIN(s).';
+        }
+
+        function clearBatch() {
+            document.getElementById('batchInput').value = '';
+            document.getElementById('batchBody').innerHTML = '';
+            document.getElementById('batchTable').style.display = 'none';
+            showStatus('batchStatus', '', '');
+        }
+
+        var VALID_PREFIXES = ['1G1','1HG','1FA','1FM','1FT','1NX','1N4','2HG','2T1','3VW','4S3','4US','5YJ','5UX','JHM','JH4','JTD','JN1','JM1','KMH','KNA','WBA','WDB','WAU','WP0','VF1','YV1','ZFA','SAL','TMB'];
+
+        function generateVin() {
+            var prefix = VALID_PREFIXES[Math.floor(Math.random() * VALID_PREFIXES.length)];
+            var chars = 'ABCDEFGHJKLMNPRSTUVWXYZ0123456789';
+            var vin = prefix;
+            while (vin.length < 17) {
+                if (vin.length === 8) {
+                    vin += '0';
+                } else {
+                    vin += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+            }
+            var cd = computeCheckDigit(vin);
+            if (cd !== null) {
+                vin = vin.substring(0, 8) + cd + vin.substring(9);
+            }
+            var out = document.getElementById('genOutput');
+            out.style.display = 'block';
+            out.textContent = vin;
+            showStatus('genStatus', 'Generated. This VIN passes the ISO 3779 check digit. Verify it with the Decode tab or your own code.', 'success');
+        }
+
+        function copyGenerated() {
+            var out = document.getElementById('genOutput');
+            if (!out.textContent) {
+                showStatus('genStatus', 'Generate a VIN first.', '');
+                return;
+            }
+            var ok = false;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(out.textContent).then(function () { ok = true; }).catch(function () { ok = false; });
+            }
+            if (!ok) {
+                var ta = document.createElement('textarea');
+                ta.value = out.textContent;
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy'); ok = true; } catch (e) {}
+                document.body.removeChild(ta);
+            }
+            if (ok) {
+                showStatus('genStatus', 'Copied: ' + out.textContent, 'success');
+            } else {
+                showStatus('genStatus', 'Could not copy automatically. Select and copy manually.', '');
+            }
+        }
+
+        function clearGenerated() {
+            document.getElementById('genOutput').style.display = 'none';
+            document.getElementById('genOutput').textContent = '';
+            showStatus('genStatus', '', '');
+        }
+
+        function esc(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>

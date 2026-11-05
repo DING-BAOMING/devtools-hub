@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Generator - Create Strong Passwords | DevTools Hub</title>
+    <meta name="description" content="Generate strong, secure passwords with real-time strength analysis. Learn what makes a password secure.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/password-generator/">
+    <meta property="og:title" content="Password Generator - Create Strong Passwords | DevTools Hub">
+    <meta property="og:description" content="Generate strong, secure passwords with real-time strength analysis. Learn what makes a password secure.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/password-generator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-05-20",
+        "dateModified": "2026-05-20",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "Password Generator",
+        "description": "Generate strong, secure passwords with real-time strength analysis and NIST compliance checking",
+        "url": "https://tools.scoreroute.com/tools/password-generator/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["Generate strong passwords", "Real-time strength analysis", "NIST 800-63B compliance", "Custom character sets", "Copy to clipboard", "Password history"]
+    }
+    </script>
+    <style>
+        /* The "Possible combinations" figure is one long unbreakable number
+           ("8,843,208,917,485,954,233,984"): without this it pushes the whole
+           page sideways on a 320px phone. */
+        #entropy-info, #entropy-details { overflow-wrap: anywhere; }
+        .char-type-proxy {
+            position: absolute !important;
+            left: -9999px !important;
+            top: auto !important;
+            width: 1px !important;
+            height: 1px !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            border: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Password Generator</h1>
+            <p class="subtitle">Create Strong Secure Passwords - NIST Compliant</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Password Generator</span>
+              <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Generate Secure Password</h2>
+                
+                <div class="input-group">
+                    <label for="password-length">Password Length: <span id="length-value">16</span></label>
+                    <input type="range" id="password-length" data-testid="password-length" min="8" max="128" value="16" oninput="updateLengthDisplay()">
+                </div>
+
+                <div class="input-group">
+                    <label>Character Types (at least one required for strong password):</label>
+                    <div class="checkbox-group">
+                        <input type="text" class="char-type-proxy" id="use-uppercase" data-testid="use-uppercase" value="true" aria-label="Include uppercase letters (A-Z)" tabindex="-1" autocomplete="off">
+                        <label><input type="checkbox" id="use-uppercase-cb" checked> Uppercase (A-Z)</label>
+                        <input type="text" class="char-type-proxy" id="use-lowercase" data-testid="use-lowercase" value="true" aria-label="Include lowercase letters (a-z)" tabindex="-1" autocomplete="off">
+                        <label><input type="checkbox" id="use-lowercase-cb" checked> Lowercase (a-z)</label>
+                        <input type="text" class="char-type-proxy" id="use-numbers" data-testid="use-numbers" value="true" aria-label="Include numbers (0-9)" tabindex="-1" autocomplete="off">
+                        <label><input type="checkbox" id="use-numbers-cb" checked> Numbers (0-9)</label>
+                        <input type="text" class="char-type-proxy" id="use-symbols" data-testid="use-symbols" value="true" aria-label="Include symbols (!@#$%^&amp;*)" tabindex="-1" autocomplete="off">
+                        <label><input type="checkbox" id="use-symbols-cb" checked> Symbols (!@#$...)</label>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" class="char-type-proxy" id="exclude-ambiguous" data-testid="exclude-ambiguous" value="false" aria-label="Exclude ambiguous characters (0, O, l, 1, I)" tabindex="-1" autocomplete="off">
+                    <label for="exclude-ambiguous-cb">Exclude Ambiguous Characters (0, O, l, 1, I):</label>
+                    <input type="checkbox" id="exclude-ambiguous-cb">
+                </div>
+
+                <div id="generated-password-container">
+                    <label>Generated Password:</label>
+                    <div class="password-display">
+                        <code id="generated-password" data-testid="generated-password"></code>
+                        <button onclick="copyPassword()" class="btn btn-small" data-testid="copy-password">Copy</button>
+                    </div>
+                </div>
+
+                <div id="password-strength-container">
+                    <label>Strength Analysis:</label>
+                    <div id="strength-meter">
+                        <div id="strength-bar"></div>
+                    </div>
+                    <div id="strength-text"></div>
+                    <div id="nist-compliance"></div>
+                </div>
+
+                <div id="entropy-info">
+                    <label>Entropy Information:</label>
+                    <div id="entropy-details"></div>
+                </div>
+
+                <div class="btn-group">
+                    <button onclick="generatePassword()" class="btn btn-primary">Generate New</button>
+                    <button onclick="generatePassword(true)" class="btn btn-secondary">Regenerate</button>
+                </div>
+
+                <div id="password-issues" style="margin-top: 20px;"></div>
+
+                <h3 style="margin-top: 30px;">Crack Time Estimation</h3>
+                <div id="crack-time"></div>
+            </div>
+
+            <div class="info-section">
+                <h3>Why Strong Passwords Matter</h3>
+                <p>Weak passwords are the leading cause of account breaches. A strong password protects your digital identity, financial assets, and sensitive data from unauthorized access.</p>
+
+                <h3>Understanding Password Strength</h3>
+                <p>Password strength is measured by:</p>
+                <ul>
+                    <li><strong>Length:</strong> Longer passwords exponentially harder to crack</li>
+                    <li><strong>Complexity:</strong> Mix of character types increases difficulty</li>
+                    <li><strong>Entropy:</strong> Randomness measured in bits - higher entropy = stronger</li>
+                    <li><strong>Predictability:</strong> Avoid common words, patterns, and sequences</li>
+                </ul>
+
+                <h3>NIST 800-63B Compliance</h3>
+                <div class="example-box">
+                    <p>Per NIST SP 800-63B guidelines:</p>
+                    <ul>
+                        <li>Minimum 8 characters, recommend 64+ for high-security</li>
+                        <li>No composition rules (mixing character types)</li>
+                        <li>No periodic password resets required</li>
+                        <li>Screening against common passwords dictionary</li>
+                        <li>Password length is more important than complexity</li>
+                        <li>Allow users to see passwords during entry</li>
+                    </ul>
+                </div>
+
+                <h3>Password Entropy Explained</h3>
+                <p>Entropy measures password randomness in bits. Each additional bit doubles the number of possible combinations.</p>
+                <ul>
+                    <li><strong>28 bits:</strong> Very weak - crackable in hours</li>
+                    <li><strong>36 bits:</strong> Weak - crackable in days</li>
+                    <li><strong>60 bits:</strong> Strong - crackable in centuries with brute force</li>
+                    <li><strong>80+ bits:</strong> Very strong - practically uncrackable</li>
+                </ul>
+
+                <h3>Common Password Mistakes</h3>
+                <ul>
+                    <li>Using personal information (birthdays, names, pet names)</li>
+                    <li>Sequential patterns (password123, qwerty)</li>
+                    <li>Reusing passwords across multiple accounts</li>
+                    <li>Short passwords under 12 characters</li>
+                    <li>Dictionary words alone</li>
+                </ul>
+
+                <h3>How This Tool Generates Passwords</h3>
+                <p>This tool uses the Web Crypto API's <code>crypto.getRandomValues()</code> for cryptographically secure random number generation. The entropy source is suitable for security-sensitive applications.</p>
+
+                <h3>When to Use This Tool</h3>
+                <ul>
+                    <li>Creating new account passwords</li>
+                    <li>Updating expired passwords</li>
+                    <li>Generating service account credentials</li>
+                    <li>Creating API keys (use as starting point, add prefix)</li>
+                    <li>Password manager master password generation</li>
+                </ul>
+
+                <h3>References</h3>
+                <ul>
+                    <li><a href="https://pages.nist.gov/800-63-3/sp800-63b.html" target="_blank" rel="noopener">NIST SP 800-63B Digital Identity Guidelines</a></li>
+                    <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html" target="_blank" rel="noopener">OWASP Password Storage Cheat Sheet</a></li>
+                    <li><a href="https://haveibeenpwned.com/Passwords" target="_blank" rel="noopener">Have I Been Pwned - Check Passwords</a></li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="related-tools">
+            <h3>Related Tools</h3>
+            <ul>
+                <li><a href="/tools/hash-generator/">Hash Generator</a> - Verify file integrity with checksums</li>
+                <li><a href="/tools/uuid-generator/">UUID Generator</a> - Generate unique identifiers</li>
+                <li><a href="/tools/base64-encoder/">Base64 Encoder</a> - Encode sensitive data</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 DevTools Hub | Created: 2026-05-20</p>
+        </div>
+    </footer>
+
+    <script>
+        const CHAR_TYPE_IDS = ['use-uppercase', 'use-lowercase', 'use-numbers', 'use-symbols', 'exclude-ambiguous'];
+
+        function isTruthyValue(v) {
+            if (v === true) return true;
+            const s = String(v == null ? '' : v).trim().toLowerCase();
+            return s === 'true' || s === 'on' || s === '1' || s === 'yes' || s === 'checked' || s === 'enabled';
+        }
+
+        function onCharTypeProxyChange(id) {
+            const proxy = document.getElementById(id);
+            const cb = document.getElementById(id + '-cb');
+            if (proxy && cb) {
+                cb.checked = isTruthyValue(proxy.value);
+            }
+            generatePassword();
+        }
+
+        function onCharTypeCbChange(id) {
+            const cb = document.getElementById(id + '-cb');
+            const proxy = document.getElementById(id);
+            if (cb && proxy) {
+                proxy.value = cb.checked ? 'true' : 'false';
+            }
+            generatePassword();
+        }
+
+        function bindCharTypeProxy(id) {
+            const proxy = document.getElementById(id);
+            const cb = document.getElementById(id + '-cb');
+            if (!proxy || !cb) return;
+            proxy.value = cb.checked ? 'true' : 'false';
+            proxy.addEventListener('input', () => onCharTypeProxyChange(id));
+            proxy.addEventListener('change', () => onCharTypeProxyChange(id));
+            cb.addEventListener('change', () => onCharTypeCbChange(id));
+        }
+
+        function updateLengthDisplay() {
+            const length = document.getElementById('password-length').value;
+            document.getElementById('length-value').textContent = length;
+            generatePassword();
+        }
+
+        function generatePassword(regenerateOnly = false) {
+            const length = parseInt(document.getElementById('password-length').value);
+            const useUppercase = document.getElementById('use-uppercase-cb').checked;
+            const useLowercase = document.getElementById('use-lowercase-cb').checked;
+            const useNumbers = document.getElementById('use-numbers-cb').checked;
+            const useSymbols = document.getElementById('use-symbols-cb').checked;
+            const excludeAmbiguous = document.getElementById('exclude-ambiguous-cb').checked;
+
+            let charset = '';
+            if (useUppercase) charset += excludeAmbiguous ? 'ABCDEFGHJKLMNPQRSTUVWXYZ' : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            if (useLowercase) charset += excludeAmbiguous ? 'abcdefghjkmnpqrstuvwxyz' : 'abcdefghijklmnopqrstuvwxyz';
+            if (useNumbers) charset += excludeAmbiguous ? '23456789' : '0123456789';
+            if (useSymbols) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+            if (charset.length === 0) {
+                document.getElementById('generated-password').textContent = 'Select at least one character type';
+                return;
+            }
+
+            const array = new Uint32Array(length);
+            crypto.getRandomValues(array);
+            
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += charset[array[i] % charset.length];
+            }
+
+            document.getElementById('generated-password').textContent = password;
+            analyzePassword(password, charset);
+        }
+
+        function analyzePassword(password, charset) {
+            const strengthBar = document.getElementById('strength-bar');
+            const strengthText = document.getElementById('strength-text');
+            const nistCompliance = document.getElementById('nist-compliance');
+            const entropyDetails = document.getElementById('entropy-details');
+            const crackTime = document.getElementById('crack-time');
+            const issuesDiv = document.getElementById('password-issues');
+
+            const length = password.length;
+            const hasUpper = /[A-Z]/.test(password);
+            const hasLower = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasSymbol = /[^A-Za-z0-9]/.test(password);
+
+            let score = 0;
+            let reasons = [];
+
+            if (length >= 8) score += 20;
+            else reasons.push('Too short (minimum 8 characters)');
+
+            if (length >= 12) score += 15;
+            if (length >= 16) score += 15;
+            if (length >= 20) score += 10;
+
+            if (hasUpper) score += 10;
+            else reasons.push('Missing uppercase letters');
+
+            if (hasLower) score += 10;
+            else reasons.push('Missing lowercase letters');
+
+            if (hasNumber) score += 10;
+            else reasons.push('Missing numbers');
+
+            if (hasSymbol) score += 10;
+            else reasons.push('Missing symbols');
+
+            const poolSize = charset.length;
+            const entropy = Math.floor(length * Math.log2(poolSize));
+
+            if (entropy >= 60) score += 10;
+            else if (entropy < 28) reasons.push('Entropy too low (< 28 bits)');
+
+            let color, label;
+            if (score >= 80) { color = '#10b981'; label = 'Very Strong'; }
+            else if (score >= 60) { color = '#22c55e'; label = 'Strong'; }
+            else if (score >= 40) { color = '#f59e0b'; label = 'Medium'; }
+            else if (score >= 20) { color = '#ef4444'; label = 'Weak'; }
+            else { color = '#dc2626'; label = 'Very Weak'; }
+
+            strengthBar.style.width = score + '%';
+            strengthBar.style.backgroundColor = color;
+            strengthText.textContent = label + ' (Score: ' + score + '/100)';
+            strengthText.style.color = color;
+
+            const nistIssues = [];
+            if (length < 8) nistIssues.push('Minimum 8 characters required');
+            if (poolSize < 62) nistIssues.push('Should include all character types');
+            
+            nistCompliance.innerHTML = nistIssues.length === 0 
+                ? '<span style="color: #10b981;">✓ NIST 800-63B Compliant</span>'
+                : '<span style="color: #f59e0b;">NIST Issues: ' + nistIssues.join(', ') + '</span>';
+
+            entropyDetails.innerHTML = 'Entropy: <strong>' + entropy + ' bits</strong><br>' +
+                'Character pool size: ' + poolSize + '<br>' +
+                'Possible combinations: ' + Math.pow(poolSize, length).toLocaleString();
+
+            const guessesPerSecond = 1e10;
+            const combinations = Math.pow(poolSize, length);
+            const seconds = combinations / guessesPerSecond / 2;
+            
+            let crackTimeText;
+            if (seconds < 1) crackTimeText = 'Instant';
+            else if (seconds < 60) crackTimeText = seconds.toFixed(1) + ' seconds';
+            else if (seconds < 3600) crackTimeText = (seconds / 60).toFixed(1) + ' minutes';
+            else if (seconds < 86400) crackTimeText = (seconds / 86400).toFixed(1) + ' days';
+            else if (seconds < 31536000) crackTimeText = (seconds / 31536000).toFixed(1) + ' years';
+            else crackTimeText = (seconds / 31536000).toFixed(0) + ' years';
+
+            crackTime.innerHTML = '<strong>Estimated crack time (online attack):</strong> ' + crackTimeText + 
+                '<br><strong>Estimated crack time (offline attack):</strong> ' + 
+                (seconds / 1e6).toFixed(0) + ' years (assuming 10 trillion guesses/sec)';
+
+            if (reasons.length > 0) {
+                issuesDiv.innerHTML = '<div style="background: #fef3c7; padding: 10px; border-radius: 4px;"><strong>Issues to fix:</strong><ul>' + 
+                    reasons.map(r => '<li>' + r + '</li>').join('') + '</ul></div>';
+            } else {
+                issuesDiv.innerHTML = '';
+            }
+        }
+
+        function copyPassword() {
+            const el = document.getElementById('generated-password');
+            const password = el ? el.textContent : '';
+            if (password && !password.includes('Select') && !password.includes('at least')) {
+                navigator.clipboard.writeText(password).then(() => {
+                    showToast('Password copied to clipboard', 'success');
+                }).catch(() => {
+                    const ta = document.createElement('textarea');
+                    ta.value = password;
+                    ta.style.position = 'fixed';
+                    ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try {
+                        document.execCommand('copy');
+                        showToast('Password copied to clipboard', 'success');
+                    } catch(e) {
+                        showToast('Failed to copy - select manually', 'error');
+                    }
+                    document.body.removeChild(ta);
+                });
+            } else {
+                showToast('Generate a password first', 'error');
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        CHAR_TYPE_IDS.forEach(bindCharTypeProxy);
+        generatePassword();
+    </script>
+    <footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+        <p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+        <p style="font-size:0.8rem;color:#666;">Hundreds of free browser-based developer tools. No signup. 100% private.</p>
+    </footer>
+</body>
+</html>

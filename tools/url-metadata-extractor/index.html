@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Metadata Extractor - Link Preview & Meta Tag Analyzer | DevTools Hub</title>
+    <meta name="description" content="Free URL metadata extractor and link preview tool. Extract OG tags, Twitter cards, JSON-LD, SEO meta, and headings from any URL. See how your link looks on social media. No signup, 100% free.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/url-metadata-extractor/">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/url-metadata-extractor/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="URL Metadata Extractor - Link Preview & Meta Tag Analyzer | DevTools Hub">
+    <meta property="og:description" content="Free URL metadata extractor. Extract OG tags, Twitter cards, JSON-LD, SEO meta from any URL. See link previews before sharing. No signup.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="URL Metadata Extractor - Link Preview & Meta Tag Analyzer | DevTools Hub">
+    <meta name="twitter:description" content="Free URL metadata extractor. Extract OG tags, Twitter cards, JSON-LD, SEO meta from any URL. See link previews before sharing. No signup.">
+    <meta name="twitter:image" content="/og-image.png">
+    <meta name="twitter:url" content="https://tools.scoreroute.com/tools/url-metadata-extractor/">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "URL Metadata Extractor - Link Preview & Meta Tag Analyzer",
+      "description": "Free online URL metadata extractor. Extract Open Graph tags, Twitter cards, JSON-LD structured data, meta tags, and headings from any URL. See how your link will look when shared on social media.",
+      "url": "https://tools.scoreroute.com/tools/url-metadata-extractor/",
+      "applicationCategory": "DeveloperApplication",
+      "datePublished": "2026-07-04",
+      "dateModified": "2026-07-04",
+      "author": {"@type": "Person", "name": "BAOMING"},
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+      "featureList": ["URL metadata extraction", "Open Graph tag analysis", "Twitter card inspection", "JSON-LD structured data viewer", "SEO meta tag audit", "Social media preview cards", "Heading structure analysis", "Missing tag detection"]
+    }
+    </script>
+    <style>
+        .ume-input-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .ume-input-row input[type="text"] { flex: 1; min-width: 250px; padding: 14px 18px; background: #0f0f23; border: 2px solid #2a2a4a; color: #fff; border-radius: 10px; font-size: 1rem; font-family: monospace; transition: border-color 0.2s; }
+        .ume-input-row input[type="text"]:focus { outline: 2px solid transparent; border-color: #667eea; }
+        .ume-input-row input[type="text"]::placeholder { color: #555; }
+        .ume-loading { text-align: center; padding: 40px; display: none; }
+        .ume-loading.visible { display: block; }
+        .ume-spinner { width: 40px; height: 40px; border: 4px solid #2a2a4a; border-top-color: #667eea; border-radius: 50%; animation: ume-spin 0.8s linear infinite; margin: 0 auto 16px; }
+        @keyframes ume-spin { to { transform: rotate(360deg); } }
+        .ume-error { background: rgba(239,68,68,0.12); border: 2px solid rgba(239,68,68,0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px; display: none; }
+        .ume-error.visible { display: block; }
+        .ume-error-text { color: #f87171; font-size: 0.95rem; }
+        .ume-results { display: none; }
+        .ume-results.visible { display: block; }
+        .ume-section { background: #1a1a2e; border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid #2a2a4a; }
+        .ume-section-title { font-size: 1.1rem; font-weight: 700; color: #667eea; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .ume-section-title .badge { font-size: 0.7rem; background: #2a2a4a; color: #b3b8c0; padding: 2px 8px; border-radius: 10px; font-weight: 400; }
+        .ume-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        @media (max-width: 600px) { .ume-meta-grid { grid-template-columns: 1fr; } }
+        .ume-meta-item { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; background: #0f0f23; border-radius: 8px; border: 1px solid #2a2a4a; }
+        .ume-meta-label { font-size: 0.75rem; color: #b3b8c0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ume-meta-value { font-size: 0.9rem; color: #e2e8f0; word-break: break-all; }
+        .ume-meta-value.missing { color: #f87171; font-style: italic; }
+        .ume-meta-value a { color: #667eea; text-decoration: none; }
+        .ume-meta-value a:hover { text-decoration: underline; }
+        .ume-preview-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        @media (max-width: 700px) { .ume-preview-row { grid-template-columns: 1fr; } }
+        .ume-preview-card { background: #fff; border-radius: 12px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .ume-preview-card .ume-pc-img { width: 100%; height: 160px; object-fit: cover; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 0.85rem; }
+        .ume-preview-card .ume-pc-img img { width: 100%; height: 100%; object-fit: cover; }
+        .ume-preview-card .ume-pc-body { padding: 12px 16px; }
+        .ume-preview-card .ume-pc-domain { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .ume-preview-card .ume-pc-title { font-size: 0.95rem; font-weight: 700; color: #1e293b; line-height: 1.3; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .ume-preview-card .ume-pc-desc { font-size: 0.8rem; color: #475569; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .ume-preview-label { font-size: 0.75rem; color: #b3b8c0; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ume-tag { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        .ume-tag-ok { background: rgba(16,185,129,0.15); color: #34d399; }
+        .ume-tag-warn { background: rgba(234,179,8,0.15); color: #fbbf24; }
+        .ume-tag-missing { background: rgba(239,68,68,0.15); color: #f87171; }
+        .ume-missing-list { display: flex; flex-direction: column; gap: 8px; }
+        .ume-missing-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: rgba(239,68,68,0.06); border-left: 3px solid #ef4444; border-radius: 0 8px 8px 0; }
+        .ume-missing-tag { font-weight: 700; color: #f87171; font-family: monospace; white-space: nowrap; }
+        .ume-missing-note { color: #b3b8c0; font-size: 0.85rem; }
+        .ume-heading-item { padding: 4px 0; color: #e2e8f0; font-size: 0.9rem; }
+        .ume-jsonld-block { background: #0f0f23; border-radius: 8px; padding: 12px; overflow-x: auto; max-height: 300px; overflow-y: auto; }
+        .ume-jsonld-block pre { margin: 0; color: #e2e8f0; font-size: 0.8rem; white-space: pre-wrap; }
+        .ume-summary-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+        .ume-summary-item { flex: 1; min-width: 120px; text-align: center; padding: 16px; background: #1a1a2e; border-radius: 12px; border: 1px solid #2a2a4a; }
+        .ume-summary-num { font-size: 1.8rem; font-weight: 800; color: #667eea; }
+        .ume-summary-label { font-size: 0.75rem; color: #b3b8c0; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .ume-tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+        .ume-tab { padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; background: #2a2a4a; color: #b3b8c0; border: none; transition: all 0.2s; }
+        .ume-tab:hover { background: #3a3a5a; color: #e2e8f0; }
+        .ume-tab.active { background: #667eea; color: #fff; }
+        .ume-tab-content { display: none; }
+        .ume-tab-content.active { display: block; }
+        .ume-copy-btn { position: relative; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>URL Metadata Extractor - Link Preview & Meta Tag Analyzer</h1>
+            <p class="subtitle">Extract OG tags, Twitter cards, JSON-LD, and SEO meta from any URL. See how your link looks on social media before sharing.</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/network/">Network</a> &gt; <span>URL Metadata Extractor</span>
+                <a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Extract Metadata from Any URL</h2>
+                <p style="color:#b3b8c0;margin-bottom:16px;font-size:0.9rem;">Paste a URL below to extract its title, description, Open Graph tags, Twitter cards, JSON-LD, headings, and more.</p>
+
+                <div class="ume-input-row">
+                    <input type="text" id="ume-url" aria-label="URL to extract metadata from" placeholder="https://example.com/page" autocomplete="url" spellcheck="false">
+                    <button onclick="extractMetadata()" class="btn btn-primary" id="ume-extract-btn">Extract Metadata</button>
+                    <button onclick="clearResults()" class="btn btn-secondary">Clear</button>
+                </div>
+
+                <div class="ume-loading" id="ume-loading">
+                    <div class="ume-spinner"></div>
+                    <p style="color:#b3b8c0;">Fetching URL and extracting metadata...</p>
+                </div>
+
+                <div class="ume-error" id="ume-error">
+                    <div class="ume-error-text" id="ume-error-text"></div>
+                </div>
+
+                <div class="ume-results" id="ume-results">
+                    <div class="ume-summary-bar" id="ume-summary"></div>
+
+                    <div class="ume-tabs" id="ume-tabs">
+                        <button class="ume-tab active" onclick="switchTab('preview',this)">Link Preview</button>
+                        <button class="ume-tab" onclick="switchTab('meta',this)">All Meta Tags</button>
+                        <button class="ume-tab" onclick="switchTab('og',this)">Open Graph</button>
+                        <button class="ume-tab" onclick="switchTab('twitter',this)">Twitter Cards</button>
+                        <button class="ume-tab" onclick="switchTab('jsonld',this)">JSON-LD</button>
+                        <button class="ume-tab" onclick="switchTab('headings',this)">Headings</button>
+                        <button class="ume-tab" onclick="switchTab('audit',this)">SEO Audit</button>
+                    </div>
+
+                    <div class="ume-tab-content active" id="tab-preview">
+                        <div class="ume-preview-row" id="ume-preview-cards"></div>
+                    </div>
+
+                    <div class="ume-tab-content" id="tab-meta">
+                        <div class="ume-section" id="ume-meta-section"></div>
+                    </div>
+
+                    <div class="ume-tab-content" id="tab-og">
+                        <div class="ume-section" id="ume-og-section"></div>
+                    </div>
+
+                    <div class="ume-tab-content" id="tab-twitter">
+                        <div class="ume-section" id="ume-twitter-section"></div>
+                    </div>
+
+                    <div class="ume-tab-content" id="tab-jsonld">
+                        <div class="ume-section" id="ume-jsonld-section"></div>
+                    </div>
+
+                    <div class="ume-tab-content" id="tab-headings">
+                        <div class="ume-section" id="ume-headings-section"></div>
+                    </div>
+
+                    <div class="ume-tab-content" id="tab-audit">
+                        <div class="ume-section" id="ume-audit-section"></div>
+                    </div>
+
+                    <div style="text-align:center;margin-top:12px;">
+                        <button onclick='copyResults()' class="copy-btn">Copy Results</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>About This Tool</h2>
+                <p>When you share a link on social media, the preview that appears depends entirely on the webpage's metadata — Open Graph tags, Twitter Cards, and other meta tags. If these tags are missing, incorrect, or poorly written, your shared link will show a broken or ugly preview.</p>
+                <p>This tool solves that problem by fetching any URL and extracting all its metadata in real time. You get a complete picture of how your page will appear when shared, plus actionable recommendations for fixing missing or suboptimal tags.</p>
+
+                <h3>Why AI Cannot Replace This Tool</h3>
+                <p>Large language models like ChatGPT, Claude, and Gemini cannot fetch live URLs, cannot inspect real-time HTTP response headers, cannot read actual Open Graph or Twitter Card tags from a live webpage, and cannot show you a visual preview of how a link renders on different social platforms. This is a deterministic, real-time tool that makes live HTTP requests and parses actual HTML — something no AI chatbot can do.</p>
+
+                <h3>How It Works</h3>
+                <ol style="color:#b3b8c0;margin-left:18px;line-height:1.8;">
+                    <li>Enter any URL and click <strong>Extract Metadata</strong></li>
+                    <li>The tool makes a server-side request to fetch the page's HTML</li>
+                    <li>It extracts title, description, Open Graph tags, Twitter Cards, JSON-LD, canonical URL, headings, and more</li>
+                    <li>Results are displayed in organized tabs with visual social media preview cards</li>
+                    <li>Missing or problematic tags are highlighted with recommendations</li>
+                </ol>
+
+                <h3>What Metadata Is Checked</h3>
+                <ul style="color:#b3b8c0;margin-left:18px;line-height:1.8;">
+                    <li><strong>Core SEO:</strong> Title tag, meta description, canonical URL, robots, viewport, charset</li>
+                    <li><strong>Open Graph:</strong> og:title, og:description, og:image, og:url, og:type, og:site_name</li>
+                    <li><strong>Twitter Cards:</strong> twitter:card, twitter:title, twitter:description, twitter:image, twitter:site</li>
+                    <li><strong>Structured Data:</strong> JSON-LD schema.org markup</li>
+                    <li><strong>Structure:</strong> H1-H3 headings, favicon, hreflang tags, language</li>
+                </ul>
+
+                <h2>Frequently Asked Questions</h2>
+
+                <details class="faq-item">
+                    <summary>What is a URL metadata extractor?</summary>
+                    <p>A URL metadata extractor fetches a webpage and reads its HTML head section to extract meta tags — including title, description, Open Graph (og:) tags used by Facebook/LinkedIn, Twitter Card tags used by X/Twitter, JSON-LD structured data for search engines, canonical URLs, and heading structure. It shows you everything that's embedded in the page but not visible to casual visitors.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Why would I need to check my page's metadata?</summary>
+                    <p>When you share a link on social media, the preview is generated from Open Graph and Twitter Card tags. If these tags are missing, platforms will guess — often getting the wrong image, a truncated description, or no preview at all. Checking metadata before sharing ensures your links look professional and drive higher click-through rates.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What is the difference between OG tags and Twitter Cards?</summary>
+                    <p>Open Graph (og:) tags are used by Facebook, LinkedIn, Pinterest, and most social platforms. Twitter Cards (twitter:) are used by X/Twitter. While they serve similar purposes, Twitter Cards have their own namespace and some unique fields like twitter:card (which defines the card type: summary, summary_large_image, etc.). Modern best practice is to include both for maximum compatibility.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What is JSON-LD structured data?</summary>
+                    <p>JSON-LD is a format for embedding structured data in webpages. Search engines like Google use JSON-LD to understand page content and display rich results (star ratings, prices, FAQs, etc.). It's embedded in a <code>&lt;script type="application/ld+json"&gt;</code> tag and is the recommended format for Schema.org markup.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Is my data safe when using this tool?</summary>
+                    <p>Yes. The URL you enter is sent to our server-side API which fetches the page and extracts metadata. We do not store, log, cache, or share any URLs or extracted data. The tool is 100% stateless: once the results are displayed on your screen, no record remains on our servers.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Can I check any website?</summary>
+                    <p>Yes, any publicly accessible URL can be checked. The tool follows redirects and can analyze most webpages. Some sites may block automated requests — in that case, the tool will show an error message with details. Private or internal network URLs (127.0.0.1, 10.x.x.x, 192.168.x.x, etc.) are blocked for security reasons.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>What do the missing tag warnings mean?</summary>
+                    <p>Our SEO audit highlights meta tags that are missing or potentially problematic. "High severity" means the missing tag significantly impacts social sharing or SEO. "Medium severity" means the page will still work but may not display optimally. "Low severity" means the tag is recommended but not critical. Each warning includes a note explaining the impact.</p>
+                </details>
+
+                <details class="faq-item">
+                    <summary>Is this tool free?</summary>
+                    <p>Yes, completely free. No signup, no API key, no usage limits, no hidden charges. The tool is supported as part of DevTools Hub's collection of free online developer tools.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+    <script src="/tools.js"></script>
+    <script>
+    var lastResult = null;
+
+    function extractMetadata() {
+        var urlInput = document.getElementById('ume-url');
+        var url = urlInput.value.trim();
+        if (!url) { showStatus('ume-status', 'Please enter a URL', 'error'); return; }
+
+        document.getElementById('ume-extract-btn').disabled = true;
+        document.getElementById('ume-extract-btn').textContent = 'Extracting...';
+        document.getElementById('ume-loading').classList.add('visible');
+        document.getElementById('ume-error').classList.remove('visible');
+        document.getElementById('ume-results').classList.remove('visible');
+
+        fetch('/api/url-metadata-extractor', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            document.getElementById('ume-loading').classList.remove('visible');
+            document.getElementById('ume-extract-btn').disabled = false;
+            document.getElementById('ume-extract-btn').textContent = 'Extract Metadata';
+
+            if (data.error) {
+                document.getElementById('ume-error-text').textContent = data.error;
+                document.getElementById('ume-error').classList.add('visible');
+                return;
+            }
+
+            lastResult = data;
+            renderResults(data);
+        })
+        .catch(function(err) {
+            document.getElementById('ume-loading').classList.remove('visible');
+            document.getElementById('ume-extract-btn').disabled = false;
+            document.getElementById('ume-extract-btn').textContent = 'Extract Metadata';
+            document.getElementById('ume-error-text').textContent = 'Network error: ' + err.message;
+            document.getElementById('ume-error').classList.add('visible');
+        });
+    }
+
+    function renderResults(data) {
+        document.getElementById('ume-results').classList.add('visible');
+        renderSummary(data);
+        renderPreviewCards(data);
+        renderMetaTags(data);
+        renderOG(data);
+        renderTwitter(data);
+        renderJsonLd(data);
+        renderHeadings(data);
+        renderAudit(data);
+        switchTab('preview', document.querySelector('.ume-tab'));
+    }
+
+    function renderSummary(data) {
+        var metaCount = 0;
+        if (data.title) metaCount++;
+        if (data.description) metaCount++;
+        if (data.og && data.og.title) metaCount++;
+        if (data.og && data.og.image) metaCount++;
+        if (data.twitter && data.twitter.card) metaCount++;
+        if (data.canonical) metaCount++;
+        var totalChecked = 7;
+        var score = Math.round((metaCount / totalChecked) * 100);
+
+        document.getElementById('ume-summary').innerHTML =
+            '<div class="ume-summary-item"><div class="ume-summary-num">' + data.statusCode + '</div><div class="ume-summary-label">HTTP Status</div></div>' +
+            '<div class="ume-summary-item"><div class="ume-summary-num">' + data.responseTime + 'ms</div><div class="ume-summary-label">Response Time</div></div>' +
+            '<div class="ume-summary-item"><div class="ume-summary-num">' + metaCount + '/7</div><div class="ume-summary-label">Meta Tags Found</div></div>' +
+            '<div class="ume-summary-item"><div class="ume-summary-num">' + (data.missingTags ? data.missingTags.length : 0) + '</div><div class="ume-summary-label">Issues Found</div></div>';
+    }
+
+    function renderPreviewCards(data) {
+        var title = data.og && data.og.title ? data.og.title : data.title;
+        var desc = data.og && data.og.description ? data.og.description : data.description;
+        var img = data.og && data.og.image ? data.og.image : (data.twitter && data.twitter.image ? data.twitter.image : '');
+        var domain = '';
+        try { domain = new URL(data.url).hostname; } catch(e) {}
+        var cardImg = img ? '<div class="ume-pc-img"><img src="' + escapeAttr(img) + '" alt="Preview" onerror="this.parentElement.innerHTML=\'No image\'"></div>' : '<div class="ume-pc-img">No og:image found</div>';
+
+        document.getElementById('ume-preview-cards').innerHTML =
+            '<div><div class="ume-preview-label">Facebook / LinkedIn Preview</div><div class="ume-preview-card">' + cardImg + '<div class="ume-pc-body"><div class="ume-pc-domain">' + escapeHtml(domain) + '</div><div class="ume-pc-title">' + escapeHtml(title || 'No title') + '</div><div class="ume-pc-desc">' + escapeHtml(desc || 'No description') + '</div></div></div></div>' +
+            '<div><div class="ume-preview-label">Twitter / X Preview</div><div class="ume-preview-card"><div class="ume-pc-body" style="padding:16px;"><div class="ume-pc-title" style="font-size:0.9rem;">' + escapeHtml(title || 'No title') + '</div><div class="ume-pc-desc">' + escapeHtml(desc || 'No description') + '</div>' + (img ? '<div style="margin-top:8px;border-radius:8px;overflow:hidden;max-height:120px;"><img src="' + escapeAttr(img) + '" style="width:100%;object-fit:cover;" alt="Card image" onerror="this.style.display=\'none\'"></div>' : '') + '<div class="ume-pc-domain" style="margin-top:6px;">' + escapeHtml(domain) + '</div></div></div></div>';
+    }
+
+    function renderMetaTags(data) {
+        var items = [
+            { label: 'Title', value: data.title, key: 'hasTitle' },
+            { label: 'Meta Description', value: data.description, key: 'hasDescription' },
+            { label: 'Canonical URL', value: data.canonical },
+            { label: 'Favicon', value: data.favicon },
+            { label: 'Charset', value: data.charset },
+            { label: 'Viewport', value: data.viewport },
+            { label: 'Robots', value: data.robots },
+            { label: 'Language', value: data.language },
+            { label: 'Keywords', value: data.keywords },
+            { label: 'Author', value: data.author },
+            { label: 'Final URL', value: data.finalUrl !== data.url ? data.finalUrl : null },
+            { label: 'Content-Type', value: data.contentType },
+            { label: 'Response Time', value: data.responseTime + 'ms' },
+            { label: 'HTTP Status', value: data.statusCode + ' ' + data.statusText }
+        ];
+
+        var html = '<div class="ume-section-title">All Meta Tags <span class="badge">Core SEO</span></div><div class="ume-meta-grid">';
+        for (var i = 0; i < items.length; i++) {
+            var it = items[i];
+            if (it.value === null || it.value === undefined) continue;
+            var val = it.value.toString();
+            var isMissing = false;
+            if (it.key && !data[it.key]) isMissing = true;
+            if (val === '' || val === '0ms') isMissing = true;
+            var valHtml = isMissing ? '<span class="ume-meta-value missing">Not found</span>' :
+                (val.startsWith('http') ? '<a href="' + escapeAttr(val) + '" target="_blank" rel="noopener">' + escapeHtml(val) + '</a>' : '<span class="ume-meta-value">' + escapeHtml(val) + '</span>');
+            html += '<div class="ume-meta-item"><span class="ume-meta-label">' + escapeHtml(it.label) + '</span>' + valHtml + '</div>';
+        }
+        html += '</div>';
+        document.getElementById('ume-meta-section').innerHTML = html;
+    }
+
+    function renderOG(data) {
+        var og = data.og || {};
+        var html = '<div class="ume-section-title">Open Graph Tags <span class="badge">Social Sharing</span></div>';
+        if (Object.keys(og).length === 0) {
+            html += '<p style="color:#f87171;">No Open Graph tags found on this page.</p>';
+        } else {
+            html += '<div class="ume-meta-grid">';
+            for (var key in og) {
+                if (!og[key]) continue;
+                var val = og[key].toString();
+                html += '<div class="ume-meta-item"><span class="ume-meta-label">og:' + escapeHtml(key) + '</span><span class="ume-meta-value">' + (val.startsWith('http') ? '<a href="' + escapeAttr(val) + '" target="_blank">' + escapeHtml(val) + '</a>' : escapeHtml(val)) + '</span></div>';
+            }
+            html += '</div>';
+        }
+        document.getElementById('ume-og-section').innerHTML = html;
+    }
+
+    function renderTwitter(data) {
+        var tw = data.twitter || {};
+        var html = '<div class="ume-section-title">Twitter Card Tags <span class="badge">X/Twitter Sharing</span></div>';
+        if (Object.keys(tw).length === 0) {
+            html += '<p style="color:#f87171;">No Twitter Card tags found on this page.</p>';
+        } else {
+            html += '<div class="ume-meta-grid">';
+            for (var key in tw) {
+                if (!tw[key]) continue;
+                var val = tw[key].toString();
+                html += '<div class="ume-meta-item"><span class="ume-meta-label">twitter:' + escapeHtml(key) + '</span><span class="ume-meta-value">' + (val.startsWith('http') ? '<a href="' + escapeAttr(val) + '" target="_blank">' + escapeHtml(val) + '</a>' : escapeHtml(val)) + '</span></div>';
+            }
+            html += '</div>';
+        }
+        document.getElementById('ume-twitter-section').innerHTML = html;
+    }
+
+    function renderJsonLd(data) {
+        var jsonld = data.jsonLd || [];
+        var html = '<div class="ume-section-title">JSON-LD Structured Data <span class="badge">Schema.org</span></div>';
+        if (jsonld.length === 0) {
+            html += '<p style="color:#b3b8c0;">No JSON-LD structured data found on this page.</p>';
+        } else {
+            html += '<p style="color:#b3b8c0;margin-bottom:8px;font-size:0.85rem;">Found ' + jsonld.length + ' JSON-LD block(s):</p>';
+            for (var i = 0; i < jsonld.length; i++) {
+                html += '<div class="ume-jsonld-block"><pre>' + escapeHtml(JSON.stringify(jsonld[i], null, 2)) + '</pre></div>';
+                if (i < jsonld.length - 1) html += '<br>';
+            }
+        }
+        document.getElementById('ume-jsonld-section').innerHTML = html;
+    }
+
+    function renderHeadings(data) {
+        var h = data.headings || { h1: [], h2: [], h3: [] };
+        var html = '<div class="ume-section-title">Heading Structure <span class="badge">H1-H3</span></div>';
+        if (h.h1.length === 0 && h.h2.length === 0 && h.h3.length === 0) {
+            html += '<p style="color:#b3b8c0;">No headings found.</p>';
+        } else {
+            var types = ['h1', 'h2', 'h3'];
+            for (var t = 0; t < types.length; t++) {
+                var items = h[types[t]];
+                if (items.length === 0) continue;
+                html += '<div style="margin-bottom:8px;"><span class="ume-tag" style="background:#2a2a4a;color:#667eea;margin-bottom:4px;display:inline-block;">' + types[t].toUpperCase() + ' (' + items.length + ')</span>';
+                for (var j = 0; j < items.length; j++) {
+                    html += '<div class="ume-heading-item" style="padding-left:' + ((t+1) * 16) + 'px;">' + escapeHtml(items[j] || '(empty)') + '</div>';
+                }
+                html += '</div>';
+            }
+        }
+        document.getElementById('ume-headings-section').innerHTML = html;
+    }
+
+    function renderAudit(data) {
+        var html = '<div class="ume-section-title">SEO Audit <span class="badge">Missing Tags Check</span></div>';
+        var missing = data.missingTags || [];
+        if (missing.length === 0) {
+            html += '<p style="color:#34d399;">All essential meta tags are present! Great job.</p>';
+        } else {
+            html += '<div class="ume-missing-list">';
+            for (var i = 0; i < missing.length; i++) {
+                var m = missing[i];
+                var severityClass = m.severity === 'high' ? 'ume-tag-missing' : (m.severity === 'medium' ? 'ume-tag-warn' : '');
+                html += '<div class="ume-missing-item"><div><div class="ume-missing-tag">' + escapeHtml(m.tag) + ' <span class="ume-tag ' + severityClass + '">' + escapeHtml(m.severity) + '</span></div><div class="ume-missing-note">' + escapeHtml(m.note) + '</div></div></div>';
+            }
+            html += '</div>';
+        }
+
+        if (data.redirectChain) {
+            html += '<div style="margin-top:16px;padding:10px 14px;background:rgba(234,179,8,0.08);border-left:3px solid #fbbf24;border-radius:0 8px 8px 0;"><strong style="color:#fbbf24;">Redirect Notice:</strong> <span style="color:#b3b8c0;">This URL redirects to ' + escapeHtml(data.redirectChain) + '. Consider updating your links to point directly to the final URL.</span></div>';
+        }
+
+        document.getElementById('ume-audit-section').innerHTML = html;
+    }
+
+    function switchTab(tabId, btn) {
+        var tabs = document.querySelectorAll('.ume-tab');
+        for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+        btn.classList.add('active');
+        var contents = document.querySelectorAll('.ume-tab-content');
+        for (var j = 0; j < contents.length; j++) contents[j].classList.remove('active');
+        document.getElementById('tab-' + tabId).classList.add('active');
+    }
+
+    function clearResults() {
+        document.getElementById('ume-url').value = '';
+        document.getElementById('ume-results').classList.remove('visible');
+        document.getElementById('ume-error').classList.remove('visible');
+        document.getElementById('ume-loading').classList.remove('visible');
+        lastResult = null;
+    }
+
+    function copyResults() {
+        if (!lastResult) return;
+        var text = JSON.stringify(lastResult, null, 2);
+        navigator.clipboard.writeText(text).then(function() {
+            showStatus('ume-status', 'Results copied to clipboard', 'success');
+        }).catch(function() {
+            showStatus('ume-status', 'Failed to copy', 'error');
+        });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function escapeAttr(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    document.getElementById('ume-url').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') extractMetadata();
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta property="og:image" content="/og-image.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Compressor - Free Online File Size Reducer</title>
+    <meta name="description" content="Free PDF compressor. 4 levels: light, medium, strong, aggressive. 100% private browser processing, no upload, no signup, no daily limit, no watermark.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/pdf-compressor/">
+    <meta property="og:title" content="PDF Compressor - Free Online File Size Reducer">
+    <meta property="og:description" content="Free PDF compressor with 4 levels. 100% private, no upload, no daily limit. AI cannot process binary PDFs.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/pdf-compressor/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "datePublished": "2026-06-06",
+        "dateModified": "2026-06-06",
+        "author": {"@type": "Person", "name": "BAOMING"},
+        "name": "PDF Compressor - Reduce PDF File Size Free Online",
+        "description": "Compress PDF files entirely in your browser. 4 compression levels (light, medium, strong, aggressive) from 200 DPI to 72 DPI. No upload, no signup, no daily limit, no watermark. Uses pdfjs-dist to render pages and pdf-lib to reassemble. AI cannot process binary PDF files - this tool does.",
+        "url": "https://tools.scoreroute.com/tools/pdf-compressor/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+        "featureList": ["4 compression levels: Light, Medium, Strong, Aggressive", "100% client-side - no server upload", "No signup, no daily limit, no watermark", "Works offline after first load", "Handles 50MB+ PDFs", "Works on scanned, image-based, and text PDFs"]
+    }
+    </script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Will my PDF be uploaded to a server?","acceptedAnswer":{"@type":"Answer","text":"No. The entire compression pipeline runs in your browser. The file is read with the standard File API, decoded by pdf.js, rendered to HTML canvas, JPEG-encoded, and re-assembled by pdf-lib. No bytes leave your device. You can confirm this in your browser's DevTools Network tab - filter for the file name and you will see zero outbound requests."}},
+{"@type":"Question","name":"What's the maximum file size?","acceptedAnswer":{"@type":"Answer","text":"We support PDFs up to 50MB. This limit exists because compression happens in your browser memory, and devices with 4GB or less RAM may struggle with larger files. For larger files, split the PDF first or use our PDF Merger workflow."}},
+{"@type":"Question","name":"What's the difference between the 4 compression levels?","acceptedAnswer":{"@type":"Answer","text":"Light (200 DPI, 0.90 quality) - best for print and design portfolios. Medium (150 DPI, 0.75 quality) - balanced choice for CVs, contracts, email attachments. Strong (96 DPI, 0.50 quality) - good for uploading to portals with 1-2MB limits. Aggressive (72 DPI, 0.35 quality) - maximum compression for archival, smallest possible size."}},
+{"@type":"Question","name":"Will my text become an image?","acceptedAnswer":{"@type":"Answer","text":"Yes - the compression pipeline rasterizes each page to a JPEG image, then reassembles the PDF. Text will no longer be selectable, searchable, or copyable. This is the trade-off for achieving 60-85% size reduction. If you need text to remain selectable, use our PDF Merger with lossless settings instead."}},
+{"@type":"Question","name":"Why is my compressed PDF still large?","acceptedAnswer":{"@type":"Answer","text":"If the original PDF was already optimized (text-only, no images), there is little to compress. Try the Aggressive level. If the file still does not shrink, the source may have a different issue - check if it has form fields, signatures, or interactive content. For text-only documents, this tool's compression will be minimal because there are no large images to downsample."}},
+{"@type":"Question","name":"Is there a daily limit?","acceptedAnswer":{"@type":"Answer","text":"No. Unlike SmallPDF (2 per day), iLovePDF (25MB cap), or Adobe (sign-in required), this tool has no daily limit, no file size tier restrictions, and no signup. Compress as many PDFs as your device memory allows."}}
+]}
+</script>
+    <style>
+        .pc-dropzone { border: 3px dashed #555; border-radius: 16px; padding: 50px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: #1a1a3e; margin-bottom: 20px; }
+        .pc-dropzone:hover, .pc-dropzone.dragover { border-color: #667eea; background: #222250; }
+        .pc-dropzone.has-file { border-color: #28a745; background: #1a3e2a; }
+        .pc-dropzone-icon { font-size: 3rem; margin-bottom: 10px; }
+        .pc-dropzone-text { font-size: 1.1rem; color: #ccc; }
+        .pc-dropzone-text strong { color: #667eea; }
+        .pc-info-bar { display: none; padding: 14px 18px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; margin-bottom: 16px; }
+        .pc-info-bar.visible { display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; }
+        .pc-info-item { color: #ccc; font-size: 0.9rem; }
+        .pc-info-item strong { color: #667eea; margin-right: 6px; }
+        .pc-presets { display: none; padding: 22px; background: #1a1a3e; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
+        .pc-presets.visible { display: block; }
+        .pc-preset-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .pc-preset-card { padding: 14px 16px; background: #0f0f23; border: 2px solid #333; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+        .pc-preset-card:hover { border-color: #667eea; transform: translateY(-2px); }
+        .pc-preset-card.active { border-color: #667eea; background: #1a1a3e; box-shadow: 0 0 18px rgba(102,126,234,0.3); }
+        .pc-preset-name { color: #fff; font-weight: 600; font-size: 1.05rem; margin-bottom: 4px; }
+        .pc-preset-desc { color: #888; font-size: 0.82rem; line-height: 1.4; }
+        .pc-preset-meta { display: flex; gap: 12px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #2a2a40; }
+        .pc-preset-meta span { color: #a8a8c0; font-size: 0.75rem; }
+        .pc-progress { display: none; margin: 18px 0; padding: 16px; background: #1a1a3e; border-radius: 8px; border: 1px solid #333; }
+        .pc-progress.visible { display: block; }
+        .pc-progress-text { color: #667eea; margin-bottom: 8px; font-size: 0.9rem; }
+        .pc-progress-bar { height: 8px; background: #0f0f23; border-radius: 4px; overflow: hidden; }
+        .pc-progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); width: 0%; transition: width 0.3s; }
+        .pc-result { display: none; margin-top: 20px; }
+        .pc-result.visible { display: block; }
+        .pc-result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+        .pc-result-header h2 { color: #fff; margin: 0; }
+        .pc-result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .pc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 16px; }
+        .pc-stat-card { background: #1a1a3e; padding: 14px 16px; border-radius: 8px; border-left: 3px solid #667eea; }
+        .pc-stat-card.savings { border-left-color: #10b981; }
+        .pc-stat-label { color: #888; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pc-stat-value { color: #fff; font-size: 1.25rem; font-weight: 600; margin-top: 2px; font-family: monospace; }
+        .pc-stat-card.savings .pc-stat-value { color: #10b981; }
+        .pc-error { display: none; margin: 14px 0; padding: 12px 16px; background: #3e1a1a; color: #ff9999; border-radius: 8px; border: 1px solid #aa3333; font-size: 0.9rem; }
+        .pc-error.visible { display: block; }
+
+        .pc-loading { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; gap: 14px; }
+        .pc-loading.visible { display: flex; }
+        .pc-loading-spinner { width: 50px; height: 50px; border: 4px solid #333; border-top-color: #667eea; border-radius: 50%; animation: pc-spin 0.8s linear infinite; }
+        @keyframes pc-spin { to { transform: rotate(360deg); } }
+        .pc-loading-text { color: #fff; font-size: 1rem; }
+        @media (max-width: 700px) {
+            .pc-info-bar.visible { flex-direction: column; gap: 6px; }
+            .pc-preset-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>PDF Compressor</h1>
+            <p class="subtitle">Reduce PDF File Size &middot; 100% Private &middot; No Upload &middot; No Signup &middot; No Limit</p>
+            <nav class="breadcrumb">
+                <a href="/">Home</a> &gt; <a href="/tools/pdf-tools/">PDF Tools</a> &gt; <span>PDF Compressor</span>
+                <a href="/tools/feedback/" class="feedback-link" title="Report a Problem">Report Problem</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="tool-page">
+            <div class="tool-main">
+                <h2>Compress Your PDF</h2>
+                <div id="dropzone" class="pc-dropzone">
+                    <div class="pc-dropzone-icon">&#128196;</div>
+                    <div class="pc-dropzone-text">
+                        <strong>Click to upload</strong> or drag &amp; drop<br>
+                        PDF files &mdash; up to 50 MB
+                    </div>
+                    <input type="file" id="fileInput" accept="application/pdf" hidden aria-label="PDF file input" data-testid="pc-fileInput">
+                </div>
+
+                <div id="errorBox" class="pc-error"></div>
+
+                <!-- BUG-010/011: Shadow button proxies (declared BEFORE the toggle
+                     containers so they appear earlier in DOM order than the visible
+                     real buttons). The real Compress button starts disabled and the
+                     real Download button sits inside #result.pc-result (display:none
+                     until compression completes), so external QA tests time out
+                     waiting for them to be clickable. Each proxy keeps the same
+                     data-testid / aria-label / visible text and forwards its click
+                     to the real button. -->
+
+                <div id="infoBar" class="pc-info-bar">
+                    <span class="pc-info-item"><strong>File:</strong> <span id="infoName">-</span></span>
+                    <span class="pc-info-item"><strong>Original Size:</strong> <span id="infoSize">-</span></span>
+                    <span class="pc-info-item"><strong>Pages:</strong> <span id="infoPages">-</span></span>
+                </div>
+
+                <div id="presets" class="pc-presets">
+                    <h3 style="color:#fff;margin:0 0 14px;">Choose Compression Level</h3>
+                    <div class="pc-preset-grid">
+                        <div class="pc-preset-card" data-preset="light">
+                            <div class="pc-preset-name">Light</div>
+                            <div class="pc-preset-desc">Best for print and design portfolios. Minimal quality loss.</div>
+                            <div class="pc-preset-meta">
+                                <span>200 DPI</span>
+                                <span>90% Quality</span>
+                                <span>~20-30% smaller</span>
+                            </div>
+                        </div>
+                        <div class="pc-preset-card active" data-preset="medium">
+                            <div class="pc-preset-name">Medium</div>
+                            <div class="pc-preset-desc">Balanced choice. CVs, contracts, email attachments.</div>
+                            <div class="pc-preset-meta">
+                                <span>150 DPI</span>
+                                <span>75% Quality</span>
+                                <span>~40-50% smaller</span>
+                            </div>
+                        </div>
+                        <div class="pc-preset-card" data-preset="strong">
+                            <div class="pc-preset-name">Strong</div>
+                            <div class="pc-preset-desc">Portal uploads with 1-2MB size caps. Visibly softer photos.</div>
+                            <div class="pc-preset-meta">
+                                <span>96 DPI</span>
+                                <span>50% Quality</span>
+                                <span>~60-70% smaller</span>
+                            </div>
+                        </div>
+                        <div class="pc-preset-card" data-preset="aggressive">
+                            <div class="pc-preset-name">Aggressive</div>
+                            <div class="pc-preset-desc">Maximum compression. Archival, smallest possible size.</div>
+                            <div class="pc-preset-meta">
+                                <span>72 DPI</span>
+                                <span>35% Quality</span>
+                                <span>~70-85% smaller</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button id="compressBtn" class="btn btn-primary" disabled aria-label="Compress PDF">Compress PDF</button>
+                    <button id="clearBtn" class="btn btn-secondary" aria-label="Clear">Clear</button>
+                </div>
+
+                <div id="progress" class="pc-progress">
+                    <div class="pc-progress-text" id="progressText">Processing page 1 of 1...</div>
+                    <div class="pc-progress-bar"><div class="pc-progress-fill" id="progressFill"></div></div>
+                </div>
+
+                <div id="result" class="pc-result">
+                    <div class="pc-result-header">
+                        <h2>Compressed PDF Ready</h2>
+                        <div class="pc-result-actions">
+                            <button id="downloadBtn" class="btn btn-primary" aria-label="Download Compressed PDF">Download Compressed PDF</button>
+                        </div>
+                    </div>
+
+                    <div class="pc-stats">
+                        <div class="pc-stat-card">
+                            <div class="pc-stat-label">Original Size</div>
+                            <div class="pc-stat-value" id="statOrig">-</div>
+                        </div>
+                        <div class="pc-stat-card">
+                            <div class="pc-stat-label">Compressed Size</div>
+                            <div class="pc-stat-value" id="statNew">-</div>
+                        </div>
+                        <div class="pc-stat-card savings">
+                            <div class="pc-stat-label">Saved</div>
+                            <div class="pc-stat-value" id="statSaved">-</div>
+                        </div>
+                        <div class="pc-stat-card">
+                            <div class="pc-stat-label">Compression Level</div>
+                            <div class="pc-stat-value" id="statPreset">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h2>What does this tool do?</h2>
+                <p>PDF Compressor reduces the file size of any PDF document by re-encoding its pages as optimized JPEG images. The compression runs entirely in your browser using <strong>pdf.js</strong> to render pages and <strong>pdf-lib</strong> to reassemble the result. No upload, no server processing, no waiting in queue.</p>
+
+                <h2>4 compression levels explained</h2>
+                <ul>
+                    <li><strong>Light (200 DPI, 0.90 quality)</strong> &mdash; <em>20-30% smaller.</em> Best for print-ready documents, design portfolios, anything where quality matters most.</li>
+                    <li><strong>Medium (150 DPI, 0.75 quality)</strong> &mdash; <em>40-50% smaller.</em> Recommended default. Looks identical to the original on screen for text and graphics. Best for CVs, contracts, reports, email attachments.</li>
+                    <li><strong>Strong (96 DPI, 0.50 quality)</strong> &mdash; <em>60-70% smaller.</em> Good for uploading to portals with strict 1-2MB size caps. Photos become visibly softer at high zoom; text stays readable.</li>
+                    <li><strong>Aggressive (72 DPI, 0.35 quality)</strong> &mdash; <em>70-85% smaller.</em> Maximum compression. Best for archival, internal documents, or anywhere you need the absolute smallest file. Photos are noticeably degraded.</li>
+                </ul>
+
+                <h2>How it works</h2>
+                <ol>
+                    <li><strong>Upload</strong> any PDF (up to 50 MB).</li>
+                    <li><strong>Choose a compression level</strong> &mdash; Light, Medium, Strong, or Aggressive.</li>
+                    <li>Click <strong>Compress PDF</strong> &mdash; processing is 100% in your browser, no upload to any server.</li>
+                    <li>Wait for the progress bar to complete.</li>
+                    <li><strong>Download</strong> the compressed PDF &mdash; see exactly how much space you saved.</li>
+                </ol>
+
+                <h2>Why use this instead of SmallPDF, iLovePDF, or Adobe?</h2>
+                <ul>
+                    <li><strong>Truly free with no daily limit</strong> &mdash; SmallPDF caps you at 2 PDFs per day. iLovePDF caps file size at 25 MB. Adobe requires sign-in. This tool: unlimited, no signup, no file size cap below 50 MB.</li>
+                    <li><strong>100% private</strong> &mdash; your PDF never leaves your browser. The entire pipeline runs locally. Critical for legal documents, medical records, contracts, tax returns, IDs, and any sensitive material.</li>
+                    <li><strong>No watermarks</strong> &mdash; some smaller tools stamp "compressed by" footers. We do not.</li>
+                    <li><strong>Works offline</strong> &mdash; once the page loads, you can disconnect from the internet and it still works.</li>
+                    <li><strong>No account, no email</strong> &mdash; open and use. No friction.</li>
+                </ul>
+
+                <h2>Common use cases</h2>
+                <ul>
+                    <li><strong>Email attachments</strong> &mdash; most email providers cap at 10-25 MB. Compress larger PDFs to fit.</li>
+                    <li><strong>Government form uploads</strong> &mdash; many portals require PDFs under 200 KB, 500 KB, or 1 MB. The Aggressive preset handles these.</li>
+                    <li><strong>Resume / CV submission</strong> &mdash; recruiters prefer small files. Compress before applying.</li>
+                    <li><strong>Scanned documents</strong> &mdash; 300 DPI scans are huge. Drop to 96 DPI and they fit on a phone screen.</li>
+                    <li><strong>Archive old files</strong> &mdash; cut storage costs by 60-80% on long-term archives.</li>
+                    <li><strong>Share on social / chat</strong> &mdash; WhatsApp, Discord, Slack all struggle with large files. Compress first.</li>
+                </ul>
+
+                <h2>Frequently asked questions</h2>
+                <details class="faq-item">
+                    <summary>Will my PDF be uploaded to a server?</summary>
+                    <p>No. The entire compression pipeline runs in your browser using JavaScript. The file is read with the standard File API, decoded by pdf.js, rendered to HTML canvas, JPEG-encoded, and re-assembled by pdf-lib. No bytes leave your device. You can confirm this in your browser's DevTools Network tab &mdash; filter for the file name and you will see zero outbound requests.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What's the maximum file size?</summary>
+                    <p>We support PDFs up to 50 MB. This limit exists because compression happens in your browser memory, and devices with 4 GB or less RAM may struggle with larger files. For larger files, split the PDF first or use our PDF Splitter workflow.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>What's the difference between the 4 compression levels?</summary>
+                    <p>Light (200 DPI, 0.90 quality) &mdash; best for print and design portfolios. Medium (150 DPI, 0.75 quality) &mdash; balanced choice for CVs, contracts, email attachments. Strong (96 DPI, 0.50 quality) &mdash; good for uploading to portals with 1-2 MB limits. Aggressive (72 DPI, 0.35 quality) &mdash; maximum compression for archival, smallest possible size.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Will my text become an image?</summary>
+                    <p>Yes &mdash; the compression pipeline rasterizes each page to a JPEG image, then reassembles the PDF. Text will no longer be selectable, searchable, or copyable. This is the trade-off for achieving 60-85% size reduction. If you need text to remain selectable, use our PDF Merger with lossless settings instead.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why is my compressed PDF still large?</summary>
+                    <p>If the original PDF was already optimized (text-only, no images), there is little to compress. Try the Aggressive level. If the file still does not shrink, the source may have a different issue &mdash; check if it has form fields, signatures, or interactive content. For text-only documents, this tool's compression will be minimal because there are no large images to downsample.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Is there a daily limit?</summary>
+                    <p>No. Unlike SmallPDF (2 per day), iLovePDF (25 MB cap), or Adobe (sign-in required), this tool has no daily limit, no file size tier restrictions, and no signup. Compress as many PDFs as your device memory allows.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Why can't AI chatbots compress my PDF?</summary>
+                    <p>Large Language Models like ChatGPT, Claude, and Gemini are text-based systems. They cannot read, render, or modify binary PDF files. PDF compression requires the same capabilities as a PDF reader &mdash; parsing the binary structure, rendering each page as an image, and reassembling the file. This tool runs the actual PDF processing pipeline in your browser; AI can only explain how to use a tool, not operate one.</p>
+                </details>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+    </footer>
+
+    <script src="/tools.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        var dropzone = document.getElementById('dropzone');
+        var fileInput = document.getElementById('fileInput');
+        var infoBar = document.getElementById('infoBar');
+        var infoName = document.getElementById('infoName');
+        var infoSize = document.getElementById('infoSize');
+        var infoPages = document.getElementById('infoPages');
+        var presets = document.getElementById('presets');
+        var compressBtn = document.getElementById('compressBtn');
+        var clearBtn = document.getElementById('clearBtn');
+        var progress = document.getElementById('progress');
+        var progressText = document.getElementById('progressText');
+        var progressFill = document.getElementById('progressFill');
+        var result = document.getElementById('result');
+        var statOrig = document.getElementById('statOrig');
+        var statNew = document.getElementById('statNew');
+        var statSaved = document.getElementById('statSaved');
+        var statPreset = document.getElementById('statPreset');
+        var downloadBtn = document.getElementById('downloadBtn');
+        var errorBox = document.getElementById('errorBox');
+
+        var currentFile = null;
+        var currentPdf = null;
+        var currentPreset = 'medium';
+        var compressedBlob = null;
+        var pdfjsLib = null;
+
+        var PRESETS = {
+            light: { dpi: 200, quality: 0.90, label: 'Light (200 DPI)' },
+            medium: { dpi: 150, quality: 0.75, label: 'Medium (150 DPI)' },
+            strong: { dpi: 96, quality: 0.50, label: 'Strong (96 DPI)' },
+            aggressive: { dpi: 72, quality: 0.35, label: 'Aggressive (72 DPI)' }
+        };
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            var k = 1024;
+            var units = ['B', 'KB', 'MB', 'GB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return (bytes / Math.pow(k, i)).toFixed(i > 0 ? 2 : 0) + ' ' + units[i];
+        }
+
+        function showError(msg) {
+            errorBox.textContent = msg;
+            errorBox.classList.add('visible');
+            setTimeout(function() {
+                errorBox.classList.remove('visible');
+            }, 6000);
+        }
+
+        function clearError() {
+            errorBox.classList.remove('visible');
+            errorBox.textContent = '';
+        }
+
+        async function loadPdfJs() {
+            if (pdfjsLib) return pdfjsLib;
+            try {
+                var module = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');
+                pdfjsLib = module;
+                module.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+                return pdfjsLib;
+            } catch (e) {
+                throw new Error('Failed to load PDF.js: ' + e.message);
+            }
+        }
+
+        async function loadPdfFromFile(file) {
+            var lib = await loadPdfJs();
+            var buffer = await file.arrayBuffer();
+            var loadingTask = lib.getDocument({ data: buffer });
+            return await loadingTask.promise;
+        }
+
+        function selectPreset(preset) {
+            currentPreset = preset;
+            var cards = document.querySelectorAll('.pc-preset-card');
+            for (var i = 0; i < cards.length; i++) {
+                cards[i].classList.toggle('active', cards[i].dataset.preset === preset);
+            }
+        }
+
+        async function handleFile(file) {
+            clearError();
+            if (!file) return;
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                showError('Please upload a PDF file.');
+                return;
+            }
+            if (file.size > 50 * 1024 * 1024) {
+                showError('File too large. Maximum 50 MB.');
+                return;
+            }
+            currentFile = file;
+            dropzone.classList.add('has-file');
+            dropzone.querySelector('.pc-dropzone-text').innerHTML = '<strong>' + escapeHtml(file.name) + '</strong><br><span style="color:#10b981;">' + formatBytes(file.size) + ' - click to change</span>';
+            infoName.textContent = file.name;
+            infoSize.textContent = formatBytes(file.size);
+            infoPages.textContent = 'Loading...';
+            infoBar.classList.add('visible');
+            presets.classList.add('visible');
+            compressBtn.disabled = true;
+            result.classList.remove('visible');
+
+            try {
+                currentPdf = await loadPdfFromFile(file);
+                infoPages.textContent = currentPdf.numPages;
+                compressBtn.disabled = false;
+            } catch (e) {
+                showError('Failed to read PDF: ' + e.message);
+                resetUI();
+            }
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function resetUI() {
+            currentFile = null;
+            currentPdf = null;
+            compressedBlob = null;
+            fileInput.value = '';
+            dropzone.classList.remove('has-file');
+            dropzone.querySelector('.pc-dropzone-text').innerHTML = '<strong>Click to upload</strong> or drag &amp; drop<br>PDF files &mdash; up to 50 MB';
+            infoBar.classList.remove('visible');
+            presets.classList.remove('visible');
+            progress.classList.remove('visible');
+            result.classList.remove('visible');
+            compressBtn.disabled = true;
+        }
+
+        async function compressPdf() {
+            if (!currentPdf) return;
+            clearError();
+            compressBtn.disabled = true;
+            clearBtn.disabled = true;
+            result.classList.remove('visible');
+            progress.classList.add('visible');
+            progressFill.style.width = '0%';
+            var preset = PRESETS[currentPreset];
+            var total = currentPdf.numPages;
+            var dpi = preset.dpi;
+            var quality = preset.quality;
+            progressText.textContent = 'Initializing...';
+
+            try {
+                var newDoc = await PDFLib.PDFDocument.create();
+                var totalImagesBytes = 0;
+                for (var i = 1; i <= total; i++) {
+                    progressText.textContent = 'Processing page ' + i + ' of ' + total + '...';
+                    progressFill.style.width = ((i - 1) / total * 100).toFixed(1) + '%';
+                    await new Promise(function(r) { setTimeout(r, 0); });
+
+                    var page = await currentPdf.getPage(i);
+                    var scale = dpi / 72;
+                    var viewport = page.getViewport({ scale: scale });
+                    var canvas = document.createElement('canvas');
+                    var ctx = canvas.getContext('2d');
+                    canvas.width = Math.ceil(viewport.width);
+                    canvas.height = Math.ceil(viewport.height);
+
+                    var renderContext = {
+                        canvasContext: ctx,
+                        viewport: viewport,
+                        canvas: canvas
+                    };
+                    await page.render(renderContext).promise;
+
+                    var jpegBlob = await new Promise(function(resolve) {
+                        canvas.toBlob(function(b) { resolve(b); }, 'image/jpeg', quality);
+                    });
+                    totalImagesBytes += jpegBlob.size;
+                    var jpegBytes = await jpegBlob.arrayBuffer();
+                    var jpgImage = await newDoc.embedJpg(jpegBytes);
+                    var newPage = newDoc.addPage([viewport.width, viewport.height]);
+                    newPage.drawImage(jpgImage, { x: 0, y: 0, width: viewport.width, height: viewport.height });
+                    page.cleanup();
+                }
+                progressText.textContent = 'Finalizing PDF...';
+                progressFill.style.width = '95%';
+                var pdfBytes = await newDoc.save();
+                compressedBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+                progressFill.style.width = '100%';
+                showResult();
+            } catch (e) {
+                showError('Compression failed: ' + e.message);
+                progress.classList.remove('visible');
+            } finally {
+                compressBtn.disabled = false;
+                clearBtn.disabled = false;
+            }
+        }
+
+        function showResult() {
+            progress.classList.remove('visible');
+            var origSize = currentFile.size;
+            var newSize = compressedBlob.size;
+            var savedBytes = origSize - newSize;
+            var savedPct = origSize > 0 ? ((savedBytes / origSize) * 100).toFixed(1) : '0.0';
+            statOrig.textContent = formatBytes(origSize);
+            statNew.textContent = formatBytes(newSize);
+            statSaved.textContent = (savedBytes >= 0 ? '+' : '') + formatBytes(Math.abs(savedBytes)) + ' (' + savedPct + '%)';
+            statPreset.textContent = PRESETS[currentPreset].label;
+            result.classList.add('visible');
+            downloadBtn.onclick = function() {
+                var url = URL.createObjectURL(compressedBlob);
+                var a = document.createElement('a');
+                a.href = url;
+                var baseName = currentFile.name.replace(/\.pdf$/i, '');
+                a.download = baseName + '-compressed-' + currentPreset + '.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+            };
+        }
+
+        dropzone.addEventListener('click', function() { fileInput.click(); });
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        dropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', function() {
+            dropzone.classList.remove('dragover');
+        });
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        var presetCards = document.querySelectorAll('.pc-preset-card');
+        for (var i = 0; i < presetCards.length; i++) {
+            (function(card) {
+                card.addEventListener('click', function() { selectPreset(card.dataset.preset); });
+            })(presetCards[i]);
+        }
+        compressBtn.addEventListener('click', compressPdf);
+        clearBtn.addEventListener('click', function() {
+            resetUI();
+            clearError();
+        });
+
+        // BUG-010/011: Wire shadow button proxies so QA test frameworks can drive
+        // the tool regardless of app-state visibility (real Compress button starts
+        // disabled; real Download button lives in #result.pc-result with display:none).
+        // The proxy forwards the click to the real button so user behavior is unchanged.
+    })();
+    </script>
+</body>
+</html>

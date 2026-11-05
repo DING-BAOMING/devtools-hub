@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta property="og:image" content="/og-image.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Search & ISBN Lookup - Free Open Library Search | DevTools Hub</title>
+<meta name="description" content="Free book search and ISBN lookup. Search 30+ million books by title, author, or ISBN-10/ISBN-13. Get covers, publishers, publication year, page count, subjects, and links to Open Library, Google Books, Amazon, and your local library (WorldCat). AI hallucinates book details - we use the live Open Library catalog. No signup, no ads, 100% private.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/book-search/">
+<meta property="og:title" content="Book Search & ISBN Lookup - Free Open Library Search">
+<meta property="og:description" content="Free book search and ISBN lookup. Search 30+ million books by title, author, or ISBN. Real book data, covers, publisher, year, and links to buy/borrow. AI cannot accurately list book details - we pull from the live Open Library catalog.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/book-search/">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-06-09","dateModified":"2026-06-09","author":{"@type":"Person","name":"BAOMING"},"name":"Free Book Search & ISBN Lookup","description":"Search 30+ million books by title, author, or ISBN-10/ISBN-13. Real book metadata with covers, publisher, year, page count, subjects, and links to Open Library, Google Books, Amazon, and local library lookup via WorldCat.","url":"https://tools.scoreroute.com/tools/book-search/","applicationCategory":"UtilityApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.bs-wrap { max-width: 1100px; margin: 0 auto; }
+.bs-wrap * { color: #e8eaed; }
+.bs-hero { text-align: center; padding: 32px 0 24px; }
+.bs-hero h1 { font-size: 2.2rem; margin: 0 0 12px; letter-spacing: -0.02em; color: #fff; }
+.bs-hero p { color: #b3b8c0; font-size: 1.05rem; max-width: 720px; margin: 0 auto; line-height: 1.55; }
+
+.bs-search { background: #1a1a2e; border: 1px solid #2a2a40; border-radius: 14px; padding: 22px; margin-bottom: 22px; }
+.bs-mode-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.bs-mode-btn { padding: 9px 18px; background: #252540; border: 1px solid #3a3a5c; color: #a8a8c0; border-radius: 22px; font-size: 0.92rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.bs-mode-btn:hover { border-color: #667eea; color: #fff; }
+.bs-mode-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border-color: #667eea; }
+.bs-mode-btn .icon { margin-right: 6px; }
+.bs-input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.bs-input { flex: 1; min-width: 240px; padding: 14px 18px; background: #0f0f23; border: 2px solid #333; color: #fff; border-radius: 10px; font-size: 1.05rem; font-family: inherit; box-sizing: border-box; transition: border-color 0.2s; }
+.bs-input:focus { outline: 2px solid transparent; border-color: #667eea; }
+.bs-input::placeholder { color: #555; }
+.bs-btn { padding: 14px 28px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; color: #fff; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 0.15s, box-shadow 0.2s; }
+.bs-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102,126,234,0.35); }
+.bs-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.bs-help { color: #888; font-size: 0.85rem; margin-top: 10px; }
+.bs-help code { background: #252540; padding: 1px 6px; border-radius: 4px; color: #b3c4ff; }
+
+.bs-status { display: none; padding: 14px 18px; background: #1a1a2e; border: 1px solid #2a2a40; border-radius: 10px; margin-bottom: 18px; color: #667eea; font-size: 0.95rem; }
+.bs-status.visible { display: block; }
+.bs-status .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #2a2a40; border-top-color: #667eea; border-radius: 50%; animation: bs-spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+@keyframes bs-spin { to { transform: rotate(360deg); } }
+
+.bs-error { display: none; background: #2d1a1a; border: 1px solid #ff4444; border-radius: 10px; padding: 14px 18px; color: #ff8888; margin-bottom: 18px; }
+.bs-error.visible { display: block; }
+.bs-error strong { color: #ff6666; }
+
+.bs-results-info { color: #888; font-size: 0.9rem; margin: 18px 0 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.bs-results-info strong { color: #fff; }
+
+.bs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.bs-card { background: #1a1a2e; border: 1px solid #2a2a40; border-radius: 12px; padding: 16px; display: flex; gap: 14px; cursor: pointer; transition: all 0.2s; }
+.bs-card:hover { border-color: #667eea; background: #1f1f3a; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.bs-cover { flex-shrink: 0; width: 80px; height: 120px; background: #0f0f23; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.bs-cover img { width: 100%; height: 100%; object-fit: cover; }
+.bs-cover-fallback { color: #555; font-size: 0.7rem; text-align: center; padding: 4px; }
+.bs-info { flex: 1; min-width: 0; }
+.bs-title { color: #fff; font-size: 1rem; font-weight: 600; margin: 0 0 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.bs-author { color: #b3c4ff; font-size: 0.88rem; margin: 0 0 6px; }
+.bs-meta { color: #888; font-size: 0.8rem; margin: 4px 0; }
+.bs-isbn { color: #667eea; font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; }
+.bs-subjects { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+.bs-subject { background: #252540; color: #a8a8c0; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; border: 1px solid #2a2a40; }
+
+/* Modal */
+.bs-modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 100; align-items: flex-start; justify-content: center; padding: 30px 16px; overflow-y: auto; }
+.bs-modal-bg.visible { display: flex; }
+.bs-modal { background: #1a1a2e; border: 1px solid #2a2a40; border-radius: 14px; max-width: 720px; width: 100%; padding: 24px; margin: 20px auto; position: relative; }
+.bs-modal-close { position: absolute; top: 12px; right: 16px; background: none; border: none; color: #888; font-size: 1.6rem; cursor: pointer; line-height: 1; }
+.bs-modal-close:hover { color: #fff; }
+.bs-modal-body { display: flex; gap: 22px; flex-wrap: wrap; }
+.bs-modal-cover { width: 160px; height: 240px; background: #0f0f23; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+.bs-modal-cover img { width: 100%; height: 100%; object-fit: cover; }
+.bs-modal-cover-fallback { color: #555; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+.bs-modal-info { flex: 1; min-width: 240px; }
+.bs-modal-title { color: #fff; font-size: 1.5rem; font-weight: 700; margin: 0 0 8px; line-height: 1.25; }
+.bs-modal-author { color: #b3c4ff; font-size: 1.05rem; margin: 0 0 16px; }
+.bs-modal-row { display: flex; gap: 6px; padding: 6px 0; border-bottom: 1px solid #2a2a40; font-size: 0.9rem; }
+.bs-modal-row:last-child { border-bottom: none; }
+.bs-modal-label { color: #888; min-width: 110px; }
+.bs-modal-value { color: #e8eaed; flex: 1; word-break: break-word; }
+.bs-modal-desc { color: #c8c8e0; font-size: 0.95rem; line-height: 1.6; margin: 18px 0; padding: 14px; background: #0f0f23; border-radius: 8px; border-left: 3px solid #667eea; }
+.bs-modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.bs-action { padding: 10px 16px; background: #252540; border: 1px solid #3a3a5c; color: #fff; border-radius: 8px; text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.bs-action:hover { background: #2f2f55; border-color: #667eea; }
+.bs-action-primary { background: linear-gradient(135deg, #667eea, #764ba2); border-color: #667eea; }
+.bs-action-primary:hover { box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+.bs-action-icon { font-size: 1rem; }
+
+.bs-empty { text-align: center; padding: 60px 20px; color: #888; }
+.bs-empty .icon { font-size: 3rem; margin-bottom: 12px; }
+.bs-empty strong { color: #fff; display: block; font-size: 1.1rem; margin-bottom: 6px; }
+
+.bs-pagination { display: flex; justify-content: center; gap: 6px; margin: 24px 0; flex-wrap: wrap; }
+.bs-page-btn { padding: 8px 14px; background: #252540; border: 1px solid #3a3a5c; color: #a8a8c0; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+.bs-page-btn:hover { border-color: #667eea; color: #fff; }
+.bs-page-btn.active { background: #667eea; color: #fff; border-color: #667eea; }
+.bs-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.bs-quick { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.bs-quick-btn { padding: 7px 14px; background: #252540; border: 1px solid #3a3a5c; color: #a8a8c0; border-radius: 18px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+.bs-quick-btn:hover { border-color: #667eea; color: #fff; background: #2f2f55; }
+
+.bs-feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 24px 0; }
+.bs-feature-card { background: #1a1a2e; border-radius: 12px; padding: 18px; border-left: 4px solid #667eea; }
+.bs-feature-card h3 { color: #fff; margin: 0 0 6px; font-size: 1.05rem; }
+.bs-feature-card p { color: #b3b8c0; font-size: 0.9rem; margin: 0; line-height: 1.5; }
+.bs-feature-icon { font-size: 1.5rem; margin-bottom: 8px; display: block; }
+
+section h2 { color: #fff; margin-top: 2.5rem; font-size: 1.4rem; }
+section p, section li { color: #b3b8c0; line-height: 1.6; }
+ol li, ul li { margin: 0.5rem 0; }
+
+.breadcrumb { color: #888; font-size: 0.9rem; margin: 16px 0 0; }
+.breadcrumb a { color: #667eea; text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+
+.feedback-link { float: right; color: #888; font-size: 0.85rem; }
+.feedback-link:hover { color: #ff8888; }
+
+@media (max-width: 640px) {
+  .bs-hero h1 { font-size: 1.6rem; }
+  .bs-card { flex-direction: column; align-items: stretch; }
+  .bs-cover { width: 100%; height: 180px; }
+  .bs-modal-body { flex-direction: column; align-items: stretch; }
+  .bs-modal-cover { width: 100%; height: 280px; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>Free Book Search & ISBN Lookup</h1>
+<p class="subtitle">Search 30+ million books by title, author, or ISBN. AI cannot accurately recall book details - we pull from the live Open Library catalog.</p>
+<nav class="breadcrumb">
+<a href="/">Home</a> &gt; <a href="/">Tools</a> &gt; <span>Book Search</span>
+<a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+</nav>
+</div>
+</header>
+
+<main class="container">
+<div class="bs-wrap">
+
+<div class="bs-hero">
+<h2>Find Any Book in Seconds</h2>
+<p>Enter a title, author, or 10/13-digit ISBN. Get covers, publisher, year, page count, subjects, and instant links to Open Library, Google Books, Amazon, and your local library.</p>
+</div>
+
+<div class="bs-search">
+<div class="bs-mode-row" role="group" aria-label="Search mode">
+<button class="bs-mode-btn active" type="button" aria-pressed="true" data-mode="title"><span class="icon">📖</span>Title</button>
+<button class="bs-mode-btn" type="button" aria-pressed="false" data-mode="author"><span class="icon">✍️</span>Author</button>
+<button class="bs-mode-btn" type="button" aria-pressed="false" data-mode="isbn"><span class="icon">🔢</span>ISBN</button>
+<button class="bs-mode-btn" type="button" aria-pressed="false" data-mode="all"><span class="icon">🔍</span>All</button>
+</div>
+<div class="bs-input-row">
+<input type="text" id="bsQuery" class="bs-input" aria-label="Search query" placeholder="Search by title... e.g. 'The Hobbit'" autocomplete="off" />
+<button id="bsSearchBtn" class="bs-btn">Search</button>
+</div>
+<div class="bs-help">
+<strong>ISBN format:</strong> 10 digits (e.g. <code>0140449264</code>) or 13 digits (e.g. <code>9780140449266</code>). ISBN-10 starting with <code>978</code> is auto-converted to ISBN-13.
+</div>
+<div class="bs-quick">
+<strong style="color:#888;font-size:0.85rem;line-height:2.2;margin-right:6px;">Try:</strong>
+<button class="bs-quick-btn" data-q="harry potter" data-mode="title">Harry Potter</button>
+<button class="bs-quick-btn" data-q="tolkien" data-mode="author">J.R.R. Tolkien</button>
+<button class="bs-quick-btn" data-q="9780062316097" data-mode="isbn">Sapiens ISBN</button>
+<button class="bs-quick-btn" data-q="the three body problem" data-mode="title">三体</button>
+<button class="bs-quick-btn" data-q="atomic habits" data-mode="title">Atomic Habits</button>
+<button class="bs-quick-btn" data-q="yuval harari" data-mode="author">Yuval Harari</button>
+</div>
+</div>
+
+<div id="bsStatus" class="bs-status"><span class="spinner"></span><span id="bsStatusText">Searching...</span></div>
+<div id="bsError" class="bs-error"></div>
+
+<div id="bsResultsInfo" class="bs-results-info" style="display:none;">
+<span>Showing <strong id="bsResultsCount">0</strong> of <strong id="bsResultsTotal">0</strong> results</span>
+<span id="bsResultsTime"></span>
+</div>
+
+<div id="bsResults" class="bs-grid"></div>
+<div id="bsPagination" class="bs-pagination"></div>
+
+<div id="bsEmpty" class="bs-empty" style="display:none;">
+<div class="icon">📚</div>
+<strong>No books found</strong>
+<p>Try a different search term or check your spelling.</p>
+</div>
+
+<div class="bs-modal-bg" id="bsModal">
+<div class="bs-modal">
+<button class="bs-modal-close" id="bsModalClose">&times;</button>
+<div class="bs-modal-body">
+<div class="bs-modal-cover" id="bsModalCover"></div>
+<div class="bs-modal-info">
+<h2 class="bs-modal-title" id="bsModalTitle" aria-label="Book details">Book details</h2>
+<p class="bs-modal-author" id="bsModalAuthor"></p>
+<div id="bsModalRows"></div>
+<div class="bs-modal-desc" id="bsModalDesc" style="display:none;"></div>
+<div class="bs-modal-actions" id="bsModalActions"></div>
+</div>
+</div>
+</div>
+</div>
+
+<section>
+<h2>Why Use This Book Search</h2>
+<div class="bs-feature-grid">
+<div class="bs-feature-card">
+<span class="bs-feature-icon">📚</span>
+<h3>30+ Million Books</h3>
+<p>Search the entire Open Library catalog, the world's largest open book database. Includes out-of-print, rare, and international titles.</p>
+</div>
+<div class="bs-feature-card">
+<span class="bs-feature-icon">🔢</span>
+<h3>ISBN-10 & ISBN-13</h3>
+<p>Scan or type any 10 or 13 digit ISBN barcode from the back of any book. Get the exact edition, publisher, and binding details.</p>
+</div>
+<div class="bs-feature-card">
+<span class="bs-feature-icon">🌐</span>
+<h3>Open Library, WorldCat & More</h3>
+<p>One click takes you to Open Library (free borrow), Google Books preview, Amazon, and your local library via WorldCat.</p>
+</div>
+<div class="bs-feature-card">
+<span class="bs-feature-icon">🔒</span>
+<h3>100% Private</h3>
+<p>All searches go directly from your browser to the Open Library API. We never log, store, or track your queries.</p>
+</div>
+</div>
+</section>
+
+<section>
+<h2>How to Search Books</h2>
+<ol>
+<li><strong>Pick a search mode</strong> using the buttons above: <em>Title</em>, <em>Author</em>, <em>ISBN</em>, or <em>All</em> (combined)</li>
+<li><strong>Type your query</strong> in the search box. For ISBN mode, type the 10 or 13 digit ISBN</li>
+<li><strong>Click Search</strong> or press Enter. Results appear in under 2 seconds</li>
+<li><strong>Click any result card</strong> to see full details, description, and links to buy or borrow from your library</li>
+</ol>
+</section>
+
+<section>
+<h2>Where to Find a Book After You Find It</h2>
+<p>Every result links to multiple services so you can choose:</p>
+<ul>
+<li><strong>Open Library</strong> - Free digital borrow (Internet Archive lending library, where available)</li>
+<li><strong>Google Books</strong> - Preview pages, find nearby libraries, see reviews</li>
+<li><strong>WorldCat</strong> - Search your local library catalog worldwide (the OCLC union catalog)</li>
+<li><strong>Amazon</strong> - Buy new or used (where available)</li>
+<li><strong>Open Library Page</strong> - Full bibliographic record, all editions, author bio</li>
+</ul>
+</section>
+
+<section>
+<h2>What AI Cannot Do Here</h2>
+<p>Large language models like ChatGPT, Claude, and Gemini regularly <em>hallucinate</em> book details: wrong ISBNs, wrong publishers, wrong page counts, and even books that do not exist. The ISBN database is the only authoritative source for what was actually printed, when, and by whom. This tool queries the live Open Library catalog in real time - no guessing, no fabrication, no login.</p>
+</section>
+
+</div>
+</main>
+
+<footer style="text-align:center;padding:30px 20px;color:#888;font-size:0.9rem;border-top:1px solid #1a1a3e;margin-top:40px;">
+<p style="margin-bottom:8px;">&copy; 2026 <a href="/" style="color:#667eea;text-decoration:none;">DevTools Hub</a> &middot; <a href="/about/" style="color:#667eea;text-decoration:none;">About</a> &middot; <a href="/privacy/" style="color:#667eea;text-decoration:none;">Privacy</a> &middot; <a href="/tools/feedback/" style="color:#667eea;text-decoration:none;">Feedback</a></p>
+<p style="font-size:0.8rem;color:#666;">Data from the <a href="https://openlibrary.org/developers/api" style="color:#8b9ef5;">Open Library</a> project (Internet Archive). No API key required.</p>
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  var modeBtns = document.querySelectorAll('.bs-mode-btn');
+  var queryInput = document.getElementById('bsQuery');
+  var searchBtn = document.getElementById('bsSearchBtn');
+  var statusEl = document.getElementById('bsStatus');
+  var statusText = document.getElementById('bsStatusText');
+  var errorEl = document.getElementById('bsError');
+  var resultsInfo = document.getElementById('bsResultsInfo');
+  var resultsCount = document.getElementById('bsResultsCount');
+  var resultsTotal = document.getElementById('bsResultsTotal');
+  var resultsTime = document.getElementById('bsResultsTime');
+  var resultsEl = document.getElementById('bsResults');
+  var paginationEl = document.getElementById('bsPagination');
+  var emptyEl = document.getElementById('bsEmpty');
+  var quickBtns = document.querySelectorAll('.bs-quick-btn');
+
+  var modal = document.getElementById('bsModal');
+  var modalClose = document.getElementById('bsModalClose');
+  var modalCover = document.getElementById('bsModalCover');
+  var modalTitle = document.getElementById('bsModalTitle');
+  var modalAuthor = document.getElementById('bsModalAuthor');
+  var modalRows = document.getElementById('bsModalRows');
+  var modalDesc = document.getElementById('bsModalDesc');
+  var modalActions = document.getElementById('bsModalActions');
+
+  var currentMode = 'title';
+  var currentQuery = '';
+  var currentPage = 1;
+  var currentResults = [];
+  var currentTotal = 0;
+  var PAGE_SIZE = 20;
+  var lastRequest = 0;
+
+  var placeholders = {
+    title: 'Search by title... e.g. \'The Hobbit\'',
+    author: 'Search by author... e.g. \'Yuval Harari\'',
+    isbn: 'Enter ISBN-10 or ISBN-13... e.g. \'9780062316097\'',
+    all: 'Search by title, author, or ISBN...'
+  };
+
+  function setMode(mode) {
+    currentMode = mode;
+    modeBtns.forEach(function(b) {
+      var isActive = b.getAttribute('data-mode') === mode;
+      b.classList.toggle('active', isActive);
+      b.setAttribute('aria-pressed', String(isActive));
+    });
+    queryInput.placeholder = placeholders[mode] || placeholders.all;
+    if (mode === 'isbn') {
+      queryInput.setAttribute('inputmode', 'numeric');
+      queryInput.setAttribute('pattern', '[0-9Xx]*');
+    } else {
+      queryInput.removeAttribute('inputmode');
+      queryInput.removeAttribute('pattern');
+    }
+  }
+
+  modeBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      setMode(btn.getAttribute('data-mode'));
+      queryInput.focus();
+    });
+  });
+
+  quickBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var q = btn.getAttribute('data-q');
+      var m = btn.getAttribute('data-mode') || 'all';
+      setMode(m);
+      queryInput.value = q;
+      doSearch();
+    });
+  });
+
+  function normalizeISBN(raw) {
+    var s = String(raw || '').replace(/[\s-]/g, '').toUpperCase();
+    if (s.length === 10) {
+      var sum = 0;
+      for (var i = 0; i < 9; i++) {
+        var c = s.charAt(i);
+        if (c < '0' || c > '9') return null;
+        sum += (i + 1) * parseInt(c, 10);
+      }
+      var check = s.charAt(9);
+      var checkNum = (check === 'X') ? 10 : parseInt(check, 10);
+      if (isNaN(checkNum)) return null;
+      sum += 10 * checkNum;
+      if (sum % 11 !== 0) return null;
+      return '978' + s.substring(0, 9);
+    }
+    if (s.length === 13) {
+      if (!/^[0-9]{13}$/.test(s)) return null;
+      var sum2 = 0;
+      for (var j = 0; j < 13; j++) {
+        var d = parseInt(s.charAt(j), 10);
+        sum2 += (j % 2 === 0) ? d : d * 3;
+      }
+      if (sum2 % 10 !== 0) return null;
+      return s;
+    }
+    return null;
+  }
+
+  function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function showError(msg) {
+    errorEl.innerHTML = '<strong>Error:</strong> ' + escapeHtml(msg);
+    errorEl.classList.add('visible');
+  }
+
+  function clearError() {
+    errorEl.classList.remove('visible');
+    errorEl.textContent = '';
+  }
+
+  function showStatus(msg) {
+    statusText.textContent = msg;
+    statusEl.classList.add('visible');
+  }
+
+  function hideStatus() {
+    statusEl.classList.remove('visible');
+  }
+
+  function coverUrl(doc) {
+    if (doc.cover_i) {
+      return 'https://covers.openlibrary.org/b/id/' + doc.cover_i + '-M.jpg';
+    }
+    var isbns = doc.isbn || [];
+    for (var i = 0; i < isbns.length; i++) {
+      if (isbns[i].length === 13 || isbns[i].length === 10) {
+        return 'https://covers.openlibrary.org/b/isbn/' + isbns[i] + '-M.jpg';
+      }
+    }
+    return null;
+  }
+
+  function coverUrlLarge(doc) {
+    if (doc.cover_i) {
+      return 'https://covers.openlibrary.org/b/id/' + doc.cover_i + '-L.jpg';
+    }
+    var isbns = doc.isbn || [];
+    for (var i = 0; i < isbns.length; i++) {
+      if (isbns[i].length === 13 || isbns[i].length === 10) {
+        return 'https://covers.openlibrary.org/b/isbn/' + isbns[i] + '-L.jpg';
+      }
+    }
+    return null;
+  }
+
+  function getISBN13(doc) {
+    var isbns = doc.isbn || [];
+    for (var i = 0; i < isbns.length; i++) {
+      if (isbns[i].length === 13) return isbns[i];
+    }
+    for (var j = 0; j < isbns.length; j++) {
+      if (isbns[j].length === 10) return '978' + isbns[j].substring(0, 9);
+    }
+    return null;
+  }
+
+  function renderCard(doc) {
+    var title = doc.title || 'Untitled';
+    var authors = (doc.author_name || []).slice(0, 3).join(', ');
+    var year = doc.first_publish_year || '—';
+    var isbn = getISBN13(doc) || (doc.isbn && doc.isbn[0]) || '—';
+    var subjects = (doc.subject || []).slice(0, 3);
+    var pages = doc.number_of_pages_median || doc.pagination || '';
+    var publishers = (doc.publisher || []).slice(0, 2).join(', ');
+    var cover = coverUrl(doc);
+    var coverHtml = cover
+      ? '<img src="' + escapeHtml(cover) + '" alt="' + escapeHtml(title) + '" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=bs-cover-fallback>No Cover</div>\'" />'
+      : '<div class="bs-cover-fallback">No<br>Cover</div>';
+    var subjectsHtml = subjects.map(function(s) {
+      return '<span class="bs-subject">' + escapeHtml(s) + '</span>';
+    }).join('');
+
+    return '<div class="bs-card" data-key="' + escapeHtml(doc.key || '') + '">' +
+      '<div class="bs-cover">' + coverHtml + '</div>' +
+      '<div class="bs-info">' +
+        '<h3 class="bs-title">' + escapeHtml(title) + '</h3>' +
+        '<p class="bs-author">' + escapeHtml(authors || 'Unknown author') + '</p>' +
+        '<div class="bs-meta">📅 ' + escapeHtml(year) + (publishers ? ' &middot; ' + escapeHtml(publishers) : '') + '</div>' +
+        (pages ? '<div class="bs-meta">📄 ' + escapeHtml(pages) + (typeof pages === 'number' ? ' pages' : '') + '</div>' : '') +
+        '<div class="bs-isbn">ISBN: ' + escapeHtml(isbn) + '</div>' +
+        (subjectsHtml ? '<div class="bs-subjects">' + subjectsHtml + '</div>' : '') +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderResults(docs) {
+    if (!docs || docs.length === 0) {
+      resultsEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+    resultsEl.innerHTML = docs.map(renderCard).join('');
+    Array.prototype.forEach.call(resultsEl.querySelectorAll('.bs-card'), function(card) {
+      card.addEventListener('click', function() {
+        var key = card.getAttribute('data-key');
+        var doc = currentResults.find(function(d) { return (d.key || '') === key; });
+        if (doc) openModal(doc);
+      });
+    });
+  }
+
+  function renderPagination() {
+    var totalPages = Math.ceil(currentTotal / PAGE_SIZE);
+    if (totalPages <= 1) {
+      paginationEl.innerHTML = '';
+      return;
+    }
+    var html = '';
+    var prevDisabled = currentPage <= 1 ? ' disabled' : '';
+    var nextDisabled = currentPage >= totalPages ? ' disabled' : '';
+    html += '<button class="bs-page-btn" data-page="prev"' + prevDisabled + '>&laquo; Prev</button>';
+    var maxBtns = 7;
+    var start = Math.max(1, currentPage - 3);
+    var end = Math.min(totalPages, start + maxBtns - 1);
+    start = Math.max(1, end - maxBtns + 1);
+    if (start > 1) {
+      html += '<button class="bs-page-btn" data-page="1">1</button>';
+      if (start > 2) html += '<span class="bs-page-btn" style="border:none;background:none;">…</span>';
+    }
+    for (var p = start; p <= end; p++) {
+      html += '<button class="bs-page-btn' + (p === currentPage ? ' active' : '') + '" data-page="' + p + '">' + p + '</button>';
+    }
+    if (end < totalPages) {
+      if (end < totalPages - 1) html += '<span class="bs-page-btn" style="border:none;background:none;">…</span>';
+      html += '<button class="bs-page-btn" data-page="' + totalPages + '">' + totalPages + '</button>';
+    }
+    html += '<button class="bs-page-btn" data-page="next"' + nextDisabled + '>Next &raquo;</button>';
+    paginationEl.innerHTML = html;
+    Array.prototype.forEach.call(paginationEl.querySelectorAll('.bs-page-btn[data-page]'), function(btn) {
+      btn.addEventListener('click', function() {
+        var target = btn.getAttribute('data-page');
+        if (target === 'prev') currentPage = Math.max(1, currentPage - 1);
+        else if (target === 'next') currentPage = Math.min(totalPages, currentPage + 1);
+        else currentPage = parseInt(target, 10);
+        renderResults(currentResults.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE));
+        renderPagination();
+        resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  }
+
+  function openModal(doc) {
+    var title = doc.title || 'Untitled';
+    var authors = (doc.author_name || []).join(', ') || 'Unknown author';
+    var year = doc.first_publish_year || '—';
+    var isbn13 = getISBN13(doc);
+    var isbn10 = (doc.isbn || []).find(function(x) { return x.length === 10; }) || '';
+    var cover = coverUrlLarge(doc);
+    var coverHtml = cover
+      ? '<img src="' + escapeHtml(cover) + '" alt="' + escapeHtml(title) + '" onerror="this.parentNode.innerHTML=\'<div class=bs-modal-cover-fallback>No Cover</div>\'" />'
+      : '<div class="bs-modal-cover-fallback">No Cover</div>';
+    modalCover.innerHTML = coverHtml;
+    modalTitle.textContent = title;
+    modalAuthor.textContent = authors;
+
+    var rows = [];
+    if (year && year !== '—') rows.push(['First Published', year]);
+    var publishers = (doc.publisher || []);
+    if (publishers.length) rows.push(['Publisher', publishers.slice(0, 3).join(', ')]);
+    if (doc.number_of_pages_median) rows.push(['Pages', doc.number_of_pages_median]);
+    if (doc.edition_count) rows.push(['Editions', doc.edition_count]);
+    if (doc.language && doc.language.length) rows.push(['Languages', doc.language.slice(0, 8).join(', ').toUpperCase()]);
+    if (isbn13) rows.push(['ISBN-13', isbn13]);
+    if (isbn10) rows.push(['ISBN-10', isbn10]);
+    var olKey = (doc.key || '').replace(/^\//, '');
+    if (olKey) rows.push(['Open Library', olKey]);
+    if (doc.contributor && doc.contributor.length) rows.push(['Contributors', doc.contributor.slice(0, 3).join(', ')]);
+
+    modalRows.innerHTML = rows.map(function(r) {
+      return '<div class="bs-modal-row"><span class="bs-modal-label">' + escapeHtml(r[0]) + ':</span><span class="bs-modal-value">' + escapeHtml(String(r[1])) + '</span></div>';
+    }).join('');
+
+    modalDesc.style.display = 'none';
+    modalActions.innerHTML = '';
+
+    var actions = [];
+    if (isbn13) {
+      actions.push({ url: 'https://openlibrary.org/isbn/' + isbn13, label: 'Open Library', icon: '📖', primary: true });
+      actions.push({ url: 'https://www.worldcat.org/isbn/' + isbn13, label: 'Find in Library', icon: '🏛️' });
+      actions.push({ url: 'https://books.google.com/books?isbn=' + isbn13, label: 'Google Books', icon: '🔍' });
+      actions.push({ url: 'https://www.amazon.com/dp/' + isbn13, label: 'Amazon', icon: '🛒' });
+    } else if (olKey) {
+      actions.push({ url: 'https://openlibrary.org' + (doc.key || ''), label: 'Open Library', icon: '📖', primary: true });
+      if (doc.title) actions.push({ url: 'https://www.google.com/search?q=%22' + encodeURIComponent(doc.title) + '%22+book', label: 'Search Google', icon: '🔍' });
+    }
+
+    modalActions.innerHTML = actions.map(function(a) {
+      return '<a class="bs-action' + (a.primary ? ' bs-action-primary' : '') + '" href="' + escapeHtml(a.url) + '" target="_blank" rel="noopener noreferrer"><span class="bs-action-icon">' + a.icon + '</span>' + escapeHtml(a.label) + ' &rarr;</a>';
+    }).join('');
+
+    if (doc.key) {
+      showStatus('Loading description...');
+      fetch('https://openlibrary.org' + doc.key + '.json', { headers: { 'Accept': 'application/json' } })
+        .then(function(r) { return r.ok ? r.json() : null; })
+        .then(function(data) {
+          hideStatus();
+          if (!data) return;
+          var desc = data.description;
+          if (typeof desc === 'object' && desc && desc.value) desc = desc.value;
+          if (typeof desc === 'string' && desc.length > 50) {
+            var short = desc.length > 800 ? desc.substring(0, 800).replace(/\s+\S*$/, '') + '...' : desc;
+            modalDesc.textContent = short;
+            modalDesc.style.display = 'block';
+          }
+        })
+        .catch(function() { hideStatus(); });
+    }
+
+    modal.classList.add('visible');
+  }
+
+  function closeModal() {
+    modal.classList.remove('visible');
+  }
+
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+  function doSearch() {
+    clearError();
+    var raw = queryInput.value.trim();
+    if (!raw) {
+      showError('Please enter a search term');
+      return;
+    }
+    if (currentMode === 'isbn') {
+      var normalized = normalizeISBN(raw);
+      if (!normalized) {
+        showError('Invalid ISBN. Must be a valid 10-digit (with checksum) or 13-digit ISBN.');
+        return;
+      }
+      raw = normalized;
+    }
+    lastRequest = Date.now();
+    currentPage = 1;
+    currentQuery = raw;
+    runSearch(currentMode, raw, 1);
+  }
+
+  function buildSearchUrl(mode, query, page) {
+    var offset = (page - 1) * PAGE_SIZE;
+    var url = 'https://openlibrary.org/search.json?';
+    if (mode === 'isbn') {
+      url += 'isbn=' + encodeURIComponent(query);
+    } else if (mode === 'author') {
+      url += 'author=' + encodeURIComponent(query);
+    } else if (mode === 'title') {
+      url += 'title=' + encodeURIComponent(query);
+    } else {
+      url += 'q=' + encodeURIComponent(query);
+    }
+    url += '&limit=' + PAGE_SIZE + '&offset=' + offset;
+    url += '&fields=key,title,author_name,first_publish_year,publisher,number_of_pages_median,cover_i,isbn,subject,language,edition_count,contributor,pagination';
+    return url;
+  }
+
+  function runSearch(mode, query, page) {
+    var url = buildSearchUrl(mode, query, page);
+    showStatus('Searching ' + mode + ': ' + query);
+    searchBtn.disabled = true;
+    var t0 = Date.now();
+
+    fetch(url, { headers: { 'Accept': 'application/json' } })
+      .then(function(r) {
+        if (!r.ok) throw new Error('Open Library API error: HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function(data) {
+        var elapsed = ((Date.now() - t0) / 1000).toFixed(2);
+        currentResults = data.docs || [];
+        currentTotal = data.numFound || 0;
+        var from = (page - 1) * PAGE_SIZE + 1;
+        var to = Math.min(page * PAGE_SIZE, currentTotal);
+        resultsCount.textContent = currentResults.length === 0 ? '0' : (from + '–' + to);
+        resultsTotal.textContent = currentTotal.toLocaleString();
+        resultsTime.textContent = elapsed + 's';
+        resultsInfo.style.display = 'flex';
+        renderResults(currentResults);
+        renderPagination();
+        hideStatus();
+        if (currentResults.length === 0) {
+          emptyEl.style.display = 'block';
+        } else {
+          resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      })
+      .catch(function(e) {
+        hideStatus();
+        showError(e.message || 'Search failed. Please check your connection.');
+      })
+      .finally(function() {
+        searchBtn.disabled = false;
+      });
+  }
+
+  searchBtn.addEventListener('click', doSearch);
+  queryInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      doSearch();
+    }
+  });
+
+  setMode('title');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+/* DevTools Hub - homepage + category pages (new design) */
+/* Scoped to .hub-page wrapper. Uses IBM Plex Sans + JetBrains Mono for distinctive typography. */
+
+/* home.css is linked only by pages whose <body> is fully wrapped in .hub-page
+   (functions/index.js homepage + functions/tools/[[catchall]].js category pages),
+   so these unscoped body rules can never leak onto a tool page.
+   BUG-286: without them the page inherited the UA 8px body margin + transparent
+   background + Times New Roman, which also produced a 16px horizontal overflow on
+   375px viewports (measured: scrollWidth 391 vs clientWidth 375). */
+body { margin: 0; background: #0a0d14; color: #e8eaed; font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+.hub-page { font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #e8eaed; background: #0a0d14; min-height: 100vh; }
+.hub-page * { box-sizing: border-box; }
+.hub-page a { color: #7eb3ff; text-decoration: none; transition: color 0.15s; }
+.hub-page a:hover { color: #a3c8ff; }
+
+.hub-page .site-header { padding: 28px 0 20px; border-bottom: 1px solid #1a1f2c; margin-bottom: 0; }
+.hub-page .site-header .container { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.hub-page .site-header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+.hub-page .site-header h1 a { color: inherit; }
+.hub-page .site-header .subtitle { color: #b3b8c0; font-size: 0.9rem; margin: 4px 0 0; }
+/* BUG-286: flex-wrap so 5+ nav links (About/Privacy/Subprocessors/Sitemap/Feedback) do not
+   force a 362px min-content width inside a 359px column on 375px phones -> horizontal scroll. */
+.hub-page .site-header .top-nav { display: flex; flex-wrap: wrap; gap: 18px; font-size: 0.875rem; }
+.hub-page .site-header .top-nav a { color: #b3b8c0; }
+.hub-page .site-header .top-nav a:hover { color: #fff; }
+/* BUG-335: the category pages ship a BreadcrumbList JSON-LD and now the matching visible trail.
+   Two constraints: (1) these pages link home.css, not styles.css, so the trail has to be styled
+   here; (2) the header .container is a flex row, so the trail needs flex-basis:100% to drop to
+   its own line instead of being shoved between the logo and the nav by justify-content:space-between. */
+.hub-page .breadcrumb { flex-basis: 100%; margin-top: 10px; font-size: 0.85rem; color: #8a8f99; }
+.hub-page .breadcrumb a { color: #b3b8c0; text-decoration: underline; }
+.hub-page .breadcrumb a:hover { color: #a3c8ff; }
+.hub-page .breadcrumb a.feedback-link { float: right; text-decoration: none; color: #7eb3ff; }
+.hub-page .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+.hub-page .hero { text-align: center; padding: 60px 0 56px; }
+.hub-page .hero h2 { font-size: 2.5rem; font-weight: 700; margin: 0 0 14px; letter-spacing: -0.02em; line-height: 1.15; }
+.hub-page .hero p { color: #b3b8c0; font-size: 1.05rem; max-width: 580px; margin: 0 auto 32px; }
+.hub-page .hero-search { max-width: 560px; margin: 0 auto; position: relative; }
+.hub-page .hero-search input { width: 100%; padding: 16px 20px 16px 48px; background: #131826; border: 1px solid #1f2638; border-radius: 8px; color: #fff; font-size: 1rem; font-family: inherit; transition: border-color 0.15s, box-shadow 0.15s; }
+.hub-page .hero-search input:focus { outline: none; border-color: #7eb3ff; box-shadow: 0 0 0 3px rgba(126, 179, 255, 0.2); }
+.hub-page .hero-search input:focus-visible { outline: 3px solid #7eb3ff; outline-offset: 2px; }
+.hub-page .hero-search::before { content: "\2315"; position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #8a8f99; font-size: 1.2rem; }
+.hub-page .hero-meta { color: #8a8f99; font-size: 0.85rem; margin-top: 18px; }
+/* The results panel is absolutely positioned under the input with an 8px gap, so the first
+   few pixels of .hero-meta used to peek out through that gap and read as a clipped half-line
+   of text. One rule instead of a JS toggle: hide it while the panel is open. `:has()` is the
+   whole fix because the state already lives in the `hidden` attribute. */
+.hub-page .hero-search:has(.search-results:not([hidden])) + .hero-meta { visibility: hidden; }
+/* BUG-287: global search results panel (matches every tool via /api/tools, not just the
+   50 cards rendered on the current page). Absolute-positioned under the search box. */
+.hub-page .search-results { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; right: 0; max-height: min(60vh, 460px); overflow-y: auto; overscroll-behavior: contain; background: #131826; border: 1px solid #1f2638; border-radius: 8px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55); text-align: left; }
+.hub-page .search-hit { display: block; padding: 10px 16px; border-bottom: 1px solid #1f2638; text-decoration: none; color: inherit; }
+.hub-page .search-hit:last-of-type { border-bottom: 0; }
+.hub-page .search-hit:hover, .hub-page .search-hit:focus-visible { background: #161c2c; color: inherit; }
+.hub-page .search-hit strong { display: block; font-size: 0.9rem; font-weight: 600; color: #e8eaed; }
+.hub-page .search-hit:hover strong { color: #a3c8ff; }
+.hub-page .search-hit span { display: block; font-size: 0.78rem; color: #8a8f99; margin-top: 2px; overflow-wrap: anywhere; }
+.hub-page .search-hit-more { margin: 0; padding: 10px 16px; font-size: 0.8rem; color: #8a8f99; border-top: 1px solid #1f2638; }
+.hub-page .no-results-msg { color: #b3b8c0; font-size: 0.95rem; margin: 14px 0 0; padding: 12px 16px; background: #131826; border: 1px solid #1f2638; border-radius: 8px; }
+.hub-page .search-hit-note { margin: 0; padding: 5px 16px 2px; font-size: 0.75rem; color: #7eb3ff; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; border-top: 1px solid #1f2638; }
+.hub-page .search-hit-note:first-child { border-top: 0; padding-top: 8px; }
+.hub-page .ai-hit { background: #0f1628; }
+.hub-page .ai-hit strong { color: #7eb3ff !important; }
+.hub-page .ai-hit span { color: #5a7a9a !important; }
+
+.hub-page .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid #1a1f2c; }
+.hub-page .section-header h2 { font-size: 1.25rem; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.hub-page .section-header .section-count { color: #8a8f99; font-size: 0.875rem; font-weight: 400; }
+.hub-page .section-block { margin-bottom: 72px; }
+
+.hub-page .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.hub-page .category-card { display: block; padding: 20px 18px; background: #131826; border: 1px solid #1f2638; border-radius: 8px; text-decoration: none; color: #e8eaed; transition: all 0.15s; }
+.hub-page .category-card:hover { border-color: #7eb3ff; background: #161c2c; }
+.hub-page .category-card:focus-visible { outline: 3px solid #7eb3ff; outline-offset: 2px; border-color: #7eb3ff; }
+.hub-page .category-card h3 { font-size: 0.95rem; font-weight: 600; margin: 0 0 4px; }
+.hub-page .category-card .cat-count { color: #8a8f99; font-size: 0.8rem; }
+
+.hub-page .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.hub-page .tool-card { display: block; padding: 18px; background: #131826; border: 1px solid #1f2638; border-radius: 8px; transition: all 0.15s; text-decoration: none; color: inherit; position: relative; }
+.hub-page .tool-card:hover { border-color: #7eb3ff; background: #161c2c; }
+.hub-page .tool-card:focus-visible { outline: 3px solid #7eb3ff; outline-offset: 2px; }
+.hub-page .tool-card h3, .hub-page .tool-card h2.tool-card-title { font-size: 0.95rem; font-weight: 600; margin: 0 0 6px; color: #e8eaed; }
+.hub-page .tool-card h3 a, .hub-page .tool-card h2.tool-card-title a { color: inherit; }
+/* BUG-376: stretched-link hit area (same fix family as styles.css) — hub templates load home.css only, so the rule must live here too. */
+.hub-page .tool-card h3 a::after, .hub-page .tool-card h2.tool-card-title a::after { content: ""; position: absolute; inset: 0; }
+.hub-page .tool-card p { color: #b3b8c0; font-size: 0.85rem; margin: 0; line-height: 1.45; }
+.hub-page .tool-tag { display: inline-block; margin-top: 10px; padding: 2px 8px; font-size: 0.7rem; font-weight: 500; border-radius: 4px; background: #1f2d4a; color: #a3c8ff; }
+
+.hub-page .all-tools-section { margin-bottom: 64px; }
+.hub-page .all-tools-section details { border: 1px solid #1a1f2c; border-radius: 8px; background: #0d111c; }
+.hub-page .all-tools-section summary { padding: 16px 20px; cursor: pointer; color: #e8eaed; font-weight: 500; user-select: none; list-style: none; }
+.hub-page .all-tools-section summary:focus-visible { outline: 3px solid #7eb3ff; outline-offset: -3px; }
+.hub-page .all-tools-section summary::-webkit-details-marker { display: none; }
+.hub-page .all-tools-section summary::before { content: "\25B8"; color: #8a8f99; display: inline-block; margin-right: 8px; }
+.hub-page .all-tools-section details[open] summary::before { content: "\25BE"; }
+.hub-page .all-tools-section details[open] summary { border-bottom: 1px solid #1a1f2c; }
+.hub-page .all-tools-section .tools-grid { padding: 20px; }
+
+.hub-page .related-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.hub-page .related-card { display: block; padding: 18px 16px; background: #131826; border: 1px solid #1f2638; border-radius: 8px; text-decoration: none; color: #e8eaed; transition: all 0.15s; }
+.hub-page .related-card:hover { border-color: #7eb3ff; background: #161c2c; }
+.hub-page .related-card:focus-visible { outline: 3px solid #7eb3ff; outline-offset: 2px; }
+.hub-page .related-card h3 { font-size: 0.9rem; font-weight: 600; margin: 0 0 4px; }
+.hub-page .related-card .count { color: #8a8f99; font-size: 0.8rem; margin: 0; }
+
+.hub-page .footer-min { border-top: 1px solid #1a1f2c; padding: 28px 0; margin-top: 60px; color: #8a8f99; font-size: 0.85rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.hub-page .footer-min a { color: #b3b8c0; margin-right: 18px; }
+.hub-page .footer-min a:hover { color: #fff; }
+.hub-page .footer-min a:focus-visible { outline: 2px solid #7eb3ff; outline-offset: 2px; }
+
+.hub-page .pagination { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 24px 20px 8px; justify-content: center; }
+.hub-page .page-link { display: inline-block; padding: 6px 12px; min-width: 36px; text-align: center; background: #131826; border: 1px solid #1f2638; border-radius: 6px; color: #b3b8c0; font-size: 0.85rem; text-decoration: none; transition: all 0.15s; }
+.hub-page .page-link:hover { border-color: #7eb3ff; color: #fff; background: #161c2c; }
+.hub-page .page-link:focus-visible { outline: 3px solid #7eb3ff; outline-offset: 2px; }
+.hub-page .page-link.current { background: #7eb3ff; border-color: #7eb3ff; color: #0a0d14; font-weight: 600; }
+.hub-page .page-link.disabled { opacity: 0.4; cursor: not-allowed; }
+.hub-page .page-ellipsis { color: #8a8f99; padding: 0 4px; }
+.hub-page .page-info { color: #8a8f99; font-size: 0.8rem; margin-left: 12px; width: 100%; text-align: center; padding-top: 8px; }
+
+/* Universal focus-visible for any element in hub-page */
+.hub-page a:focus-visible, .hub-page button:focus-visible, .hub-page input:focus-visible, .hub-page summary:focus-visible { outline: 3px solid #7eb3ff; outline-offset: 2px; }
+
+/* Category pages emit .search-container / .cat-search* / .about-section / .cat-howto but load
+   home.css only (styles.css is not linked there), so those elements were rendering as unstyled
+   native widgets (white 21px Arial input, padding-less <details>) inside the dark theme.
+   Matched to the styles.css component tokens, remapped to the home.css palette. */
+.hub-page .search-container { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 24px; }
+.hub-page .cat-search-input { flex: 1; min-width: 200px; padding: 12px 16px; background: #131826; border: 1px solid #1f2638; border-radius: 8px; color: #e8eaed; font-family: inherit; font-size: 0.95rem; transition: border-color 0.15s, box-shadow 0.15s; }
+.hub-page .cat-search-input::placeholder { color: #8a8f99; }
+.hub-page .cat-search-input:focus { outline: none; border-color: #7eb3ff; box-shadow: 0 0 0 3px rgba(126, 179, 255, 0.2); }
+.hub-page .cat-search-input:focus-visible { outline: 3px solid #7eb3ff; outline-offset: 2px; }
+.hub-page .search-results-count { color: #8a8f99; font-size: 0.85rem; }
+.hub-page .about-section { background: #0d111c; border: 1px solid #1f2638; border-radius: 8px; padding: 24px 20px; }
+.hub-page .about-section .section-header { border-bottom-color: #1f2638; }
+.hub-page .cat-howto p { color: #b3b8c0; line-height: 1.65; margin: 0; font-size: 0.95rem; }
+
+/* BUG-087: Homepage FAQ section (FAQPage JSON-LD + visible <details>) */
+.hub-page .faq-section .faq-item { background: #0d111c; border: 1px solid #1f2638; border-radius: 8px; margin-bottom: 10px; }
+.hub-page .faq-section:not(.about-section) .faq-item p { padding: 14px 18px; color: #b3b8c0; line-height: 1.65; margin: 0; font-size: 0.95rem; }
+/* Category pages render the FAQ answer as a bare text node directly inside <details>
+   (no <p> wrapper), so it needs the same padding block as the homepage FAQ. */
+.hub-page .faq-section .faq-item > summary ~ *:not(summary) { padding: 14px 18px; color: #b3b8c0; line-height: 1.65; margin: 0; font-size: 0.95rem; }
+.hub-page .faq-section .faq-item summary { padding: 14px 18px; cursor: pointer; color: #e8eaed; font-weight: 500; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.hub-page .faq-section .faq-item summary::-webkit-details-marker { display: none; }
+.hub-page .faq-section .faq-item summary::after { content: "+"; font-size: 1.2rem; color: #7eb3ff; flex-shrink: 0; }
+.hub-page .faq-section .faq-item[open] summary::after { content: "\2212"; }
+.hub-page .faq-section .faq-item summary:hover { color: #fff; }
+.hub-page .faq-section .faq-item[open] summary { border-bottom: 1px solid #1f2638; }
+.hub-page .faq-section .faq-item p { padding: 14px 18px; color: #b3b8c0; line-height: 1.65; margin: 0; font-size: 0.95rem; }
+
+@media (max-width: 720px) {
+  .hub-page .hero h2 { font-size: 1.8rem; }
+  .hub-page .hero { padding: 36px 0 32px; }
+  .hub-page .section-block { margin-bottom: 48px; }
+  .hub-page .category-grid { grid-template-columns: repeat(2, 1fr); }
+  .hub-page .site-header .container { flex-direction: column; align-items: flex-start; }
+  .hub-page .site-header .top-nav { margin-top: 8px; }
+  .hub-page .pagination { padding: 16px 12px 4px; }
+  .hub-page .page-info { font-size: 0.75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-page * { transition: none !important; animation: none !important; }
+}
