@@ -37,6 +37,7 @@ as['llms_txt']=base+'/llms.txt';
 as['llms_full_txt']=base+'/llms-full.txt';
 as['sitemap']=base+'/sitemap.xml';
 as['tools']=tools.map(t=>({name:t.name,url:base+'/tools/'+t.slug+'/',category:t.cat,markdown_url:base+'/tools/'+t.slug+'/.md',description:t.desc.length>120?t.desc.slice(0,117)+'...':t.desc}));
+as['skills']=tools.map(t=>({name:t.name,url:base+'/tools/'+t.slug+'/',category:t.cat,markdown_url:base+'/tools/'+t.slug+'/.md',description:t.desc.length>120?t.desc.slice(0,117)+'...':t.desc}));
 fs.writeFileSync(path.join(asDir,'index.json'),JSON.stringify(as,null,2)+'\n');
 
 // .well-known/mcp/server-card.json — Model Context Protocol server card

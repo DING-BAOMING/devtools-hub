@@ -11,14 +11,19 @@
  * Rule learned here: never hardcode a provider's model id. Ask the provider what it
  * serves (`GET /models`) and cache the answer for the isolate. A retired id then
  * cannot reach a user's button, and the next retirement costs one GET, not a fix.
- * Gemini keeps a fixed id because its only verified-stable one is named in code and
- * its quota covers this site's traffic; it is last in the chain, not the only member.
+ * Every leg discovers its own id now — Groq, NVIDIA, Cloudflare Workers AI and
+ * Gemini alike. Gemini is last because its free quota is per *project*, not per key:
+ * it is the leg that runs out when the site is busy.
+ *
+ * Chain: Groq → NVIDIA #1 → NVIDIA #3 → Cloudflare Workers AI → Gemini.
+ * Cloudflare sits before Gemini because it has a daily allowance of its own
+ * (10,000 neurons/day) and needs no quota that the site owner has to babysit.
  */
 
 const GROQ_BASE = 'https://api.groq.com/openai/v1';
 const NVIDIA_BASE = 'https://integrate.api.nvidia.com/v1';
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-const GEMINI_MODEL = 'gemini-2.5-flash'; // verified live 2026-10-09 via /api/ai-detector
+const CF_BASE = 'https://api.cloudflare.com/client/v4/accounts/';
 const TIMEOUT_MS = 15000; // one hung provider must not hold the visitor's button open
 const CHAIN_BUDGET_MS = 45000; // a chain that runs past this gives up loudly instead of 502ing
 const MAX_MODELS_PER_PROVIDER = 3;
@@ -57,12 +62,87 @@ async function discover(base, key) {
     headers: { 'Authorization': 'Bearer ' + key },
     signal: AbortSignal.timeout(TIMEOUT_MS)
   });
-  if (!res.ok) throw new Error('model list HTTP ' + res.status);
+  if (!res.ok) throw new Error('HTTP ' + res.status + ' (model list)');
   var body = await res.json();
   var ids = ranked(chatModels((body.data || body.models || []).map(function(m) { return m.id; })));
   if (!ids.length) throw new Error('no chat model offered');
   modelCache[base] = { list: ids, cursor: 0 };
   return modelCache[base];
+}
+
+/**
+ * Cloudflare Workers AI has its own catalogue shape: `/ai/models/search` answers
+ * `{result:[{name, task:{name}, properties:[{property_id,value}]}]}`, not the
+ * OpenAI `{data:[{id}]}` one. Only a "Text Generation" model can answer a chat
+ * completion, and the ones flagged `require_workers_paid` are not on the free
+ * tier (the free allowance is 10,000 neurons/day).
+ */
+async function discoverCloudflare(account, token) {
+  var cacheKey = 'cf:' + account;
+  if (modelCache[cacheKey]) return modelCache[cacheKey];
+  var res = await fetch(CF_BASE + account + '/ai/models/search', {
+    headers: { 'Authorization': 'Bearer ' + token },
+    signal: AbortSignal.timeout(TIMEOUT_MS)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status + ' (model list)');
+  var body = await res.json();
+  var ids = (body.result || []).filter(function(m) {
+    return m && m.task && m.task.name === 'Text Generation';
+  }).filter(function(m) {
+    var props = {};
+    (m.properties || []).forEach(function(p) { props[p.property_id] = p.value; });
+    if (String(props.require_workers_paid).toLowerCase() === 'true') return false;
+    var dep = props.planned_deprecation_date;
+    // A model that goes away next month is a model that breaks next month.
+    return !(dep && new Date(dep).getTime() <= Date.now() + 30 * 86400000);
+  }).map(function(m) { return m.name; });
+  ids = ranked(chatModels(ids));
+  if (!ids.length) throw new Error('no chat model offered');
+  modelCache[cacheKey] = { list: ids, cursor: 0 };
+  return modelCache[cacheKey];
+}
+
+/**
+ * Gemini's catalogue is `GET /v1beta/models` → `{models:[{name, supportedGenerationMethods}]}`.
+ * A model that cannot `generateContent` (an image model, a clip, a transcribe model)
+ * is not in the list at all — it is in the list but does not answer a chat prompt.
+ */
+async function discoverGemini(key) {
+  if (modelCache.gemini) return modelCache.gemini;
+  var res = await fetch(GEMINI_BASE, {
+    headers: { 'x-goog-api-key': key },
+    signal: AbortSignal.timeout(TIMEOUT_MS)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status + ' (model list)');
+  var body = await res.json();
+  var ids = (body.models || []).filter(function(m) {
+    return (m.supportedGenerationMethods || []).indexOf('generateContent') !== -1;
+  }).map(function(m) { return String(m.name || '').replace(/^models\//, ''); });
+  ids = rankedGemini(chatModels(ids));
+  if (!ids.length) throw new Error('no chat model offered');
+  modelCache.gemini = { list: ids, cursor: 0 };
+  return modelCache.gemini;
+}
+
+// Gemini's quota is per project, so the cheapest model that can answer wins: the
+// flash-lite family first, then flash, then the rest. No id is written down here —
+// a retired one cannot reach a visitor (BUG-328).
+function rankedGemini(ids) {
+  var rank = function(id) {
+    if (/flash-lite/i.test(id)) return 0;
+    if (/flash/i.test(id)) return 1;
+    if (/pro/i.test(id)) return 3;
+    return 2;
+  };
+  return ids.slice().sort(function(a, b) { return rank(a) - rank(b) || a.localeCompare(b); });
+}
+
+// Some Workers AI models answer a JSON prompt inside a ```json fence even when
+// `response_format` asked for JSON. The fence is not JSON, so it is stripped here
+// rather than making every caller write a tolerant parser.
+function unfence(text) {
+  var m = /^\s*```[a-z]*\s*([\s\S]*?)\s*```\s*$/i.exec(text || '');
+  return m ? m[1] : text;
 }
 
 // Try this provider's models from the cursor, up to the per-provider cap. The cursor
@@ -76,6 +156,48 @@ async function tryOpenAI(base, key, opts, deadline) {
     var i = (entry.cursor + n) % entry.list.length;
     try {
       var data = await callOpenAI(base, key, entry.list[i], opts);
+      entry.cursor = i;
+      return data;
+    } catch (e) {
+      errors.push(entry.list[i] + ': ' + e.message);
+    }
+  }
+  throw new Error(errors.join(' | '));
+}
+
+// Cloudflare Workers AI speaks the OpenAI chat shape, but its catalogue and its
+// base URL are its own (a per-account path, not a host).
+async function tryCloudflare(account, token, opts, deadline) {
+  var entry = await discoverCloudflare(account, token);
+  var errors = [];
+  var tries = Math.min(MAX_MODELS_PER_PROVIDER, entry.list.length);
+  for (var n = 0; n < tries; n++) {
+    if (Date.now() > deadline) break;
+    var i = (entry.cursor + n) % entry.list.length;
+    try {
+      var data = await callOpenAI(CF_BASE + account + '/ai/v1', token, entry.list[i], opts);
+      var message = data.choices[0].message;
+      message.content = unfence(message.content);
+      entry.cursor = i;
+      return data;
+    } catch (e) {
+      errors.push(entry.list[i] + ': ' + e.message);
+    }
+  }
+  throw new Error(errors.join(' | '));
+}
+
+// Gemini answers in its own envelope and its quota is per project, so it is the
+// last leg: everything cheaper is tried first.
+async function tryGemini(key, opts, deadline) {
+  var entry = await discoverGemini(key);
+  var errors = [];
+  var tries = Math.min(MAX_MODELS_PER_PROVIDER, entry.list.length);
+  for (var n = 0; n < tries; n++) {
+    if (Date.now() > deadline) break;
+    var i = (entry.cursor + n) % entry.list.length;
+    try {
+      var data = await callGemini(key, entry.list[i], opts);
       entry.cursor = i;
       return data;
     } catch (e) {
@@ -104,6 +226,23 @@ export async function discoverChatModels(base, key) {
   if (!usable(key)) return [];
   try {
     var entry = await discover(base, key);
+    return entry.list;
+  } catch (e) {
+    return [];
+  }
+}
+
+/**
+ * Gemini's live, ranked chat-model ids — or `[]`.
+ *
+ * Same contract as `discoverChatModels`, for Gemini's own catalogue shape. The two
+ * endpoints that keep their own provider shape (translator, ai-detector) use this
+ * so no Gemini model id is written down anywhere.
+ */
+export async function discoverGeminiModels(key) {
+  if (!usable(key)) return [];
+  try {
+    var entry = await discoverGemini(key);
     return entry.list;
   } catch (e) {
     return [];
@@ -167,14 +306,14 @@ async function callOpenAI(base, key, model, opts) {
   return data;
 }
 
-async function callGemini(key, opts) {
+async function callGemini(key, model, opts) {
   // Gemini takes one prompt, not a message list, and answers in its own envelope.
   var prompt = opts.messages.map(function(m) { return m.content; }).join('\n\n');
   var res = await fetch(
-    GEMINI_BASE + '/' + GEMINI_MODEL + ':generateContent?key=' + encodeURIComponent(key),
+    GEMINI_BASE + '/' + model + ':generateContent',
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
@@ -195,7 +334,7 @@ async function callGemini(key, opts) {
   if (!content) throw new Error('empty response');
   return {
     provider: 'Gemini',
-    model: GEMINI_MODEL,
+    model: model,
     choices: [{ message: { role: 'assistant', content: content } }]
   };
 }
@@ -211,24 +350,32 @@ async function callGemini(key, opts) {
  */
 export async function aiChat(env, opts) {
   var targets = [
-    ['Groq', env.DEVTOOLS_GROQ_API_KEY, GROQ_BASE, true],
-    ['NVIDIA', env.DEVTOOLS_NVIDIA_KEY_1, NVIDIA_BASE, true],
-    ['NVIDIA', env.DEVTOOLS_NVIDIA_KEY_3, NVIDIA_BASE, true],
-    ['Gemini', env.DEVTOOLS_GEMINI_KEY, GEMINI_BASE, false]
+    { name: 'Groq', kind: 'openai', key: env.DEVTOOLS_GROQ_API_KEY, base: GROQ_BASE },
+    { name: 'NVIDIA', kind: 'openai', key: env.DEVTOOLS_NVIDIA_KEY_1, base: NVIDIA_BASE },
+    { name: 'NVIDIA', kind: 'openai', key: env.DEVTOOLS_NVIDIA_KEY_3, base: NVIDIA_BASE },
+    { name: 'Cloudflare', kind: 'cf', key: env.CLOUDFLARE_API_TOKEN, account: env.CF_ACCOUNT_ID },
+    { name: 'Gemini', kind: 'gemini', key: env.DEVTOOLS_GEMINI_KEY }
   ];
 
   var deadline = Date.now() + CHAIN_BUDGET_MS;
   var failures = [];
   for (var i = 0; i < targets.length; i++) {
-    var name = targets[i][0], key = targets[i][1], base = targets[i][2], discovers = targets[i][3];
-    if (!usable(key)) continue;
+    var t = targets[i];
+    if (!usable(t.key)) continue;
+    if (t.kind === 'cf' && !usable(t.account)) continue;
     try {
-      var data = discovers
-        ? await tryOpenAI(base, key, Object.assign({ providerName: name }, opts), deadline)
-        : await callGemini(key, opts);
+      var call = Object.assign({ providerName: t.name }, opts);
+      var data;
+      if (t.kind === 'openai') {
+        data = await tryOpenAI(t.base, t.key, call, deadline);
+      } else if (t.kind === 'cf') {
+        data = await tryCloudflare(t.account, t.key, call, deadline);
+      } else {
+        data = await tryGemini(t.key, call, deadline);
+      }
       return { content: data.choices[0].message.content, model: data.model, provider: data.provider, data: data };
     } catch (e) {
-      failures.push(name + ': ' + e.message);
+      failures.push(t.name + ': ' + e.message);
       if (Date.now() > deadline) {
         failures.push('stopped after ' + CHAIN_BUDGET_MS / 1000 + 's');
         break;

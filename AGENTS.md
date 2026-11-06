@@ -73,7 +73,8 @@ formula, a file-format claim, a broken example), say so on the page: every tool 
 
 ## Site facts
 
-- Free, no signup, no ads, no tracking. Owner: BAOMING (Evan-MJ) — <https://github.com/Evan-MJ>.
+- Free, no signup, no ads, no tracking cookies. Page views are counted cookieless (no identifier, no
+  cross-site tracking). Owner: BAOMING (Evan-MJ) — <https://github.com/Evan-MJ>.
 - Pages: `/about/`, `/privacy/`, `/contact/`, `/subprocessors/`, `/whats-new/`, `/tools/feedback/`
   (all with `.md` mirrors).
 - `robots.txt` allows crawling; `.md` mirrors carry `X-Robots-Tag: noindex, follow` because the

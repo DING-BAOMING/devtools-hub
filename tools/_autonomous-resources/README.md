@@ -15,7 +15,7 @@
 | 项 | 值 |
 |---|-----|
 | 邮箱 | `bm.d@qq.com` |
-| 授权码 | `ogcxfkzgjziwhgff` |
+| 授权码 | 不入库：`SMTP_AUTH_CODE`（环境变量优先，其次 `/home/ubuntu/.secrets/devtools-hub.env`） |
 | IMAP | `imap.qq.com:993` (SSL) |
 | SMTP | `smtp.qq.com:465` (SSL) |
 

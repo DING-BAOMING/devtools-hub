@@ -51,6 +51,14 @@ node scripts/gen-tool-dates.js
 echo "[pre-deploy] Regenerating static fallbacks (sitemap.xml / llms.txt / llms-full.txt) from the real Functions..."
 node scripts/regen-static-fallbacks.js
 
+# BUG-448: rewrite the manifest-derived head metadata inside every tool page file, using the
+# real Function as the oracle. The Function overwrites those tags on every request, so the
+# served bytes were never wrong — but nothing kept the FILE copies in step, and 358 of the
+# 371 pages had drifted (visible in the repo and in the public GitHub mirror). Idempotent;
+# exits non-zero if any page still differs after the rewrite.
+echo "[pre-deploy] Regenerating the manifest-derived head metadata in every tool page..."
+node scripts/gen-tool-meta.js
+
 # Content check, not a filename check. .env.example is committed on purpose and
 # must keep deploying; .env.backup held the same live token as .env and shipped it
 # for weeks because .gitignore does not stop wrangler. Grep the upload set itself.

@@ -18,9 +18,80 @@ import { CAT_DESCRIPTIONS } from '../libs/category-copy.js';
 // blocked. test-scripts/bug331-csp-style-src-gate.mjs enumerates the
 // stylesheet hosts out of the tool HTML and fails on the next one.
 
-const CSP_DEFAULT = "default-src 'self'; media-src 'self' blob: data: https://storage.googleapis.com https://platform-outputs.agnes-ai.space https://api.dictionaryapi.dev; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com https://cdnjs.cloudflare.com; img-src 'self' data: https: blob: https://covers.openlibrary.org https://platform-outputs.agnes-ai.space https://storage.googleapis.com; font-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://fonts.gstatic.com; connect-src 'self' https://dns.google https://fonts.googleapis.com https://api.groq.com https://api.ipify.org https://ipapi.co https://ipinfo.io https://api.exchangerate-api.com https://integrate.api.nvidia.com https://cdn.jsdelivr.net https://unpkg.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://air-quality-api.open-meteo.com https://nominatim.openstreetmap.org https://api.siliconflow.cn https://static.cloudflareinsights.com https://cloudflareinsights.com https://deai.029101.xyz https://raw.githubusercontent.com https://openlibrary.org https://api.puter.com wss://api.puter.com https://apihub.agnes-ai.com https://api.cloudflare.com https://storage.googleapis.com https://platform-outputs.agnes-ai.space https://devtools-hub-api-proxy.bm-d.workers.dev https://api.dictionaryapi.dev https://api.datamuse.com https://vpic.nhtsa.dot.gov https://en.wikipedia.org https://registry.npmjs.org";
+const CSP_DEFAULT = "default-src 'self'; media-src 'self' blob: data: https://storage.googleapis.com https://platform-outputs.agnes-ai.space https://api.dictionaryapi.dev; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://www.googletagmanager.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com https://cdnjs.cloudflare.com; img-src 'self' data: https: blob: https://covers.openlibrary.org https://platform-outputs.agnes-ai.space https://storage.googleapis.com https://www.google-analytics.com; font-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://fonts.gstatic.com; connect-src 'self' https://dns.google https://fonts.googleapis.com https://api.groq.com https://api.ipify.org https://ipapi.co https://ipinfo.io https://api.exchangerate-api.com https://integrate.api.nvidia.com https://cdn.jsdelivr.net https://unpkg.com https://api.open-meteo.com https://geocoding-api.open-meteo.com https://air-quality-api.open-meteo.com https://nominatim.openstreetmap.org https://api.siliconflow.cn https://static.cloudflareinsights.com https://cloudflareinsights.com https://deai.029101.xyz https://raw.githubusercontent.com https://openlibrary.org https://api.puter.com wss://api.puter.com https://apihub.agnes-ai.com https://api.cloudflare.com https://storage.googleapis.com https://platform-outputs.agnes-ai.space https://devtools-hub-api-proxy.bm-d.workers.dev https://api.dictionaryapi.dev https://api.datamuse.com https://vpic.nhtsa.dot.gov https://en.wikipedia.org https://registry.npmjs.org https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com";
 
-const CSP_UNSAFE_EVAL = "default-src 'self'; media-src 'self' blob: data: https://storage.googleapis.com https://platform-outputs.agnes-ai.space https://api.dictionaryapi.dev; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com https://cdnjs.cloudflare.com; img-src 'self' data: https: blob: https://covers.openlibrary.org https://platform-outputs.agnes-ai.space https://storage.googleapis.com; font-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://fonts.gstatic.com; connect-src 'self' https://dns.google https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com https://static.cloudflareinsights.com https://cloudflareinsights.com";
+const CSP_UNSAFE_EVAL = "default-src 'self'; media-src 'self' blob: data: https://storage.googleapis.com https://platform-outputs.agnes-ai.space https://api.dictionaryapi.dev; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://www.googletagmanager.com; worker-src 'self' blob: https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com https://cdnjs.cloudflare.com; img-src 'self' data: https: blob: https://covers.openlibrary.org https://platform-outputs.agnes-ai.space https://storage.googleapis.com https://www.google-analytics.com; font-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://fonts.gstatic.com; connect-src 'self' https://dns.google https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com";
+
+// Google Analytics 4 — web data stream "DevTools Hub" for tools.scoreroute.com
+// (measurement ID below; created in the GA4 admin UI on 2026-11-05).
+//
+// Why the tag is injected here instead of in the 371 tool pages: this site has
+// no template system — every tool page is a hand-written HTML file — so a tag
+// added per page would be missing from every page written later and from the
+// pages the Functions generate. The middleware is the one place every response
+// already passes through, so the tag cannot drift.
+//
+// Consent Mode with every storage type denied is deliberate, not laziness:
+// 306 pages of this site promise "no tracking cookies" and "no analytics that
+// follow you across the web" (the copy is in the tool-page footers, the meta
+// descriptions and /privacy/). GA4 in its default mode writes a `_ga` cookie,
+// which would make every one of those claims false and would need a consent
+// banner in the EU. With `analytics_storage: 'denied'` GA4 sends cookieless
+// pings instead: no cookie is written, no cross-site identifier exists, and we
+// still learn page views, paths and referrers — which is what the traffic
+// phase needs. The privacy policy and the subprocessor list name GA4 for what
+// it is (see privacy/index.html and subprocessors/index.html).
+//
+// The snippet is the two-tag form Google publishes: an async script from
+// googletagmanager.com plus the inline bootstrap. 'unsafe-inline' is already in
+// script-src, so the inline half is allowed; the three hosts added to the CSP
+// above (googletagmanager.com for the script, google-analytics.com and
+// region1.google-analytics.com for the collection beacons) are the only CSP
+// change GA4 requires.
+const GA4_MEASUREMENT_ID = 'G-Y3GSY75PBS';
+const GA4_SNIPPET =
+  '<script async src="https://www.googletagmanager.com/gtag/js?id=' + GA4_MEASUREMENT_ID + '"></script>' +
+  '<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}' +
+  "gtag('consent','default',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});" +
+  "gtag('js',new Date());gtag('config','" + GA4_MEASUREMENT_ID + "');</script>";
+
+// Insert the GA4 tag into an HTML response, just before </head>.
+//
+// Only text/html is rewritten: the markdown mirrors (/x/.md), the OG images and
+// every other asset must stay byte-identical. The response is rebuilt rather
+// than streamed through HTMLRewriter because the middleware already computes a
+// content-hash ETag over the body below — the tag has to be in that body, or
+// the validator would describe a document the browser never receives.
+//
+// ETag and Last-Modified are dropped: both describe the pre-injection bytes,
+// and a validator that does not match the body is worse than none. The
+// middleware recomputes an ETag from the final body.
+async function injectGA4(response) {
+  const ct = (response.headers.get('Content-Type') || '').toLowerCase();
+  if (response.status !== 200 || !ct.includes('text/html')) return response;
+  let html;
+  try {
+    html = await response.clone().text();
+  } catch (e) {
+    return response;
+  }
+  if (html.includes(GA4_MEASUREMENT_ID)) return response;
+  const headEnd = html.search(/<\/head>/i);
+  if (headEnd === -1) return response;
+  const injected = html.slice(0, headEnd) + GA4_SNIPPET + html.slice(headEnd);
+  const headers = new Headers(response.headers);
+  headers.delete('Content-Length');
+  headers.delete('ETag');
+  headers.delete('Last-Modified');
+  // The body we re-emit is plain text. If the upstream had announced an encoding,
+  // leaving the header on would make the browser try to gunzip plain HTML.
+  headers.delete('Content-Encoding');
+  return new Response(injected, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
 
 // Paths that need eval() in Web Workers (e.g., code-runner sandbox)
 const EVAL_PATHS = ['/tools/online-code-runner/'];
@@ -180,6 +251,13 @@ export async function onRequest(context) {
   }
 
   let response = (await serveNegotiatedMarkdown(context)) || (await context.next());
+  try {
+    // GA4 tag first, so the content-hash ETag below describes the bytes the
+    // browser actually receives (tag included) instead of the pre-injection body.
+    response = await injectGA4(response);
+  } catch (e) {
+    // Best-effort: a failed injection must never fail the page.
+  }
   try {
     const needsEval = EVAL_PATHS.some(p => url.pathname === p || url.pathname.startsWith(p));
     const h = response.headers;

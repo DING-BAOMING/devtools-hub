@@ -2152,11 +2152,18 @@ function injectBreadcrumbSchema(html, tool, slug) {
   while ((m = re.exec(nav[1])) !== null) {
     if (m[5] !== undefined) {
       const name = text(m[5]);
-      if (name) items.push({ name: name });
+      // BUG-444: the trail's separators are <span>/</span> (14 pages), not hierarchy levels.
+      // A ListItem without an `item` URL that is NOT the last one is invalid BreadcrumbList
+      // JSON-LD (schema.org: itemListElement.item is required) — and "/" as a crumb is
+      // meaningless to a reader anyway. The "Report Problem" link also appears in some trails
+      // wrapped in a <span class="feedback-link">, which is not a level either.
+      if (!name || /^[\/>›»‣·•|—-]+$/.test(name) || /feedback/i.test(m[0])) continue;
+      items.push({ name: name });
       continue;
     }
-    // The "Report Problem" link sits in the trail but is not part of the hierarchy.
-    if (/feedback-link/.test(m[1] + m[3])) continue;
+    // The "Report Problem" link sits in the trail but is not part of the hierarchy
+    // (its class varies: feedback-link, hg-feedback, …).
+    if (/feedback/i.test(m[1] + m[3])) continue;
     const name = text(m[4]);
     if (!name) continue;
     const href = m[2];

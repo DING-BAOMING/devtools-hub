@@ -22,7 +22,7 @@
  * - 绕过: 任何provider失败/超时不影响其他provider
  */
 
-import { discoverChatModels } from '../../libs/ai-provider.js';
+import { discoverChatModels, discoverGeminiModels } from '../../libs/ai-provider.js';
 
 var DETECTION_PROMPT = `You are an AI content detection expert. Analyze the following text and determine if it was written by an AI language model or a human.
 
@@ -225,22 +225,22 @@ export async function onRequest(context) {
 
   if (geminiKey) {
     providers.push(callProvider('Gemini',
-      function() {
+      function(model) {
         var geminiBody = {
           contents: [{
             parts: [{ text: systemPrompt + '\n\n' + fullPrompt }]
           }],
           generationConfig: { temperature: 0.1, maxOutputTokens: 1024, responseMimeType: 'application/json' }
         };
-        return fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + geminiKey, {
+        return fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiKey },
           body: JSON.stringify(geminiBody)
         });
       },
       parseGeminiVerdict,
-      // Gemini is addressed by a fixed id in its own URL and offers no /models list here.
-      async function() { return ['gemini-2.5-flash']; }
+      // The id is read from Gemini's own catalogue, never written down here.
+      function() { return discoverGeminiModels(geminiKey); }
     ));
   }
 

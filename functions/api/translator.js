@@ -17,7 +17,7 @@
  * Groq (60 req/min) → Gemini (10 RPM, 1500 RPD) → NVIDIA Key1 (30 req/min) → NVIDIA Key3 (30 req/min) → SiliconFlow (74免费模型)
  */
 
-import { discoverChatModels } from '../../libs/ai-provider.js';
+import { discoverChatModels, discoverGeminiModels } from '../../libs/ai-provider.js';
 
 var languageNames = {
   'auto': 'the source language (auto-detect it)',
@@ -151,18 +151,20 @@ export async function onRequest({ request, env }) {
     providers.push({
       name: 'gemini',
       isGemini: true,
-      call: async function() {
+      call: async function(model) {
         var geminiBody = {
           contents: [{ parts: [{ text: text }] }],
           system_instruction: { parts: [{ text: systemPrompt }] },
           generationConfig: { temperature: 0.3, maxOutputTokens: 4096 }
         };
-        return await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + geminiKey, {
+        return await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiKey },
           body: JSON.stringify(geminiBody)
         });
-      }
+      },
+      // The id is read from Gemini's own catalogue, never written down here.
+      getModels: async function() { return await discoverGeminiModels(geminiKey); }
     });
   }
   
@@ -219,7 +221,12 @@ export async function onRequest({ request, env }) {
       var response;
 
       if (provider.isGemini) {
-        response = await provider.call();
+        var geminiModels = await provider.getModels();
+        if (!geminiModels || geminiModels.length === 0) {
+          if (i < providers.length - 1) continue;
+          return new Response(JSON.stringify({ error: 'No AI provider is currently serving translation. Please try again shortly.' }), { status: 503, headers: responseHeaders });
+        }
+        response = await provider.call(geminiModels[0]);
         if (response.status === 429) {
           if (i < providers.length - 1) continue;
           return new Response(JSON.stringify({ error: 'Rate limit reached on all providers. Please wait a moment and try again.' }), { status: 429, headers: responseHeaders });

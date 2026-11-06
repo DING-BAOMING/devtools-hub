@@ -3,7 +3,7 @@
  * 用于 Playwright 自主注册流程中的: 验证邮件接收, 验证码/链接提取, 邮件触发
  *
  * 邮箱: bm.d@qq.com
- * 授权码: ogcxfkzgjziwhgff
+ * 授权码: 见未跟踪的凭据存储 (SMTP_AUTH_CODE)
  * IMAP: imap.qq.com:993 (SSL)
  * SMTP: smtp.qq.com:465 (SSL)
  *
@@ -17,12 +17,28 @@
 const Imap = require('imap');
 const { simpleParser } = require('mailparser');
 const nodemailer = require('nodemailer');
+const fs = require('fs');
+
+// The auth code is not in this file: env first, then the untracked credential store.
+function readSecret(name) {
+  const txt = fs.readFileSync('/home/ubuntu/.secrets/devtools-hub.env', 'utf8');
+  for (const raw of txt.split('\n')) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const i = line.indexOf('=');
+    if (i < 0 || line.slice(0, i).trim() !== name) continue;
+    let v = line.slice(i + 1).trim();
+    if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1);
+    return v;
+  }
+  throw new Error('missing credential ' + name);
+}
 
 class EmailHandler {
   constructor() {
     this.config = {
       email: 'bm.d@qq.com',
-      authCode: 'ogcxfkzgjziwhgff',
+      authCode: process.env.SMTP_AUTH_CODE || readSecret('SMTP_AUTH_CODE'),
       imapHost: 'imap.qq.com',
       imapPort: 993,
       smtpHost: 'smtp.qq.com',
