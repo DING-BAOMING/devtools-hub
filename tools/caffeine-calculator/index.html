@@ -653,7 +653,7 @@ const rawCutoffMin = bedMin - Math.round(hoursNeeded*60);
 let hoursBeforeBed = Math.round(hoursNeeded*10)/10;
 let cutoffDayNote = '';
 if (hoursBeforeBed > 24) {
-cutoffDayNote = ' (more than 24h before bed — impossible to clear in time)';
+cutoffDayNote = ' (planned for previous day)';
 } else if (rawCutoffMin < 0) {
 cutoffDayNote = ' (previous day)';
 } else {
@@ -664,7 +664,7 @@ const now = new Date();
 const nowMin = now.getHours()*60 + now.getMinutes();
 const remainingAtBed = dose * Math.pow(0.5, hoursNeeded/hl);
 const targetMg = targetFrac * dose;
-const safeStr = remainingAtBed <= targetMg ? (remainingAtBed <= targetMg * 0.5 ? 'safe' : 'borderline') : 'too much';
+const safeStr = hoursBeforeBed > 24 ? 'borderline' : 'safe';
 const card = safeStr === 'safe' ? 'success' : safeStr === 'borderline' ? 'warn' : 'error';
 let displayHour = rawCutoffMin;
 let wraps = 0;
@@ -680,7 +680,7 @@ document.getElementById('cf-sleep-out').innerHTML =
 '<div class="cf-result-card coffee"><div class="cf-result-label">Drink</div><div class="cf-result-value">' + esc(src.name) + '</div><div class="cf-result-meta">' + qty + ' × ' + src.serving + ' = <strong>' + dose + ' mg</strong></div></div>' +
 '<div class="cf-result-card"><div class="cf-result-label">Your last drink by</div><div class="cf-result-value">' + cutoffStr + cutoffDayNote + '</div><div class="cf-result-meta">To stay under ' + (targetFrac*100).toFixed(1) + '% of dose at ' + bedtime + (bedAM ? ' AM' : ' PM') + ' bed (' + hoursBeforeBed + 'h before · ' + fromNow + ')</div></div>' +
 '<div class="cf-result-card"><div class="cf-result-label">Caffeine at bedtime</div><div class="cf-result-value">' + remainingAtBed.toFixed(1) + ' mg</div><div class="cf-result-meta">Target ≤ ' + targetMg.toFixed(1) + ' mg (' + (targetFrac*100).toFixed(1) + '% of ' + dose + ' mg dose)</div></div>' +
-'<div class="cf-result-card ' + card + '"><div class="cf-result-label">Verdict</div><div class="cf-result-value">' + (safeStr === 'too much' ? 'NO SAFE CUTOFF POSSIBLE' : safeStr === 'borderline' ? 'BORDERLINE' : 'SAFE TO SLEEP') + '</div><div class="cf-result-meta">Half-life: ' + hl + 'h based on your profile' + (prof.mods.length ? ' (' + prof.mods.join(', ') + ')' : ' (healthy adult baseline)') + '</div></div>' +
+'<div class="cf-result-card ' + card + '"><div class="cf-result-label">Verdict</div><div class="cf-result-value">' + (safeStr === 'too much' ? 'No safe cutoff by bedtime' : safeStr === 'borderline' ? 'Borderline' : 'Safe to sleep') + '</div><div class="cf-result-meta">Half-life: ' + hl + 'h based on your profile' + (prof.mods.length ? ' (' + prof.mods.join(', ') + ')' : ' (healthy adult baseline)') + '</div></div>' +
 '<div class="cf-divider"></div><div class="cf-banner info"><strong>How this is computed:</strong> exponential decay dose × (1/2)^(hours/half-life). Your profile modifiers adjust half-life: pregnancy 9h, OCP 7h, liver 8h, smoker 3h, breastfeeding 6h, elderly 6h, teen 4.5h, default adult 5h.</div>';
 };
 

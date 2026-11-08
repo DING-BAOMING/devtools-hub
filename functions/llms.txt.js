@@ -126,7 +126,11 @@ export async function onRequest(context) {
       // /tools/<slug>/.md + /llms-full.txt. Removes ~38 chars/entry vs the
       // 50-char desc + adds ~10 chars for [HTML](URL/) = net -28 chars/entry
       // × 249 tools = -7 KB (gives ~7K headroom under 50K threshold).
-      out += '- [' + t.name + '](' + base + '/tools/' + t.slug + '/.md) [HTML](' + base + '/tools/' + t.slug + '/)\n';
+      // Size grew with 371 tools → drop HTML link per tool to stay <50KB.
+      // BUG-415: Switch tool entries to HTML URLs to satisfy agentimization/llms-txt-freshness.
+      // HTML URLs are in sitemap.xml; .md mirrors are noindex. This aligns llms.txt
+      // links with sitemap and keeps file under 50KB while restoring freshness.
+      out += '- [' + t.name + '](' + base + '/tools/' + t.slug + '/)\n';
     }
     out += '\n';
   }

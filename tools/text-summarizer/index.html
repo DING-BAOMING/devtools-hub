@@ -304,26 +304,12 @@
     }
 
     function splitSentences(text) {
-        var result = [];
-        var current = '';
-        var chars = text.split('');
-        for (var i = 0; i < chars.length; i++) {
-            current += chars[i];
-            if (chars[i] === '.' || chars[i] === '!' || chars[i] === '?') {
-                if (i + 1 >= chars.length || chars[i+1] === ' ' || chars[i+1] === '\n' || chars[i+1] === '\r') {
-                    var trimmed = current.trim();
-                    if (trimmed.length > 0) {
-                        result.push(trimmed);
-                    }
-                    current = '';
-                }
-            }
-        }
-        var trimmed2 = current.trim();
-        if (trimmed2.length > 0) {
-            result.push(trimmed2);
-        }
-        return result;
+        return text
+            .replace(/([.!?]+["'\]\u2019\u201d]*)(?=\s|$)/g, '$1\n')
+            .replace(/([a-z0-9])([.!?]+["'\]\u2019\u201d]*)(?=[A-Z\[])/g, '$1$2\n')
+            .split(/\n+/)
+            .map(function(s){return s.trim();})
+            .filter(function(s){return s.length>0;});
     }
 
     function scoreSentences(sentences, fullText) {

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Specificity Calculator - Compute Selector Weight</title>
+    <meta name="description" content="Free CSS specificity calculator. Compute a,b,c values for any selector instantly. Understand selector weight and cascade priority. No signup.">
+    <link rel="canonical" href="https://tools.scoreroute.com/tools/css-specificity-calculator/">
+    <meta property="og:title" content="CSS Specificity Calculator - Compute Selector Weight">
+    <meta property="og:description" content="Free CSS specificity calculator. Compute a,b,c values for any selector instantly. Understand selector weight and cascade priority. No signup.">
+    <meta property="og:url" content="https://tools.scoreroute.com/tools/css-specificity-calculator/">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"CSS Specificity Calculator - Compute Selector Weight","description":"Free CSS specificity calculator. Compute a,b,c values for any selector instantly. Understand selector weight and cascade priority. No signup.","url":"https://tools.scoreroute.com/tools/css-specificity-calculator/","applicationCategory":"DeveloperTool"}</script>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>CSS Specificity Calculator</h1>
+<nav class="breadcrumb"><a href="/">Home</a> &gt; <a href="/tools/">Tools</a> &gt; <span>CSS Specificity Calculator</span></nav>
+</div>
+</header>
+<main class="container">
+<section class="tool-page">
+<div class="tool-main">
+<h2>Calculate Specificity</h2>
+<textarea id="selector" placeholder="Enter CSS selector, e.g. #header .nav > li.active a" rows="4"></textarea>
+<div class="btn-group">
+<button id="calc" class="btn btn-primary">Calculate</button>
+<button id="clear" class="btn btn-secondary">Clear</button>
+</div>
+<pre id="output"></pre>
+</div>
+<div class="info-section">
+<h3>How it works</h3>
+<p>Specificity is a,b,c where a = IDs, b = classes/attributes/pseudo-classes, c = elements/pseudo-elements.</p>
+<h3>FAQ</h3>
+<details class="faq-item"><summary>What is CSS specificity?</summary><p>It determines which rule wins when multiple rules apply.</p></details>
+</div>
+</section>
+</main>
+<script>
+function calcSpecificity(sel){
+  let a=0,b=0,c=0;
+  // remove strings
+  sel = sel.replace(/["'][^"']*["']/g,'');
+  // count IDs
+  a = (sel.match(/#[\w-]+/g)||[]).length;
+  // count classes
+  b += (sel.match(/\.[\w-]+/g)||[]).length;
+  // attributes
+  b += (sel.match(/\[[^\]]+\]/g)||[]).length;
+  // pseudo-classes :hover etc but not ::before
+  b += (sel.match(/:(?!:)[\w-]+(\([^)]*\))?/g)||[]).length;
+  // remove counted parts
+  let tmp = sel.replace(/#[\w-]+/g,'').replace(/\.[\w-]+/g,'').replace(/\[[^\]]+\]/g,'').replace(/:(?!:)[\w-]+(\([^)]*\))?/g,'');
+  // pseudo-elements
+  c += (tmp.match(/::[\w-]+/g)||[]).length;
+  // element names
+  tmp = tmp.replace(/::[\w-]+/g,'');
+  const elements = tmp.match(/(^|[\s>+~])([a-zA-Z][\w-]*)/g);
+  if(elements){ c += elements.length; }
+  return {a,b,c,score:a*100+b*10+c};
+}
+document.getElementById('calc').onclick=()=>{
+  const sel=document.getElementById('selector').value.trim();
+  if(!sel){ document.getElementById('output').textContent='Enter a selector'; return; }
+  const r=calcSpecificity(sel);
+  document.getElementById('output').textContent=`Selector: ${sel}\nSpecificity: ${r.a},${r.b},${r.c}\nScore: ${r.score}`;
+};
+document.getElementById('clear').onclick=()=>{document.getElementById('selector').value='';document.getElementById('output').textContent='';};
+</script>
+</body>
+</html>

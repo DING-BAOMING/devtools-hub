@@ -519,7 +519,13 @@
             setStatus('Listening... pluck a string', '');
             readLoop();
         }).catch(function (err) {
-            setStatus('Microphone access denied or unavailable (' + err.name + '). Use the reference tones to tune by ear instead.', 'error');
+            var msg = 'Microphone access denied or unavailable (' + err.name + '). Use the reference tones to tune by ear instead.';
+            if (err.name === 'NotFoundError' || err.name === 'NotFound') {
+                msg = 'No microphone found. Connect a microphone and refresh, or use the reference tones to tune by ear.';
+            } else if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                msg = 'Microphone permission denied. Allow microphone access in your browser settings, then try again. You can also use the reference tones.';
+            }
+            setStatus(msg, 'error');
         });
     }
 

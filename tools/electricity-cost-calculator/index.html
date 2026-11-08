@@ -193,6 +193,7 @@ function readRowData() {
   var out = [], body = document.getElementById('ecc-inbody');
   for (var i = 0; i < body.children.length; i++) {
     var c = body.children[i].querySelectorAll('input');
+    if (c.length < 4) continue;
     out.push({ name: c[0].value.trim(), watts: num(c[1].value), hours: num(c[2].value), qty: num(c[3].value) });
   }
   return out;
@@ -232,7 +233,7 @@ function calc() {
   var cur = curSymbol();
   var rows = collectRows();
   if (!rows.length) {
-    showStatus('ecc-status', 'Add at least one appliance to calculate.', 'error');
+    showStatus('ecc-status', 'Add an appliance with watts and hours, then Calculate.', 'info');
     document.getElementById('ecc-outbody').innerHTML = PLACEHOLDER;
     return;
   }
@@ -258,9 +259,15 @@ function calc() {
   }
   document.getElementById('ecc-outbody').innerHTML = html;
   document.getElementById('ecc-totbody').innerHTML = '<tr><td>' + items.length + ' appliance' + (items.length > 1 ? 's' : '') + '</td><td>' + fmt(tot.kwhDay) + '</td><td>' + fmt(tot.kwhPer) + '</td><td>' + cur + fmt(tot.costPer) + '</td><td>' + cur + fmt(tot.costYear) + '</td><td></td></tr>';
-  var worst = items[0];
-  for (var l = 1; l < items.length; l++) if (items[l].costPer > worst.costPer) worst = items[l];
-  showStatus('ecc-status', 'Done. ' + cur + fmt(tot.costPer) + ' per period, ' + cur + fmt(tot.costYear) + ' a year. Biggest of your list: ' + worst.label + ' at ' + Math.round(worst.costPer / tot.costPer * 100) + '%.', 'success');
+  var tail;
+  if (tot.costPer > 0) {
+    var worst = items[0];
+    for (var l = 1; l < items.length; l++) if (items[l].costPer > worst.costPer) worst = items[l];
+    tail = ' Biggest of your list: ' + worst.label + ' at ' + Math.round(worst.costPer / tot.costPer * 100) + '%.';
+  } else {
+    tail = ' Every row came out at zero, so check the watts and hours you entered.';
+  }
+  showStatus('ecc-status', 'Done. ' + cur + fmt(tot.costPer) + ' per period, ' + cur + fmt(tot.costYear) + ' a year.' + tail, 'success');
 }
 function rateInputsValid() {
   var rate = num(document.getElementById('ecc-rate').value);
@@ -292,7 +299,7 @@ function computeItems() {
 function copySummary() {
   if (!rateInputsValid()) return;
   var c = computeItems();
-  if (!c.items.length) { showStatus('ecc-status', 'Add at least one appliance to calculate.', 'error'); return; }
+  if (!c.items.length) { showStatus('ecc-status', 'Add an appliance with watts and hours, then Calculate.', 'info'); return; }
   var lines = ['Electricity cost summary', 'Rate: ' + c.cur + c.rate + ' per kWh, ' + Math.round(c.days) + ' days per period', ''];
   c.items.forEach(function (o) {
     lines.push(o.label + ': ' + o.watts + ' W x ' + o.hours + ' h x ' + o.qty + ' = ' + fmt(o.kwhDay) + ' kWh/day, ' + c.cur + fmt(o.costPer) + ' per period, ' + c.cur + fmt(o.costYear) + '/year');
@@ -316,7 +323,7 @@ function doCopy(text) {
 function exportCsv() {
   if (!rateInputsValid()) return;
   var c = computeItems();
-  if (!c.items.length) { showStatus('ecc-status', 'Add at least one appliance to calculate.', 'error'); return; }
+  if (!c.items.length) { showStatus('ecc-status', 'Add an appliance with watts and hours, then Calculate.', 'info'); return; }
   var total = { kwhPer: 0, costPer: 0 };
   c.items.forEach(function (o) { total.kwhPer += o.kwhPer; total.costPer += o.costPer; });
   var lines = [['appliance', 'watts', 'hours_per_day', 'quantity', 'kwh_per_day', 'kwh_per_period', 'cost_per_period_at' + c.rate + 'per_kwh', 'cost_per_year']];
