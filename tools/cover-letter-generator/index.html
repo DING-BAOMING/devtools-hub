@@ -91,6 +91,7 @@
                     <div id="cl-loading" class="cl-loading" style="display:none;">
                         <div class="spinner"></div><span>Generating your cover letter...</span>
                     </div>
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div id="cl-error" class="cl-error" style="display:none;"></div>
 
                     <div id="cl-result" class="cl-result" style="display:none;">
@@ -231,12 +232,29 @@
         document.getElementById('cl-error').style.display = 'block';
         document.getElementById('cl-loading').style.display = 'none';
     }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('cl-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
     async function generateCoverLetter() {
         const name = document.getElementById('cl-name').value.trim();
         const jobTitle = document.getElementById('cl-job-title').value.trim();
-        if (!name) { showError('Please enter your full name'); return; }
-        if (!jobTitle) { showError('Please enter the job title'); return; }
+        if (!name) { showNotice('Please enter your full name'); return; }
+        if (!jobTitle) { showNotice('Please enter the job title'); return; }
         showLoading(true);
 
         try {

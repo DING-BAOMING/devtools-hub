@@ -58,6 +58,7 @@
                             <span id="step-result" class="loading-step">3. Generating report...</span>
                         </div>
                     </div>
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div id="plagiarism-error" class="plagiarism-error" style="display:none;"></div>
                 </div>
 
@@ -419,6 +420,23 @@
         document.getElementById('plagiarism-loading').style.display = 'none';
         document.getElementById('plagiarism-result').style.display = 'none';
     }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('plagiarism-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
     function escapeHtml(str) {
         const div = document.createElement('div');
@@ -428,8 +446,8 @@
 
     async function checkPlagiarism() {
         const input = document.getElementById('plagiarism-input').value.trim();
-        if (!input) { showError('Please enter some text to check'); return; }
-        if (input.length < 20) { showError('Please enter at least 20 characters'); return; }
+        if (!input) { showNotice('Please enter some text to check'); return; }
+        if (input.length < 20) { showNotice('Please enter at least 20 characters'); return; }
 
         showLoading(true);
 

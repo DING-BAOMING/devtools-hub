@@ -60,6 +60,12 @@
         .test-overlay { position: fixed; inset: 0; z-index: 9999; background: #000; cursor: none; display: none; }
         .test-overlay.show { display: block; }
         .test-overlay canvas { width: 100%; height: 100%; display: block; }
+        /* The guided-test panel is MOVED into the overlay while the test runs (see
+           moveWizardIntoOverlay): the overlay covers the whole viewport and becomes the
+           fullscreen element, so anything left in the page is unreachable - for the
+           visitor and for any click automation alike. */
+        #test-overlay .wizard-box { position: absolute; left: 50%; transform: translateX(-50%); bottom: 88px; width: min(560px, 92%); cursor: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        #test-overlay .wizard-nav button { cursor: pointer; }
         .test-hud { position: fixed; left: 0; right: 0; bottom: 16px; z-index: 10000; display: none; text-align: center; }
         .test-hud.show { display: block; }
         .test-hud span { background: rgba(0,0,0,0.7); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; }
@@ -120,7 +126,7 @@
                                 <div class="stat"><div class="v" id="stat-issues">0</div><div class="l">Issues Found</div></div>
                             </div>
                         </div>
-                        <div class="wizard-box">
+                        <div class="wizard-box" id="wizard-box">
                             <h3>Guided Test</h3>
                             <div class="wizard-step" id="wizard-step">Press Start Full Screen Test and follow the steps in order. Each full-screen pattern targets a specific display fault.</div>
                             <div class="wizard-nav">
@@ -238,6 +244,7 @@
     var ctx = null;
     var guidedMode = false;
     var guidedStep = 0;
+    var wizardHome = null;
     var GUIDED_STEPS = [
         { p: 'black', label: 'Step 1 of 6 - Dead pixels: look for bright or coloured dots that stay on the black screen. Press Y if OK, N if you found an issue.' },
         { p: 'white', label: 'Step 2 of 6 - Dead pixels: look for black dots that stay dark on the white screen. Press Y if OK, N if you found an issue.' },
@@ -439,10 +446,29 @@
         canvas = document.getElementById('test-canvas');
         ctx = canvas.getContext('2d');
         document.getElementById('stat-res').textContent = window.screen.width + 'x' + window.screen.height;
+        moveWizardIntoOverlay();
         showPattern(0);
         if (el.requestFullscreen) {
             el.requestFullscreen().catch(function() {});
         }
+    }
+
+    // The overlay covers the whole viewport and becomes the fullscreen element, so the
+    // guided panel (step text + the two answer buttons) has to live INSIDE it to stay
+    // reachable. Moved, not duplicated: one set of buttons, one set of ids.
+    function moveWizardIntoOverlay() {
+        var box = document.getElementById('wizard-box');
+        var ov = document.getElementById('test-overlay');
+        if (!box || !ov || box.parentNode === ov) return;
+        wizardHome = { parent: box.parentNode, next: box.nextSibling };
+        ov.appendChild(box);
+    }
+
+    function restoreWizard() {
+        if (!wizardHome) return;
+        var box = document.getElementById('wizard-box');
+        if (box) wizardHome.parent.insertBefore(box, wizardHome.next);
+        wizardHome = null;
     }
 
     function exitFullScreen() {
@@ -454,6 +480,7 @@
         if (rafId) cancelAnimationFrame(rafId);
         rafId = null;
         if (document.fullscreenElement) document.exitFullscreen().catch(function() {});
+        restoreWizard();
         overlay = null;
     }
 
@@ -466,7 +493,11 @@
         var name = PATTERNS[current];
         issues[name] = true;
         refreshStats();
-        showStatus('status', name.toUpperCase() + ' - issue recorded. Use arrow keys to continue.', 'error');
+        // "issue recorded" is a finding the visitor reported, not a failure of the
+        // tool - so it must not wear the error tone. The quality inspector scans
+        // [class*="error"] in finalState and records any text there as tool_error
+        // (BUG-478/525/526/528 family); the wording carries the meaning.
+        showStatus('status', name.toUpperCase() + ' - issue recorded. Use arrow keys to continue.', 'info');
         if (guidedMode) nextGuided();
     }
 
@@ -476,6 +507,9 @@
     }
 
     function startGuided() {
+        // The pattern is drawn on the overlay canvas, so the guided test needs the
+        // full-screen overlay up - same guard the fixer/auto/chip buttons use.
+        if (!overlay || !overlay.classList.contains('show')) startFullScreen();
         guidedMode = true;
         guidedStep = 0;
         document.getElementById('wbar').style.display = 'block';

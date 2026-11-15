@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from '../../libs/http.js';
 // Cloudflare Pages Function: AI Video Generator (text-to-video / image-to-video)
 // POST /api/text-to-video   { action: "create"|"poll", ... }
 // KV-stored job in FEEDBACK_KV with prefix "t2v:" (reuses the same global
@@ -28,16 +29,6 @@ class AgnesError extends Error {
     super(msg);
     this.status = status;
     this.retryAfter = retryAfter;
-  }
-}
-
-async function fetchWithTimeout(url, opts = {}, ms = FETCH_TIMEOUT_MS) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort('timeout'), ms);
-  try {
-    return await fetch(url, { ...opts, signal: ctl.signal });
-  } finally {
-    clearTimeout(timer);
   }
 }
 

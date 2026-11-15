@@ -1,6 +1,8 @@
 // Cloudflare Pages Function: /whats-new/ - lists recently added tools + recent changelog
 // Replaces the SPA fallback to old index.html (BUG-273-style fix: any unmatched URL returns the
 // old static index.html with no content). Provides useful content for users and AI crawlers.
+import { loadManifest } from '../libs/manifest.js';
+
 export async function onRequest(context) {
   const cache = caches.default;
   const url = new URL(context.request.url);
@@ -14,25 +16,10 @@ export async function onRequest(context) {
 
   let tools = [];
   try {
-    const mr = await assets.fetch(new URL('/manifest.txt?cb=' + Date.now(), baseUrl));
-    if (mr.ok) {
-      const manifest = await mr.text();
-      for (const line of manifest.split('\n')) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('#')) continue;
-        const p = trimmed.split('|');
-        if (p.length < 6) continue;
-        tools.push({
-          slug: p[0].trim(),
-          category: (p[1] || 'other').trim(),
-          featured: p[2] === 'yes',
-          isnew: p[3] === 'yes',
-          name: (p[4] || '').trim(),
-          desc: (p[5] || '').trim(),
-          tags: (p[6] || '').split(',').map(s => s.trim()).filter(Boolean)
-        });
-      }
-    }
+    // BUG-513: one manifest parser for every reader (libs/manifest.js). This copy used to
+    // compare the featured/isnew flags without trimming them, so it could disagree with
+    // the homepage about which tools are featured.
+    tools = await loadManifest(assets, baseUrl);
   } catch (e) {}
 
   // Newest tools by manifest order (assumes chronological append order)
@@ -158,7 +145,7 @@ export async function onRequest(context) {
     '' +
     '</body></html>';
 
-  const response = new Response(html, {
+  const response = new Response(context.request.method === 'HEAD' ? null : html, {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'public, max-age=300',
@@ -169,6 +156,9 @@ export async function onRequest(context) {
       'Permissions-Policy': 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()'
     }
   });
-  await cache.put(cacheKey, response.clone());
+  // BUG-491: a HEAD request must not be written to the Cache API — Cache.put() throws
+  // on anything but GET, and that throw became a 500 for every HEAD on /whats-new/
+  // (GET was fine, so only crawlers that probe with HEAD saw the failure).
+  if (context.request.method !== 'HEAD') await cache.put(cacheKey, response.clone());
   return response;
 }

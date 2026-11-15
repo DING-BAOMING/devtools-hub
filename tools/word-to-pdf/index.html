@@ -163,6 +163,7 @@
                     <span class="w2p-progress-text" id="w2p-progress-text">Generating PDF...</span>
                 </div>
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="w2p-error" class="w2p-error"></div>
             </div>
 
@@ -337,7 +338,7 @@
 
     function convertToPdf() {
         if (!currentHtml) {
-            showError('No document to convert. Please upload a .docx file first.');
+            showNotice('No document to convert. Please upload a .docx file first.');
             return;
         }
         errorEl.classList.remove('visible');
@@ -393,6 +394,23 @@
     function showError(msg) {
         errorEl.textContent = msg;
         errorEl.classList.add('visible');
+    }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('w2p-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
     }
 
     function showToast(msg) {

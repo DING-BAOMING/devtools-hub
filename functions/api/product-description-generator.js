@@ -1,4 +1,5 @@
 import { resolveModelId } from '../../libs/ai-provider.js';
+import { fetchWithTimeout, extractJson, getLanguageName } from '../../libs/http.js';
 /**
  * Product Description Generator API
  * Single AI call generates descriptions for 5 e-commerce platforms + SEO data + JSON-LD schema
@@ -47,16 +48,6 @@ const PROVIDERS = [
     envKey: 'DEVTOOLS_NVIDIA_KEY_1'
   }
 ];
-
-async function fetchWithTimeout(url, opts = {}, ms = 60000) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort('timeout'), ms);
-  try {
-    return await fetch(url, { ...opts, signal: ctl.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 async function callAI(env, messages, maxTokens) {
   const errors = [];
@@ -157,15 +148,6 @@ async function maybeHumanizeResult(env, result) {
   }
 }
 
-function getLanguageName(code) {
-  const map = {
-    en: 'English', es: 'Spanish', pt: 'Portuguese', fr: 'French', de: 'German',
-    it: 'Italian', ja: 'Japanese', ko: 'Korean', zh: 'Chinese (Simplified)',
-    hi: 'Hindi', ar: 'Arabic', ru: 'Russian'
-  };
-  return map[code] || 'English';
-}
-
 function buildSystemPrompt(voice, language, includeKeywords, includeFaq, includeProductSchema, brand) {
   const langName = getLanguageName(language);
   const voiceGuides = {
@@ -239,20 +221,6 @@ function buildUserPrompt(input) {
   lines.push('');
   lines.push('Generate all 5 platform descriptions plus SEO data. Stay within every character limit. Return only the JSON.');
   return lines.join('\n');
-}
-
-function extractJson(text) {
-  let cleaned = (text || '').trim();
-  if (cleaned.startsWith('```')) {
-    const m = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (m) cleaned = m[1];
-  }
-  const first = cleaned.indexOf('{');
-  const last = cleaned.lastIndexOf('}');
-  if (first !== -1 && last !== -1 && last > first) {
-    cleaned = cleaned.substring(first, last + 1);
-  }
-  return JSON.parse(cleaned);
 }
 
 function truncate(text, max) {

@@ -1,0 +1,55 @@
+name: Gate list
+
+# The gate list runs here, on GitHub's own runner, and nowhere else.
+#
+# Why here: the gates used to live in a local docs repo and could only be run by
+# the machine that owned it. That made "the gates are green" a claim nobody
+# outside that machine could check. Now the list is a file in this repository
+# (scripts/gates.json), the runner is GitHub's, and the result is a check that
+# shows up on the pull request.
+#
+# What it does:
+#   1. verifies the gate manifest: the sha256 fingerprint over the gate FILES
+#      must match scripts/gates.json, and scripts/gates.sig must be the site
+#      owner's signature over that fingerprint. Edit one assertion in one gate
+#      without re-stamping the manifest -> this job goes red.
+#   2. runs every gate in the list and fails if any of them fails.
+#
+# It never deploys. Deploying is Cloudflare's job (the Pages Git integration
+# builds main); this job only says yes or no.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+# One gate run at a time per branch: a newer push makes an older run pointless.
+concurrency:
+  group: gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    name: gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v4
+        with:
+          # bug451-lastmod-honesty-gate.js reads the commit dates of the tool
+          # files out of git history, so a shallow checkout would make it
+          # measure the wrong thing.
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify the gate list and run every gate
+        run: node scripts/verify-gates.js

@@ -1,0 +1,180 @@
+name: Production health
+
+# The alarm for "the live site is broken", built entirely out of GitHub's own
+# pieces: a scheduled run, the repository's own GITHUB_TOKEN, and Issues.
+#
+# Why here and not on a machine of ours: GitHub runs it whether the machine is
+# awake, asleep or unplugged; it keeps a readable run history; it needs no new
+# secret (GITHUB_TOKEN is issued automatically); and it survives us forgetting
+# to set a timer.
+#
+# What it does:
+#   1. runs scripts/health-check.sh, which only GETs the production domain
+#   2. if that is green -> closes the open health-alert Issue (if there is one)
+#   3. if that is red   -> opens a health-alert Issue, or comments on the open
+#                           one (never two Issues for one outage)
+#
+# It does NOT roll anything back. Rolling back needs the Cloudflare deploy
+# token, and that token must never live on GitHub's side. The Issue is what
+# wakes a human or an AI session up; that session runs scripts/rollback.sh
+# locally, where the token already is.
+
+on:
+  schedule:
+    # 07 minutes past every third hour. GitHub queues scheduled runs, so the
+    # exact minute does not matter much; an off-the-hour minute avoids the
+    # busiest moment.
+    - cron: '7 */3 * * *'
+  workflow_dispatch:
+
+# The Issue needs write access; everything else stays read-only.
+permissions:
+  contents: read
+  issues: write
+
+# One alarm at a time: if a run is still going, the next one waits.
+concurrency:
+  group: production-health
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Health check the live site
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the site
+        uses: actions/checkout@v4
+
+      - name: Run the health check
+        id: health
+        # continue-on-error so the alarm step below still runs when the site
+        # is red. The run is marked failed at the end of the alarm step, so a
+        # red site still shows up as a red run.
+        continue-on-error: true
+        run: |
+          rc=0
+          bash scripts/health-check.sh > /tmp/health.log 2>&1 || rc=$?
+          tail -60 /tmp/health.log
+          {
+            echo "log<<HEALTH_EOF"
+            cat /tmp/health.log
+            echo "HEALTH_EOF"
+          } >> "$GITHUB_OUTPUT"
+          exit $rc
+
+      - name: Raise or clear the alarm
+        uses: actions/github-script@v7
+        env:
+          HEALTH_LOG: ${{ steps.health.outputs.log }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const LABEL = 'health-alert';
+            // "failure" means the health check ran and found something red.
+            // "skipped" means it never ran (e.g. checkout failed); the run is
+            // already red in that case, so no Issue is needed on top of it.
+            const failed = '${{ steps.health.outcome }}' === 'failure';
+            const log = (process.env.HEALTH_LOG || '').slice(0, 60000);
+
+            // The Issues list endpoint caches for a few seconds, so a list
+            // answer is never trusted on its own: every candidate is re-read
+            // directly before it is used.
+            const findOpenAlarms = async () => {
+              const found = [];
+              const list = await github.paginate(github.rest.issues.listForRepo, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                per_page: 100,
+              });
+              for (const i of list) {
+                if (i.pull_request) continue;
+                const names = (i.labels || []).map((l) => (typeof l === 'string' ? l : l.name));
+                if (!names.includes(LABEL)) continue;
+                const fresh = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: i.number,
+                });
+                if (fresh.data.state === 'open') found.push(fresh.data);
+              }
+              return found;
+            };
+
+            const open = await findOpenAlarms();
+
+            if (!failed) {
+              for (const i of open) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: i.number,
+                  body: 'The health check is green again. Closing this alarm.',
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: i.number,
+                  state: 'closed',
+                });
+              }
+              core.info(open.length ? `closed ${open.length} alarm issue(s)` : 'nothing to close');
+              return;
+            }
+
+            const body = [
+              'The production health check is red.',
+              '',
+              'What to do:',
+              '- `bash scripts/health-check.sh` locally, to see which URL is red',
+              '- `bash scripts/rollback.sh --list`, to see the deployments',
+              '- `bash scripts/rollback.sh`, to roll back to the last good one',
+              '',
+              'This Issue closes itself when the health check is green again.',
+              '',
+              '<details><summary>health-check output</summary>',
+              '',
+              '```',
+              log,
+              '```',
+              '',
+              '</details>',
+            ].join('\n');
+
+            if (open.length) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: open[0].number,
+                body: 'Still red.\n\n' + body,
+              });
+              core.info(`commented on the open alarm issue #${open[0].number}`);
+            } else {
+              // Nothing open yet, but a freshly created Issue can take a few
+              // seconds to show up in the list. Look again before opening a
+              // second Issue for one outage.
+              await new Promise((r) => setTimeout(r, 15000));
+              const again = await findOpenAlarms();
+              if (again.length) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: again[0].number,
+                  body: 'Still red.\n\n' + body,
+                });
+                core.info(`commented on the open alarm issue #${again[0].number}`);
+              } else {
+                const created = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: 'The live site is failing the health check',
+                  labels: [LABEL],
+                  body,
+                });
+                core.info(`opened alarm issue #${created.data.number}`);
+              }
+            }
+
+            // A red site must show up as a red run, not a green one.
+            core.setFailed('the production health check failed');

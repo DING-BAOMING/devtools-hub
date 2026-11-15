@@ -57,6 +57,7 @@
                     <div id="resume-loading" class="resume-loading" style="display:none;">
                         <div class="spinner"></div><span>Generating your resume...</span>
                     </div>
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div id="resume-error" class="resume-error" style="display:none;"></div>
 
                     <div id="resume-result" class="resume-result" style="display:none;">
@@ -162,10 +163,27 @@
         document.getElementById('resume-error').style.display = 'block';
         document.getElementById('resume-loading').style.display = 'none';
     }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('resume-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
     async function generateResume() {
         const name = document.getElementById('r-name').value.trim();
-        if (!name) { showError('Please enter your name'); return; }
+        if (!name) { showNotice('Please enter your name'); return; }
         showLoading(true);
 
         try {

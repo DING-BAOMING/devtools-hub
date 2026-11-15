@@ -112,6 +112,8 @@
         .pv-geo { background: #12263a; border: 1px solid #1d3a55; border-left: 3px solid #38bdf8; border-radius: 8px; padding: 12px 14px; margin-top: 16px; font-size: 0.85rem; line-height: 1.55; color: #b8c6d4; }
         .pv-geo b { color: #fff; }
         .pv-note { font-size: 0.75rem; color: var(--pv-muted); text-align: center; margin-top: 12px; }
+    /* BUG-532: benign precondition notice — neutral tone, same geometry as the base class. */
+    .pv-status.info { background: rgba(102,126,234,0.15); color: #7eb3ff; border-color: #667eea; }
     </style>
 </head>
 <body>
@@ -671,7 +673,7 @@
 
         function computeZ() {
             var mean = num($('pv-z-mean').value), sigma = num($('pv-z-sigma').value), n = num($('pv-z-n').value), mu = num($('pv-z-mu').value);
-            if ([mean, sigma, n, mu].some(function(x) { return isNaN(x); })) { setStatus('Fill in all four Z-test fields first.', 'error'); return; }
+            if ([mean, sigma, n, mu].some(function(x) { return isNaN(x); })) { setStatus('Fill in all four Z-test fields first.', 'info'); return; }
             if (sigma <= 0 || n <= 0 || !Number.isInteger(n)) { setStatus('Sigma must be positive and n a positive whole number.', 'error'); return; }
             var se = sigma / Math.sqrt(n);
             var z = (mean - mu) / se;
@@ -696,7 +698,7 @@
             var stat, df, se, label;
             if (mode === 'one') {
                 var mean = num($('pv-t1-mean').value), sd = num($('pv-t1-sd').value), n = num($('pv-t1-n').value), mu = num($('pv-t1-mu').value);
-                if ([mean, sd, n, mu].some(function(x) { return isNaN(x); })) { setStatus('Fill in all four one-sample fields first.', 'error'); return; }
+                if ([mean, sd, n, mu].some(function(x) { return isNaN(x); })) { setStatus('Fill in all four one-sample fields first.', 'info'); return; }
                 if (sd <= 0 || n <= 1) { setStatus('SD must be positive and n \u2265 2.', 'error'); return; }
                 se = sd / Math.sqrt(n);
                 stat = (mean - mu) / se;
@@ -705,7 +707,7 @@
             } else if (mode === 'two') {
                 var m1 = num($('pv-t2-m1').value), s1 = num($('pv-t2-s1').value), n1 = num($('pv-t2-n1').value);
                 var m2 = num($('pv-t2-m2').value), s2 = num($('pv-t2-s2').value), n2 = num($('pv-t2-n2').value);
-                if ([m1, s1, n1, m2, s2, n2].some(function(x) { return isNaN(x); })) { setStatus('Fill in all six two-sample fields first.', 'error'); return; }
+                if ([m1, s1, n1, m2, s2, n2].some(function(x) { return isNaN(x); })) { setStatus('Fill in all six two-sample fields first.', 'info'); return; }
                 if (s1 <= 0 || s2 <= 0 || n1 <= 1 || n2 <= 1) { setStatus('SDs must be positive and both n \u2265 2.', 'error'); return; }
                 if ($('pv-t2-pooled').checked) {
                     var sp2 = ((n1 - 1) * s1 * s1 + (n2 - 1) * s2 * s2) / (n1 + n2 - 2);
@@ -721,7 +723,7 @@
                 if (!isFinite(df) || df <= 0) { setStatus('Could not compute degrees of freedom for this data.', 'error'); return; }
             } else {
                 var d = num($('pv-tp-diff').value), sd = num($('pv-tp-sd').value), n = num($('pv-tp-n').value);
-                if ([d, sd, n].some(function(x) { return isNaN(x); })) { setStatus('Fill in all three paired fields first.', 'error'); return; }
+                if ([d, sd, n].some(function(x) { return isNaN(x); })) { setStatus('Fill in all three paired fields first.', 'info'); return; }
                 if (sd <= 0 || n <= 1) { setStatus('SD must be positive and n \u2265 2.', 'error'); return; }
                 se = sd / Math.sqrt(n);
                 stat = d / se;
@@ -744,7 +746,7 @@
 
         function computeChi() {
             var obs = parseList($('pv-chi-obs').value);
-            if (obs.length < 2) { setStatus('Enter at least two observed counts.', 'error'); return; }
+            if (obs.length < 2) { setStatus('Enter at least two observed counts.', 'info'); return; }
             if (obs.some(function(x) { return x < 0; })) { setStatus('Observed counts cannot be negative.', 'error'); return; }
             var total = obs.reduce(function(a, b) { return a + b; }, 0);
             var expRaw = parseList($('pv-chi-exp').value);
@@ -819,7 +821,7 @@
         function computeCI() {
             var mean = num($('pv-ci-mean').value), sd = num($('pv-ci-sd').value), n = num($('pv-ci-n').value);
             var level = num($('pv-ci-level').value);
-            if ([mean, sd, n].some(function(x) { return isNaN(x); })) { setStatus('Fill in mean, SD and sample size.', 'error'); return; }
+            if ([mean, sd, n].some(function(x) { return isNaN(x); })) { setStatus('Fill in mean, SD and sample size.', 'info'); return; }
             if (sd <= 0 || n <= 1) { setStatus('SD must be positive and n \u2265 2.', 'error'); return; }
             var se = sd / Math.sqrt(n);
             var alpha = 1 - level;

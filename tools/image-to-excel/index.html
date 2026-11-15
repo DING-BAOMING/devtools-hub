@@ -25,7 +25,7 @@
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "datePublished": "2026-09-05",
-        "dateModified": "2026-09-05",
+        "dateModified": "2026-11-10",
         "author": {"@type": "Person", "name": "BAOMING"},
         "name": "Image to Excel Converter - Free JPG PNG to XLSX Online",
         "description": "Free image to Excel converter. Convert JPG, PNG, WebP, HEIC photos, scanned tables and screenshots to editable XLSX. Auto-detect rows and columns.",
@@ -172,6 +172,7 @@
                     <input type="file" id="fileInput" accept="image/*,.heic,.heif,.tiff,.tif,.bmp" multiple hidden aria-label="Image file input">
                 </div>
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="errorBox" class="ie-error"></div>
 
                 <div id="thumbStrip" class="ie-thumb-strip"></div>
@@ -324,6 +325,18 @@
                     <li><strong>100% private</strong> - no upload, no signup, no daily limit, no watermark.</li>
                 </ul>
 
+                <h2>Getting a clean spreadsheet out of a table photo</h2>
+                <p>The OCR does the reading; the photo decides how well it can be read. These are the factors that decide the quality of the extracted table.</p>
+                <ul>
+                <li><strong>Shoot straight on.</strong> Perspective distortion is the number one cause of shifted columns: a phone held above the page makes rows that look aligned in the picture land in different cells. Flatten the phone over the table.</li>
+                <li><strong>Resolution matters more than megapixels.</strong> Around 300 DPI is the practical threshold. Below roughly 150 DPI the shapes of 0/O, 1/l/I and 5/S get confused, which is where most "wrong numbers" come from.</li>
+                <li><strong>Grayscale and high contrast beat colour.</strong> A red pen on white paper is often the easiest table to read, while a pale blue print on a beige background is the hardest.</li>
+                <li><strong>Merged cells and multi-row headers are the hard part.</strong> Row and column detection handles regular grids; a table whose header spans three columns is where the structure breaks down, and those need a manual check afterwards.</li>
+                <li><strong>Watch the decimal separators.</strong> A European table writes 1.234,56 where an English one writes 1,234.56. The converter reads glyphs, not locale, so check the numbers against the source.</li>
+                <li><strong>Screenshots of terminals OCR worse than print.</strong> Monospaced fonts, low contrast and thin strokes are all near the resolution limit.</li>
+                <li><strong>Always spot-check.</strong> Verify the totals and a few cells against the original before the sheet goes into a spreadsheet you base a decision on.</li>
+                </ul>
+
                 <h2>Frequently Asked Questions</h2>
                 <details class="faq-item">
                     <summary>Will my image be uploaded to a server?</summary>
@@ -410,6 +423,23 @@
             errorBox.textContent = msg;
             errorBox.classList.add('visible');
         }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('errorBox');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
         function clearError() {
             errorBox.textContent = '';
             errorBox.classList.remove('visible');
@@ -960,7 +990,7 @@
         async function regenerateFromEditedTable() {
             var data = readTableFromUI();
             if (data.grid.length === 0) {
-                showError('No data to regenerate.');
+                showNotice('No data to regenerate.');
                 return;
             }
             clearError();

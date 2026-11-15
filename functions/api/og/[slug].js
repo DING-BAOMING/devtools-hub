@@ -5,8 +5,12 @@
 // ponytail: SVG, not PNG — the 5-15 KB response is cheap to cache and free of canvas
 // dependencies; modern social platforms (LinkedIn, Slack, Discord, Telegram, iMessage)
 // render SVG OG images, and platforms that don't (Twitter, Facebook) fall back to /og-image.png.
+import { parseManifest } from '../../../libs/manifest.js';
 
-function esc(s){return String(s||'').replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"');}
+// XML-escape for the SVG text nodes. This used to be a no-op (each replace mapped a
+// character to itself), so any tool name or description containing &, < or > would
+// produce invalid XML and a broken social card.
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function wrapLines(s,maxLen,maxLines){
   const words=String(s||'').split(/\s+/);
   const lines=[];let cur='';
@@ -19,17 +23,15 @@ function wrapLines(s,maxLen,maxLines){
   if(lines.length<maxLines)lines.push(cur.trim());
   return lines;
 }
+// BUG-513: one manifest parser for every reader (libs/manifest.js). This file used
+// to carry its own copy of the row contract.
 async function loadManifest(assets,baseUrl){
   try{
     const mr=await assets.fetch(new URL('/manifest.txt?cb='+Date.now(),baseUrl));
     if(!mr.ok)return {};
-    const text=await mr.text();
     const tools={};
-    for(const line of text.split('\n')){
-      const t=line.trim();if(!t||t.startsWith('#'))continue;
-      const p=t.split('|');if(p.length<6)continue;
-      const [slug,cat,,,name,desc]=p;
-      if(slug)tools[slug.trim()]={category:cat.trim(),name:name.trim(),desc:desc.trim()};
+    for(const t of parseManifest(await mr.text())){
+      if(t.slug)tools[t.slug]={category:t.category,name:t.name,desc:t.desc};
     }
     return tools;
   }catch{return{};}
@@ -64,7 +66,10 @@ const CAT_LABEL={
 
 export async function onRequest(context){
   const url=new URL(context.request.url);
-  const slug=(context.params.slug||'').toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,80);
+  // The route param keeps the ".svg" suffix (/api/og/<slug>.svg), so the manifest
+  // lookup missed every tool and every card fell back to the generic one — with the
+  // suffix still glued to the title ("Json Formattersvg"). Strip it first.
+  const slug=(context.params.slug||'').toLowerCase().replace(/\.svg$/,'').replace(/[^a-z0-9-]/g,'').slice(0,80);
   if(!slug)return new Response('Missing slug',{status:400});
 
   const cache=context.caches?.default;

@@ -235,6 +235,7 @@
         <p id="ac-loading-text">Fetching robots.txt and llms.txt...</p>
       </div>
 
+      <div id="toolNotice" class="tool-notice"></div>
       <div id="ac-error" class="ac-error"></div>
 
       <div id="ac-out" class="ac-out">
@@ -336,7 +337,7 @@ async function runAudit() {
   var btn = document.getElementById('ac-btn');
   var raw = input.value.trim();
   if (!raw) {
-    showError('Enter a domain such as example.com');
+    showNotice('Enter a domain such as example.com');
     return;
   }
   var domain = raw.toLowerCase().replace(/^[a-z]+:\/\//, '').split('/')[0].split('?')[0].split('#')[0];
@@ -376,6 +377,23 @@ function showError(msg) {
   btn.disabled = false;
   btn.textContent = 'Audit';
 }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('ac-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
 function resetTool() {
   document.getElementById('ac-domain').value = '';

@@ -3,6 +3,7 @@
 // Endpoints: POST /api/youtube-tag-generator (action=tags|hashtags, default tags)
 
 import { discoverChatModels } from '../../libs/ai-provider.js';
+import { extractJson } from '../../libs/http.js';
 
 const TAG_SYSTEM_PROMPT = `You are a YouTube SEO expert who generates highly targeted tags for videos. You output ONLY structured JSON, never explanations.`;
 
@@ -176,20 +177,6 @@ Return ONLY a JSON object with one key: "hashtags" containing an array of exactl
 - Mix of broad trending hashtags (#shorts, #viral, #trending) with niche-specific ones
 - Relevant to the topic
 - Output ONLY valid JSON, no markdown, no explanations`;
-}
-
-function extractJson(text) {
-  let cleaned = text.trim();
-  if (cleaned.startsWith('```')) {
-    const match = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (match) cleaned = match[1];
-  }
-  const firstBrace = cleaned.indexOf('{');
-  const lastBrace = cleaned.lastIndexOf('}');
-  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    cleaned = cleaned.substring(firstBrace, lastBrace + 1);
-  }
-  return JSON.parse(cleaned);
 }
 
 function fallbackGenerateTags(topic, niche, perCategory) {

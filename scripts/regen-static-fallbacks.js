@@ -73,11 +73,19 @@ const slugs = manifest
 if (slugs.length < 10) throw new Error('manifest parsed to only ' + slugs.length + ' slugs');
 const last = slugs[slugs.length - 1];
 
+// Which outputs to regenerate. Default: all three. `node scripts/regen-static-fallbacks.js sitemap`
+// regenerates ONLY sitemap.xml — needed by the publish path, which must refresh the sitemap's
+// tool <lastmod> from the freshly computed tool-dates.json but must NOT touch llms.txt /
+// llms-full.txt: those carry a "Last updated: <today>" stamp, so regenerating them on every
+// publish would make the published tree change every single day (a deployment per day for
+// no content change). BUG-469.
+const WANT = process.argv.slice(2);
 const jobs = [
   ['functions/sitemap.xml.js', 'sitemap.xml'],
   ['functions/llms.txt.js', 'llms.txt'],
   ['functions/llms-full.txt.js', 'llms-full.txt'],
-];
+].filter(([, out]) => WANT.length === 0 || WANT.includes(out) || WANT.includes(out.replace(/\.xml$/, '')));
+if (!jobs.length) throw new Error('nothing to regenerate: ' + WANT.join(', '));
 
 const outputs = {};
 for (const [fn, out] of jobs) {
@@ -90,13 +98,20 @@ for (const [fn, out] of jobs) {
   console.log('[regen] ' + out + ': ' + body.length + ' bytes');
 }
 
-const locs = new Set([...outputs['sitemap.xml'].matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]));
-const toolCount = [...locs].filter((u) => /\/tools\/[a-z0-9-]+\/?$/.test(u)).length;
-if (toolCount < slugs.length) {
-  throw new Error('sitemap has ' + toolCount + ' /tool/ URLs, manifest has ' + slugs.length);
+let summary = slugs.length + ' tools in manifest';
+if (outputs['sitemap.xml']) {
+  const locs = new Set([...outputs['sitemap.xml'].matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]));
+  const toolCount = [...locs].filter((u) => /\/tools\/[a-z0-9-]+\/?$/.test(u)).length;
+  if (toolCount < slugs.length) {
+    throw new Error('sitemap has ' + toolCount + ' /tool/ URLs, manifest has ' + slugs.length);
+  }
+  summary += ', sitemap ' + locs.size + ' URLs';
 }
-const fullEntries = outputs['llms-full.txt'].split('\n').filter((l) => /\/tools\/[a-z0-9-]+\/\.md/.test(l)).length;
-if (fullEntries < slugs.length) {
-  throw new Error('llms-full.txt has ' + fullEntries + ' tool entries, manifest has ' + slugs.length);
+if (outputs['llms-full.txt']) {
+  const fullEntries = outputs['llms-full.txt'].split('\n').filter((l) => /\/tools\/[a-z0-9-]+\/\.md/.test(l)).length;
+  if (fullEntries < slugs.length) {
+    throw new Error('llms-full.txt has ' + fullEntries + ' tool entries, manifest has ' + slugs.length);
+  }
+  summary += ', llms-full ' + fullEntries + ' entries';
 }
-console.log('[regen] asserted: ' + slugs.length + ' tools in manifest, sitemap ' + locs.size + ' URLs, llms-full ' + fullEntries + ' entries, newest slug "' + last + '" present in all 3');
+console.log('[regen] asserted: ' + summary + ', newest slug "' + last + '" present in the regenerated output');

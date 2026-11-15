@@ -27,7 +27,7 @@
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "datePublished": "2026-10-02",
-        "dateModified": "2026-10-02",
+        "dateModified": "2026-11-13",
         "author": {"@id": "https://tools.scoreroute.com/#author", "@type": "Person", "name": "BAOMING", "url": "https://github.com/Evan-MJ", "sameAs": ["https://github.com/Evan-MJ", "https://github.com/Evan-MJ/devtools-hub"]},
         "publisher": {"@id": "https://tools.scoreroute.com/#organization", "@type": "Organization", "name": "DevTools Hub", "url": "https://tools.scoreroute.com/"},
         "name": "Graphing Calculator - Roots, Area & Fit | DevTools Hub",
@@ -874,9 +874,16 @@
 
             if (c.type === 'imp') {
                 var cols = Math.max(120, Math.min(900, Math.round(cv.width / 2)));
+                // Each column can hold several roots (the two halves of a circle).
+                // They are separate branches, so collect them per branch and stroke
+                // one polyline per branch. Drawing them into a single path joins the
+                // upper and the lower half with a vertical chord, which fills the
+                // curve in solid instead of outlining it.
+                var imPolys = [], imCur = [], imJump = 40 * DPR;
                 for (i = 0; i <= cols; i++) {
                     var xi = v.xmin + (v.xmax - v.xmin) * i / cols;
                     var Ylo = v.ymin, Yhi = v.ymax, stepsY = 420, dy = (Yhi - Ylo) / stepsY, hits = 0, py0 = null;
+                    var imRoots = [];
                     for (k = 0; k <= stepsY; k++) {
                         var yi = Ylo + dy * k;
                         var val = evalNode(c.ast, { x: xi, y: yi });
@@ -890,14 +897,33 @@
                             }
                             var yr = (lo + hi) / 2;
                             if (px(xi) >= -10 && px(xi) <= cv.width + 10 && py(yr) >= -10 && py(yr) <= cv.height + 10) {
-                                if (hits === 0) ctx.moveTo(px(xi), py(yr)); else ctx.lineTo(px(xi), py(yr));
+                                imRoots.push([px(xi), py(yr)]);
                                 hits++;
                             }
                             if (hits > 8) break;
                         }
                         py0 = ok ? val : null;
                     }
-                    if (hits > 1) ctx.stroke();
+                    for (var imB = 0; imB < imRoots.length; imB++) {
+                        var imBr = imCur[imB] || (imCur[imB] = []);
+                        var imLast = imBr.length ? imBr[imBr.length - 1] : null;
+                        // the branch jumped: the column roots belong to different
+                        // branches now, so start a new polyline instead of joining them
+                        if (imLast && Math.abs(imRoots[imB][1] - imLast[1]) > imJump) { imPolys.push(imBr); imBr = imCur[imB] = []; }
+                        imBr.push(imRoots[imB]);
+                    }
+                    for (var imB2 = imRoots.length; imB2 < imCur.length; imB2++) {
+                        if (imCur[imB2].length) { imPolys.push(imCur[imB2]); imCur[imB2] = []; }
+                    }
+                }
+                for (var imC = 0; imC < imCur.length; imC++) if (imCur[imC].length > 1) imPolys.push(imCur[imC]);
+                for (var imP = 0; imP < imPolys.length; imP++) {
+                    var imPoly = imPolys[imP];
+                    if (imPoly.length < 2) continue;
+                    ctx.beginPath();
+                    ctx.moveTo(imPoly[0][0], imPoly[0][1]);
+                    for (var imQ = 1; imQ < imPoly.length; imQ++) ctx.lineTo(imPoly[imQ][0], imPoly[imQ][1]);
+                    ctx.stroke();
                 }
             }
         }
@@ -1129,8 +1155,27 @@
             return n;
         }
 
+        function mkEl(tag, cls, text) {
+            var e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text !== undefined && text !== null) e.textContent = text;
+            return e;
+        }
+        // Cards are built as DOM nodes, never as HTML strings: user-typed
+        // expressions can then never reach an HTML sink.
         function card(k, v, sub) {
-            return '<div class="gc-card"><div class="gc-k">' + k + '</div><div class="gc-v">' + v + '</div>' + (sub ? '<div class="gc-s">' + sub + '</div>' : '') + '</div>';
+            var d = mkEl('div', 'gc-card');
+            d.appendChild(mkEl('div', 'gc-k', k));
+            d.appendChild(mkEl('div', 'gc-v', v));
+            if (sub) d.appendChild(mkEl('div', 'gc-s', sub));
+            return d;
+        }
+        function wideCard(title, list) {
+            var d = mkEl('div', 'gc-card');
+            d.style.gridColumn = '1/-1';
+            d.appendChild(mkEl('div', 'gc-k', title));
+            d.appendChild(list);
+            return d;
         }
 
         function pickFn(sel, which) {
@@ -1162,32 +1207,44 @@
 
                 state.marks = { roots: roots, ext: ext, inter: state.marks.inter };
 
-                var html = '';
-                html += card('Real roots in [' + fmt(a, 6) + ', ' + fmt(b, 6) + ']', roots.length ? roots.length + ' found' : 'none', roots.length ? 'x = ' + roots.slice(0, 3).map(function (r) { return fmt(r, 8); }).join(', ') + (roots.length > 3 ? ', …' : '') : 'no sign change of f across the range');
+                var frag = document.createDocumentFragment();
+                frag.appendChild(card('Real roots in [' + fmt(a, 6) + ', ' + fmt(b, 6) + ']', roots.length ? roots.length + ' found' : 'none', roots.length ? 'x = ' + roots.slice(0, 3).map(function (r) { return fmt(r, 8); }).join(', ') + (roots.length > 3 ? ', …' : '') : 'no sign change of f across the range'));
                 if (roots.length) {
-                    var lis = '';
+                    var ul = mkEl('ul', 'gc-list');
                     for (var i = 0; i < roots.length; i++) {
-                        lis += '<li><button type="button" data-x="' + roots[i] + '">x = ' + fmt(roots[i], 12) + '</button> &nbsp; y = ' + fmt(f(roots[i]), 8) + '</li>';
+                        var li = mkEl('li');
+                        var btn = mkEl('button', null, 'x = ' + fmt(roots[i], 12));
+                        btn.type = 'button';
+                        btn.setAttribute('data-x', roots[i]);
+                        li.appendChild(btn);
+                        li.appendChild(document.createTextNode('  y = ' + fmt(f(roots[i]), 8)));
+                        ul.appendChild(li);
                     }
-                    html += '<div class="gc-card" style="grid-column:1/-1"><div class="gc-k">Roots (x-intercepts)</div><ul class="gc-list">' + lis + '</ul></div>';
+                    frag.appendChild(wideCard('Roots (x-intercepts)', ul));
                 }
-                html += card('Turning points', ext.length ? ext.length + ' found' : 'none', ext.length ? ext.map(function (e) { return e.kind + ' at x = ' + fmt(e.x, 8); }).slice(0, 3).join(', ') : 'derivative never changes sign');
+                frag.appendChild(card('Turning points', ext.length ? ext.length + ' found' : 'none', ext.length ? ext.map(function (e) { return e.kind + ' at x = ' + fmt(e.x, 8); }).slice(0, 3).join(', ') : 'derivative never changes sign'));
                 if (ext.length) {
-                    var le = '';
+                    var ul2 = mkEl('ul', 'gc-list');
                     for (var j = 0; j < ext.length; j++) {
-                        le += '<li><button type="button" data-x="' + ext[j].x + '">' + ext[j].kind + '</button> at ' + fmtCoord(ext[j].x, ext[j].y) + '</li>';
+                        var li2 = mkEl('li');
+                        var b2 = mkEl('button', null, ext[j].kind);
+                        b2.type = 'button';
+                        b2.setAttribute('data-x', ext[j].x);
+                        li2.appendChild(b2);
+                        li2.appendChild(document.createTextNode(' at ' + fmtCoord(ext[j].x, ext[j].y)));
+                        ul2.appendChild(li2);
                     }
-                    html += '<div class="gc-card" style="grid-column:1/-1"><div class="gc-k">Local maxima &amp; minima</div><ul class="gc-list">' + le + '</ul></div>';
+                    frag.appendChild(wideCard('Local maxima & minima', ul2));
                 }
-                html += card('Definite integral', isFinite(intg) ? fmt(intg, 10) : 'undefined', '∫ f(x) dx from ' + fmt(a, 6) + ' to ' + fmt(b, 6) + ' (signed)');
+                frag.appendChild(card('Definite integral', isFinite(intg) ? fmt(intg, 10) : 'undefined', '∫ f(x) dx from ' + fmt(a, 6) + ' to ' + fmt(b, 6) + ' (signed)'));
                 if (isFinite(intg) && isImproper(f, a, b)) {
-                    html += card('Read this before you trust it', 'improper integral', 'f(x) is unbounded at or very near a bound. The value above is a numerical approximation that is good to about 4-5 significant digits, not the last digit you can see.');
+                    frag.appendChild(card('Read this before you trust it', 'improper integral', 'f(x) is unbounded at or very near a bound. The value above is a numerical approximation that is good to about 4-5 significant digits, not the last digit you can see.'));
                 }
-                html += card('Total area under curve', isFinite(absIntg) ? fmt(absIntg, 10) : 'undefined', '∫ |f(x)| dx over the same range');
-                html += card('Slope at x = ' + fmt(x0, 6), fmt(slope, 10), 'f′(' + fmt(x0, 6) + ') by central difference');
-                html += card('y-intercept', isFinite(y0) ? fmt(y0, 10) : 'undefined', 'f(0)');
-                html += card('Expression analysed', esc(name), 'searched over [' + fmt(a, 6) + ', ' + fmt(b, 6) + ']');
-                els.results.innerHTML = html;
+                frag.appendChild(card('Total area under curve', isFinite(absIntg) ? fmt(absIntg, 10) : 'undefined', '∫ |f(x)| dx over the same range'));
+                frag.appendChild(card('Slope at x = ' + fmt(x0, 6), fmt(slope, 10), 'f′(' + fmt(x0, 6) + ') by central difference'));
+                frag.appendChild(card('y-intercept', isFinite(y0) ? fmt(y0, 10) : 'undefined', 'f(0)'));
+                frag.appendChild(card('Expression analysed', name, 'searched over [' + fmt(a, 6) + ', ' + fmt(b, 6) + ']'));
+                els.results.appendChild(frag);
 
                 var jump = els.results.querySelectorAll('button[data-x]');
                 for (var k = 0; k < jump.length; k++) {
@@ -1219,7 +1276,7 @@
                 var f = p1.f, g = p2.f, d = function (x) { return f(x) - g(x); };
                 var xs = findZeros(d, a, b, 4000);
                 var bounds = [a].concat(xs, [b]);
-                var total = 0, slices = '', improper = false;
+                var total = 0, slices = [], improper = false;
                 for (var i = 0; i < bounds.length - 1; i++) {
                     var lo = bounds[i], hi = bounds[i + 1];
                     if (hi - lo < 1e-12) continue;
@@ -1227,15 +1284,19 @@
                     var area = integrate(function (x) { return Math.abs(f(x) - g(x)); }, lo, hi);
                     if (isFinite(area)) total += area;
                     if (isImproper(function (x) { return Math.abs(f(x) - g(x)); }, lo, hi)) improper = true;
-                    slices += '<li>' + fmt(lo, 8) + ' → ' + fmt(hi, 8) + ': ' + fmt(area, 8) + ' (top curve: ' + top + ')</li>';
+                    slices.push(mkEl('li', null, fmt(lo, 8) + ' → ' + fmt(hi, 8) + ': ' + fmt(area, 8) + ' (top curve: ' + top + ')'));
                 }
                 var signed = integrate(d, a, b);
                 state.marks.inter = xs.map(function (x) { return { x: x, y: f(x) }; });
-                els.results.innerHTML =
-                    card('Area between the two curves', fmt(total, 10), 'from x = ' + fmt(a, 6) + ' to ' + fmt(b, 6) + (xs.length ? ' across ' + xs.length + ' intersection(s)' : ', curves do not cross here')) +
-                    (improper ? card('Read this before you trust it', 'improper integral', 'one of the curves is unbounded at a bound, so this is good to about 4-5 significant digits rather than the last digit shown') : '') +
-                    card('Signed integral of (f − g)', fmt(signed, 10), 'positive means f is on top for the net balance') +
-                    '<div class="gc-card" style="grid-column:1/-1"><div class="gc-k">Slice by slice (|f − g| integrated per interval)</div><ul class="gc-list">' + (slices || '<li>no interval</li>') + '</ul></div>';
+                var frag2 = document.createDocumentFragment();
+                frag2.appendChild(card('Area between the two curves', fmt(total, 10), 'from x = ' + fmt(a, 6) + ' to ' + fmt(b, 6) + (xs.length ? ' across ' + xs.length + ' intersection(s)' : ', curves do not cross here')));
+                if (improper) frag2.appendChild(card('Read this before you trust it', 'improper integral', 'one of the curves is unbounded at a bound, so this is good to about 4-5 significant digits rather than the last digit shown'));
+                frag2.appendChild(card('Signed integral of (f − g)', fmt(signed, 10), 'positive means f is on top for the net balance'));
+                var ulS = mkEl('ul', 'gc-list');
+                if (slices.length) slices.forEach(function (li) { ulS.appendChild(li); });
+                else ulS.appendChild(mkEl('li', null, 'no interval'));
+                frag2.appendChild(wideCard('Slice by slice (|f − g| integrated per interval)', ulS));
+                els.results.appendChild(frag2);
                 status('Area between curves: ' + fmt(total, 10), 'success');
                 renderLegend();
                 draw();
@@ -1467,13 +1528,14 @@
                 var r = (ssTot > 0 && isFinite(coef[1]) !== undefined) ? Math.sign(coef[1] || 1) * Math.sqrt(Math.max(0, r2)) : NaN;
 
                 state.fit = { fn: fn, label: model.eq(coef), r2: r2, pts: pts, model: key };
-                els.fitOut.innerHTML =
-                    card('Model', esc(model.label), model.eq(coef)) +
-                    card('R² (coefficient of determination)', fmt(r2, 8), r2 >= 0.99 ? 'excellent fit' : r2 >= 0.9 ? 'good fit' : r2 >= 0.7 ? 'moderate fit' : 'poor fit') +
-                    card('r (correlation)', isFinite(r) ? fmt(r, 8) : 'n/a', 'sign follows the slope') +
-                    card('RMSE', fmt(rmse, 8), 'typical error in your y units') +
-                    card('Largest residual', fmt(maxRes, 8), 'worst single miss') +
-                    card('Points used', String(pts.length), 'n must exceed the ' + model.k + ' fitted parameters');
+                var fragFit = document.createDocumentFragment();
+                fragFit.appendChild(card('Model', model.label, model.eq(coef)));
+                fragFit.appendChild(card('R² (coefficient of determination)', fmt(r2, 8), r2 >= 0.99 ? 'excellent fit' : r2 >= 0.9 ? 'good fit' : r2 >= 0.7 ? 'moderate fit' : 'poor fit'));
+                fragFit.appendChild(card('r (correlation)', isFinite(r) ? fmt(r, 8) : 'n/a', 'sign follows the slope'));
+                fragFit.appendChild(card('RMSE', fmt(rmse, 8), 'typical error in your y units'));
+                fragFit.appendChild(card('Largest residual', fmt(maxRes, 8), 'worst single miss'));
+                fragFit.appendChild(card('Points used', String(pts.length), 'n must exceed the ' + model.k + ' fitted parameters'));
+                els.fitOut.appendChild(fragFit);
                 els.fitTable.innerHTML = '<table class="gc-table"><thead><tr><th>x</th><th>y actual</th><th>y fitted</th><th>residual</th></tr></thead><tbody>' + rows + '</tbody></table>';
                 status('Regression fitted: R² = ' + fmt(r2, 8) + ' over ' + pts.length + ' points.', 'success');
                 renderLegend();

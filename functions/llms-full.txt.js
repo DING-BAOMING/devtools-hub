@@ -4,6 +4,8 @@
 // agentimization/llms-full-valid (markdown headings) and provides
 // machine-readable descriptions for AI agents that need the full catalog.
 
+import { loadManifest } from '../libs/manifest.js';
+
 export async function onRequest(context) {
   if (context.request.method === 'HEAD') {
     return new Response(null, {
@@ -22,16 +24,9 @@ export async function onRequest(context) {
   const tools = [];
 
   try {
-    const mr = await assets.fetch(new URL('/manifest.txt?cb=' + Date.now(), baseUrl));
-    if (!mr.ok) throw new Error('Manifest ' + mr.status);
-    const manifest = await mr.text();
-    for (const line of manifest.split('\n')) {
-      const t = line.trim();
-      if (!t || t.startsWith('#')) continue;
-      const p = t.split('|');
-      if (p.length < 6) continue;
-      const [slug, category, , , name, desc, tags] = p;
-      tools.push({ slug: slug.trim(), category: category.trim(), name: name.trim(), desc: desc.trim(), tags: (tags || '').trim() });
+    // BUG-513: one manifest parser for every reader (libs/manifest.js).
+    for (const t of await loadManifest(assets, baseUrl)) {
+      tools.push({ slug: t.slug, category: t.category, name: t.name, desc: t.desc, tags: t.tags });
     }
   } catch (e) {
     return new Response('llms-full.txt error: ' + e.message, { headers: { 'Content-Type': 'text/plain' } });
@@ -86,7 +81,7 @@ export async function onRequest(context) {
       out += '- Markdown: ' + base + '/tools/' + t.slug + '/.md\n';
       out += '- Category: ' + displayName + '\n';
       if (t.tags) {
-        const tagList = t.tags.split(',').map(s => s.trim()).filter(Boolean).join(', ');
+        const tagList = t.tags.join(', ');
         if (tagList) out += '- Tags: ' + tagList + '\n';
       }
       out += '\n' + t.desc + '\n\n';

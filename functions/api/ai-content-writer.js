@@ -1,4 +1,5 @@
 import { resolveModelId } from '../../libs/ai-provider.js';
+import { fetchWithTimeout } from '../../libs/http.js';
 /**
  * AI Content Writer API - full SEO blog post content package generator
  *
@@ -114,16 +115,6 @@ function buildPrompt(params) {
     '- reading_time_minutes: integer derived from word count.',
     'Return ONLY the JSON object. No markdown fences. No commentary.'
   ].filter(Boolean).join('\n');
-}
-
-async function fetchWithTimeout(url, opts, ms) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort('timeout'), ms);
-  try {
-    return await fetch(url, { ...opts, signal: ctl.signal });
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 async function callAI(env, systemPrompt, userPrompt, maxTokens) {

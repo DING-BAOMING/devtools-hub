@@ -1,4 +1,5 @@
 import { resolveModelId } from '../../libs/ai-provider.js';
+import { fetchWithTimeout, extractJson, getLanguageName } from '../../libs/http.js';
 /**
  * AI Social Media Post Generator API
  * Single AI call generates all 5 platform posts
@@ -63,16 +64,6 @@ const PROVIDERS = [
   }
 ];
 
-async function fetchWithTimeout(url, opts = {}, ms = 60000) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort('timeout'), ms);
-  try {
-    return await fetch(url, { ...opts, signal: ctl.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 async function callAI(env, messages, maxTokens) {
   const errors = [];
   for (const provider of PROVIDERS) {
@@ -114,15 +105,6 @@ async function callAI(env, messages, maxTokens) {
     }
   }
   throw new Error('All providers failed: ' + errors.join(' | '));
-}
-
-function getLanguageName(code) {
-  const map = {
-    en: 'English', es: 'Spanish', pt: 'Portuguese', fr: 'French', de: 'German',
-    it: 'Italian', ja: 'Japanese', ko: 'Korean', zh: 'Chinese (Simplified)',
-    hi: 'Hindi', ar: 'Arabic', ru: 'Russian'
-  };
-  return map[code] || 'English';
 }
 
 function buildSystemPrompt(tone, language, includeHashtags, includeEmoji, includeCta, niche) {
@@ -207,20 +189,6 @@ function buildUserPrompt(inputMode, inputValue) {
     return `Source content (extract the key points and repurpose):\n\n${inputValue}\n\nWrite all 5 platform posts capturing the most engaging angle. Stay within each platform's hard character limit. Return only the JSON.`;
   }
   return `Write all 5 platform posts about: ${inputValue}`;
-}
-
-function extractJson(text) {
-  let cleaned = (text || '').trim();
-  if (cleaned.startsWith('```')) {
-    const m = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (m) cleaned = m[1];
-  }
-  const first = cleaned.indexOf('{');
-  const last = cleaned.lastIndexOf('}');
-  if (first !== -1 && last !== -1 && last > first) {
-    cleaned = cleaned.substring(first, last + 1);
-  }
-  return JSON.parse(cleaned);
 }
 
 function fallbackPost(platform, inputValue, includeHashtags, includeEmoji) {

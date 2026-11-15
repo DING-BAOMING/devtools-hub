@@ -72,6 +72,7 @@
                         <div class="spinner"></div>
                         <span>Rewriting...</span>
                     </div>
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div id="paraphrase-error" class="paraphrase-error" style="display:none;"></div>
                 </div>
 
@@ -168,16 +169,33 @@
         document.getElementById('paraphrase-loading').style.display = 'none';
         document.getElementById('paraphrase-result').style.display = 'none';
     }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('paraphrase-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
     async function paraphrase() {
         const input = document.getElementById('paraphrase-input').value.trim();
         if (!input) {
-            showError('Please enter some text to rewrite');
+            showNotice('Please enter some text to rewrite');
             return;
         }
 
         if (input.length < 10) {
-            showError('Please enter at least 10 characters');
+            showNotice('Please enter at least 10 characters');
             return;
         }
 

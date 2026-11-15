@@ -179,6 +179,7 @@
                     <div id="progressText" style="color: #667eea; font-size: 0.9rem;">Loading AI models…</div>
                     <div class="fae-progress-bar"><div id="progressFill" class="fae-progress-fill"></div></div>
                 </div>
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="error" class="fae-error"></div>
 
                 <div id="result" class="fae-result">
@@ -306,7 +307,7 @@
         dropzone.addEventListener('drop', e => {
             const file = e.dataTransfer.files[0];
             if (file && file.type.startsWith('image/')) handleFile(file);
-            else showError('Please drop an image file (JPG, PNG, WebP).');
+            else showNotice('Please drop an image file (JPG, PNG, WebP).');
         });
         fileInput.addEventListener('change', e => {
             const file = e.target.files[0];
@@ -318,6 +319,23 @@
             errorEl.classList.add('visible');
             setTimeout(() => errorEl.classList.remove('visible'), 5000);
         }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
         function showStatus(msg, type) {
             statusEl.textContent = msg;
             statusEl.className = 'fae-status visible ' + (type || 'info');
@@ -383,7 +401,7 @@
                     .withFaceExpressions();
                 currentResults = results;
                 if (results.length === 0) {
-                    showStatus('No faces detected. Try a clearer photo with the face well-lit and facing the camera.', 'error');
+                    showStatus('No faces detected. Try a clearer photo with the face well-lit and facing the camera.', 'info');
                     resultEl.classList.remove('visible');
                     return;
                 }
@@ -559,7 +577,7 @@
         }
 
         async function downloadAnnotated() {
-            if (!currentImage || !currentResults || currentResults.length === 0) { showError('No results to download.'); return; }
+            if (!currentImage || !currentResults || currentResults.length === 0) { showNotice('No results to download.'); return; }
             const canvas = document.createElement('canvas');
             canvas.width = currentImage.naturalWidth || currentImage.width;
             canvas.height = currentImage.naturalHeight || currentImage.height;

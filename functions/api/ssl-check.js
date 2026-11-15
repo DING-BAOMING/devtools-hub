@@ -134,7 +134,7 @@ export async function onRequest({ request, env }) {
   host = host.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
   
   if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/.test(host)) {
-    return new Response(JSON.stringify({ error: 'Invalid hostname. Please enter a valid domain name.' }), { status: 400, headers: { 'Content-Type': 'application/json', ...responseHeaders } });
+    return new Response(JSON.stringify({ error: 'Invalid hostname. Please enter a valid domain name.', reason: 'invalid' }), { status: 400, headers: { 'Content-Type': 'application/json', ...responseHeaders } });
   }
 
   var cacheParam = fromCache ? '&fromCache=on' : '';
@@ -158,7 +158,16 @@ export async function onRequest({ request, env }) {
 
     if (status === 'ERROR') {
       var errorMsg = data.statusMessage || 'SSL scan failed. The domain may not exist or may not have HTTPS.';
-      return new Response(JSON.stringify({ error: errorMsg, host: host }), { status: 200, headers: { 'Content-Type': 'application/json', ...responseHeaders } });
+      // The upstream refusing a hostname is a statement about the INPUT, not a failure
+      // of the scan, so it is classified here instead of in the page:
+      //   blocked      = SSL Labs refuses to scan this hostname at all
+      //                  (the reserved documentation domains, example.com, are refused)
+      //   unresolvable = the hostname does not resolve, so there is nothing to scan
+      //   scan         = anything else = a real failure of the scan
+      // The page renders the first two as a neutral notice, so a hostname that cannot
+      // be scanned is not reported as a broken tool (BUG-531).
+      var reason = /blacklist/i.test(errorMsg) ? 'blocked' : (/resolve/i.test(errorMsg) ? 'unresolvable' : 'scan');
+      return new Response(JSON.stringify({ error: errorMsg, reason: reason, host: host }), { status: 200, headers: { 'Content-Type': 'application/json', ...responseHeaders } });
     }
 
     if (status === 'DNS' || status === 'IN_PROGRESS') {

@@ -92,6 +92,7 @@
                 </div>
 
                 <div class="btn-group">
+                    <div id="summarize-status" class="status"></div>
                     <button onclick="summarize()" class="btn btn-primary" id="summarize-btn">Summarize</button>
                     <button onclick="loadSample()" class="btn btn-secondary">Sample Text</button>
                     <button onclick="clearAll()" class="btn btn-secondary">Clear</button>
@@ -189,11 +190,7 @@
     function summarize() {
         const text = document.getElementById('text-input').value.trim();
         if (!text) {
-            showStatus('summarize-btn', 'Please paste some text first.', 'error');
-            return;
-        }
-        if (text.length < 50) {
-            showStatus('summarize-btn', 'Please enter at least 50 characters for a meaningful summary.', 'error');
+            showStatus('summarize-status', 'Please paste some text first.', 'info');
             return;
         }
 
@@ -223,10 +220,18 @@
 
     function doExtractive(text, ratio) {
         const sentences = splitSentences(text);
-        if (sentences.length < 3) {
-            showStatus('summarize-btn', 'Not enough sentences to summarize. Please enter at least 3 sentences.', 'error');
+        if (sentences.length === 0) {
+            showStatus('summarize-status', 'Please paste some text first.', 'info');
             return;
         }
+
+        // A 1-2 sentence text has nothing to condense: the selector's Math.max(1, ...)
+        // floor already keeps at least one sentence, so the run is honest and the
+        // reduction stat says 0%. Refusing it with an error (BUG-464's <3 guard plus
+        // the old <50-char check) made a legitimate short paste look like a broken
+        // tool — and the site's own inspector feeds a ~50-char sample, so it re-fired
+        // on every run until it escalated. Say so instead of failing.
+        const tooShort = sentences.length < 3;
 
         const scores = scoreSentences(sentences, text);
         const numToKeep = Math.max(1, Math.min(sentences.length - 1, Math.round(sentences.length * ratio)));
@@ -258,7 +263,11 @@
 
         document.getElementById('results').style.display = 'block';
         sourceHL.scrollIntoView({behavior:'smooth', block:'nearest'});
-        showStatus('summarize-btn', 'Summary ready', 'success');
+        if (tooShort) {
+            showStatus('summarize-status', 'Only ' + sentences.length + ' sentence' + (sentences.length === 1 ? '' : 's') + ' — nothing to condense, showing the full text. Paste a longer text for a shorter summary.', 'info');
+        } else {
+            showStatus('summarize-status', 'Summary ready', 'success');
+        }
     }
 
     function doAbstractive(text) {
@@ -274,12 +283,12 @@
         .then(function(data){
             loading.style.display = 'none';
             if (data.error) {
-                showStatus('summarize-btn', 'Error: ' + data.error, 'error');
+                showStatus('summarize-status', 'Error: ' + data.error, 'error');
                 return;
             }
             const summary = data.summary || data.choices?.[0]?.message?.content || '';
             if (!summary) {
-                showStatus('summarize-btn', 'No summary generated. Try extractive mode.', 'error');
+                showStatus('summarize-status', 'No summary generated. Try extractive mode.', 'error');
                 return;
             }
             const origWords = text.split(/\s+/).length;
@@ -295,11 +304,11 @@
             document.getElementById('summary-output').textContent = summary;
             document.getElementById('source-highlight').style.display = 'none';
             document.getElementById('results').style.display = 'block';
-            showStatus('summarize-btn', 'AI summary ready', 'success');
+            showStatus('summarize-status', 'AI summary ready', 'success');
         })
         .catch(function(err){
             loading.style.display = 'none';
-            showStatus('summarize-btn', 'Network error: ' + err.message, 'error');
+            showStatus('summarize-status', 'Network error: ' + err.message, 'error');
         });
     }
 
@@ -387,7 +396,7 @@
         var text = document.getElementById('summary-output').textContent;
         if (!text) return;
         navigator.clipboard.writeText(text).then(function(){
-            showStatus('summarize-btn', 'Summary copied to clipboard', 'success');
+            showStatus('summarize-status', 'Summary copied to clipboard', 'success');
         }).catch(function(){
             var ta = document.createElement('textarea');
             ta.value = text;
@@ -395,7 +404,7 @@
             ta.select();
             document.execCommand('copy');
             document.body.removeChild(ta);
-            showStatus('summarize-btn', 'Summary copied to clipboard', 'success');
+            showStatus('summarize-status', 'Summary copied to clipboard', 'success');
         });
     }
 

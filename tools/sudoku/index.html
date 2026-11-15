@@ -845,8 +845,12 @@ async function fetchPuzzle(diff) {
   setStatus('Loading ' + DIFFICULTIES[diff].label + ' puzzle…', 'info');
   try {
     var resp = await fetch('/api/sudoku?difficulty=' + diff);
-    var data = await resp.json();
-    if (data.error) throw new Error(data.message || 'API error');
+    var raw = await resp.text();
+    var data = null;
+    try { data = JSON.parse(raw); } catch (e) { /* not JSON: an edge error page, not our API */ }
+    if (!data || data.error) {
+      throw new Error((data && data.message) || ('API error (HTTP ' + resp.status + ')'));
+    }
     return { puzzle: data.puzzle, solution: data.solution };
   } catch (e) {
     var fb = getFallbackPuzzle(diff);

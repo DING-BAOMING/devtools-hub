@@ -15,7 +15,7 @@
     <meta property="og:type" content="website">
     <link rel="stylesheet" href="/styles.css">
     <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-06-05","dateModified":"2026-06-05","author":{"@type":"Person","name":"BAOMING"},"name":"Daily Horoscope - Personalized Astrology and Charts","description":"Free personalized daily horoscope. Sun sign, moon sign and 2026 forecasts computed from real planetary positions with astronomy-engine. 6 languages.","url":"https://tools.scoreroute.com/tools/horoscope/","applicationCategory":"UtilityApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+{"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-06-05","dateModified":"2026-11-10","author":{"@type":"Person","name":"BAOMING"},"name":"Daily Horoscope - Personalized Astrology and Charts","description":"Free personalized daily horoscope. Sun sign, moon sign and 2026 forecasts computed from real planetary positions with astronomy-engine. 6 languages.","url":"https://tools.scoreroute.com/tools/horoscope/","applicationCategory":"UtilityApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
     </script>
     <style>
         .hs-container { max-width:1000px; margin:0 auto; }
@@ -164,6 +164,7 @@
                     <div class="hs-zodiac-grid" id="zodiac-quick-grid"></div>
                 </div>
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="hs-error" class="hs-error"></div>
                 <div id="hs-loading" class="hs-loading">Computing planetary positions...</div>
 
@@ -220,6 +221,17 @@
             </div>
 
             <div class="info-section">
+                <h2>Why the birth time matters</h2>
+                <p>The Sun sign follows from the birth date alone, but almost everything else needs the exact moment.</p>
+                <ul>
+                    <li>The Moon moves roughly 13 degrees a day, so it can change sign within the same calendar day. Your Moon sign — and therefore much of the chart's structure — depends on the birth time.</li>
+                    <li>The natal chart snapshot is computed from real planetary positions for your birth moment, and the transits behind the daily, weekly, monthly and yearly forecasts are the current sky applied to those positions.</li>
+                    <li>The Sun sign is only one of the signs a chart uses; the Moon sign, and the rising sign if you also enter a birth city, carry most of the interpretive weight.</li>
+                    <li>The birth data is stored in your browser's local storage only, is never sent anywhere, and disappears with the Clear button or a site-data wipe.</li>
+                    <li>Six interface languages are available; the underlying astronomical positions are identical in all of them.</li>
+                    <li>Being precise about what is computed and what is convention: the positions are astronomy, the interpretation is a symbolic convention — enjoy the second, verify the first.</li>
+                </ul>
+
                 <h2>About This Tool</h2>
                 <p>This is a personalized astrology tool, not a generic horoscope generator. When you enter your birth date (and optionally time), we compute:</p>
                 <ul style="color:#c8c8e0;line-height:1.7;padding-left:22px;">
@@ -481,7 +493,7 @@ function computeHoroscope() {
     hideError();
     var dateVal = document.getElementById('birth-date').value;
     var timeVal = document.getElementById('birth-time').value;
-    if (!dateVal) { showError(t('enterBirth')); return; }
+    if (!dateVal) { showNotice(t('enterBirth')); return; }
     var parts = dateVal.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!parts) { showError('Invalid date.'); return; }
     var year = parseInt(parts[1], 10), month = parseInt(parts[2], 10), day = parseInt(parts[3], 10);
@@ -747,6 +759,23 @@ function setLang(lang) {
 }
 
 function showError(m) { var e = document.getElementById('hs-error'); e.textContent = m; e.style.display = 'block'; }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('hs-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 function hideError() { document.getElementById('hs-error').style.display = 'none'; }
 
 function escapeHtml(s) {

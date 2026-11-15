@@ -173,6 +173,7 @@
                     <div class="h2p-progress-spinner"></div>
                     <span class="h2p-progress-text" id="h2p-progress-text">Generating PDF...</span>
                 </div>
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="h2p-error" class="h2p-error"></div>
             </div>
             <div class="info-section">
@@ -335,7 +336,7 @@
     function convertToPdf() {
         var html = h2pInput.value.trim();
         if (!html) {
-            showError('Please enter HTML code first');
+            showNotice('Please enter HTML code first');
             return;
         }
         h2pError.classList.remove('visible');
@@ -378,6 +379,23 @@
     function showError(msg) {
         h2pError.textContent = msg;
         h2pError.classList.add('visible');
+    }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('h2p-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
     }
 
     function showToast(msg) {

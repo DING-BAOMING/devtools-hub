@@ -353,7 +353,7 @@ export async function aiChat(env, opts) {
     { name: 'Groq', kind: 'openai', key: env.DEVTOOLS_GROQ_API_KEY, base: GROQ_BASE },
     { name: 'NVIDIA', kind: 'openai', key: env.DEVTOOLS_NVIDIA_KEY_1, base: NVIDIA_BASE },
     { name: 'NVIDIA', kind: 'openai', key: env.DEVTOOLS_NVIDIA_KEY_3, base: NVIDIA_BASE },
-    { name: 'Cloudflare', kind: 'cf', key: env.CLOUDFLARE_API_TOKEN, account: env.CF_ACCOUNT_ID },
+    { name: 'Cloudflare', kind: 'cf', key: env.CLOUDFLARE_AI_TOKEN || env.CLOUDFLARE_API_TOKEN, account: env.CF_ACCOUNT_ID },
     { name: 'Gemini', kind: 'gemini', key: env.DEVTOOLS_GEMINI_KEY }
   ];
 

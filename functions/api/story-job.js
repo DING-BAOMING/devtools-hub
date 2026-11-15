@@ -1,4 +1,5 @@
 import { resolveModelId } from '../../libs/ai-provider.js';
+import { fetchWithTimeout } from '../../libs/http.js';
 
 // Cloudflare Pages Function: AI Story Animator orchestrator
 // POST /api/story-job   { action: "create"|"step"|"get"|"list"|"delete", ... }
@@ -34,16 +35,6 @@ class AgnesError extends Error {
 
 // fetch() wrapper with hard timeout (Cloudflare free plan = 30s wall-clock,
 // we cap each external call at 25s so leaves 5s for KV + JSON serialize)
-async function fetchWithTimeout(url, opts = {}, ms = FETCH_TIMEOUT_MS) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort('timeout'), ms);
-  try {
-    return await fetch(url, { ...opts, signal: ctl.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 // Parse Retry-After header safely (returns seconds, default 60)
 // Retry-After can be a number (seconds) OR an HTTP-date. We only handle seconds.
 function parseRetryAfter(v) {
@@ -188,7 +179,9 @@ async function cfTts(text, env) {
   const safeText = String(text || '').slice(0, 800);
   if (!safeText.trim()) return null; // empty narration → no audio
   const accountId = env.CF_ACCOUNT_ID;
-  const apiToken = env.CLOUDFLARE_API_TOKEN;
+  // Prefer the least-privilege Workers AI token; the broad deployment token is
+  // only a fallback for older deployments that do not have it set yet.
+  const apiToken = env.CLOUDFLARE_AI_TOKEN || env.CLOUDFLARE_API_TOKEN;
   if (!accountId || !apiToken) throw new Error('CF Workers AI not configured');
   let r;
   try {

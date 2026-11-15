@@ -103,6 +103,173 @@ export function parseRobots(text) {
   return { groups, sitemaps, hasWildcard: groups.some((g) => g.agents.includes('*')) };
 }
 
+// robots.txt lint against Google's documented interpretation of the REP
+// (developers.google.com/search/docs/crawling-indexing/robots/robots_txt, fetched
+// 2026-11-08) and RFC 9309. Pure function, no I/O — shared by
+// functions/api/robots-txt.js and by the logic test, so the rules a page reports
+// are the rules the API enforces.
+//
+// Every message below is traceable to one of these documented facts:
+//  - Google ignores the BOM, invalid lines and unknown fields; crawl-delay is not supported.
+//  - Rules with no path are ignored, so a blank Disallow allows everything.
+//  - The most specific group wins and specific/wildcard groups are never combined.
+//  - The longest matching rule wins; on an equal-length conflict Google uses the
+//    least restrictive rule (so Allow: / cancels an equal-length Disallow: /).
+//  - Sitemap must be a fully qualified URL, is not tied to any user agent, and is
+//    only followed by crawlers it is not disallowed for.
+//  - noindex in robots.txt is not supported by Google.
+//  - The file size limit is 500 KiB and content past it is ignored.
+//  - A 4xx (except 429) means no restrictions; a 5xx means crawling stops.
+const SUPPORTED_FIELDS = ['user-agent', 'allow', 'disallow', 'sitemap'];
+const SIZE_LIMIT_BYTES = 500 * 1024;
+
+export function validateRobotsTxt(text, opts = {}) {
+  const issues = [];
+  const raw = String(text == null ? '' : text);
+  const body = raw.replace(/^﻿/, '');
+  if (raw.length !== body.length) {
+    issues.push({ level: 'warn', code: 'bom', msg: 'The file starts with a UTF-8 byte order mark. Google ignores the BOM and still parses the file, but other parsers may not, so re-save as plain UTF-8 without it.' });
+  }
+
+  const bytes = new TextEncoder().encode(body).length;
+  if (bytes > SIZE_LIMIT_BYTES) {
+    issues.push({ level: 'error', code: 'size', msg: 'The file is ' + bytes + ' bytes and Google stops reading a robots.txt after 500 KiB (512,000 bytes); everything past that point is ignored. Consolidate rules instead of adding more lines.' });
+  }
+
+  if (/<(!doctype|html[\s>])/i.test(body)) {
+    issues.push({ level: 'error', code: 'html', msg: 'This looks like an HTML page rather than rules. Google tries to extract rules from HTML and ignores the rest, so a server that answers /robots.txt with your 404 page is publishing a file that blocks nothing.' });
+  }
+
+  const parsed = parseRobots(body);
+  const lines = body.split(/\r?\n/);
+  let sawUserAgent = false;
+  let orphanRules = 0;
+  let blankDisallows = 0;
+  let crawlDelay = 0;
+  let noindex = 0;
+  let hostLines = 0;
+  const unknownFields = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].replace(/#.*$/, '').trim();
+    if (!line) continue;
+    const idx = line.indexOf(':');
+    if (idx < 0) {
+      issues.push({ level: 'info', code: 'no-colon', line: i + 1, msg: 'Line ' + (i + 1) + ' has no field name and colon, so every parser skips it: "' + lines[i].slice(0, 60) + '"' });
+      continue;
+    }
+    const field = line.slice(0, idx).trim().toLowerCase();
+    const value = line.slice(idx + 1).trim();
+    if (field === 'user-agent') {
+      sawUserAgent = value !== '';
+      continue;
+    }
+    if (!sawUserAgent) {
+      orphanRules += 1;
+      continue;
+    }
+    if (field === 'disallow' && value === '') {
+      blankDisallows += 1;
+      continue;
+    }
+    if (!SUPPORTED_FIELDS.includes(field)) {
+      if (field === 'crawl-delay') crawlDelay += 1;
+      else if (field === 'noindex') noindex += 1;
+      else if (field === 'host') hostLines += 1;
+      else unknownFields.push(field);
+    }
+  }
+
+  if (orphanRules) {
+    issues.push({ level: 'warn', code: 'orphan-rules', occurrences: orphanRules, msg: orphanRules + ' Allow, Disallow, Sitemap or Crawl-delay line' + (orphanRules === 1 ? '' : 's') + ' appear before the first User-agent line. Crawlers ignore rules that have no group, so ' + (orphanRules === 1 ? 'it does' : 'they do') + ' nothing.' });
+  }
+  if (blankDisallows) {
+    issues.push({ level: 'warn', code: 'blank-disallow', occurrences: blankDisallows, msg: 'A Disallow with no path is ignored, which means "allow everything", not "block everything". ' + blankDisallows + ' such line' + (blankDisallows === 1 ? '' : 's') + ' found; write Disallow: / to block a whole site.' });
+  }
+  if (crawlDelay) {
+    issues.push({ level: 'info', code: 'crawl-delay', occurrences: crawlDelay, msg: 'Crawl-delay is not a Google directive and is ignored here. It only tells crawlers that read it to slow down, so a large value costs you crawl budget without protecting anything.' });
+  }
+  if (noindex) {
+    issues.push({ level: 'error', code: 'noindex', occurrences: noindex, msg: 'Google does not support Noindex in robots.txt. The page has to be crawlable for a noindex to work, so use a noindex meta tag or an X-Robots-Tag header on the page itself.' });
+  }
+  if (hostLines) {
+    issues.push({ level: 'info', code: 'host', occurrences: hostLines, msg: 'Host is a Yandex directive. Google ignores it, and for this purpose a canonical link or a redirect is the documented way to pick a preferred domain.' });
+  }
+  if (unknownFields.length) {
+    const names = Array.from(new Set(unknownFields));
+    issues.push({ level: 'info', code: 'unknown-field', occurrences: unknownFields.length, msg: 'Unsupported field' + (names.length === 1 ? '' : 's') + ' ' + names.map((f) => '"' + f + '"').join(', ') + ' will be skipped by every parser. Google supports only User-agent, Allow, Disallow and Sitemap.' });
+  }
+
+  // A sitemap URL is only followed when it is not itself disallowed, and the value
+  // has to be a fully qualified URL including protocol and host.
+  for (const sitemap of parsed.sitemaps) {
+    if (!/^https?:\/\//i.test(sitemap)) {
+      issues.push({ level: 'error', code: 'sitemap-relative', msg: 'Sitemap lines must be a complete URL including the protocol, for example https://example.com/sitemap.xml. "' + sitemap + '" is not one, and a relative Sitemap line is ignored.' });
+      continue;
+    }
+    let path = '/';
+    try { path = new URL(sitemap).pathname || '/'; } catch (e) { /* the absolute test above already passed */ }
+    const access = checkAccess(parsed, '*', path);
+    if (access.allowed === false) {
+      issues.push({ level: 'error', code: 'sitemap-blocked', msg: 'The sitemap you declared is itself disallowed: ' + sitemap + ' is blocked by Disallow: ' + access.rule + ' for the wildcard group. A sitemap is only followed by crawlers it is not disallowed for, so this line advertises a file nobody can fetch.' });
+    }
+  }
+
+  const perAgent = new Map();
+  for (const group of parsed.groups) {
+    for (const agent of group.agents) {
+      perAgent.set(agent, (perAgent.get(agent) || 0) + 1);
+    }
+    const disallowsRoot = group.rules.filter((r) => r.type === 'disallow' && r.path === '/');
+    if (disallowsRoot.length) {
+      const allowsRoot = group.rules.some((r) => r.type === 'allow' && r.path.length >= 1 && (r.path === '/' || r.path === '/*'));
+      const who = group.agents.includes('*') ? 'every crawler that has no group of its own' : group.agents.join(', ');
+      if (allowsRoot) {
+        issues.push({ level: 'warn', code: 'root-cancelled', msg: 'This group has both Disallow: / and an Allow rule covering the root, so the Allow wins: the group blocks nothing. Affected crawlers: ' + who + '.' });
+      } else {
+        issues.push({ level: 'error', code: 'root-blocked', msg: 'Disallow: / in the group for ' + who + ' blocks the entire host. Google may still index URLs it learns from other sites, without a snippet.' });
+      }
+    }
+    for (const rule of group.rules) {
+      if (rule.path.length > 1 && !rule.path.startsWith('/')) {
+        issues.push({ level: 'warn', code: 'relative-path', msg: 'The path in a rule must start with / because it is matched against the URL path. "' + rule.path + '" does not, so it is treated as text and never matches.' });
+      }
+    }
+  }
+
+  const duplicateAgents = Array.from(perAgent.entries()).filter(([, n]) => n > 1).map(([a]) => a);
+  if (duplicateAgents.length) {
+    issues.push({ level: 'info', code: 'duplicate-agent', occurrences: duplicateAgents.length, msg: 'These user agents appear in more than one group: ' + duplicateAgents.join(', ') + '. Compliant parsers merge the rules of every group naming the same agent, so splitting one crawler across two groups works but is easy to misread later.' });
+  }
+  for (const group of parsed.groups) {
+    for (const agent of group.agents) {
+      if ((agent.includes('*') || agent.includes('/')) && agent !== '*') {
+        issues.push({ level: 'info', code: 'agent-pattern', msg: 'A user agent value with a wildcard or a version suffix matches the bare crawler name, so "' + agent + '" is read as "' + agent.replace(/[*]/g, '').split('/')[0] + '". Write the bare token so the group is obvious.' });
+      }
+    }
+  }
+
+  const order = { error: 0, warn: 1, info: 2 };
+  issues.sort((a, b) => (order[a.level] - order[b.level]) || ((a.line || 0) - (b.line || 0)));
+
+  return {
+    issues: condenseIssues(issues, 3),
+    stats: {
+      bytes,
+      groups: parsed.groups.length,
+      agents: new Set(parsed.groups.flatMap((g) => g.agents)).size,
+      rules: parsed.groups.reduce((n, g) => n + g.rules.length, 0),
+      sitemaps: parsed.sitemaps.length,
+      lines: lines.length,
+      hasWildcard: parsed.hasWildcard,
+      errors: issues.filter((i) => i.level === 'error').length,
+      warns: issues.filter((i) => i.level === 'warn').length,
+      infos: issues.filter((i) => i.level === 'info').length
+    },
+    parsed
+  };
+}
+
 // Returns { allowed, rule, source } where source is the group that decided it:
 // 'agent' = a group named for this exact crawler, 'wildcard' = the * group, 'none' = no rules apply.
 export function checkAccess(robots, token, path) {

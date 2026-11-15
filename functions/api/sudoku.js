@@ -55,11 +55,16 @@ export async function onRequest(context) {
       }), { status: 502, headers });
     }
     if (data.error_code !== 0) {
+      // A daily-quota rejection is a rate limit, not a broken gateway. Cloudflare replaces
+      // the BODY of any 5xx from a Function with its own plain-text "error code: 502", so a
+      // 502 here would hide the reason ("daily request limit reached") from the browser.
+      // 429 is a 4xx: the JSON body survives, and the client can show the real reason.
+      const quota = data.error_code === 10012 || data.error_code === 112;
       return new Response(JSON.stringify({
         error: 'upstream_error',
         message: data.reason || 'Sudoku API returned an error.',
         upstream_code: data.error_code
-      }), { status: 502, headers });
+      }), { status: quota ? 429 : 502, headers });
     }
     return new Response(JSON.stringify({
       difficulty,

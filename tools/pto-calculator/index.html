@@ -197,6 +197,7 @@
                         <button type="button" id="ptc-clear" class="btn">Clear</button>
                         <button type="button" id="ptc-copy" class="copy-btn">Copy Summary</button>
                     </div>
+                    <div id="pto-status" class="status"></div>
                     <div id="ptc-status" class="status" role="status" aria-live="polite" style="display:none;"></div>
                 </div>
 
@@ -364,14 +365,14 @@
 
     function render() {
         var c = readForm();
-        if (!c.start || !c.wagePerPeriod) { showStatus("ptc-status", "Enter an accrual start date and a positive accrual amount.", "error"); return; }
+        if (!c.start || !c.wagePerPeriod) { showStatus("pto-status", "Enter an accrual start date and a positive accrual amount.", "info"); return; }
         var p = project(c);
         var at = null; // last payday on or before the balance date
         for (var i = 0; i < p.rows.length; i++) {
             if (p.rows[i].d.getTime() > c.asof.getTime()) break;
             at = p.rows[i];
         }
-        if (!at) { showStatus("ptc-status", "The accrual start date is after the balance date. Move the start date back to your last payday.", "error"); return; }
+        if (!at) { showStatus("pto-status", "The accrual start date is after the balance date. Move the start date back to your last payday.", "error"); return; }
         var balNow = Math.max(0, at.bal - c.used);
         var hr2d = function (h) { return " (" + cap(h / c.workday) + " days)"; };
         var out = [["Accrual rate per " + PERIODS_LABEL[c.freq], cap(c.wagePerPeriod) + " h" + hr2d(c.wagePerPeriod)],
@@ -493,13 +494,13 @@
     document.getElementById("ptc-copy").addEventListener("click", function () {
         var s = document.getElementById("ptc-result-heading").dataset.summary || "";
         if (!s) return;
-        var done = function () { showStatus("ptc-status", "Summary copied to clipboard.", "success"); };
+        var done = function () { showStatus("pto-status", "Summary copied to clipboard.", "success"); };
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(s).then(done, function () { fallback(); });
         else fallback();
         function fallback() {
             var ta = document.getElementById("ptc-summary-ta");
             ta.value = s; ta.select();
-            try { document.execCommand("copy"); done(); } catch (e) { showStatus("ptc-status", "Copy failed. Select the text manually.", "error"); }
+            try { document.execCommand("copy"); done(); } catch (e) { showStatus("pto-status", "Copy failed. Select the text manually.", "error"); }
         }
     });
     // exposed for automated tests only; harmless in production

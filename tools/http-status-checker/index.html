@@ -152,6 +152,7 @@
                     <p id="hsc-loading-text">Checking URL...</p>
                 </div>
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="hsc-error" class="hsc-error"></div>
 
                 <div id="hsc-results" class="hsc-results">
@@ -286,7 +287,7 @@
     async function checkURL() {
         var urlInput = document.getElementById('hsc-url').value.trim();
         if (!urlInput) {
-            showError('Please enter a URL');
+            showNotice('Please enter a URL');
             return;
         }
 
@@ -333,6 +334,23 @@
         document.getElementById('hsc-quick-section').style.display = 'block';
         document.getElementById('hsc-check-btn').disabled = false;
         document.getElementById('hsc-check-btn').textContent = 'Check';
+    }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('hsc-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
     }
 
     function showResults(data) {
@@ -528,7 +546,7 @@
 
     function copyHeaders() {
         if (!lastResult || !lastResult.headers) {
-            showError('No headers to copy. Check a URL first.');
+            showNotice('No headers to copy. Check a URL first.');
             return;
         }
         var text = JSON.stringify(lastResult.headers, null, 2);

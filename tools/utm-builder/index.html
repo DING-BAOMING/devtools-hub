@@ -25,7 +25,7 @@
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "datePublished": "2026-07-30",
-        "dateModified": "2026-07-30",
+        "dateModified": "2026-11-10",
         "author": {"@type": "Person", "name": "BAOMING"},
         "name": "UTM Builder - Free Campaign URL Generator with Presets",
         "description": "Free UTM builder. Generate campaign tracking URLs with platform presets for Google Ads, Facebook, LinkedIn, and more. Auto-format, parameter breakdown.",
@@ -283,6 +283,17 @@
                     <li><strong>utm_content</strong> (optional) — Differentiates similar links or ad variants within the same campaign. Used for A/B testing.</li>
                 </ul>
 
+                <h3>Naming rules that keep a year of reports readable</h3>
+                <p>The parameters are trivial; the naming convention is what determines whether you can still segment the data six months from now. The builder's auto-lowercase and hyphen options exist for exactly this reason.</p>
+                <ul>
+                    <li>Analytics treats <code>utm_source=Google</code> and <code>utm_source=google</code> as two different sources. Lowercase everything, never mix <code>Facebook</code> and <code>facebook</code> across campaigns.</li>
+                    <li>One campaign per objective, one source per platform. A campaign named <code>spring_sale_2026</code> should never appear under two sources.</li>
+                    <li>Use <code>utm_content</code> only for genuine variants (ad_a / ad_b). Otherwise it multiplies the rows in every report you build.</li>
+                    <li>Never tag internal links. An internal click overwrites the campaign attribution of the session it lands in.</li>
+                    <li>Tag only the first landing URL of a channel. If the same tagged URL is used in both an email and an ad, the last click wins and the email traffic disappears from the report.</li>
+                    <li>Bulk mode tags a whole list with the same parameters — the practical case for a newsletter send or a directory of landing pages.</li>
+                </ul>
+
                 <h3>Frequently Asked Questions</h3>
                 <details class="faq-item">
                     <summary>Do UTM parameters affect SEO?</summary>
@@ -405,7 +416,7 @@
         function copyUTM() {
             var text = document.getElementById('ubUrlDisplay').textContent;
             if (!text || text.startsWith('Enter') || text.startsWith('Fill')) {
-                showStatus('ubStatus', 'Nothing to copy - fill in required fields first', 'error');
+                showStatus('ubStatus', 'Nothing to copy - fill in required fields first', 'info');
                 return;
             }
             navigator.clipboard.writeText(text).then(function() {
@@ -419,7 +430,7 @@
         function openQR() {
             var text = document.getElementById('ubUrlDisplay').textContent;
             if (!text || text.startsWith('Enter') || text.startsWith('Fill')) {
-                showStatus('ubStatus', 'Generate a URL first', 'error');
+                showStatus('ubStatus', 'Generate a URL first', 'info');
                 return;
             }
             window.open('/tools/qr-code-generator/?data=' + encodeURIComponent(text), '_blank');
@@ -495,7 +506,7 @@
 
         function generateBulk() {
             var urls = document.getElementById('ubBulkUrls').value.split('\n').filter(function(l) { return l.trim().length > 0; });
-            if (urls.length === 0) { showStatus('ubBulkStatus', 'Enter at least one URL', 'error'); return; }
+            if (urls.length === 0) { showStatus('ubBulkStatus', 'Enter at least one URL', 'info'); return; }
 
             var source = formatUTM(getVal('ubBulkSource'), true, true);
             var medium = formatUTM(getVal('ubBulkMedium'), true, true);
@@ -504,7 +515,7 @@
             var content = formatUTM(getVal('ubBulkContent'), true, true);
 
             if (!source || !medium || !campaign) {
-                showStatus('ubBulkStatus', 'Fill in utm_source, utm_medium, and utm_campaign', 'error');
+                showStatus('ubBulkStatus', 'Fill in utm_source, utm_medium, and utm_campaign', 'info');
                 return;
             }
 
@@ -531,7 +542,7 @@
         function copyBulk() {
             var text = document.getElementById('ubBulkResults').textContent;
             if (!text || text === 'Bulk results will appear here...' || text === 'Generate bulk URLs to see results...') {
-                showStatus('ubBulkStatus', 'Nothing to copy', 'error');
+                showStatus('ubBulkStatus', 'Nothing to copy', 'info');
                 return;
             }
             navigator.clipboard.writeText(text).then(function() {

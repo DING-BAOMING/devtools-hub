@@ -1,4 +1,5 @@
 import { resolveModelId } from '../../libs/ai-provider.js';
+import { fetchWithTimeout, extractJson } from '../../libs/http.js';
 /**
  * AI Letter Generator API
  *
@@ -212,30 +213,6 @@ function buildUserPrompt(opts) {
     opts.situation || ''
   ];
   return lines.join('\n');
-}
-
-function extractJson(text) {
-  let cleaned = (text || '').trim();
-  if (cleaned.startsWith('```')) {
-    const m = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (m) cleaned = m[1];
-  }
-  const first = cleaned.indexOf('{');
-  const last = cleaned.lastIndexOf('}');
-  if (first !== -1 && last !== -1 && last > first) {
-    cleaned = cleaned.substring(first, last + 1);
-  }
-  return JSON.parse(cleaned);
-}
-
-async function fetchWithTimeout(url, opts, ms) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort('timeout'), ms);
-  try {
-    return await fetch(url, { ...opts, signal: ctl.signal });
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 async function callAI(env, systemPrompt, userPrompt) {

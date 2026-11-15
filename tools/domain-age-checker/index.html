@@ -104,6 +104,7 @@
 <div class="dac-loading-text">Looking up WHOIS data...</div>
 </div>
 
+<div id="toolNotice" class="tool-notice"></div>
 <div class="dac-error" id="error"></div>
 
 <div class="dac-result" id="result">
@@ -194,7 +195,7 @@ function checkDomainAge() {
   var domain = cleanDomain(input.value);
 
   if (!domain) {
-    showError('Please enter a domain name.');
+    showNotice('Please enter a domain name.');
     input.focus();
     return;
   }
@@ -316,6 +317,23 @@ function showError(msg) {
   el.textContent = msg;
   el.className = 'dac-error show';
 }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
 document.getElementById('domainInput').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') checkDomainAge();

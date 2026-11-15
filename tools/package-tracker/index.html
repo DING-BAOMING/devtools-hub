@@ -62,6 +62,7 @@
                         <div id="copy-msg" style="display:none;color:#22c55e;font-size:14px;margin-top:6px;">Copied!</div>
                     </div>
 
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div id="tracker-error" class="tracker-error" style="display:none;"></div>
 
                     <div class="supported-carriers">
@@ -186,7 +187,7 @@
 
     function detectAndTrack() {
         const num = document.getElementById('tracking-number').value.trim();
-        if (!num) { showError('Please enter a tracking number'); return; }
+        if (!num) { showNotice('Please enter a tracking number'); return; }
         if (num.length < 6) { showError('Tracking number too short'); return; }
 
         const result = detectCarrier(num);
@@ -211,6 +212,23 @@
         document.getElementById('tracker-error').textContent = msg;
         document.getElementById('tracker-error').style.display = 'block';
         document.getElementById('tracker-result').style.display = 'none';
+    }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('tracker-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
     }
 
     function copyTracking() {

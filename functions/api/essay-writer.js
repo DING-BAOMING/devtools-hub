@@ -1,4 +1,5 @@
 import { resolveModelId } from '../../libs/ai-provider.js';
+import { fetchWithTimeout, extractJson } from '../../libs/http.js';
 /**
  * AI Essay Writer API
  *
@@ -141,16 +142,6 @@ const LENGTHS = {
   long: '1000-1400 words. 6-8 paragraphs. Extended treatment. Multiple supporting points, transitions between paragraphs, deeper analysis.',
   extended: '1600-2200 words. 8-12 paragraphs. Full research-essay treatment. Multiple sources cited, counter-arguments engaged with.'
 };
-
-async function fetchWithTimeout(url, opts, ms) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort('timeout'), ms);
-  try {
-    return await fetch(url, { ...opts, signal: ctl.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 async function callAI(env, systemPrompt, userPrompt, maxTokens) {
   const errors = [];
@@ -320,35 +311,6 @@ function buildUserPrompt(opts, mode) {
     opts.key_points || '(no specific key points — use your judgment to develop the topic)'
   ];
   return lines.join('\n');
-}
-
-function extractJson(text) {
-  let cleaned = (text || '').trim();
-  if (!cleaned) throw new Error('Empty AI response');
-  if (cleaned.startsWith('```')) {
-    const m = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (m) cleaned = m[1];
-  }
-  const first = cleaned.indexOf('{');
-  const last = cleaned.lastIndexOf('}');
-  if (first === -1 || last === -1 || last <= first) {
-    throw new Error('No JSON object in AI response');
-  }
-  cleaned = cleaned.substring(first, last + 1);
-  try {
-    return JSON.parse(cleaned);
-  } catch (e1) {
-    const fixed = cleaned
-      .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '')
-      .replace(/\\(?!["\\/bfnrtu])/g, '\\\\')
-      .replace(/([\u201C\u201D])/g, '"')
-      .replace(/([\u2018\u2019])/g, "'");
-    try {
-      return JSON.parse(fixed);
-    } catch (e2) {
-      throw new Error('AI JSON parse failed: ' + e2.message);
-    }
-  }
 }
 
 function fallbackOutline(opts) {

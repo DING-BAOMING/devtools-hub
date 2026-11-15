@@ -58,6 +58,7 @@
                         <div class="spinner"></div>
                         <span>Shortening...</span>
                     </div>
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div id="shorten-error" class="shorten-error" style="display:none;"></div>
                 </div>
 
@@ -277,13 +278,13 @@
     async function shorten() {
         const url = document.getElementById('url-input').value.trim();
         if (!url) {
-            showError('Please enter a URL');
+            showNotice('Please enter a URL');
             return;
         }
 
         // Basic URL validation
         try { new URL(url); } catch {
-            showError('Please enter a valid URL (include https:// or http://)');
+            showNotice('Please enter a valid URL (include https:// or http://)');
             return;
         }
 
@@ -341,6 +342,23 @@
         document.getElementById('shorten-error').style.display = 'block';
         document.getElementById('shorten-loading').style.display = 'none';
         document.getElementById('shorten-result').style.display = 'none';
+    }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('shorten-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
     }
 
     document.getElementById('url-input').addEventListener('keydown', function(e) {

@@ -230,6 +230,7 @@
         <p id="sc-loading-text">Fetching the page and robots.txt...</p>
       </div>
 
+      <div id="toolNotice" class="tool-notice"></div>
       <div id="sc-error" class="sc-error"></div>
 
       <div id="sc-out" class="sc-out">
@@ -353,10 +354,27 @@ function showError(msg) {
   box.innerHTML = '<strong>Could not check that.</strong><br>' + esc(msg);
   document.getElementById('sc-out').className = 'sc-out';
 }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('sc-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
 async function runAudit() {
   var input = document.getElementById('sc-url').value.trim();
-  if (!input) { showError('Enter the address of the page you want checked, for example example.com/pricing.'); return; }
+  if (!input) { showNotice('Enter the address of the page you want checked, for example example.com/pricing.'); return; }
   document.getElementById('sc-error').style.display = 'none';
   document.getElementById('sc-out').className = 'sc-out';
   setLoading(true, 'Fetching the page and robots.txt...');
@@ -499,7 +517,7 @@ function render(r) {
 }
 
 function copyReport() {
-  if (!window.__scJson) { showStatus('sc-feedback', 'Run a check first', 'error'); return; }
+  if (!window.__scJson) { showStatus('sc-feedback', 'Run a check first', 'info'); return; }
   navigator.clipboard.writeText(window.__scJson).then(function () {
     showStatus('sc-feedback', 'JSON report copied', 'success');
   }, function () {

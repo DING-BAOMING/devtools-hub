@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secret Santa Generator - Draw Names Free, No Email</title>
+<meta name="description" content="Draw names for your Secret Santa gift exchange right in the browser. Exclusion pairs keep couples apart, no email or signup, and nothing is stored online.">
+<link rel="canonical" href="https://tools.scoreroute.com/tools/secret-santa-generator/">
+<meta property="og:title" content="Secret Santa Generator - Draw Names Free, No Email">
+<meta property="og:description" content="Draw names for your Secret Santa gift exchange right in the browser. Exclusion pairs keep couples apart, no email or signup, and nothing is stored online.">
+<meta property="og:url" content="https://tools.scoreroute.com/tools/secret-santa-generator/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Secret Santa Generator - Draw Names Free, No Email">
+<meta name="twitter:description" content="Draw names for your Secret Santa gift exchange right in the browser. Exclusion pairs keep couples apart, no email or signup, and nothing is stored online.">
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Secret Santa Generator - Draw Names Free, No Email","description":"Draw names for your Secret Santa gift exchange right in the browser. Exclusion pairs keep couples apart, no email or signup, and nothing is stored online.","url":"https://tools.scoreroute.com/tools/secret-santa-generator/","applicationCategory":"UtilitiesApplication","operatingSystem":"All","browserRequirements":"Requires modern browser with ES2020 support","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"featureList":["Draw names instantly for a Secret Santa or gift exchange","Unlimited exclusion pairs so couples and siblings never draw each other","Party reveal mode: each person taps their own name privately","Full list view for the organizer with one-tap copy for WhatsApp","Printable draw cards via the browser print dialog","Redraw anytime, late joiners welcome","Cryptographically random assignment with Web Crypto","Nothing is uploaded: names live only in your browser's localStorage","Works offline once the page has loaded"],"author":{"@type":"Person","name":"BAOMING"},"datePublished":"2026-11-13","dateModified":"2026-11-13"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is this Secret Santa generator really free?","acceptedAnswer":{"@type":"Answer","text":"Yes, completely free with no signup, no account, no ads and no limit on group size. The draw runs entirely in your browser, so there is nothing to pay for and nothing to subscribe to."}},
+{"@type":"Question","name":"How do exclusion rules work for couples?","acceptedAnswer":{"@type":"Answer","text":"Put any two names on the keep-apart list and they will never draw each other in either direction. One rule covers both people, so a couple only needs a single entry. You can add as many pairs as you need, and the draw only succeeds when every rule can be honored."}},
+{"@type":"Question","name":"Do I need an email address or an account?","acceptedAnswer":{"@type":"Answer","text":"No email is required, nobody registers and no invitation links are generated. Enter the names, run the draw and share the results yourself, which keeps the whole exchange off other people's servers."}},
+{"@type":"Question","name":"How do I share the results with the group on WhatsApp?","acceptedAnswer":{"@type":"Answer","text":"Open the full list view and hit Copy List. Every assignment lands on your clipboard as plain text, one line per person, so you can paste the lot into WhatsApp, Messenger or Slack."}},
+{"@type":"Question","name":"What happens if the draw is impossible?","acceptedAnswer":{"@type":"Answer","text":"The generator tells you instead of quietly breaking a rule. If a person has nobody left to give to, usually because of too many exclusion pairs in a small group, you get a clear message naming the problem so you can remove a pair or add another name."}},
+{"@type":"Question","name":"Can I redraw if someone joins late?","acceptedAnswer":{"@type":"Answer","text":"Add the latecomer to the names list and press Draw Names again for a fresh assignment. The exclusions you set stay in place, and nobody needs to be notified through an app because you reshare the updated list yourself."}},
+{"@type":"Question","name":"Where is my data stored?","acceptedAnswer":{"@type":"Answer","text":"Data lives in your browser's localStorage on your own device. The names, exclusions and results never leave the page, there is no database and no server copy, and the Clear All button wipes everything immediately."}},
+{"@type":"Question","name":"Why is a local draw better than a link-based Secret Santa app?","acceptedAnswer":{"@type":"Answer","text":"Link-based tools keep your group on a server and hand out private links that can expire or be opened by the wrong person. A local draw hands you the whole result at once, so you can announce it in the room, print cards or paste it into the group chat, and there is no link for a stranger to find."}}
+]}
+</script>
+<link rel="stylesheet" href="/styles.css">
+<style>
+.ss-wrap { max-width: 720px; margin: 0 auto; }
+.ss-panel { background: var(--ss-surface, #1a1a2e); border: 1px solid #2a2a4e; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+.ss-label { display: block; font-size: 0.78rem; color: #9090b0; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; font-weight: 600; }
+.ss-note { font-size: 0.8rem; color: #9090b0; margin: 6px 0 0; line-height: 1.5; }
+.ss-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+.ss-field { flex: 1; min-width: 140px; }
+.ss-btn { padding: 10px 16px; border-radius: 8px; border: 1px solid #2a2a4e; background: #131826; color: #e8e8f0; font-size: 0.86rem; cursor: pointer; font-family: inherit; font-weight: 500; transition: border-color 0.15s, color 0.15s; }
+.ss-btn:hover { border-color: #667eea; color: #fff; }
+/* #667eea with white text is 3.66:1 — WCAG AA wants 4.5:1 for text this size.
+   #5248c9 is the same hue one step down: 6.71:1. */
+.ss-btn.primary { background: #5248c9; border-color: #5248c9; color: #fff; font-weight: 700; }
+.ss-btn.primary:hover { background: #4338ca; }
+.ss-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ss-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }
+.ss-status { display: none; padding: 10px 12px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 14px; line-height: 1.5; }
+.ss-status.show { display: block; }
+.ss-status.ok { background: rgba(16, 185, 129, 0.12); border: 1px solid #10b981; color: #34d399; }
+.ss-status.err { background: rgba(239, 68, 68, 0.12); border: 1px solid #ef4444; color: #f87171; }
+.ss-excl-chip { display: inline-flex; align-items: center; gap: 6px; background: #131826; border: 1px solid #2a2a4e; border-radius: 14px; padding: 4px 6px 4px 12px; font-size: 0.8rem; color: #e8e8f0; margin: 4px 6px 0 0; }
+.ss-excl-x { background: none; border: none; color: #9090b0; cursor: pointer; font-size: 0.9rem; padding: 2px 6px; border-radius: 10px; font-family: inherit; }
+.ss-excl-x:hover { color: #f87171; }
+.ss-count { color: #667eea; font-weight: 700; }
+.ss-views { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.ss-views .ss-btn.active { background: #5248c9; border-color: #5248c9; color: #fff; font-weight: 700; }
+.ss-party { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.ss-person { background: #131826; border: 1px solid #2a2a4e; border-radius: 8px; padding: 10px 12px; cursor: pointer; font-family: inherit; color: #e8e8f0; font-size: 0.88rem; text-align: left; transition: border-color 0.15s; }
+.ss-person:hover { border-color: #667eea; }
+.ss-person .ss-giver { display: block; font-weight: 600; overflow-wrap: anywhere; }
+.ss-person .ss-gives { display: none; margin-top: 6px; font-size: 0.82rem; color: #34d399; overflow-wrap: anywhere; }
+.ss-person.open .ss-gives { display: block; }
+.ss-list-item { display: flex; align-items: baseline; gap: 8px; padding: 9px 4px; border-bottom: 1px solid #23233d; font-size: 0.9rem; }
+.ss-list-item .ss-giver { flex: 0 0 auto; font-weight: 600; color: #e8e8f0; }
+.ss-list-item .ss-arrow { color: #667eea; flex: 0 0 auto; }
+.ss-list-item .ss-gives { color: #34d399; font-weight: 600; overflow-wrap: anywhere; }
+.ss-meta { font-size: 0.82rem; color: #9090b0; margin: 0 0 10px; line-height: 1.5; }
+.ss-copy-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.ss-related { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.ss-related a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; background: #131826; border: 1px solid #2a2a4e; border-radius: 8px; color: #b8b8d4; font-size: 0.8rem; text-decoration: none; }
+.ss-related a:hover { border-color: #667eea; color: #fff; }
+.ss-clipboard { position: absolute; left: -9999px; top: 0; }
+@media print {
+  body * { visibility: hidden; }
+  #ss-print-area, #ss-print-area * { visibility: visible; }
+  #ss-print-area { position: absolute; left: 0; top: 0; width: 100%; background: #fff; color: #000; }
+  #ss-print-area .ss-list-item { border-bottom-color: #ccc; }
+  #ss-print-area .ss-giver, #ss-print-area .ss-gives { color: #000; }
+  #ss-print-area .ss-arrow { color: #000; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>Secret Santa Generator</h1>
+<p class="subtitle">Draw names instantly, keep couples apart, no email or signup &mdash; everything stays in your browser</p>
+<nav class="breadcrumb">
+<a href="/">Home</a> &gt; <a href="/tools/life/">Life</a> &gt; <span>Secret Santa Generator</span>
+<a href="/tools/feedback/" class="feedback-link">Report Problem</a>
+</nav>
+</div>
+</header>
+<main class="container">
+<section class="tool-page">
+<div class="tool-main">
+<h2>Run the Draw in 60 Seconds</h2>
+<div class="ss-wrap">
+
+<div class="ss-panel">
+<label class="ss-label" for="ss-names">Names (one per line)</label>
+<textarea id="ss-names" rows="6" placeholder="Ann&#10;Ben&#10;Cara&#10;David&#10;Elena&#10;Frank" style="width:100%; background:#131826; border:1px solid #2a2a4e; border-radius:8px; color:#e8e8f0; padding:10px; font-family:inherit; font-size:0.9rem; min-height:44px; resize:vertical;"></textarea>
+<p class="ss-note"><span class="ss-count" id="ss-count">0</span> names entered. You can paste a whole list, one name per line. Duplicates are removed automatically.</p>
+</div>
+
+<div class="ss-panel">
+<label class="ss-label">Keep these people apart (optional)</label>
+<div class="ss-row">
+<div class="ss-field"><label class="ss-note" for="ss-from">First person</label><select id="ss-from" style="width:100%; background:#131826; border:1px solid #2a2a4e; border-radius:8px; color:#e8e8f0; padding:9px; font-family:inherit; min-height:44px;"></select></div>
+<div class="ss-field"><label class="ss-note" for="ss-to">Cannot draw</label><select id="ss-to" style="width:100%; background:#131826; border:1px solid #2a2a4e; border-radius:8px; color:#e8e8f0; padding:9px; font-family:inherit; min-height:44px;"></select></div>
+<button type="button" class="ss-btn" id="ss-add-excl">Add Rule</button>
+</div>
+<div id="ss-excl-chips"></div>
+<p class="ss-note">One rule blocks both directions, so a couple only needs a single entry. Exclusions are honored exactly or the draw fails loudly.</p>
+</div>
+
+<div class="ss-panel">
+<label class="ss-label">Exchange details (optional)</label>
+<div class="ss-row">
+<div class="ss-field"><label class="ss-note" for="ss-group">Group name</label><input type="text" id="ss-group" placeholder="Office Party 2026" style="width:100%; background:#131826; border:1px solid #2a2a4e; border-radius:8px; color:#e8e8f0; padding:10px; font-family:inherit; min-height:44px;"></div>
+<div class="ss-field" style="flex:0 0 120px;"><label class="ss-note" for="ss-budget">Budget</label><input type="text" id="ss-budget" placeholder="$20" style="width:100%; background:#131826; border:1px solid #2a2a4e; border-radius:8px; color:#e8e8f0; padding:10px; font-family:inherit; min-height:44px;"></div>
+<div class="ss-field" style="flex:0 0 150px;"><label class="ss-note" for="ss-date">Exchange date</label><input type="date" id="ss-date" style="width:100%; background:#131826; border:1px solid #2a2a4e; border-radius:8px; color:#e8e8f0; padding:10px; font-family:inherit; min-height:44px;"></div>
+</div>
+</div>
+
+<div class="ss-actions">
+<button type="button" class="ss-btn primary" id="ss-draw">Draw Names</button>
+<button type="button" class="ss-btn" id="ss-redraw" disabled>Redraw</button>
+<button type="button" class="ss-btn" id="ss-clear">Clear All</button>
+</div>
+<div class="ss-status" id="ss-status" role="status"></div>
+
+<section id="ss-result" style="display:none;" aria-label="Draw results">
+<div class="ss-views">
+<button type="button" class="ss-btn active" id="ss-view-party">Party Reveal</button>
+<button type="button" class="ss-btn" id="ss-view-list">Full List</button>
+</div>
+
+<div id="ss-print-area">
+<p class="ss-meta" id="ss-meta"></p>
+<div class="ss-party" id="ss-party"></div>
+<div id="ss-list" style="display:none;"></div>
+</div>
+
+<div class="ss-copy-row" id="ss-copy-row" style="display:none;">
+<button type="button" class="ss-btn" id="ss-copy">Copy List</button>
+<button type="button" class="ss-btn" id="ss-print">Print Cards</button>
+</div>
+</section>
+
+</div>
+</div>
+
+<section class="info-section">
+<h2>How the Secret Santa Generator Works</h2>
+<p id="ss-text-how1">Enter your names, run the draw, read the results. The generator takes the names you enter, treats every keep-apart rule as a hard constraint and produces an assignment where each person gives one gift and receives exactly one. Two people who are excluded from each other will never be paired in either direction. The shuffle is seeded by the browser's Web Crypto API, so the result is genuinely unpredictable rather than a pattern the eye can spot.</p>
+<p id="ss-text-how2">Before it draws, the tool checks whether a valid assignment exists. too many pairs in a small group, or a person's only possible matches are all ruled out, the draw stops and tells you which name is stuck instead of quietly breaking a rule. Party Reveal mode keeps every pairing hidden until each person taps their own name on the shared screen, which mirrors the classic hat draw for groups sitting together. Full List mode hands the organizer everything at once for pasting into a chat or printing.</p>
+
+<h2>From Feature Provider to Problem Solver</h2>
+<p id="ss-text-solve1">Most Secret Santa tools are invitation machines. They collect emails, create accounts, store your group on a server and hand out private links that expire or can be opened by the wrong person. That machinery earns its keep for a 200-person company draw scheduled three weeks out. It is dead weight when your family of eight is standing in the same living room and wants names right now.</p>
+<p id="ss-text-solve2">This tool inverts that tradeoff. There is no server step at all: your names, your exclusions and the result live in your browser and nowhere else, so the draw finishes in one click and works even if the wifi is down. What an AI chatbot cannot do here is hold a private tap-to-reveal ceremony on a shared screen, enforce every exclusion pair under a fairness guarantee, and hand you a formatted list and printable cards in the same breath. That ceremony is the actual job, and it is what this page is built to do.</p>
+<ul>
+<li><strong>No email, no accounts, no links</strong>: nobody waits for an invitation or creates a password to learn who they are buying for.</li>
+<li><strong>Nothing stored online</strong>: names and results never leave the browser, so there is no server copy to leak and no link for a stranger to open.</li>
+<li><strong>Fairness with proof</strong>: exclusions are hard constraints, never a soft suggestion, and an impossible draw is reported honestly instead of silently bent.</li>
+<li><strong>Party mode</strong>: each person taps their own name to see their assignment privately, the way a hat draw works in the room.</li>
+<li><strong>Ready-to-share output</strong>: copy the whole list for WhatsApp, or print name cards for the fridge.</li>
+<li><strong>Redraw in one click</strong>: a latecomer joins, you add the name and redraw, and every exclusion still holds.</li>
+</ul>
+
+<h2>Frequently Asked Questions</h2>
+<details class="faq-item"><summary>Is this Secret Santa generator really free?</summary><p id="ss-text-faq1">Yes, completely free with no signup, no account, no ads and no limit on group size. The draw runs entirely in your browser, so there is nothing to pay for and nothing to subscribe to.</p></details>
+<details class="faq-item"><summary>How do exclusion rules work for couples?</summary><p id="ss-text-faq2">Put any two names on the keep-apart list and they will never draw each other in either direction. One rule covers both people, so a couple only needs a single entry. You can add as many pairs as you need, and the draw only succeeds when every rule can be honored.</p></details>
+<details class="faq-item"><summary>Do I need an email address or an account?</summary><p id="ss-text-faq3">No email is required, nobody registers and no invitation links are generated. Enter the names, run the draw and share the results yourself, which keeps the whole exchange off other people's servers.</p></details>
+<details class="faq-item"><summary>How do I share the results with the group on WhatsApp?</summary><p id="ss-text-faq4">Open the full list view and hit Copy List. Every assignment lands on your clipboard as plain text, one line per person, so you can paste the lot into WhatsApp, Messenger or Slack.</p></details>
+<details class="faq-item"><summary>What happens if the draw is impossible?</summary><p id="ss-text-faq5">The generator tells you instead of quietly breaking a rule. If a person has nobody left to give to, usually because of too many exclusion pairs in a small group, you get a clear message naming the problem so you can remove a pair or add another name.</p></details>
+<details class="faq-item"><summary>Can I redraw if someone joins late?</summary><p id="ss-text-faq6">Add the latecomer to the names list and press Draw Names again for a fresh assignment. The exclusions you set stay in place, and nobody needs to be notified through an app because you reshare the updated list yourself.</p></details>
+<details class="faq-item"><summary>Where is my data stored?</summary><p id="ss-text-faq7">Data lives in your browser's localStorage on your own device. The names, exclusions and results never leave the page, there is no database and no server copy, and the Clear All button wipes everything immediately.</p></details>
+<details class="faq-item"><summary>Why is a local draw better than a link-based Secret Santa app?</summary><p id="ss-text-faq8">Link-based tools keep your group on a server and hand out private links that can expire or be opened by the wrong person. A local draw hands you the whole result at once, so you can announce it in the room, print cards or paste it into the group chat, and there is no link for a stranger to find.</p></details>
+
+<p style="margin-top: 18px; font-size: 0.82rem; color: #9090b0;">Part of <a href="/">DevTools Hub</a> &mdash; Free Online Developer Tools</p>
+
+<div class="ss-related">
+<a href="/tools/spin-the-wheel/"><span>&#127922;</span> Spin the Wheel</a>
+<a href="/tools/random-generator/"><span>&#127922;</span> Random Generator</a>
+<a href="/tools/bingo-card-generator/"><span>&#127920;</span> Bingo Card Generator</a>
+<a href="/tools/word-search-maker/"><span>&#128269;</span> Word Search Maker</a>
+<a href="/tools/days-until-calculator/"><span>&#9200;</span> Days Until Calculator</a>
+</div>
+</section>
+</section>
+</main>
+<footer>
+<p>&copy; 2026 DevTools Hub | <a href="/">Free Developer Tools</a></p>
+</footer>
+<script src="/tools.js"></script>
+<script>
+(function() {
+'use strict';
+
+var MAX_NAMES = 200;
+var names = [];
+var exclusions = [];
+var assignment = null;
+var lastStatus = '';
+
+function $(id) { return document.getElementById(id); }
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function randInt(n) {
+  var buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return buf[0] % n;
+}
+
+function shuffle(a) {
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = randInt(i + 1);
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function readNames() {
+  var raw = $('ss-names').value.split('\n').map(function(s) { return s.trim(); }).filter(Boolean);
+  var seen = {}, out = [], dupes = 0;
+  for (var i = 0; i < raw.length && out.length < MAX_NAMES; i++) {
+    var key = raw[i].toLowerCase();
+    if (seen[key]) { dupes++; continue; }
+    seen[key] = true;
+    out.push(raw[i]);
+  }
+  if (raw.length > MAX_NAMES) raw.length = MAX_NAMES;
+  return { list: out, dupes: dupes, truncated: raw.length > MAX_NAMES };
+}
+
+function blockedMap() {
+  var m = {};
+  exclusions.forEach(function(p) {
+    (m[p[0]] = m[p[0]] || new Set()).add(p[1]);
+    (m[p[1]] = m[p[1]] || new Set()).add(p[0]);
+  });
+  return m;
+}
+
+function tryShuffle(ns, blocked) {
+  var givers = shuffle(ns.slice());
+  var recv = givers.slice();
+  shuffle(recv);
+  for (var i = 0; i < ns.length; i++) {
+    if (givers[i] === recv[i]) return null;
+    if (blocked[givers[i]] && blocked[givers[i]].has(recv[i])) return null;
+  }
+  var out = {};
+  for (var k = 0; k < givers.length; k++) out[givers[k]] = recv[k];
+  return out;
+}
+
+function backtrack(ns, blocked) {
+  var cands = {};
+  ns.forEach(function(g) {
+    cands[g] = ns.filter(function(r) {
+      return r !== g && !(blocked[g] && blocked[g].has(r));
+    });
+  });
+  for (var i = 0; i < ns.length; i++) {
+    if (cands[ns[i]].length === 0) return { stuck: ns[i] };
+  }
+  var order = ns.slice().sort(function(a, b) { return cands[a].length - cands[b].length; });
+  var used = {};
+  var result = {};
+  function solve(idx) {
+    if (idx === order.length) return true;
+    var g = order[idx];
+    var opts = shuffle(cands[g].filter(function(r) { return !used[r]; }));
+    for (var i = 0; i < opts.length; i++) {
+      used[opts[i]] = true;
+      result[g] = opts[i];
+      if (solve(idx + 1)) return true;
+      delete result[g];
+      used[opts[i]] = false;
+    }
+    return false;
+  }
+  return solve(0) ? result : { stuck: null };
+}
+
+function computeAssignment(ns, blocked) {
+  for (var t = 0; t < 2000; t++) {
+    var r = tryShuffle(ns, blocked);
+    if (r) return r;
+  }
+  return backtrack(ns, blocked);
+}
+
+function setStatus(msg, type) {
+  var el = $('ss-status');
+  lastStatus = msg;
+  el.textContent = msg;
+  el.className = 'ss-status show ' + (type === 'err' ? 'err' : 'ok');
+}
+
+function hideStatus() {
+  $('ss-status').className = 'ss-status';
+}
+
+function refreshSelects() {
+  ['ss-from', 'ss-to'].forEach(function(id) {
+    var sel = $(id);
+    var prev = sel.value;
+    var options = '<option value="">Select a name</option>';
+    names.forEach(function(n) { options += '<option value="' + esc(n) + '">' + esc(n) + '</option>'; });
+    sel.innerHTML = options;
+    if (prev && names.indexOf(prev) >= 0) sel.value = prev;
+  });
+}
+
+function renderChips() {
+  var box = $('ss-excl-chips');
+  box.innerHTML = '';
+  exclusions.forEach(function(p, i) {
+    var chip = document.createElement('span');
+    chip.className = 'ss-excl-chip';
+    chip.innerHTML = esc(p[0]) + ' &#8596; ' + esc(p[1]) + ' ';
+    var x = document.createElement('button');
+    x.type = 'button';
+    x.className = 'ss-excl-x';
+    x.setAttribute('aria-label', 'Remove exclusion ' + p[0] + ' and ' + p[1]);
+    x.textContent = '\u00d7';
+    x.dataset.index = i;
+    x.addEventListener('click', function() {
+      exclusions.splice(parseInt(x.dataset.index, 10), 1);
+      renderChips();
+      save();
+    });
+    chip.appendChild(x);
+    box.appendChild(chip);
+  });
+  if (!exclusions.length) box.innerHTML = '<p class="ss-note">No exclusions yet. Everyone can draw anyone except themselves.</p>';
+}
+
+function syncFromTextarea() {
+  var r = readNames();
+  names = r.list;
+  $('ss-count').textContent = names.length;
+  if (r.dupes) setStatus(r.dupes + ' duplicate name' + (r.dupes > 1 ? 's' : '') + ' removed.', 'ok');
+  exclusions = exclusions.filter(function(p) {
+    return names.indexOf(p[0]) >= 0 && names.indexOf(p[1]) >= 0 && p[0] !== p[1];
+  });
+  refreshSelects();
+  renderChips();
+  save();
+}
+
+function metaLine() {
+  var bits = [];
+  if ($('ss-group').value.trim()) bits.push(esc($('ss-group').value.trim()));
+  if ($('ss-date').value) {
+    var d = new Date($('ss-date').value + 'T00:00:00');
+    if (!isNaN(d)) bits.push('Exchange: ' + d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
+  }
+  if ($('ss-budget').value.trim()) bits.push('Budget: ' + esc($('ss-budget').value.trim()));
+  return bits.join(' &middot; ');
+}
+
+function renderParty() {
+  var box = $('ss-party');
+  box.innerHTML = '';
+  names.forEach(function(giver) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ss-person';
+    btn.setAttribute('aria-expanded', 'false');
+    btn.innerHTML = '<span class="ss-giver">' + esc(giver) + '</span><span class="ss-gives">gives to <strong>' + esc(assignment[giver]) + '</strong></span>';
+    btn.addEventListener('click', function() {
+      btn.classList.toggle('open');
+      btn.setAttribute('aria-expanded', btn.classList.contains('open') ? 'true' : 'false');
+    });
+    box.appendChild(btn);
+  });
+}
+
+function renderList() {
+  var box = $('ss-list');
+  box.innerHTML = '';
+  names.forEach(function(giver) {
+    var row = document.createElement('div');
+    row.className = 'ss-list-item';
+    row.innerHTML = '<span class="ss-giver">' + esc(giver) + '</span><span class="ss-arrow">&#8594;</span><span class="ss-gives">' + esc(assignment[giver]) + '</span>';
+    box.appendChild(row);
+  });
+}
+
+function showView(mode) {
+  var party = mode === 'party';
+  $('ss-view-party').classList.toggle('active', party);
+  $('ss-view-list').classList.toggle('active', !party);
+  $('ss-party').style.display = party ? '' : 'none';
+  $('ss-list').style.display = party ? 'none' : '';
+  $('ss-copy-row').style.display = party ? 'none' : '';
+}
+
+function copyText() {
+  var lines = ['Secret Santa Draw'];
+  var meta = $('ss-group').value.trim();
+  if (meta) lines.push(meta);
+  if ($('ss-date').value) lines.push('Exchange: ' + $('ss-date').value);
+  if ($('ss-budget').value.trim()) lines.push('Budget: ' + $('ss-budget').value.trim());
+  lines.push('');
+  names.forEach(function(g) { lines.push(g + ' gives to ' + assignment[g]); });
+  lines.push('');
+  lines.push('Drawn with https://tools.scoreroute.com/tools/secret-santa-generator/');
+  var ta = $('ss-clipboard');
+  ta.value = lines.join('\n');
+  ta.select();
+  try { document.execCommand('copy'); setStatus('List copied. Paste it into your group chat.', 'ok'); }
+  catch (e) { setStatus('Copy failed. Select the text in the Full List view and copy manually.', 'err'); }
+  ta.value = '';
+}
+
+function save() {
+  try {
+    localStorage.setItem('ss-state', JSON.stringify({
+      names: $('ss-names').value,
+      exclusions: exclusions,
+      group: $('ss-group').value,
+      budget: $('ss-budget').value,
+      date: $('ss-date').value
+    }));
+  } catch (e) { /* storage unavailable: the tool still works, just without persistence */ }
+}
+
+function load() {
+  try {
+    var s = JSON.parse(localStorage.getItem('ss-state') || 'null');
+    if (!s) return;
+    $('ss-names').value = s.names || '';
+    $('ss-group').value = s.group || '';
+    $('ss-budget').value = s.budget || '';
+    $('ss-date').value = s.date || '';
+    exclusions = Array.isArray(s.exclusions) ? s.exclusions : [];
+    syncFromTextarea();
+    hideStatus();
+  } catch (e) { /* corrupt state is ignored, defaults win */ }
+}
+
+function clearAll() {
+  $('ss-names').value = '';
+  $('ss-group').value = '';
+  $('ss-budget').value = '';
+  $('ss-date').value = '';
+  exclusions = [];
+  assignment = null;
+  names = [];
+  $('ss-count').textContent = '0';
+  $('ss-result').style.display = 'none';
+  $('ss-redraw').disabled = true;
+  refreshSelects();
+  renderChips();
+  hideStatus();
+  try { localStorage.removeItem('ss-state'); } catch (e) { /* nothing to clear */ }
+}
+
+function draw() {
+  var r = readNames();
+  names = r.list;
+  exclusions = exclusions.filter(function(p) {
+    return names.indexOf(p[0]) >= 0 && names.indexOf(p[1]) >= 0 && p[0] !== p[1];
+  });
+  refreshSelects();
+  renderChips();
+  if (names.length < 3) {
+    setStatus('Need at least 3 names to draw. There are ' + names.length + ' right now.', 'err');
+    return;
+  }
+  var blocked = blockedMap();
+  var res = computeAssignment(names, blocked);
+  if (!res) {
+    setStatus('No valid draw exists with these exclusions. Someone has nobody left to give to: remove a keep-apart rule or add more names.', 'err');
+    return;
+  }
+  if (res.stuck !== undefined) {
+    var who = res.stuck ? res.stuck : 'someone';
+    var extra = res.stuck ? (' "' + res.stuck + '" has no one left to give to.') : '';
+    setStatus('No valid draw exists with these exclusions.' + extra + ' Remove a keep-apart rule or add more names.', 'err');
+    return;
+  }
+  assignment = res;
+  $('ss-redraw').disabled = false;
+  $('ss-result').style.display = '';
+  $('ss-meta').innerHTML = metaLine() || (names.length + ' people in this draw');
+  renderParty();
+  renderList();
+  showView('party');
+  setStatus('Draw complete. Each person taps their own name in Party Reveal to see who they are giving to.', 'ok');
+  save();
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  load();
+  refreshSelects();
+  renderChips();
+  $('ss-names').addEventListener('input', function() {
+    var r = readNames();
+    names = r.list;
+    $('ss-count').textContent = names.length;
+    refreshSelects();
+  });
+  $('ss-names').addEventListener('change', syncFromTextarea);
+  $('ss-add-excl').addEventListener('click', function() {
+    var a = $('ss-from').value, b = $('ss-to').value;
+    if (!a || !b) { setStatus('Pick two names before adding a rule.', 'err'); return; }
+    if (a === b) { setStatus('Pick two different names: a person can never draw themselves anyway.', 'err'); return; }
+    var key1 = a + '\u0000' + b, key2 = b + '\u0000' + a;
+    var dup = exclusions.some(function(p) {
+      return (p[0] + '\u0000' + p[1]) === key1 || (p[0] + '\u0000' + p[1]) === key2;
+    });
+    if (dup) { setStatus('That pair is already on the keep-apart list.', 'err'); return; }
+    exclusions.push([a, b]);
+    renderChips();
+    save();
+    hideStatus();
+  });
+  $('ss-draw').addEventListener('click', draw);
+  $('ss-redraw').addEventListener('click', draw);
+  $('ss-clear').addEventListener('click', clearAll);
+  $('ss-view-party').addEventListener('click', function() { showView('party'); });
+  $('ss-view-list').addEventListener('click', function() { showView('list'); });
+  $('ss-copy').addEventListener('click', copyText);
+  $('ss-print').addEventListener('click', function() {
+    showView('list');
+    window.print();
+  });
+  ['ss-group', 'ss-budget', 'ss-date'].forEach(function(id) {
+    $(id).addEventListener('change', function() {
+      save();
+      if (assignment) $('ss-meta').innerHTML = metaLine() || (names.length + ' people in this draw');
+    });
+  });
+});
+
+window.ssAddExclusion = function() { $('ss-add-excl').click(); };
+window.ssDraw = draw;
+window.ssClear = clearAll;
+window.ssView = showView;
+window.ssCopy = copyText;
+window.ssPrint = function() { $('ss-print').click(); };
+window.ssRedraw = draw;
+
+})();
+</script>
+<textarea id="ss-clipboard" class="ss-clipboard" aria-hidden="true" tabindex="-1"></textarea>
+</body>
+</html>

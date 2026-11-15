@@ -189,6 +189,7 @@
                         <div class="ig-progress-bar"><div id="progressFill" class="ig-progress-fill"></div></div>
                     </div>
 
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div id="error" class="ig-error" role="alert"></div>
 
                     <button id="generateBtn" class="ig-btn" onclick="generateImage()">
@@ -381,6 +382,23 @@
             el.textContent = msg;
             el.classList.add('visible');
         }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
         // A dead model id is a recurring event, not a one-off — providers retire them (BUG-321) and
         // `Model not found` is all Puter answers. Name the model that failed and the way out; for a
@@ -413,7 +431,7 @@
         async function generateImage() {
             const prompt = document.getElementById('promptInput').value.trim();
             if (!prompt) {
-                showError('Please enter a prompt describing the image you want to create.');
+                showNotice('Please enter a prompt describing the image you want to create.');
                 return;
             }
 

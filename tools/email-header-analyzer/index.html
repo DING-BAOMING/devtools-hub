@@ -233,6 +233,17 @@
       <p>It is worth being blunt about the boundary, because a tool that overstates itself is worse than no tool. This page reads the header you paste, and it makes no network requests at all, so nothing you paste is stored, logged or sent anywhere. It cannot check whether the sending address is on a blocklist, because that means querying Spamhaus and the other reputation databases, which is server-side work and cannot be done from a browser without handing your data to a third party. It cannot look at the links or the attachments, because it never reads the body. And it cannot tell you whether the message will be filtered, because the deciding factors there are your sender reputation and the recipient's history, neither of which appears in the header.</p>
       <p>So the verdict is precise about what it covers. It tells you whether the sending infrastructure was authorised by the domain in the From line, whether the visible identity and the replying identity point at the same organisation, and where a delay was introduced. Those three answers settle the large majority of the questions people paste a header in order to ask.</p>
 
+      <h3>Reading the verdict in the right order</h3>
+      <p>The header block answers "where did this come from", "was it signed", and "who waited". Those are three different questions.</p>
+      <ul>
+          <li>Start with the <code>Received</code> chain: it shows which hops actually delayed the message, and the last hop before yours is the usual culprit.</li>
+          <li>Authentication is only half the story. DMARC passes when SPF or DKIM passes <em>and</em> aligns with the From domain; a passing SPF from a sending service that does not align still fails DMARC — that is what the alignment check here is for.</li>
+          <li>A pass with alignment of none is a spoofing signal, not a clean bill of health.</li>
+          <li>ARC exists for forwarded and mailing-list mail, where the original From domain is not the sending domain. Check the arc-seal chain before concluding a message is forged.</li>
+          <li>A failed DMARC does not automatically mean malicious: mailing lists and some CRM systems fail it legitimately.</li>
+          <li>Copy the raw source, not the rendered headers — "Show original" in Gmail, "View message details" in Outlook. Everything below the first blank line is the body and is ignored by the parser.</li>
+      </ul>
+
       <h3>Frequently Asked Questions</h3>
       <details class="faq-item">
         <summary>How do I get the raw headers in Gmail and Outlook?</summary>
