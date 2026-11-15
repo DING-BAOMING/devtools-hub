@@ -269,6 +269,11 @@
         }
         .status-item.success { color: var(--success); }
         .status-item.warning { color: var(--warning); }
+        /* BUG-543: the low-confidence badge is spelled "low", not "error". It holds the
+           OCR confidence score — a RESULT, not a failure of the tool — and the quality
+           inspector publishes any non-empty `[class*="error"]` element as "Tool error: …".
+           The real error status below keeps the "error" tone on purpose. */
+        .status-item.low { color: var(--danger); }
         .status-item.error { color: var(--danger); }
         .loading-overlay {
             position: absolute;
@@ -390,6 +395,8 @@
             height: 16px;
             cursor: pointer;
         }
+    /* BUG-532: benign precondition notice — neutral tone, same geometry as the base class. */
+    .status-item.info { background: rgba(102,126,234,0.15); color: #7eb3ff; border-color: #667eea; }
     </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"Free Image to Text (OCR) - Extract Text from Images Online","url":"https://tools.scoreroute.com/tools/image-to-text/","description":"Free online OCR tool to extract text from images. Supports English, Chinese, Japanese, Korean and 10+ languages. 100% private, in-browser processing.","applicationCategory":"Multimedia","operatingSystem":"All"}
@@ -635,7 +642,7 @@
         
         function loadImage(file) {
             if (!file || !file.type.startsWith('image/')) {
-                setStatus('Please select a valid image file', 'error');
+                setStatus('Please select a valid image file', 'info');
                 return;
             }
             
@@ -753,7 +760,7 @@
                 const confidence = Math.round(result.data.confidence);
                 if (confidence > 0) {
                     confidenceBadge.style.display = 'inline-flex';
-                    confidenceBadge.className = 'status-item ' + (confidence > 70 ? 'success' : confidence > 40 ? 'warning' : 'error');
+                    confidenceBadge.className = 'status-item ' + (confidence > 70 ? 'success' : confidence > 40 ? 'warning' : 'low');
                     confidenceBadge.textContent = `Confidence: ${confidence}%`;
                 }
                 

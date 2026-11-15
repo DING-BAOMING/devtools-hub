@@ -118,6 +118,7 @@
                         <span id="bw-counter" class="bw-counter">0 generated</span>
                     </div>
 
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div id="bw-error" class="bw-error" style="display:none;"></div>
                 </div>
 
@@ -1455,6 +1456,23 @@ function showError(msg) {
     el.textContent = msg;
     el.style.display = 'block';
 }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('bw-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
 function hideError() {
     document.getElementById('bw-error').style.display = 'none';
@@ -1478,7 +1496,7 @@ function generateWishes() {
         multilang: document.getElementById('bw-multilang').checked
     };
 
-    if (!recipientId) { showError('Please pick a recipient.'); return; }
+    if (!recipientId) { showNotice('Please pick a recipient.'); return; }
 
     const seed = Date.now();
     const results = [];

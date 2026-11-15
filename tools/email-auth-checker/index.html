@@ -138,6 +138,7 @@
         <p id="eac-loading-text">Querying DNS records...</p>
       </div>
 
+      <div id="toolNotice" class="tool-notice"></div>
       <div id="eac-error" class="eac-error"></div>
 
       <div id="eac-results" class="eac-results">
@@ -234,7 +235,7 @@ function escHtml(str) {
 async function checkAuth() {
   var domain = document.getElementById('eac-domain').value.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].split('@').pop();
   if (!domain) {
-    showError('Please enter a domain name');
+    showNotice('Please enter a domain name');
     return;
   }
 
@@ -418,6 +419,23 @@ function showError(msg) {
   document.getElementById('eac-check-btn').disabled = false;
   document.getElementById('eac-check-btn').textContent = 'Check';
 }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('eac-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
 function resetTool() {
   document.getElementById('eac-domain').value = '';

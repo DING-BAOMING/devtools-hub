@@ -114,6 +114,7 @@
                     <input type="file" id="ieFileInput" accept="image/jpeg,image/png,image/webp,image/bmp" style="display:none" aria-label="Choose an image to extend">
                 </div>
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="ieError" class="ie-error"></div>
 
                 <div class="ie-editor" id="ieEditor">
@@ -413,6 +414,23 @@
             return Math.round(px / 1000).toLocaleString() + 'k px';
         }
         function showError(msg) { errorBox.textContent = msg; errorBox.classList.add('visible'); }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('ieError');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
         function hideError()    { errorBox.classList.remove('visible'); errorBox.textContent = ''; }
         function setProgress(pct, text) {
             progress.classList.add('visible');
@@ -428,7 +446,7 @@
         function loadImageFromFile(file) {
             hideError();
             if (!file.type.startsWith('image/') && !/\.(jpe?g|png|webp|bmp)$/i.test(file.name)) {
-                showError('Please select an image file (JPG, PNG, WebP, BMP).'); return;
+                showNotice('Please select an image file (JPG, PNG, WebP, BMP).'); return;
             }
             if (file.size > 20 * 1024 * 1024) { showError('File is too large. Max size is 20 MB.'); return; }
             sourceFile = file;
@@ -697,7 +715,7 @@
 
         async function processExtender() {
             if (isProcessing) return;
-            if (!sourceImage) { showError('Please upload an image first.'); return; }
+            if (!sourceImage) { showNotice('Please upload an image first.'); return; }
             const tw = parseInt(targetWInput.value, 10);
             const th = parseInt(targetHInput.value, 10);
             if (!tw || !th || tw < 64 || th < 64) { showError('Target W and H must both be at least 64 px.'); return; }

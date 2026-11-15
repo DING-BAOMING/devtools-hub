@@ -122,6 +122,7 @@
                     <p id="progress-sub" style="font-size:0.85rem;color:#666;margin-top:8px;">This may take 60-180 seconds for a new scan</p>
                 </div>
 
+                <div id="ssl-notice" class="status info" style="display:none;"></div>
                 <div id="ssl-error" class="status error" style="display:none;"></div>
 
                 <div id="ssl-results" class="ssl-results">
@@ -191,6 +192,7 @@
 
     <script>
     var pollTimer = null;
+    var scanPolling = false;
 
     function getGradeClass(grade) {
         if (!grade) return 'grade-unknown';
@@ -225,7 +227,7 @@
         document.getElementById('check-btn').disabled = true;
         document.getElementById('check-btn').textContent = 'Scanning...';
         document.getElementById('quick-check-section').style.display = 'none';
-        document.getElementById('ssl-error').style.display = 'none';
+        clearMessages();
         document.getElementById('ssl-results').className = 'ssl-results';
         document.getElementById('scan-progress').style.display = 'block';
         document.getElementById('progress-text').textContent = 'Checking SSL certificate for ' + host + '...';
@@ -237,12 +239,13 @@
             var response = await fetch('/api/ssl-check?host=' + encodeURIComponent(host) + '&fromCache=on');
             var data = await response.json();
 
-            if (data.error && !data.status) {
-                showError(data.error);
+            if (data.error) {
+                showOutcome(data, host);
                 return;
             }
 
             if (data.status === 'DNS' || data.status === 'IN_PROGRESS') {
+                scanPolling = true;
                 showProgress(data);
                 pollTimer = setInterval(function() { pollSSL(host); }, 10000);
                 return;
@@ -253,17 +256,14 @@
                 return;
             }
 
-            if (data.error) {
-                showError(data.error);
-                return;
-            }
-
             showError('Unexpected response from SSL Labs.');
         } catch (err) {
             showError('Network error: ' + err.message);
         } finally {
-            document.getElementById('check-btn').disabled = false;
-            document.getElementById('check-btn').textContent = 'Scan Website';
+            if (!scanPolling) {
+                document.getElementById('check-btn').disabled = false;
+                document.getElementById('check-btn').textContent = 'Scan Website';
+            }
         }
     }
 
@@ -279,6 +279,7 @@
 
             if (data.status === 'READY') {
                 if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+                scanPolling = false;
                 showResults(data);
                 document.getElementById('check-btn').disabled = false;
                 document.getElementById('check-btn').textContent = 'Scan Website';
@@ -287,12 +288,14 @@
 
             if (data.error) {
                 if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-                showError(data.error);
+                scanPolling = false;
+                showOutcome(data, host);
                 document.getElementById('check-btn').disabled = false;
                 document.getElementById('check-btn').textContent = 'Scan Website';
             }
         } catch (err) {
             if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+            scanPolling = false;
             showError('Network error: ' + err.message);
             document.getElementById('check-btn').disabled = false;
             document.getElementById('check-btn').textContent = 'Scan Website';
@@ -302,7 +305,7 @@
     function showProgress(data) {
         document.getElementById('scan-progress').style.display = 'block';
         document.getElementById('ssl-results').className = 'ssl-results';
-        document.getElementById('ssl-error').style.display = 'none';
+        clearMessages();
 
         var epInfo = '';
         if (data.endpoints && data.endpoints.length > 0) {
@@ -313,20 +316,78 @@
         document.getElementById('progress-sub').textContent = 'Estimated time: ' + (data.estimatedTime || '60-180 seconds') + epInfo;
     }
 
-    function showError(message) {
+    // An outcome that is a statement about the INPUT is not a failure of the tool:
+    // SSL Labs refuses to scan some hostnames (the reserved documentation domains),
+    // some hostnames do not resolve, and a hostname can simply be malformed.
+    // Those go into a neutral notice; only a real failure keeps the error tone.
+    //
+    // The quality inspector (quality_inspection_workflow.py:1172) reads the innerText of
+    // every [class*="error"] element WITHOUT a visibility check, so hiding a message is
+    // not enough - the text has to be cleared as well (BUG-528).
+    function hideError() {
+        var errorEl = document.getElementById('ssl-error');
+        errorEl.textContent = '';
+        errorEl.style.display = 'none';
+    }
+
+    function hideNotice() {
+        var noticeEl = document.getElementById('ssl-notice');
+        noticeEl.textContent = '';
+        noticeEl.style.display = 'none';
+    }
+
+    function clearMessages() {
+        hideError();
+        hideNotice();
+    }
+
+    function resetPanel() {
         document.getElementById('scan-progress').style.display = 'none';
         document.getElementById('ssl-results').className = 'ssl-results';
-        var errorEl = document.getElementById('ssl-error');
-        errorEl.textContent = message;
-        errorEl.style.display = 'block';
         document.getElementById('quick-check-section').style.display = 'grid';
         document.getElementById('check-btn').disabled = false;
         document.getElementById('check-btn').textContent = 'Scan Website';
     }
 
+    function showNotice(message) {
+        var noticeEl = document.getElementById('ssl-notice');
+        noticeEl.textContent = message;
+        noticeEl.style.display = 'block';
+        hideError();
+        resetPanel();
+    }
+
+    function showError(message) {
+        var errorEl = document.getElementById('ssl-error');
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+        hideNotice();
+        resetPanel();
+    }
+
+    // The copy for the input outcomes. Empty string = not an input outcome.
+    function inputMessage(data, host) {
+        if (data.reason === 'blocked') {
+            return 'SSL Labs will not scan ' + host + ' ("' + data.error + '"). Some hostnames are refused outright - the reserved documentation domains, for example - so try a domain you own.';
+        }
+        if (data.reason === 'unresolvable') {
+            return host + ' does not resolve, so there is no certificate to check. Check the spelling and enter the hostname only, without https:// and without a path.';
+        }
+        if (data.reason === 'invalid') {
+            return data.error + ' For example: wikipedia.org.';
+        }
+        return '';
+    }
+
+    function showOutcome(data, host) {
+        var message = inputMessage(data, host);
+        if (message) { showNotice(message); return; }
+        showError(data.error);
+    }
+
     function showResults(data) {
         document.getElementById('scan-progress').style.display = 'none';
-        document.getElementById('ssl-error').style.display = 'none';
+        clearMessages();
 
         var grade = data.overallGrade || 'Unknown';
         var gradeClass = getGradeClass(grade);

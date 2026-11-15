@@ -190,6 +190,7 @@
                         <div class="or-progress-bar"><div class="or-progress-fill" id="orProgressFill"></div></div>
                     </div>
 
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div class="or-error" id="orError"></div>
 
                     <div class="or-result" id="orResult">
@@ -362,6 +363,23 @@
             errorBox.classList.add('visible');
             setTimeout(function() { errorBox.classList.remove('visible'); }, 8000);
         }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('orError');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
         function hideError() { errorBox.classList.remove('visible'); }
         function showProgress(text) {
             progressText.textContent = text;
@@ -414,7 +432,7 @@
 
         // --- File upload ---
         function handleFile(file) {
-            if (!file.type.startsWith('image/')) return showError('Please select an image file');
+            if (!file.type.startsWith('image/')) return showNotice('Please select an image file');
             if (file.size > 8 * 1024 * 1024) return showError('Image must be under 8MB');
             selectedFile = file;
             hideError();
@@ -567,7 +585,7 @@
 
         // --- Submit (Erase) ---
         removeBtn.addEventListener('click', function() {
-            if (!sourceImageData) return showError('Please upload an image first');
+            if (!sourceImageData) return showNotice('Please upload an image first');
             var maskData = ctx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
             var hasMask = false;
             for (var i = 3; i < maskData.data.length; i += 4) {

@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from '../../libs/http.js';
 // Cloudflare Pages Function: Subtitle Generator (audio/video -> SRT/VTT)
 // POST /api/subtitle-generator   multipart/form-data { audio: File, model?, language? }
 //   -> Groq Whisper API (response_format=verbose_json + segment timestamps)
@@ -56,16 +57,6 @@ function jsonResponse(obj, status = 200, extraHeaders = {}) {
 
 function errResponse(code, message, httpStatus = 400, extra = {}) {
   return jsonResponse({ ok: false, error: code, message, ...extra }, httpStatus);
-}
-
-async function fetchWithTimeout(url, opts = {}, ms = FETCH_TIMEOUT_MS) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort('timeout'), ms);
-  try {
-    return await fetch(url, { ...opts, signal: ctl.signal });
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 function safeText(s) {

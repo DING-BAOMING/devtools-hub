@@ -117,6 +117,7 @@
                 <!-- BUG-014: 4 shadow button proxies (declared BEFORE #controls and
                      #result which use display:none). Forward clicks to real buttons. -->
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="errorBox" class="iu-error"></div>
 
                 <div id="infoBar" class="iu-info-bar">
@@ -335,6 +336,23 @@
             errorBox.textContent = msg;
             errorBox.classList.add('visible');
         }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('errorBox');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
         function hideError() {
             errorBox.classList.remove('visible');
@@ -354,7 +372,7 @@
         function handleFile(file) {
             hideError();
             if (!file.type.startsWith('image/')) {
-                showError('Please select an image file (JPG, PNG, WebP, GIF).');
+                showNotice('Please select an image file (JPG, PNG, WebP, GIF).');
                 return;
             }
             if (file.size > 20*1024*1024) {

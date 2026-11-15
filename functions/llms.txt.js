@@ -1,5 +1,9 @@
 // llms.txt - AI-readable site index (compact).
 // Format: https://llmstxt.org/
+// BUG-465: the file's byte budget is the site's WRITTEN decision — 72 KiB
+// (AGENTS.md, BUG-462's standing disposition), not the 50 KB of the retired
+// agentimization/llms-txt-size rule (BUG-326). The per-tool [.md]+[HTML] pair is
+// what keeps BOTH freshness and links-markdown green; it is why the file is ~67 KB.
 // BUG-091: Rewrite to satisfy agentimization/llms-txt-size (<=50KB) and
 // agentimization/llms-txt-links-markdown (100% .md URLs). Full descriptions
 // live in /llms-full.txt (Warning 3 agentimization/llms-full-valid).
@@ -22,6 +26,7 @@
 // BUG-359: the category blurbs and the sentence-aware truncation are shared with
 // functions/tools/[[catchall]].js (libs/category-copy.js).
 import { CAT_DESCRIPTIONS, sentenceTruncate } from '../libs/category-copy.js';
+import { loadManifest } from '../libs/manifest.js';
 
 export async function onRequest(context) {
   if (context.request.method === 'HEAD') {
@@ -41,17 +46,10 @@ export async function onRequest(context) {
   const tools = [];
 
   try {
-    const mr = await assets.fetch(new URL('/manifest.txt?cb=' + Date.now(), baseUrl));
-    if (!mr.ok) throw new Error('Manifest ' + mr.status);
-    const manifest = await mr.text();
-    for (const line of manifest.split('\n')) {
-      const t = line.trim();
-      if (!t || t.startsWith('#')) continue;
-      const p = t.split('|');
-      if (p.length < 6) continue;
-      const [slug, category, , , name, desc] = p;
-      tools.push({ slug: slug.trim(), category: category.trim(), name: name.trim(), desc: desc.trim() });
-    }
+    // BUG-513: the row contract now lives in one place (libs/manifest.js). Nine readers
+    // used to parse manifest.txt on their own and the copies had drifted.
+    const all = await loadManifest(assets, baseUrl);
+    for (const t of all) tools.push({ slug: t.slug, category: t.category, name: t.name, desc: t.desc });
   } catch (e) {
     return new Response('llms.txt error: ' + e.message, { headers: { 'Content-Type': 'text/plain' } });
   }
@@ -119,18 +117,20 @@ export async function onRequest(context) {
     if (items.length === 0) continue;
     out += '## ' + (CAT_NAMES[cat] || cat) + '\n';
     for (const t of items) {
-      // BUG-184: Per-tool entry now `[Name](URL.md) [HTML](URL/)` — removed
-      // the inline description (was 50 chars) to make room for the [HTML]
-      // link while staying under the 50KB threshold (closes Warning 1/14
-      // llms-txt-freshness 50% → 100%). Full description still available at
-      // /tools/<slug>/.md + /llms-full.txt. Removes ~38 chars/entry vs the
-      // 50-char desc + adds ~10 chars for [HTML](URL/) = net -28 chars/entry
-      // × 249 tools = -7 KB (gives ~7K headroom under 50K threshold).
-      // Size grew with 371 tools → drop HTML link per tool to stay <50KB.
-      // BUG-415: Switch tool entries to HTML URLs to satisfy agentimization/llms-txt-freshness.
-      // HTML URLs are in sitemap.xml; .md mirrors are noindex. This aligns llms.txt
-      // links with sitemap and keeps file under 50KB while restoring freshness.
-      out += '- [' + t.name + '](' + base + '/tools/' + t.slug + '/)\n';
+      // BUG-184: Per-tool entry is the `[Name](URL.md) [HTML](URL/)` PAIR — no
+      // inline description (full text still at /tools/<slug>/.md + /llms-full.txt).
+      // BUG-465: BUG-415 dropped the `.md` half of the pair to stay under 50KB and
+      // immediately re-opened the OTHER rule as an ERROR — agentimization/
+      // llms-txt-links-markdown ("Only 17/413 llms.txt links point to .md URLs
+      // (4%)", review of 2026-11-08). BUG-184 had measured the trade-off: the pair
+      // is the ONLY form that satisfies both rules at once (drop `.md` → freshness
+      // opens; drop `[HTML]` → links-markdown opens). Restored, and the budget the
+      // pair needs is the site's own written decision — 72 KiB (AGENTS.md, BUG-462's
+      // standing disposition; the 50 KB figure BUG-415 fought for was pinned to the
+      // retired agentimization/llms-txt-size rule, BUG-326). Measured: 44,243 B +
+      // 23,396 B = 67,639 B = 66.1 KiB, 6,089 B under budget; `.md` link share
+      // 4.1% → 50.3% (the historical by-design level).
+      out += '- [' + t.name + '](' + base + '/tools/' + t.slug + '/.md) [HTML](' + base + '/tools/' + t.slug + '/)\n';
     }
     out += '\n';
   }

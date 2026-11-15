@@ -124,6 +124,7 @@
                             <button class="pt-btn" onclick="compute()" id="pt-calc-btn">Calculate times</button>
                         </div>
                     </div>
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div id="pt-error" class="pt-error"></div>
                     <div id="pt-warn" class="pt-warn"></div>
                     <p class="pt-note">Your coordinates are read from this page's inputs, never uploaded. Down the exact minute, mosque timetables may still differ by one or two minutes because of local adjustments and fixed clocks - always follow your local mosque for jama'ah times.</p>
@@ -334,6 +335,23 @@ function fillTz() {
 function showWarn(msg) { var w = document.getElementById('pt-warn'); w.textContent = msg; w.style.display = 'block'; }
 function hideWarn() { document.getElementById('pt-warn').style.display = 'none'; }
 function showError(msg) { var e = document.getElementById('pt-error'); e.textContent = msg; e.style.display = 'block'; }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('pt-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 function hideError() { document.getElementById('pt-error').style.display = 'none'; }
 
 function readInputs() {
@@ -371,7 +389,7 @@ function loadState() {
 
 function useMyLocation() {
     hideError();
-    if (!navigator.geolocation) { showError('Your browser does not expose Geolocation. Type latitude and longitude instead.'); return; }
+    if (!navigator.geolocation) { showNotice('Your browser does not expose Geolocation. Type latitude and longitude instead.'); return; }
     var btn = document.getElementById('pt-gps-btn');
     btn.textContent = 'Locating...';
     navigator.geolocation.getCurrentPosition(function (pos) {

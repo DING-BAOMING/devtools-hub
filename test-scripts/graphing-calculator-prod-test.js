@@ -3,7 +3,7 @@
 //   tool analysis -> user scenario -> step-by-step -> findings -> fix result -> cleanup
 const { chromium } = require('playwright');
 
-const BASE = 'https://tools.scoreroute.com';
+const BASE = process.env.GC_BASE || 'https://tools.scoreroute.com';
 const URL = BASE + '/tools/graphing-calculator/?cb=' + Date.now();
 let pass = 0, fail = 0;
 const step = (n, name, ok, detail) => {
@@ -213,10 +213,10 @@ const step = (n, name, ok, detail) => {
 
     // STEP L: share link restores state on a fresh page load
     console.log('\n[L] share link round-trip');
-    const shareUrl = await page.evaluate(() => {
+    const shareUrl = await page.evaluate((base) => {
       const payload = { c: __gc.state.curves.map(c => ({ t: c.type, e: c.expr, x: c.extra, k: c.color, on: 1 })), v: [-6, 6, -4, 6] };
-      return BASE + '/tools/graphing-calculator/#g=' + encodeURIComponent(JSON.stringify(payload));
-    });
+      return base + '/tools/graphing-calculator/#g=' + encodeURIComponent(JSON.stringify(payload));
+    }, BASE);
     const p2 = await ctx.newPage();
     await p2.goto(shareUrl, { waitUntil: 'networkidle', timeout: 60000 });
     await p2.waitForSelector('#gc-curves .gc-curve', { timeout: 20000 });
@@ -241,7 +241,7 @@ const step = (n, name, ok, detail) => {
     }));
     step('M', 'title = "Graphing Calculator - Roots, Area & Fit | DevTools Hub"', seo.title === 'Graphing Calculator - Roots, Area & Fit | DevTools Hub', seo.title);
     step('M', 'title length ' + seo.titleLen + ' <= 60', seo.titleLen <= 60, seo.titleLen);
-    step('M', 'no double-encoded entity in the title', !/&amp;amp;/.test(document.titleSafe || seo.title), seo.title);
+    step('M', 'no double-encoded entity in the title', !/&amp;amp;/.test(seo.title), seo.title);
     step('M', 'description length ' + seo.descLen + ' in [120,160]', seo.descLen >= 120 && seo.descLen <= 160, seo.descLen);
     step('M', 'canonical points at the tool URL', seo.canonical === BASE + '/tools/graphing-calculator/', seo.canonical);
     step('M', 'og:url present and matches canonical', seo.ogUrl === seo.canonical, seo.ogUrl);
@@ -281,7 +281,7 @@ const step = (n, name, ok, detail) => {
     // STEP O: no runtime errors / failed requests
     console.log('\n[O] runtime health');
     step('O', 'zero uncaught page errors', errs.length === 0, errs.join(' | '));
-    const realFails = reqFail.filter(u => !/cloudflareinsights|beacon/.test(u));
+    const realFails = reqFail.filter(u => !/cloudflareinsights|beacon|google-analytics/.test(u));
     step('O', 'zero failed subresources (excluding analytics beacon)', realFails.length === 0, realFails.join(' | '));
 
   } finally {

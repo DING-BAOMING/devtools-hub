@@ -16,6 +16,9 @@
 // because the GET body constructor throws on an empty response — the exact defect BUG-182 fixed
 // in /tools/.md, on the one URL an audit bot is guaranteed to probe.
 import { buildHomepageMarkdown, homepageFaqs } from './index.js';
+// BUG-513: one manifest parser for every reader (libs/manifest.js). This file used
+// to carry its own copy of the row contract.
+import { loadManifest } from '../libs/manifest.js';
 
 const MD_HEADERS = {
   'Content-Type': 'text/markdown; charset=utf-8',
@@ -52,24 +55,7 @@ export async function onRequest(context) {
   const baseUrl = new URL(context.request.url);
   let tools = [];
   try {
-    const mr = await assets.fetch(new URL('/manifest.txt?cb=' + Date.now(), baseUrl));
-    if (!mr.ok) throw new Error('Manifest ' + mr.status);
-    const manifest = await mr.text();
-    for (const line of manifest.split('\n')) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) continue;
-      const parts = trimmed.split('|');
-      if (parts.length < 6) continue;
-      tools.push({
-        slug: parts[0].trim(),
-        category: (parts[1] || 'other').trim(),
-        featured: (parts[2] || '').trim() === 'yes',
-        isnew: (parts[3] || '').trim() === 'yes',
-        name: (parts[4] || '').trim(),
-        desc: (parts[5] || '').trim(),
-        tags: (parts[6] || '').split(',').map(s => s.trim()).filter(Boolean)
-      });
-    }
+    tools = await loadManifest(assets, baseUrl);
   } catch (e) {
     return new Response('Manifest error: ' + e.message, { headers: { 'Content-Type': 'text/plain' } });
   }

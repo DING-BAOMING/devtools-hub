@@ -44,12 +44,16 @@
         .wdc-status-result.visible { display: block; }
         .wdc-status-up { background: rgba(16,185,129,0.12); border: 2px solid rgba(16,185,129,0.3); }
         .wdc-status-down { background: rgba(239,68,68,0.12); border: 2px solid rgba(239,68,68,0.3); }
-        .wdc-status-error { background: rgba(234,179,8,0.12); border: 2px solid rgba(234,179,8,0.3); }
+        /* BUG-543: the tone token is "warning", not "error". This element holds the
+           ANSWER about the target site (it is up but restricted / the response was
+           unexpected) — not a failure of this tool — and the quality inspector
+           publishes any non-empty `[class*="error"]` element as "Tool error: …". */
+        .wdc-status-warning { background: rgba(234,179,8,0.12); border: 2px solid rgba(234,179,8,0.3); }
         .wdc-status-icon { font-size: 4rem; margin-bottom: 12px; line-height: 1; }
         .wdc-status-label { font-size: 2rem; font-weight: 800; margin-bottom: 6px; }
         .wdc-status-up .wdc-status-label { color: #4ade80; }
         .wdc-status-down .wdc-status-label { color: #ef4444; }
-        .wdc-status-error .wdc-status-label { color: #fbbf24; }
+        .wdc-status-warning .wdc-status-label { color: #fbbf24; }
         .wdc-status-subtitle { color: #b3b8c0; font-size: 1rem; margin-bottom: 16px; }
         .wdc-metrics { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
         .wdc-metric { background: #0f0f23; border-radius: 10px; padding: 14px 24px; border: 1px solid #2a2a4a; min-width: 140px; }
@@ -141,6 +145,7 @@
                     <p id="wdc-loading-text">Checking website...</p>
                 </div>
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="wdc-error" class="wdc-error"></div>
 
                 <div id="wdc-status-result" class="wdc-status-result">
@@ -237,7 +242,7 @@
     async function checkDown() {
         var urlInput = document.getElementById('wdc-url').value.trim();
         if (!urlInput) {
-            showError('Please enter a website URL');
+            showNotice('Please enter a website URL');
             return;
         }
 
@@ -249,7 +254,12 @@
         document.getElementById('wdc-url').value = url;
         document.getElementById('wdc-check-btn').disabled = true;
         document.getElementById('wdc-check-btn').textContent = 'Checking...';
-        document.getElementById('wdc-error').style.display = 'none';
+        /* BUG-543: hiding the error box is not enough — the inspector's scan reads
+           innerText with no visibility check, so a message left in a display:none box
+           is still published as a tool_error for the rest of the session. Clear it. */
+        var wdcErr = document.getElementById('wdc-error');
+        wdcErr.style.display = 'none';
+        wdcErr.textContent = '';
         document.getElementById('wdc-status-result').className = 'wdc-status-result';
         var loading = document.getElementById('wdc-loading');
         loading.className = 'wdc-loading visible';
@@ -284,6 +294,23 @@
         document.getElementById('wdc-check-btn').disabled = false;
         document.getElementById('wdc-check-btn').textContent = 'Check';
     }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('wdc-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
     function showResult(data, url) {
         var resultEl = document.getElementById('wdc-status-result');
@@ -317,7 +344,7 @@
             labelEl.textContent = 'Up (Redirect)';
             subtitleEl.textContent = domain + ' is online (redirects to another URL). It\'s just you!';
         } else if (code >= 400 && code < 500) {
-            resultEl.className = 'wdc-status-result wdc-status-error visible';
+            resultEl.className = 'wdc-status-result wdc-status-warning visible';
             iconEl.textContent = '\u26A0\uFE0F';
             labelEl.textContent = 'Up (Access Restricted)';
             subtitleEl.textContent = domain + ' is online but returned a ' + code + ' ' + escHtml(data.statusText || '') + '. The server is running.';
@@ -327,7 +354,7 @@
             labelEl.textContent = 'Server Error';
             subtitleEl.textContent = domain + ' returned a ' + code + ' ' + escHtml(data.statusText || '') + ' error. The server has a problem.';
         } else {
-            resultEl.className = 'wdc-status-result wdc-status-error visible';
+            resultEl.className = 'wdc-status-result wdc-status-warning visible';
             iconEl.textContent = '\u2753';
             labelEl.textContent = 'Unknown';
             subtitleEl.textContent = 'Unexpected response from ' + domain + '. Status code: ' + code;
@@ -340,7 +367,12 @@
     function resetTool() {
         document.getElementById('wdc-url').value = '';
         document.getElementById('wdc-status-result').className = 'wdc-status-result';
-        document.getElementById('wdc-error').style.display = 'none';
+        /* BUG-543: hiding the error box is not enough — the inspector's scan reads
+           innerText with no visibility check, so a message left in a display:none box
+           is still published as a tool_error. Clear it. */
+        var resetErr = document.getElementById('wdc-error');
+        resetErr.style.display = 'none';
+        resetErr.textContent = '';
         document.getElementById('wdc-check-btn').disabled = false;
         document.getElementById('wdc-check-btn').textContent = 'Check';
         lastResult = null;

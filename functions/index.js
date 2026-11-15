@@ -10,6 +10,8 @@
 const PAGE_SIZE = 50;
 const nl = '\n';
 
+import { parseManifest } from '../libs/manifest.js';
+
 function mdEscape(s) {
   return String(s == null ? '' : s).replace(/\|/g, '\\|').replace(/\n/g, ' ').trim();
 }
@@ -25,19 +27,26 @@ function mdEscape(s) {
 // for: the curated Popular / Recently Updated bands keep their descriptions, and — since
 // BUG-400 — the alphabetical index carries its description on exactly the 50 entries the page's
 // "View all N tools" disclosure renders (page 1 of the same by-name slice, see below).
-// Held at 56 KiB since BUG-400 (2026-10-27, decision): raised from 50 KiB to carry those 50
-// card descriptions (~7.4 KB). The 50 KiB figure was pinned to a retired squirrelscan rule
-// (`agentimization/page-size-markdown`, 0 hits in the installed v0.0.111); the description
-// surface proper, llms-full.txt, is 160 KB. Asserted by bug353-md-page-size-gate.js and its
-// production suite — a red gate on overrun, never silent trimming.
-const MD_BUDGET = 56 * 1024;
-const describe = (t, base) =>
-  '- [' + mdEscape(t.name) + '](' + base + '/tools/' + t.slug + '/.md): ' + mdEscape(t.desc) +
+// Held at 50 KiB since BUG-466 (2026-11-08): the 56 KiB budget BUG-400 raised it to was this
+// file's own number, and the review bot still fires `agentimization/page-size-markdown` at
+// 50 KB — "1/10 markdown pages exceed 50K chars", Warning 4 of every 2026-11-07/08 round. The
+// budget was never the binding constraint: the 28-byte origin prefix on every link was. /.md
+// carried 373 absolute URLs (10.4 KB of `https://tools.scoreroute.com`) and every other mirror
+// on the site — all 373 tool mirrors and all 11 category mirrors, from libs/html-md.js — has
+// always linked root-relative, with the document's own base declared once in its `URL:` line.
+// Root-relative links therefore lost nothing and took /.md from 56.2 KB to ~45 KB, under 50 KB
+// with room for ~50 more tools. llms.txt / llms-full.txt stay absolute on purpose: they are
+// standalone indexes an agent reads with no page to resolve against, which is not what a
+// mirror is. Asserted by bug353-md-page-size-gate.js and its production suite — a red gate on
+// overrun, never silent trimming.
+const MD_BUDGET = 50 * 1024;
+const describe = (t) =>
+  '- [' + mdEscape(t.name) + '](/tools/' + t.slug + '/.md): ' + mdEscape(t.desc) +
   (t.isnew ? ' _(New)_' : (t.featured ? ' _(Popular)_' : '')) + nl;
-const CATALOGUE_POINTER = base =>
-  'Full description for every entry: [llms-full.txt](' + base + '/llms-full.txt) ' +
-  '(machine-readable catalogue: [/api/tools](' + base + '/api/tools), compact index: ' +
-  '[llms.txt](' + base + '/llms.txt)). Each name above links to that tool\'s own markdown mirror, ' +
+const CATALOGUE_POINTER = () =>
+  'Full description for every entry: [llms-full.txt](/llms-full.txt) ' +
+  '(machine-readable catalogue: [/api/tools](/api/tools), compact index: ' +
+  '[llms.txt](/llms.txt)). Each name above links to that tool\'s own markdown mirror, ' +
   'which carries its description in full.' + nl + nl;
 
 export function homepageFaqs(totalCount) {
@@ -105,8 +114,9 @@ export function buildHomepageMarkdown(tools, HOMEPAGE_FAQS) {
   // sort, each card name + description; the mirror now appends its description to the link line
   // of exactly those 50 entries (no second list, no new section — the line already existed).
   // The section heading below mirrors the disclosure's <summary> text verbatim, so the
-  // markdown-content-parity gate runs on / with zero carve-outs. The byte budget that used to
-  // forbid this was raised 50 -> 56 KiB; the decision is recorded on MD_BUDGET below.
+  // markdown-content-parity gate runs on / with zero carve-outs. BUG-466: links went
+  // root-relative, which is what brought the mirror back under the 50 KiB budget with all 50
+  // card descriptions still inline (see MD_BUDGET above).
   md += totalCount + ' free developer tools · no signup · runs in your browser' + nl + nl;
   md += 'URL: ' + base + '/' + nl + nl;
   md += 'Markdown: ' + base + '/.md' + nl + nl;
@@ -115,20 +125,20 @@ export function buildHomepageMarkdown(tools, HOMEPAGE_FAQS) {
   md += 'Popular: JSON formatter · Password generator · QR code · AI chat · Image compressor · Speed test' + nl + nl;
   md += '## Popular Tools' + nl + nl;
   for (const t of popular) {
-    md += '- [' + mdEscape(t.name) + '](' + base + '/tools/' + t.slug + '/.md): ' + mdEscape(t.desc) + (t.isnew ? ' _(New)_' : '') + nl;
+    md += '- [' + mdEscape(t.name) + '](/tools/' + t.slug + '/.md): ' + mdEscape(t.desc) + (t.isnew ? ' _(New)_' : '') + nl;
   }
   md += nl;
   if (recentOnly.length) {
     md += '## Recently Updated' + nl + nl;
     for (const t of recentOnly) {
-      md += '- [' + mdEscape(t.name) + '](' + base + '/tools/' + t.slug + '/.md): ' + mdEscape(t.desc) + nl;
+      md += '- [' + mdEscape(t.name) + '](/tools/' + t.slug + '/.md): ' + mdEscape(t.desc) + nl;
     }
     md += nl;
   }
   md += '## Browse by Category' + nl + nl;
   for (const c of CAT_ORDER) {
     const count = (byCategory[c[0]] || []).length;
-    md += '- [' + mdEscape(c[1]) + ' (' + count + ' tools)](' + base + '/tools/' + c[0] + '/.md)' + nl;
+    md += '- [' + mdEscape(c[1]) + ' (' + count + ' tools)](/tools/' + c[0] + '/.md)' + nl;
   }
   md += nl;
   // BUG-353: no pagination. The old heading said "page N" while listing all 346 tools whatever N
@@ -136,15 +146,15 @@ export function buildHomepageMarkdown(tools, HOMEPAGE_FAQS) {
   // the page number and the inline descriptions is one edit for both: the mirror is now the whole
   // index, honestly labelled, and sized for a context window.
   md += '## View all ' + totalCount + ' tools (alphabetical)' + nl + nl;
-  md += CATALOGUE_POINTER(base);
+  md += CATALOGUE_POINTER();
   const sorted = tools.slice().sort((a, b) => a.name.localeCompare(b.name));
   // Same expression and same PAGE_SIZE as the page's all-tools grid (`pagedTools` in the HTML
   // builder above), one Function — the 50 names described here are the 50 cards the page renders.
   const disclosed = new Set(sorted.slice(0, PAGE_SIZE).map((t) => t.slug));
   for (const t of sorted) {
     md += disclosed.has(t.slug)
-      ? describe(t, base)
-      : '- [' + mdEscape(t.name) + '](' + base + '/tools/' + t.slug + '/.md)' + nl;
+      ? describe(t)
+      : '- [' + mdEscape(t.name) + '](/tools/' + t.slug + '/.md)' + nl;
   }
   md += nl;
   md += '## Frequently Asked Questions' + nl + nl;
@@ -155,12 +165,12 @@ export function buildHomepageMarkdown(tools, HOMEPAGE_FAQS) {
   md += '## About DevTools Hub' + nl + nl;
   md += 'DevTools Hub is maintained by BAOMING and ships 2-3 new tools per week. Every tool is ' + nl;
   md += '100% free, runs in your browser, requires no signup, and works offline once loaded.' + nl;
-  md += 'See [About](' + base + '/about/.md), [Privacy](' + base + '/privacy/.md), and' + nl;
-  md += '[Feedback](' + base + '/tools/feedback/) for details.' + nl + nl;
+  md += 'See [About](/about/.md), [Privacy](/privacy/.md), and' + nl;
+  md += '[Feedback](/tools/feedback/) for details.' + nl + nl;
   md += '## Sitemap and Feeds' + nl + nl;
-  md += '- [Sitemap (HTML + .md URLs)](' + base + '/sitemap.xml)' + nl;
-  md += '- [llms.txt (compact catalog for AI agents)](' + base + '/llms.txt)' + nl;
-  md += '- [llms-full.txt (full descriptions for AI agents)](' + base + '/llms-full.txt)' + nl;
+  md += '- [Sitemap (HTML + .md URLs)](/sitemap.xml)' + nl;
+  md += '- [llms.txt (compact catalog for AI agents)](/llms.txt)' + nl;
+  md += '- [llms-full.txt (full descriptions for AI agents)](/llms-full.txt)' + nl;
   if (md.length > MD_BUDGET) {
     // ponytail: the 50 KB cap is asserted, not enforced by trimming. A tool catalogue that grows
     // past the budget should show up as a red gate, not as a mirror that silently lost rows.
@@ -204,29 +214,14 @@ export async function onRequest(context) {
 
   const assets = context.env.ASSETS;
   const baseUrl = new URL(context.request.url);
-  const tools = [];
+  let tools = [];
 
   try {
     const mr = await assets.fetch(new URL('/manifest.txt?cb=' + Date.now(), baseUrl));
     if (!mr.ok) throw new Error('Manifest ' + mr.status);
     const manifest = await mr.text();
-    const lines = manifest.split('\n');
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('#')) continue;
-      const parts = trimmed.split('|');
-      if (parts.length < 6) continue;
-      const [slug, category, featured, isnew, name, desc, tags] = parts;
-      tools.push({
-        slug: slug.trim(),
-        category: (category || 'other').trim(),
-        featured: (featured || '').trim() === 'yes',
-        isnew: (isnew || '').trim() === 'yes',
-        name: (name || '').trim(),
-        desc: (desc || '').trim(),
-        tags: (tags || '').split(',').map(s => s.trim()).filter(Boolean)
-      });
-    }
+    // BUG-513: one manifest parser for every reader (libs/manifest.js).
+    tools = parseManifest(manifest);
   } catch (e) {
     return new Response('Manifest error: ' + e.message, { headers: { 'Content-Type': 'text/plain' } });
   }

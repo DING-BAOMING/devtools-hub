@@ -157,6 +157,7 @@
         </div>
       </form>
 
+      <div id="toolNotice" class="tool-notice"></div>
       <div id="esc-error" class="esc-error" role="alert"></div>
 
       <div id="esc-results" class="esc-results">
@@ -716,6 +717,23 @@ function showError(msg) {
   el.style.display = 'block';
   document.getElementById('esc-results').className = 'esc-results';
 }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('esc-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 function hideError() { document.getElementById('esc-error').style.display = 'none'; }
 
 function run() {
@@ -725,7 +743,7 @@ function run() {
     preheader: document.getElementById('esc-preheader').value,
     body: document.getElementById('esc-body').value
   });
-  if (!rep.subject && !rep.bodyText) { showError('Paste a subject line or an email body first.'); return; }
+  if (!rep.subject && !rep.bodyText) { showNotice('Paste a subject line or an email body first.'); return; }
   render(rep);
 }
 

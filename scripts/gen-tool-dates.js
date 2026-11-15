@@ -21,12 +21,31 @@
 // dateModified/datePublished (informative, not claimed fresh), and the sitemap simply
 // omits `<lastmod>` for that URL — `<lastmod>` is optional and absent beats wrong.
 //
+// SHALLOW CHECKOUTS (2026-11-10): the deploy workflow checks out with the default
+// fetch-depth 1, so there is no parent commit to compare against. "the body changed
+// here" then cannot be told apart from "we cannot see the previous version", and the
+// fallback stamped the checkout's own commit date on every tool without an authored
+// dateModified (42 of them) — the invented-freshness family all over again, once per
+// deploy. So: a shallow clone never guesses. It carries the date already recorded in
+// the committed map (computed from real history by scripts/publish-github.sh) and, when
+// there is none, emits nothing.
+//
 // Run by scripts/pre-deploy.sh before every deploy; safe to run any time.
 import { execFileSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 
 const htop = import.meta.dirname + '/..';
 const today = new Date().toISOString().slice(0, 10);
+
+// The committed map: the last date that was computed from real history.
+let carried = {};
+try { carried = JSON.parse(readFileSync(`${htop}/tool-dates.json`, 'utf8')); } catch (e) { carried = {}; }
+
+// No history to compare against -> never guess a date.
+let shallow = true;
+try {
+  shallow = execFileSync('git', ['rev-parse', '--is-shallow-repository'], { cwd: htop }).toString().trim() === 'true';
+} catch (e) { shallow = true; }
 
 // git route: newest-first ls; the first time a slug's index.html appears is its latest edit.
 // Every candidate commit is kept, because the BODY comparison below may need to walk back.
@@ -87,7 +106,8 @@ for (const slug of slugs) {
   const html = readFileSync(`${htop}/tools/${slug}/index.html`, 'utf8');
   let d = (html.match(/"dateModified"\s*:\s*"(2\d{3}-\d{2}-\d{2})"/) || [])[1];
   if (d) { src[slug] = 'authored'; }
-  else if ((d = bodyDate(slug))) { src[slug] = "git"; }
+  else if (!shallow && (d = bodyDate(slug))) { src[slug] = "git"; }
+  else if (carried[slug]) { d = carried[slug]; src[slug] = 'carried'; }
   else continue;
   if (d > today) throw new Error(`${slug}: date ${d} is in the future`);
   dates[slug] = d;
@@ -96,4 +116,5 @@ for (const slug of slugs) {
 writeFileSync(`${htop}/tool-dates.json`, JSON.stringify(dates) + '\n');
 const n = Object.keys(dates).length;
 const g = Object.values(src).filter(s => s === 'git').length;
-console.log(`tool-dates.json: ${n}/${slugs.length} tools dated - ${n - g} authored, ${g} git, ${slugs.length - n} undated (no invention)`);
+const c = Object.values(src).filter(s => s === 'carried').length;
+console.log(`tool-dates.json: ${n}/${slugs.length} tools dated - ${n - g - c} authored, ${g} git, ${c} carried, ${slugs.length - n} undated (no invention)${shallow ? ' [shallow checkout: no guessing]' : ''}`);

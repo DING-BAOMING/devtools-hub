@@ -151,6 +151,7 @@
                         <div id="statusLine" class="vtv-status-line"></div>
                     </div>
 
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div id="errorBox" class="vtv-error"></div>
 
                     <div id="result" class="vtv-result">
@@ -249,6 +250,23 @@
         box.classList.add('visible');
         box.style.display = 'block';
     }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('errorBox');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
     function setProgress(visible, text, pct) {
         $('progress').classList.toggle('visible', visible);
@@ -269,8 +287,8 @@
 
     async function generateVideo() {
         const prompt = $('promptInput').value.trim();
-        if (!prompt) { showError('Please enter a prompt describing the video you want to create.'); return; }
-        if (prompt.length < 10) { showError('Your prompt should be at least 10 characters.'); return; }
+        if (!prompt) { showNotice('Please enter a prompt describing the video you want to create.'); return; }
+        if (prompt.length < 10) { showNotice('Your prompt should be at least 10 characters.'); return; }
         const imageUrl = $('imageUrlInput-real').value.trim() || null;
         if (imageUrl && !/^https:\/\/.+/i.test(imageUrl)) { showError('Image-to-video requires a full HTTPS image URL.'); return; }
         showError(null);

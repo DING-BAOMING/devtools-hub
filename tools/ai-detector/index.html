@@ -63,6 +63,7 @@
                         </div>
                     </div>
 
+                    <div id="toolNotice" class="tool-notice"></div>
                     <div id="detect-error" class="detect-error" style="display:none;"></div>
 
                     <div id="detect-result" class="detect-result" style="display:none;">
@@ -198,6 +199,23 @@
         document.getElementById('detect-btn').disabled = false;
         document.getElementById('detect-btn').textContent = 'Detect AI Content';
     }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('detect-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
     function getVerdictClass(verdict) {
         if (verdict === 'AI-Generated' || verdict === 'Likely AI-Generated') return 'verdict-ai';
@@ -226,11 +244,11 @@
     async function detectAI() {
         var input = document.getElementById('detector-input').value.trim();
         if (!input) {
-            showError('Please enter some text to analyze');
+            showNotice('Please enter some text to analyze');
             return;
         }
         if (input.length < 50) {
-            showError('Please enter at least 50 characters for reliable detection (current: ' + input.length + ')');
+            showNotice('Please enter at least 50 characters for reliable detection (current: ' + input.length + ')');
             return;
         }
 

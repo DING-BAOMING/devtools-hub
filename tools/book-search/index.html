@@ -15,7 +15,7 @@
 <meta property="og:url" content="https://tools.scoreroute.com/tools/book-search/">
 <meta property="og:type" content="website">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-06-09","dateModified":"2026-06-09","author":{"@type":"Person","name":"BAOMING"},"name":"Free Book Search & ISBN Lookup - 30M+ Open Library","description":"Search 30+ million books by title, author or ISBN-10/ISBN-13. Covers, publisher, year, page count and subjects from the live Open Library catalog.","url":"https://tools.scoreroute.com/tools/book-search/","applicationCategory":"UtilityApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+{"@context":"https://schema.org","@type":"WebApplication","datePublished":"2026-06-09","dateModified":"2026-11-10","author":{"@type":"Person","name":"BAOMING"},"name":"Free Book Search & ISBN Lookup - 30M+ Open Library","description":"Search 30+ million books by title, author or ISBN-10/ISBN-13. Covers, publisher, year, page count and subjects from the live Open Library catalog.","url":"https://tools.scoreroute.com/tools/book-search/","applicationCategory":"UtilityApplication","operatingSystem":"All","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
 </script>
 <link rel="stylesheet" href="/styles.css">
 <style>
@@ -178,6 +178,7 @@ ol li, ul li { margin: 0.5rem 0; }
 </div>
 
 <div id="bsStatus" class="bs-status"><span class="spinner"></span><span id="bsStatusText">Searching...</span></div>
+<div id="toolNotice" class="tool-notice"></div>
 <div id="bsError" class="bs-error"></div>
 
 <div id="bsResultsInfo" class="bs-results-info" style="display:none;">
@@ -247,6 +248,19 @@ ol li, ul li { margin: 0.5rem 0; }
 </section>
 
 <section>
+<h3>Searching by ISBN is the reliable way</h3>
+<p>Title and author search is fuzzy on purpose; the ISBN is the one identifier that is exact.</p>
+<ul>
+    <li>An ISBN identifies a specific edition. The same book appears under many covers and reprints, and only one of them matches the physical copy in your hand.</li>
+    <li>ISBN-10 became ISBN-13: the new number is the 978 prefix followed by the first nine digits of the old number, with a fresh check digit. Both are printed on older stock, so search for either.</li>
+    <li>The check digit catches typos. A number that fails it is a mistyped ISBN, not a book that does not exist — which is why the result list is empty rather than wrong.</li>
+    <li>Searching by title works better with fewer words. Search the title, then narrow by publisher or year; adding a subtitle with its punctuation often returns nothing.</li>
+    <li>The year shown belongs to the edition, not necessarily to the first publication of the work.</li>
+    <li>Subjects come from library cataloguing, not from a bookstore's shelves: they are coarse categories such as "Fiction" or "Juvenile Fiction", not the marketing tags you would find on a retailer.</li>
+    <li>Cover images are third-party scans, and some editions simply have none.</li>
+    <li>For a citation or a purchase order, take the publisher and year from the edition record and quote the 13-digit ISBN — it is the only part that stays valid across reprints.</li>
+</ul>
+
 <h2>Where to Find a Book After You Find It</h2>
 <p>Every result links to multiple services so you can choose:</p>
 <ul>
@@ -391,6 +405,23 @@ ol li, ul li { margin: 0.5rem 0; }
     errorEl.innerHTML = '<strong>Error:</strong> ' + escapeHtml(msg);
     errorEl.classList.add('visible');
   }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('bsError');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
   function clearError() {
     errorEl.classList.remove('visible');
@@ -611,7 +642,7 @@ ol li, ul li { margin: 0.5rem 0; }
     clearError();
     var raw = queryInput.value.trim();
     if (!raw) {
-      showError('Please enter a search term');
+      showNotice('Please enter a search term');
       return;
     }
     if (currentMode === 'isbn') {

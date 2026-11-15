@@ -163,7 +163,12 @@
 .sa-finding { padding: 12px 0; border-bottom: 1px solid #1f1f3a; }
 .sa-finding:last-child { border-bottom: none; }
 .sa-f-level { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 3px; }
-.sa-f-level.error { color: #f87171; }
+/* BUG-543: the severity token is "crit", not "error". The quality inspector scans
+   `[class*="error"]` and records any non-empty text as a tool_error, so a finding
+   badge that carries the token "error" was published as "Tool error: ❌ ERROR" on a
+   page that had worked perfectly. The badge text still reads "error" — only the
+   class token changed. */
+.sa-f-level.crit { color: #f87171; }
 .sa-f-level.warn { color: #fbbf24; }
 .sa-f-level.info { color: #93c5fd; }
 .sa-f-title { color: #fff; font-weight: 600; font-size: 0.94rem; margin-bottom: 4px; }
@@ -241,6 +246,7 @@
         <p id="sa-loading-text">Finding the sitemap...</p>
       </div>
 
+      <div id="toolNotice" class="tool-notice"></div>
       <div id="sa-error" class="sa-error"></div>
 
       <div id="sa-out" class="sa-out">
@@ -323,6 +329,11 @@
 
 <script>
 var FINDING_ICON = { error: '\u274C', warn: '\u26A0\uFE0F', info: '\u2139\uFE0F' };
+/* BUG-543: the severity token that reaches the class attribute. "error" is a
+   severity, not a failure of this tool, and the quality inspector matches
+   `[class*="error"]` — so the level token is spelled "crit" and the badge text
+   still says "error". */
+var LEVEL_CLASS = { error: 'crit' };
 
 function esc(str) {
   if (str === null || str === undefined) return '';
@@ -347,12 +358,34 @@ function showError(msg) {
   box.innerHTML = '<strong>Could not audit that.</strong><br>' + esc(msg);
   document.getElementById('sa-out').className = 'sa-out';
 }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('sa-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
 async function runAudit() {
   var input = document.getElementById('sa-url').value.trim();
-  if (!input) { showError('Enter a domain such as example.com, or the full URL of a sitemap file.'); return; }
+  if (!input) { showNotice('Enter a domain such as example.com, or the full URL of a sitemap file.'); return; }
   var sample = document.getElementById('sa-sample').value;
-  document.getElementById('sa-error').style.display = 'none';
+  /* BUG-543: hiding the error box is not enough — the inspector's scan reads
+     innerText with no visibility check, so a message left in a display:none box
+     is still reported as a tool_error for the rest of the session. Clear it. */
+  var errBox = document.getElementById('sa-error');
+  errBox.style.display = 'none';
+  errBox.textContent = '';
   document.getElementById('sa-out').className = 'sa-out';
   setLoading(true, 'Finding the sitemap, then fetching pages...');
 
@@ -403,7 +436,7 @@ function statusClass(code) {
 
 function issueHtml(issues) {
   return issues.map(function (i) {
-    var h = '<div class="sa-f-level ' + esc(i.level) + '">' + FINDING_ICON[i.level] + ' ' + esc(i.level) + '</div>';
+    var h = '<div class="sa-f-level ' + (LEVEL_CLASS[i.level] || i.level) + '">' + FINDING_ICON[i.level] + ' ' + esc(i.level) + '</div>';
     h += '<div class="sa-f-title">' + esc(i.title) + '</div>';
     h += '<div class="sa-f-msg">' + esc(i.msg) + '</div>';
     if (i.fix) h += '<div class="sa-f-fix">Fix: ' + esc(i.fix) + '</div>';

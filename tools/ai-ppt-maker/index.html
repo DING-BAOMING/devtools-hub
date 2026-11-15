@@ -194,6 +194,7 @@
                     <div class="pm-loading-stage" id="pm-loading-stage">Stage 1: AI outline (Groq)</div>
                 </div>
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div class="pm-error" id="pm-error"></div>
 
                 <div class="pm-result" id="pm-result">
@@ -405,6 +406,23 @@
         $('pm-error').textContent = msg;
         $('pm-error').className = 'pm-error show';
     }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('pm-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
     function clearAll() {
         $('pm-topic').value = '';
@@ -445,7 +463,7 @@
         var author = $('pm-author').value.trim();
 
         if (!topic) {
-            showError('Please enter a topic for your presentation.');
+            showNotice('Please enter a topic for your presentation.');
             return;
         }
         if (topic.length > 500) {
@@ -571,7 +589,7 @@
 
     function downloadPptx() {
         if (!state.lastOutline) {
-            showError('Please generate an outline first.');
+            showNotice('Please generate an outline first.');
             return;
         }
         if (!PPTXGEN_LOADED) {

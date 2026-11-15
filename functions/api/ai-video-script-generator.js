@@ -1,4 +1,5 @@
 import { resolveModelId } from '../../libs/ai-provider.js';
+import { fetchWithTimeout, extractJson } from '../../libs/http.js';
 /**
  * AI Video Script Generator API - viral video scripts
  *
@@ -72,18 +73,6 @@ function fallbackScript(topic, tone, includeCta) {
   return { hook: hook, body: body, payoff: payoff, cta: cta, full_text: full };
 }
 
-function extractJson(text) {
-  var cleaned = (text || '').trim();
-  if (cleaned.startsWith('```')) {
-    var m = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (m) cleaned = m[1];
-  }
-  var first = cleaned.indexOf('{');
-  var last = cleaned.lastIndexOf('}');
-  if (first !== -1 && last !== -1 && last > first) cleaned = cleaned.substring(first, last + 1);
-  return JSON.parse(cleaned);
-}
-
 function assembleScript(parsed) {
   var hook = (parsed.hook || '').toString().trim();
   var body = (parsed.body || '').toString().trim();
@@ -96,16 +85,6 @@ function assembleScript(parsed) {
   var wordCount = full.split(/\s+/).filter(function(w) { return w.length > 0; }).length;
   var estSeconds = Math.max(5, Math.round(wordCount / 2.5));
   return { hook: hook, body: body, payoff: payoff, cta: cta, full_text: full, word_count: wordCount, est_seconds: estSeconds, char_count: full.length };
-}
-
-async function fetchWithTimeout(url, opts, ms) {
-  var ctl = new AbortController();
-  var timer = setTimeout(function() { ctl.abort('timeout'); }, ms);
-  try {
-    return await fetch(url, Object.assign({}, opts, { signal: ctl.signal }));
-  } finally {
-    clearTimeout(timer);
-  }
 }
 
 async function callAI(env, messages, maxTokens) {

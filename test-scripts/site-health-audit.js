@@ -10,6 +10,34 @@ const CONC = 12;
 const slugs = execSync("grep '^[a-z0-9]' manifest.txt | cut -d'|' -f1", { cwd: __dirname + '/..', maxBuffer: 1e8 })
   .toString().trim().split('\n').filter(Boolean);
 
+// BUG-516: three rules used to report 181 of 373 pages as "with issues" for things
+// that are not defects, so the audit's signal was zero. All three counted TEXT as
+// MARKUP, or ignored a house rule:
+//   · <h1> inside a <script> string or a <textarea> is literal text, not an element
+//     (html-to-image ships a demo "<h1>Hello, World</h1>" inside a textarea).
+//   · "&amp;amp;" in body prose is a page deliberately SHOWING the literal entity
+//     text (xml-formatter explains how to escape &, html-entity-encoder lists the
+//     named entities) — only the head can carry a real double-encoding bug.
+//   · a title without "| DevTools Hub" is the house rule, not a defect:
+//     functions/tools/[[catchall]].js -> smartTitle() keeps the brand only while
+//     the ESCAPED title stays <= 60 chars (BUG-169), so most long titles drop it
+//     on purpose.
+const manifestNames = new Map();
+execSync("grep '^[a-z0-9]' manifest.txt", { cwd: __dirname + '/..', maxBuffer: 1e8 })
+  .toString().split('\n').forEach((line) => {
+    const p = line.split('|');
+    if (p.length >= 5) manifestNames.set(p[0].trim(), p[4].trim());
+  });
+const escAttr = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// The same condition smartTitle() uses to keep the brand.
+const brandFits = (name) => escAttr(name + ' | DevTools Hub').length <= 60;
+// Markup only: <script>/<style> bodies and <textarea> bodies are raw text (a page
+// can even mention "<textarea>" inside a CSS comment — see image-to-text).
+const markupOnly = (html) => html
+  .replace(/<script[\s\S]*?<\/script>/gi, '')
+  .replace(/<style[\s\S]*?<\/style>/gi, '')
+  .replace(/<textarea[\s\S]*?<\/textarea>/gi, '');
+
 function pick(html, re) { const m = html.match(re); return m ? m[1] : null; }
 function decode(s) {
   return s == null ? null : s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
@@ -29,7 +57,7 @@ async function check(slug) {
     r.title = decode(pick(html, /<title>([^<]*)<\/title>/));
     r.desc = decode(pick(html, /<meta name="description" content="([^"]*)"/));
     r.canon = pick(html, /<link rel="canonical" href="([^"]*)"/);
-    r.h1 = (html.match(/<h1[\s>]/g) || []).length;
+    r.h1 = (markupOnly(html).match(/<h1[\s>]/g) || []).length;
     r.ld = (html.match(/application\/ld\+json/g) || []).length;
     r.faq = (html.match(/class="[^"]*\bfaq-item\b/g) || []).length;
     r.weapp = /"@type":\s*"WebApplication"|"@type":"WebApplication"/.test(html);
@@ -44,8 +72,11 @@ async function check(slug) {
     else if (r.canon !== BASE + '/tools/' + slug + '/') r.bad.push('canonical ' + r.canon);
     if (!r.weapp) r.bad.push('no WebApplication JSON-LD');
     if (r.robots && !/max-snippet:-1/.test(r.robots)) r.bad.push('robots limits snippet: ' + r.robots);
-    if (/&amp;amp;/.test(html)) r.bad.push('double-encoded &amp;amp;');
-    if (html.indexOf('| DevTools Hub') === -1 && r.title && r.title.indexOf('DevTools Hub') === -1 && r.title.length < 58) r.bad.push('title missing brand');
+    // Only the head can carry a real double-encoding bug (title/description/JSON-LD).
+    const headEnd = html.indexOf('</head>');
+    if (/&amp;amp;/.test(headEnd === -1 ? html : html.slice(0, headEnd))) r.bad.push('double-encoded &amp;amp;');
+    const mname = manifestNames.get(slug);
+    if (r.title && r.title.indexOf('DevTools Hub') === -1 && mname && brandFits(mname)) r.bad.push('title missing brand');
   } catch (e) { r.bad.push('FETCH ' + e.message); }
   return r;
 }

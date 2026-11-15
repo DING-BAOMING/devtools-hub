@@ -162,14 +162,13 @@ export async function onRequest({ request, env }) {
     format = 'mp3';
   }
 
-  var cfToken = env.CLOUDFLARE_API_TOKEN;
-  console.log('[TTS] env keys:', Object.keys(env || {}).join(','));
-  console.log('[TTS] cfToken present:', !!cfToken, 'length:', cfToken ? cfToken.length : 0);
+  // Prefer the least-privilege Workers AI token; the broad deployment token is
+  // only a fallback for older deployments that do not have it set yet.
+  var cfToken = env.CLOUDFLARE_AI_TOKEN || env.CLOUDFLARE_API_TOKEN;
 
   if (cfToken) {
     try {
       var cfResult = await callCloudflareTTS(text, cfToken);
-      console.log('[TTS] CF result:', JSON.stringify(cfResult).slice(0, 300));
       if (cfResult.ok) {
         return new Response(cfResult.audio, {
           headers: {

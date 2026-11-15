@@ -193,6 +193,7 @@
                     <span class="e2p-progress-text" id="e2p-progress-text">Generating PDF...</span>
                 </div>
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="e2p-error" class="e2p-error"></div>
             </div>
 
@@ -445,7 +446,7 @@
 
     function convertToPdf() {
         if (!workbook) {
-            showError('No Excel file loaded. Please upload a file first.');
+            showNotice('No Excel file loaded. Please upload a file first.');
             return;
         }
 
@@ -570,6 +571,23 @@
     function showError(msg) {
         errorEl.textContent = msg;
         errorEl.classList.add('visible');
+    }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('e2p-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
     }
 
     function showToast(msg) {

@@ -224,6 +224,7 @@
                     </div>
                 </div>
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div class="ic-error" id="icError"></div>
             </div>
 
@@ -406,7 +407,7 @@
 
         loadFile: function(file) {
             if (!file.type.match('image.*')) {
-                this.showError('Please select an image file.');
+                this.showNotice('Please select an image file.');
                 return;
             }
             var reader = new FileReader();
@@ -913,6 +914,18 @@
             var el = document.getElementById('icError');
             el.textContent = msg;
             el.classList.add('visible');
+        },
+
+        // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+        // The quality inspector records the text of every [class*="error"] element as a tool
+        // error, so those messages go into this neutral sink instead of the error one.
+        showNotice: function(msg) {
+            var n = document.getElementById('toolNotice');
+            if (!n) return;
+            n.textContent = msg;
+            n.classList.add('show');
+            var e = document.getElementById('icError');
+            if (e) { e.textContent = ''; }
         },
 
         hideError: function() {

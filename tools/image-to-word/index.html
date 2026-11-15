@@ -25,7 +25,7 @@
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "datePublished": "2026-09-01",
-        "dateModified": "2026-09-01",
+        "dateModified": "2026-11-10",
         "author": {"@type": "Person", "name": "BAOMING"},
         "name": "Image to Word Converter - Free JPG PNG to DOCX Online",
         "description": "Free image to Word converter. Convert JPG, PNG, WebP, GIF, BMP, HEIC photos into editable DOCX, RTF, or TXT. 12+ languages, batch OCR, 100% private.",
@@ -154,6 +154,7 @@
                     <input type="file" id="fileInput" accept="image/*,.heic,.heif,.tiff,.tif,.bmp" multiple hidden aria-label="Image file input">
                 </div>
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="errorBox" class="iw-error"></div>
 
                 <div id="thumbStrip" class="iw-thumb-strip"></div>
@@ -373,6 +374,20 @@
                     <li><strong>Archive searchable text</strong> &mdash; create a text version of photographed documents for full-text search or accessibility.</li>
                 </ul>
 
+                <h2>Which output format to pick, and what survives the conversion</h2>
+                <p>The recognition is the hard part; the format decides how much of the layout comes with it.</p>
+                <ul>
+                <li><strong>TXT</strong> is plain text — the safest thing to paste into anything.</li>
+                <li><strong>RTF</strong> stays editable in Word, Writer and LibreOffice, but drops advanced layout.</li>
+                <li><strong>DOCX</strong> is a real Word file with paragraph structure, which is what most people actually want to receive.</li>
+                <li>OCR gives you the <em>text</em>, not the layout: a table usually comes out as plain lines, and columns can end up in the wrong order.</li>
+                <li><strong>Multi-column scans need care.</strong> OCR reads across the full width of the image, so a two-column page can come back with the two columns interleaved. Crop each column separately when that happens.</li>
+                <li>The 12+ language models matter for CJK, Cyrillic and accented Latin scripts, but a scan that mixes languages will often be read with the wrong one.</li>
+                <li>Batch mode takes one file per upload and keeps the order of the files you added — number them before you start if the sequence matters.</li>
+                <li>Everything runs in the browser, so invoices, contracts and ID documents with personal data never leave the machine.</li>
+                <li>Proofread before you send it: OCR transcribes glyphs, and it does so confidently.</li>
+                </ul>
+
                 <h2>Frequently asked questions</h2>
                 <details class="faq-item">
                     <summary>Will my image be uploaded to a server?</summary>
@@ -480,6 +495,23 @@
                 errorBox.classList.remove('visible');
             }, 8000);
         }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('errorBox');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
         function clearError() {
             errorBox.classList.remove('visible');
@@ -1031,7 +1063,7 @@
 
         function copyText() {
             if (!textEditor.value) {
-                showError('No text to copy.');
+                showNotice('No text to copy.');
                 return;
             }
             var text = textEditor.value;
@@ -1058,7 +1090,7 @@
 
         async function regenerateFromEditedText() {
             if (!textEditor.value) {
-                showError('No text to regenerate.');
+                showNotice('No text to regenerate.');
                 return;
             }
             clearError();

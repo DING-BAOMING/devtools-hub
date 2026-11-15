@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from '../../libs/http.js';
 // Cloudflare Pages Function: Object Remover (Magic Eraser)
 // POST /api/object-remover
 //   Body: { image: <base64 PNG bytes>, mask: <base64 PNG bytes>, prompt: string, mode: string }
@@ -49,20 +50,12 @@ function uint8ArrayToB64(uint8) {
   return btoa(bin);
 }
 
-async function fetchWithTimeout(url, opts, ms) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort('timeout'), ms);
-  try {
-    return await fetch(url, { ...opts, signal: ctl.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 async function callInpaint(imageBytes, maskBytes, prompt, env) {
   const accountId = env.CF_ACCOUNT_ID || CF_ACCOUNT_ID;
-  const apiToken = env.CLOUDFLARE_API_TOKEN;
-  if (!apiToken) throw new Error('CLOUDFLARE_API_TOKEN not configured');
+  // Prefer the least-privilege Workers AI token; the broad deployment token is
+  // only a fallback for older deployments that do not have it set yet.
+  const apiToken = env.CLOUDFLARE_AI_TOKEN || env.CLOUDFLARE_API_TOKEN;
+  if (!apiToken) throw new Error('CLOUDFLARE_AI_TOKEN not configured');
 
   const body = {
     prompt: String(prompt || '').slice(0, 500),

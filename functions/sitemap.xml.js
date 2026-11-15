@@ -1,6 +1,8 @@
 // Dynamic sitemap - reads /manifest.txt, generates all tool + category URLs
 // Single source of truth: manifest.txt
 
+import { loadManifest } from '../libs/manifest.js';
+
 export async function onRequest(context) {
   const assets = context.env.ASSETS;
   const baseUrl = new URL(context.request.url);
@@ -21,19 +23,11 @@ export async function onRequest(context) {
   const TOP_PAGES = ['about', 'privacy', 'contact', 'subprocessors', 'whats-new'];
 
   try {
-    const mr = await assets.fetch(new URL('/manifest.txt?cb=' + Date.now(), baseUrl));
-    if (!mr.ok) throw new Error('Manifest ' + mr.status);
-    const manifest = await mr.text();
-    for (const line of manifest.split('\n')) {
-      const t = line.trim();
-      if (!t || t.startsWith('#')) continue;
-      const p = t.split('|');
-      if (p.length < 2) continue;
-      const slug = p[0].trim();
-      const cat = p[1].trim();
-      if (slug) tools.add(slug);
-      if (cat && CAT_NAMES.includes(cat)) categories.add(cat);
-      if (slug && p[2] && p[2].trim().toLowerCase() === 'yes') featured.add(slug);
+    // BUG-513: one manifest parser for every reader (libs/manifest.js).
+    for (const t of await loadManifest(assets, baseUrl)) {
+      if (t.slug) tools.add(t.slug);
+      if (t.category && CAT_NAMES.includes(t.category)) categories.add(t.category);
+      if (t.slug && t.featured) featured.add(t.slug);
     }
   } catch (e) {
     // BUG-289: do not echo the raw error into a crawler-facing response.

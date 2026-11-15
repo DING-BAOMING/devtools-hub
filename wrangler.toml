@@ -1,8 +1,24 @@
 name = "devtools-hub"
 compatibility_date = "2026-06-01"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = "."
+# The Cloudflare Pages Git build runs `npm ci --omit=dev && bash scripts/build.sh`
+# and uploads this directory. scripts/build.sh assembles it from the working tree
+# minus the Function source (Pages compiles functions/ separately, from the repo
+# root) and minus the test harness.
+pages_build_output_dir = "dist"
 
 [[kv_namespaces]]
 binding = "FEEDBACK_KV"
 id = "36a6a6f54e2f448a914eca18d4241344"
+
+# Build-time only flag: Cloudflare would otherwise run `npm install` before the
+# build command, which pulls the dev-only dependencies (Playwright and its
+# browser download) on every single deploy. The build command installs exactly
+# what the Functions need instead (`npm ci --omit=dev`).
+#
+# NOTE: this file is the Pages configuration source of truth once the project is
+# connected to Git. Plain-text variables declared here REPLACE the ones set in
+# the dashboard; secrets (secret_text) are not representable here and stay in
+# the dashboard untouched. Verified on the rehearsal project 2026-11-11.
+[vars]
+SKIP_DEPENDENCY_INSTALL = "1"

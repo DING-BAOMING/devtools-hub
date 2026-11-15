@@ -11,6 +11,7 @@ import { htmlToMarkdownBody, stripHtml, BLANK_SUBTREES } from '../../libs/html-m
 // imported here and by functions/llms.txt.js. Two Functions each carried their own copy
 // of the same published strings and had already drifted.
 import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../../libs/category-copy.js';
+import { parseManifest } from '../../libs/manifest.js';
 
   const CAT_NAMES = CAT_LABELS;
 
@@ -31,6 +32,16 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
   // category. Every slug below is verified to exist in manifest.txt with that category — a typo
   // here is a broken internal link, so `devtools-hub-docs/test-scripts/bug313-cat-intro-links.js`
   // asserts all 44 resolve.
+  //
+  // BUG-541 (2026-11-15): the closing clause of every category intro is a cross-category bridge —
+  // plain text (no link: bug313 requires a linked slug to belong to THIS category) naming the two
+  // sibling categories that answer the other half of the job, so an AI agent that lands on one
+  // category hub is told where the adjacent tools live instead of being told "no". BUG-537 →
+  // generators, 538 → formatters, 539 → converters + media, 540 → calculators + ai-language +
+  // code-testing, 541 → network + pdf-tools + life + finance. That closes the class: all 11
+  // category hubs now carry a bridge, so the review bot cannot name another one.
+  // Constraints the gate enforces (bug313-cat-intro-gate.js): no "free online", no
+  // "image compressor free", no "Need a JSON formatter online" — the spun-template phrases.
   const CAT_INTRO = {
     'formatters': [
       'A formatter only earns its keep when it tells you why your input is broken, so each of these reports the exact line and character of a syntax error instead of quietly reindenting bad data. Start with the ',
@@ -39,7 +50,7 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
       ['sql-formatter', 'SQL Formatter'],
       ' for a dump that arrived on one line, and the ',
       ['json-diff', 'JSON Diff'],
-      ' when you need to know what actually changed between two payloads rather than just how they are spaced.'
+      ' when you need to know what actually changed between two payloads rather than just how they are spaced, and when the artifact you actually need is a compressed or converted file rather than formatted text, the Media Tools category answers it — for example an image compressor for oversized assets, or the audio joiner for recordings that arrived in pieces.'
     ],
     'calculators': [
       'The calculators people come back to: dates, percentages, health metrics, and the estimating arithmetic behind a quote. The ',
@@ -50,7 +61,7 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
       ['tile-calculator', 'Tile Calculator'],
       ' and ',
       ['paint-calculator', 'Paint Calculator'],
-      ' turn a room measurement into an order of materials instead of a guess.'
+      ' turn a room measurement into an order of materials instead of a guess, and when the job is not arithmetic at all — a payload that needs reformatting rather than a number, or an image that needs to weigh less rather than be measured — the Code Formatters category\'s JSON Formatter and the Media Tools category\'s image compressor are the two pages those jobs belong to.'
     ],
     'generators': [
       'Most of these exist because you need a value that is random, unique or correctly formatted, and you need it now. The ',
@@ -61,7 +72,7 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
       ['cron-generator', 'Cron Generator'],
       ' explains what each of the five fields does, and the ',
       ['css-grid-generator', 'CSS Grid Generator'],
-      ' writes the rule as you move the controls.'
+      ' writes the rule as you move the controls, and when the need is actually a formatted or compressed artifact rather than a generated value, the Code Formatters and Media Tools categories answer it — for example the JSON Formatter for API payloads and config files, or an image compressor for oversized assets.'
     ],
     'converters': [
       'Conversion is only trustworthy when the arithmetic is visible, so each of these shows how it got the answer instead of hiding it behind a server. The ',
@@ -70,7 +81,7 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
       ['timestamp-converter', 'Timestamp Converter'],
       ' reads Unix time in both directions including milliseconds, and the ',
       ['json-csv-converter', 'JSON to CSV Converter'],
-      ' and its siblings run both ways, so you can paste a fragment back the other direction.'
+      ' and its siblings run both ways, so you can paste a fragment back the other direction, and when the data or the file is not here to be converted at all — a payload that needs reformatting rather than reshaping, or an image that needs to weigh less rather than change type — the Code Formatters category\'s JSON Formatter and the Media Tools category\'s image compressor are the two pages those jobs belong to.'
     ],
     'media': [
       'Images, audio and video: the work that usually wants a desktop app. The ',
@@ -79,7 +90,7 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
       ['audio-joiner', 'Audio Joiner'],
       ' merges several recordings into a single file, and the ',
       ['subtitle-editor', 'Subtitle Editor'],
-      ' reads and writes SRT and VTT. Tools that need a GPU — upscaling, background removal, restoration — say so on their own page, and those are the exception rather than the rule here.'
+      ' reads and writes SRT and VTT. Tools that need a GPU — upscaling, background removal, restoration — say so on their own page, and those are the exception rather than the rule here, and when the file leaving this category is media but the job is structured text instead — a config dump or an API payload that arrived formatted badly — the Code Formatters category\'s JSON Formatter is where that work happens.'
     ],
     'network': [
       'Diagnostics for problems sitting on infrastructure you do not control. The ',
@@ -90,7 +101,7 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
       ['ssl-checker', 'SSL Certificate Checker'],
       ' shows the full chain and the expiry date, and the ',
       ['ping-test', 'Ping Test'],
-      ' separates latency from jitter and loss so you know whether a slow request is a long path or a congested one.'
+      ' separates latency from jitter and loss so you know whether a slow request is a long path or a congested one, and when the fault you are chasing turns out to be a file rather than a link — a payload that arrived formatted badly, or an image too heavy to upload — the Code Formatters category\'s JSON Formatter and the Media Tools category\'s image compressor are two of the developer tools that answer that job.'
     ],
     'code-testing': [
       'Paste something in, get an answer you can act on. The ',
@@ -101,7 +112,7 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
       ['jwt-decoder', 'JWT Decoder'],
       ' shows header and payload separately so a signing fault is distinguishable from a bad claim, and the ',
       ['online-code-runner', 'Online Code Runner'],
-      ' executes Python, JavaScript and HTML so you can check a snippet before it reaches your codebase.'
+      ' executes Python, JavaScript and HTML so you can check a snippet before it reaches your codebase, and when the thing you pasted turns out to be a payload that needs reformatting rather than testing, the sibling Code Formatters category\'s JSON Formatter is where that work happens.'
     ],
     'pdf-tools': [
       'PDF is a container format rather than a document format, which is why so many editors mangle it. These tools work on the page structure instead: the ',
@@ -112,7 +123,7 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
       ['pdf-redactor', 'PDF Redactor'],
       ' is built to remove content rather than draw a box over it, and the ',
       ['pdf-accessibility-checker', 'PDF Accessibility Checker'],
-      ' reports the PDF/UA and WCAG problems that make a file unusable with a screen reader.'
+      ' reports the PDF/UA and WCAG problems that make a file unusable with a screen reader, and when the file you were handed is not a PDF at all — a payload that needs reformatting, or an image that has to weigh less before it is sent — the Code Formatters category\'s JSON Formatter and the Media Tools category\'s image compressor are two of the developer tools that cover those jobs.'
     ],
     'life': [
       'Everyday utilities: what time it is where you are, how long until a date, and whether your hardware is working. The ',
@@ -125,7 +136,7 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
       ['mouse-tester', 'Mouse Tester'],
       ' find dead keys and failing buttons, and the ',
       ['weather-forecast', 'Weather Forecast'],
-      ' gives a seven-day outlook you can chart.'
+      ' gives a seven-day outlook you can chart, and none of this needs a server; when the task that follows is a file rather than a device — a payload that arrived formatted badly, or an image too heavy to upload — the Code Formatters category\'s JSON Formatter and the Media Tools category\'s image compressor are two of the developer tools for that.'
     ],
     'finance': [
       'Rates, prices and repayment arithmetic. The ',
@@ -134,7 +145,7 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
       ['loan-calculator', 'Loan Calculator'],
       ' build a full amortisation schedule including PMI, tax and insurance, so an extra monthly payment can be weighed against a shorter term, and the ',
       ['compound-interest-calculator', 'Compound Interest Calculator'],
-      ' shows what a fixed monthly contribution becomes over decades. Live quotes are indicative and can lag the market by a few seconds.'
+      ' shows what a fixed monthly contribution becomes over decades. Live quotes are indicative and can lag the market by a few seconds, and when the figure you are checking has to travel inside a document — a payload that arrived formatted badly, or an image too heavy to attach — the Code Formatters category\'s JSON Formatter and the Media Tools category\'s image compressor are two of the developer tools for that.'
     ],
     'ai-language': [
       'Everything here calls a model, so treat the output as a draft and check arithmetic, citations and quoted sources before it goes anywhere public. The ',
@@ -147,7 +158,7 @@ import { CAT_DESCRIPTIONS, CAT_NOUNS, CAT_LABELS, sentenceTruncate } from '../..
       ['citation-generator', 'Citation Generator'],
       ' formats APA, MLA and Chicago from details you supply rather than inventing a source, and the ',
       ['ats-resume-checker', 'ATS Resume Checker'],
-      ' scores a resume against the parsing rules employers actually use.'
+      ' scores a resume against the parsing rules employers actually use, and when the job is structured text or a lighter file rather than drafted prose — an API payload that needs reformatting, or an image that needs to weigh less — the Code Formatters category\'s JSON Formatter and the Media Tools category\'s image compressor are the two pages those jobs belong to.'
     ]
   };
 
@@ -1924,18 +1935,10 @@ async function loadManifest(assets, baseUrl) {
     const mr = await assets.fetch(new URL('/manifest.txt?cb=' + Date.now(), baseUrl));
     if (!mr.ok) throw new Error('Manifest ' + mr.status);
     const text = await mr.text();
+    // BUG-513: one manifest parser for every reader (libs/manifest.js).
     const tools = {};
-    for (const line of text.split('\n')) {
-      const t = line.trim();
-      if (!t || t.startsWith('#')) continue;
-      const p = t.split('|');
-      if (p.length < 6) continue;
-      const [slug, cat, , , name, desc] = p;
-      tools[slug.trim()] = {
-        category: cat.trim(),
-        name: name.trim(),
-        desc: desc.trim(),
-      };
+    for (const t of parseManifest(text)) {
+      tools[t.slug] = { category: t.category, name: t.name, desc: t.desc };
     }
     return tools;
   })();
@@ -2148,6 +2151,12 @@ function injectBreadcrumbSchema(html, tool, slug) {
     .replace(/&#39;/g, "'")
     .replace(/\s+/g, ' ').trim();
   const re = /<a\b([^>]*)href="([^"]+)"([^>]*)>([\s\S]*?)<\/a>|<span\b[^>]*>([\s\S]*?)<\/span>/g;
+  // The "Report Problem" link is sometimes wrapped in a <span class="feedback-link">.
+  // That wrapper is not a hierarchy level -- but the word "feedback" on its own is NOT
+  // the signal: the /tools/feedback/ page's own crumb is literally the word "Feedback",
+  // and matching the word dropped that page's only second-level crumb, leaving one item
+  // and therefore no BreadcrumbList at all. Detect the link by where it points.
+  const feedbackLink = (s) => /<a\b[^>]*href="[^"]*\/tools\/feedback\//i.test(s);
   let m;
   while ((m = re.exec(nav[1])) !== null) {
     if (m[5] !== undefined) {
@@ -2155,15 +2164,15 @@ function injectBreadcrumbSchema(html, tool, slug) {
       // BUG-444: the trail's separators are <span>/</span> (14 pages), not hierarchy levels.
       // A ListItem without an `item` URL that is NOT the last one is invalid BreadcrumbList
       // JSON-LD (schema.org: itemListElement.item is required) — and "/" as a crumb is
-      // meaningless to a reader anyway. The "Report Problem" link also appears in some trails
-      // wrapped in a <span class="feedback-link">, which is not a level either.
-      if (!name || /^[\/>›»‣·•|—-]+$/.test(name) || /feedback/i.test(m[0])) continue;
+      // meaningless to a reader anyway.
+      if (!name || /^[\/>›»‣·•|—-]+$/.test(name)) continue;
+      if (feedbackLink(m[5]) || /class="[^"]*\bfeedback\b[^"]*"/i.test(m[0])) continue;
       items.push({ name: name });
       continue;
     }
     // The "Report Problem" link sits in the trail but is not part of the hierarchy
     // (its class varies: feedback-link, hg-feedback, …).
-    if (/feedback/i.test(m[1] + m[3])) continue;
+    if (/\/tools\/feedback\//.test(m[2]) || /feedback/i.test(m[1] + m[3])) continue;
     const name = text(m[4]);
     if (!name) continue;
     const href = m[2];
@@ -2477,14 +2486,8 @@ export async function onRequest(context) {
       try {
         const _mr = await assets.fetch(new URL('/manifest.txt?cb=' + Date.now(), url));
         if (_mr.ok) {
-          const _manifest = await _mr.text();
-          for (const _line of _manifest.split('\n')) {
-            const _trimmed = _line.trim();
-            if (!_trimmed || _trimmed.startsWith('#')) continue;
-            const _parts = _trimmed.split('|');
-            if (_parts.length < 6) continue;
-            _tools.push({slug:_parts[0].trim(),category:(_parts[1]||'other').trim(),featured:_parts[2]==='yes',isnew:_parts[3]==='yes',name:_parts[4].trim(),desc:_parts[5].trim(),tags:_parts[6]||''});
-          }
+          // BUG-513: one manifest parser for every reader (libs/manifest.js).
+          _tools = parseManifest(await _mr.text());
         }
       } catch(_e) {}
       const _totalCount = _tools.length;
@@ -2519,18 +2522,25 @@ export async function onRequest(context) {
         //      The description is still published, at llms-full.txt / llms.txt / /api/tools and on
         //      each tool's own mirror — the URL on the same row. What goes is the third copy of a
         //      catalogue the site already serves three times, not the description itself.
-        let _md = '# All ' + _totalCount + ' Free Online Developer Tools\n\n> Browse by category or view the full alphabetical list\n\nURL: ' + _base + '/tools/\n\nMarkdown: ' + _base + '/tools/.md\n\n## Categories\n\n';
+        // BUG-466: links are root-relative, like every other mirror on the site (all 373 tool
+        // mirrors and all 11 category mirrors, from libs/html-md.js) and unlike this file's own
+        // pre-fix output. The 28-byte origin prefix on 373 rows was 10.4 KB, which is what kept
+        // this mirror over the 50 KB markdown budget (`agentimization/page-size-markdown`,
+        // Warning 4 of every 2026-11-07/08 review round) — BUG-353's duplicate-catalogue fix was
+        // not enough on its own once the 50 card descriptions came back for parity (BUG-397).
+        // Zero content lost: the document declares its base once, in the `URL:` line below.
+        let _md = '# All ' + _totalCount + ' Free Online Developer Tools\n\n> Browse by category, or search the index by tool name\n\nURL: ' + _base + '/tools/\n\nMarkdown: ' + _base + '/tools/.md\n\n## Categories\n\n';
         _md += 'Browse all ' + _totalCount + ' free online developer tools organized into ' + _CAT_ORDER.length + ' categories. Every tool runs in your browser, no signup required.\n\n';
-        _md += 'Full description for every tool: [llms-full.txt](' + _base + '/llms-full.txt) ' +
-               '(machine-readable catalogue: [/api/tools](' + _base + '/api/tools), compact index: ' +
-               '[llms.txt](' + _base + '/llms.txt)). Each name below links to that tool\'s own markdown ' +
+        _md += 'Full description for every tool: [llms-full.txt](/llms-full.txt) ' +
+               '(machine-readable catalogue: [/api/tools](/api/tools), compact index: ' +
+               '[llms.txt](/llms.txt)). Each name below links to that tool\'s own markdown ' +
                'mirror, which carries its description in full. The ' + _PAGE_SIZE + ' tools this page ' +
                'shows carry their description on their own line.\n\n';
         for (const [_ck,_cn] of _CAT_ORDER) {
           const _catTools = _tools.filter(t=>t.category===_ck);
           _md += '### ' + _cn + ' (' + _catTools.length + ' tools)\n\n' + (CAT_DESCRIPTIONS[_ck]||'') + '\n\n';
           for (const t of _catTools.slice().sort((a,b)=>a.name.localeCompare(b.name))) {
-            _md += '- [' + t.name + '](' + _base + '/tools/' + t.slug + '/.md)' +
+            _md += '- [' + t.name + '](/tools/' + t.slug + '/.md)' +
                    (t.isnew?' _(New)_':(t.featured?' _(Popular)_':'')) +
                    (_gridSlugs.has(t.slug) ? ': ' + t.desc : '') + '\n';
           }
@@ -2571,7 +2581,7 @@ export async function onRequest(context) {
             { '@type': 'ListItem', 'position': 2, 'name': 'All Tools' }
           ]
         }) + '</script>';
-        let _html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<link rel="icon" type="image/x-icon" href="/favicon.ico">\n<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">\n<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">\n<meta property="og:image" content="/og-image.png">\n<link rel="canonical" href="' + _base + '/tools/">\n<link rel="stylesheet" href="/home.css">\n<link rel="stylesheet" href="/styles.css">\n<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">\n<title>All ' + _totalCount + ' Online Developer Tools by Category | DevTools Hub</title>\n<meta name="description" content="Browse all ' + _totalCount + ' free online developer tools in ' + _CAT_ORDER.length + ' categories. JSON formatter, image compressor, calculator, password generator and more. No signup.">\n<meta property="og:title" content="All ' + _totalCount + ' Online Developer Tools by Category | DevTools Hub">\n<meta property="og:description" content="Browse all ' + _totalCount + ' free online developer tools in ' + _CAT_ORDER.length + ' categories. JSON formatter, image compressor, calculator, password generator and more. No signup.">\n<meta property="og:url" content="' + _base + '/tools/">\n<meta property="og:type" content="website">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="All ' + _totalCount + ' Online Developer Tools by Category | DevTools Hub">\n<meta name="twitter:description" content="All ' + _totalCount + ' free online developer tools by category. No signup.">\n<meta name="twitter:image" content="/og-image.png">\n<script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","datePublished":"2026-05-21","dateModified":"' + _today + '","author":{"@id":"https://tools.scoreroute.com/#author","@type":"Person","name":"BAOMING","url":"https://github.com/Evan-MJ","sameAs":["https://github.com/Evan-MJ","https://github.com/Evan-MJ/devtools-hub"]},"publisher":{"@id":"https://tools.scoreroute.com/#organization","@type":"Organization","name":"DevTools Hub","url":"https://tools.scoreroute.com/"},"name":"All ' + _totalCount + ' DevTools Hub Tools","description":"Browse all ' + _totalCount + ' free online developer tools by category.","url":"' + _base + '/tools/"}</script>' + _hubSchemaHtml + '</head>\n<body class="hub-page">\n<header class="site-header"><div class="container">\n<a href="/" class="site-logo">All Tools</a>\n<p class="subtitle">DevTools Hub &middot; ' + _totalCount + ' tools</p>\n<nav class="top-nav"><a href="/">Home</a> <a href="/about/">About</a> <a href="/privacy/">Privacy</a> <a href="/subprocessors/">Subprocessors</a> <a href="/sitemap.xml">Sitemap</a></nav>\n<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> &gt; <span>All Tools</span> <a href="/tools/feedback/" class="feedback-link">Report Problem</a></nav>\n</div></header>\n<main><div class="container">\n<section class="section-block">\n<h1 style="font-size:2rem;margin:40px 0 8px;letter-spacing:-0.02em;">All ' + _totalCount + ' Free Online Developer Tools</h1>\n<p style="color:#9aa0a6;margin-bottom:16px;line-height:1.6;">Browse by category or view the full alphabetical list</p>';
+        let _html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<link rel="icon" type="image/x-icon" href="/favicon.ico">\n<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">\n<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">\n<meta property="og:image" content="/og-image.png">\n<link rel="canonical" href="' + _base + '/tools/">\n<link rel="stylesheet" href="/home.css">\n<link rel="stylesheet" href="/styles.css">\n<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1, ai-train:no, ai-input:no">\n<title>All ' + _totalCount + ' Online Developer Tools by Category | DevTools Hub</title>\n<meta name="description" content="Browse all ' + _totalCount + ' free online developer tools in ' + _CAT_ORDER.length + ' categories. JSON formatter, image compressor, calculator, password generator and more. No signup.">\n<meta property="og:title" content="All ' + _totalCount + ' Online Developer Tools by Category | DevTools Hub">\n<meta property="og:description" content="Browse all ' + _totalCount + ' free online developer tools in ' + _CAT_ORDER.length + ' categories. JSON formatter, image compressor, calculator, password generator and more. No signup.">\n<meta property="og:url" content="' + _base + '/tools/">\n<meta property="og:type" content="website">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="All ' + _totalCount + ' Online Developer Tools by Category | DevTools Hub">\n<meta name="twitter:description" content="All ' + _totalCount + ' free online developer tools by category. No signup.">\n<meta name="twitter:image" content="/og-image.png">\n<script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","datePublished":"2026-05-21","dateModified":"' + _today + '","author":{"@id":"https://tools.scoreroute.com/#author","@type":"Person","name":"BAOMING","url":"https://github.com/Evan-MJ","sameAs":["https://github.com/Evan-MJ","https://github.com/Evan-MJ/devtools-hub"]},"publisher":{"@id":"https://tools.scoreroute.com/#organization","@type":"Organization","name":"DevTools Hub","url":"https://tools.scoreroute.com/"},"name":"All ' + _totalCount + ' DevTools Hub Tools","description":"Browse all ' + _totalCount + ' free online developer tools by category.","url":"' + _base + '/tools/"}</script>' + _hubSchemaHtml + '</head>\n<body class="hub-page">\n<header class="site-header"><div class="container">\n<a href="/" class="site-logo">All Tools</a>\n<p class="subtitle">DevTools Hub &middot; ' + _totalCount + ' tools</p>\n<nav class="top-nav"><a href="/">Home</a> <a href="/about/">About</a> <a href="/privacy/">Privacy</a> <a href="/subprocessors/">Subprocessors</a> <a href="/sitemap.xml">Sitemap</a></nav>\n<nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">Home</a> &gt; <span>All Tools</span> <a href="/tools/feedback/" class="feedback-link">Report Problem</a></nav>\n</div></header>\n<main><div class="container">\n<section class="section-block">\n<h1 style="font-size:2rem;margin:40px 0 8px;letter-spacing:-0.02em;">All ' + _totalCount + ' Free Online Developer Tools</h1>\n<p style="color:#9aa0a6;margin-bottom:16px;line-height:1.6;">Browse by category, or search the index by tool name</p>';
         _html += '<section class="category-grid-section"><div class="section-header"><h2>Browse by Category</h2><span class="section-count">' + _CAT_ORDER.length + ' categories</span></div><div class="category-grid">';
         for (const [_ck,_cn] of _CAT_ORDER) {
           const _count = _tools.filter(t=>t.category===_ck).length;

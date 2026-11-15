@@ -17,32 +17,26 @@
     'ai-language': 'AI Language',
   };
 
+import { loadManifest } from '../../libs/manifest.js';
+
 export async function onRequestGet(context) {
   const assets = context.env.ASSETS;
   const baseUrl = new URL(context.request.url);
   const tools = [];
 
   try {
-    const mr = await assets.fetch(new URL('/manifest.txt?cb=' + Date.now(), baseUrl));
-    if (!mr.ok) throw new Error('Manifest ' + mr.status);
-    const manifest = await mr.text();
-    for (const line of manifest.split('\n')) {
-      const t = line.trim();
-      if (!t || t.startsWith('#')) continue;
-      const p = t.split('|');
-      if (p.length < 6) continue;
-      const [slug, category, featured, isnew, name, desc, tags] = p;
-      const cat = (category || '').trim();
+    // BUG-513: one manifest parser for every reader (libs/manifest.js).
+    for (const t of await loadManifest(assets, baseUrl)) {
       tools.push({
-        slug: slug.trim(),
-        name: (name || '').trim(),
-        desc: (desc || '').trim(),
-        tags: (tags || '').split(',').map(s => s.trim()).filter(Boolean),
-        category: cat,
-        categoryLabel: CAT_LABELS[cat] || cat,
-        featured: (featured || '').trim() === 'yes',
-        isnew: (isnew || '').trim() === 'yes',
-        url: '/tools/' + slug.trim() + '/'
+        slug: t.slug,
+        name: t.name,
+        desc: t.desc,
+        tags: t.tags,
+        category: t.category,
+        categoryLabel: CAT_LABELS[t.category] || t.category,
+        featured: t.featured,
+        isnew: t.isnew,
+        url: '/tools/' + t.slug + '/'
       });
     }
   } catch (e) {

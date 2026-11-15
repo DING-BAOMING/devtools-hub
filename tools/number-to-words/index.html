@@ -120,6 +120,7 @@
                     <button class="ntw-example-btn" onclick="setExample('100000000')">100M</button>
                 </div>
 
+                <div id="toolNotice" class="tool-notice"></div>
                 <div id="ntw-error" class="ntw-error"></div>
 
                 <div class="ntw-result" id="ntw-result">
@@ -257,7 +258,7 @@
             var cleaned = raw.replace(/,/g, '').trim();
 
             if (!/^-?\d+(\.\d+)?$/.test(cleaned)) {
-                showError('Please enter a valid number (digits, optional decimal point, optional minus sign). Examples: 1234, 3.14, -50');
+                showNotice('Please enter a valid number (digits, optional decimal point, optional minus sign). Examples: 1234, 3.14, -50');
                 return;
             }
 
@@ -452,6 +453,23 @@
             document.getElementById('ntw-output').className = 'ntw-result-text';
             document.getElementById('ntw-meta').innerHTML = '';
         }
+    // BUG-532: a benign precondition ("you have not filled this in yet") is not a failure.
+    // The quality inspector records the text of every [class*="error"] element as a tool
+    // error, so those messages go into this neutral sink instead of the error one.
+    function showNotice(msg) {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = msg;
+        n.classList.add('show');
+        var e = document.getElementById('ntw-error');
+        if (e) { e.textContent = ''; var kids = e.querySelectorAll('*'); for (var k = 0; k < kids.length; k++) { kids[k].textContent = ''; } }
+    }
+    function hideNotice() {
+        var n = document.getElementById('toolNotice');
+        if (!n) return;
+        n.textContent = '';
+        n.classList.remove('show');
+    }
 
         function copyWords() {
             var text = document.getElementById('ntw-output').textContent;

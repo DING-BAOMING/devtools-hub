@@ -237,23 +237,42 @@
             const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
             const tzStr = Intl.DateTimeFormat().resolvedOptions().timeZone;
             
-            document.getElementById('local-time').textContent = timeStr;
-            document.getElementById('local-timezone').textContent = tzStr;
+            // Only write when the text actually changed. Rewriting it every second
+            // re-lays out the header and shows up as layout shift (CLS) whenever
+            // the digits change width.
+            setText('local-time', timeStr);
+            setText('local-timezone', tzStr);
+        }
+
+        function setText(id, text) {
+            var el = document.getElementById(id);
+            if (el && el.textContent !== text) el.textContent = text;
         }
 
         function updateWorldClock() {
             const now = new Date();
             const grid = document.getElementById('world-clock');
-            grid.innerHTML = cities.map(city => {
-                const options = { timeZone: city.zone, hour: '2-digit', minute: '2-digit', hour12: false };
-                const timeStr = now.toLocaleTimeString('en-US', options);
-                const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-                return `<div class="tz-clock-item">
-                    <div class="tz-city">${city.name}</div>
-                    <div class="tz-city-time">${timeStr}</div>
-                    <div class="tz-city-date">${dateStr}</div>
-                </div>`;
-            }).join('');
+            // Build the grid once, then only patch the texts that changed.
+            // Rewriting the whole innerHTML every second rebuilt 12 cards a
+            // second, which re-laid out everything below them (CLS) and did a
+            // pointless DOM rebuild for content that changes once a minute.
+            if (!grid.children.length) {
+                grid.innerHTML = cities.map(city => '<div class="tz-clock-item">' +
+                    '<div class="tz-city">' + city.name + '</div>' +
+                    '<div class="tz-city-time"></div>' +
+                    '<div class="tz-city-date"></div>' +
+                '</div>').join('');
+            }
+            cities.forEach(function(city, i) {
+                var item = grid.children[i];
+                if (!item) return;
+                var options = { timeZone: city.zone, hour: '2-digit', minute: '2-digit', hour12: false };
+                var timeStr = now.toLocaleTimeString('en-US', options);
+                var dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                var timeEl = item.children[1], dateEl = item.children[2];
+                if (timeEl && timeEl.textContent !== timeStr) timeEl.textContent = timeStr;
+                if (dateEl && dateEl.textContent !== dateStr) dateEl.textContent = dateStr;
+            });
         }
 
         function convertTime() {

@@ -1,0 +1,26 @@
+# The standalone Worker behind the site's REST API Tester:
+#   https://devtools-hub-api-proxy.bm-d.workers.dev
+#
+# It is NOT part of the Pages site — Pages builds from wrangler.toml (see that
+# file); this one is deployed separately:
+#
+#   npx wrangler deploy --config wrangler.worker.toml
+#
+# Why a separate config: one file per deployable. Mixing a Workers Script and
+# a Pages project in one wrangler.toml makes wrangler guess, and the guess is
+# usually wrong.
+name = "devtools-hub-api-proxy"
+main = "src/proxy-fetch-worker.js"
+compatibility_date = "2026-06-01"
+workers_dev = true
+
+# Cloudflare's own rate limiting, not a counter we keep ourselves.
+# 60 requests a minute per client IP: a person testing APIs never hits it,
+# a script hammering the relay does.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 60
+  period = 60
